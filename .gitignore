@@ -1,0 +1,33 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+build/
+storybook-static/
+*.tsbuildinfo
+
+# Tests
+coverage/
+
+# Entorno — los secrets nunca van al repo (spec §12)
+.env
+.env.*
+!.env.example
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Caches de tooling
+.eslintcache
+.vite/

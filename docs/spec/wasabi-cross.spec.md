@@ -4,13 +4,13 @@
 
 ## 1. Resumen
 
-| | |
-|---|---|
-| Nombre | Wasabi Cross |
-| Qué es | Webapp para gestionar ejercicios y RMs (repetición máxima) de un atleta |
-| Alcance de este desarrollo | Webapp + API. La landing page queda fuera de esta fase. |
-| Monetización | Suscripción Free / Max |
-| Origen | Evolución (v2) de bv-cross, para uso personal, amigos y algunos suscriptores |
+|                            |                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| Nombre                     | Wasabi Cross                                                                 |
+| Qué es                     | Webapp para gestionar ejercicios y RMs (repetición máxima) de un atleta      |
+| Alcance de este desarrollo | Webapp + API. La landing page queda fuera de esta fase.                      |
+| Monetización               | Suscripción Free / Max                                                       |
+| Origen                     | Evolución (v2) de bv-cross, para uso personal, amigos y algunos suscriptores |
 
 ## 2. Qué NO es Wasabi Cross
 
@@ -31,10 +31,10 @@ Webapp donde el usuario carga sus ejercicios (o los elige de un listado pre-carg
 
 ## 4. Monetización
 
-| Plan | Ejercicios pre-cargados | Ejercicios nuevos (custom) | Ejercicios gestionados en total |
-|---|---|---|---|
-| **Free** | Todos | Hasta 3 | Hasta 10 |
-| **Max** (pago anual) | Todos | Ilimitados | Ilimitado |
+| Plan                 | Ejercicios pre-cargados | Ejercicios nuevos (custom) | Ejercicios gestionados en total |
+| -------------------- | ----------------------- | -------------------------- | ------------------------------- |
+| **Free**             | Todos                   | Hasta 3                    | Hasta 10                        |
+| **Max** (pago anual) | Todos                   | Ilimitados                 | Ilimitado                       |
 
 Los límites de plan son un **entitlement por usuario**, se validan en el módulo `subscriptions` en el backend — nunca solo en el frontend.
 
@@ -42,16 +42,16 @@ Los límites de plan son un **entitlement por usuario**, se validan en el módul
 
 Mockups en [`../mockup`](../mockup).
 
-| Página | Mockup | Descripción |
-|---|---|---|
-| Presentación | `wasabi (1).jpeg` | Splash con logo y nombre al abrir la app |
-| Login | `wasabi (2).jpeg` | |
-| Registro | `wasabi (3).jpeg` | |
-| Header (componente global) | — | Logo + nombre a la izquierda; toggle de tema y menú de navegación a la derecha. Presente en todas las páginas. |
-| Home | `wasabi (4).jpeg` | Lista de ejercicios cargados: nombre, fecha de última modificación, valor actual (RM / tiempo / reps). Botón "New Exercice" (si el plan lo permite). |
-| Estadísticas | `wasabi (10).jpeg` | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. |
-| Ejercicio | `wasabi (5).jpeg`, `wasabi (6).jpeg`, `wasabi (11).jpeg` | Detalle de un ejercicio. Para Fuerza: RM actual + porcentajes de carga (default 65/75/80/85/90/95%, configurables) + cálculo de un porcentaje custom. Tags de contexto: carga liviana/media/pesada, tipo (fuerza, hipertrofia, gimnástico, running…), nivel del usuario, malestar/dolor. Acciones: editar ejercicio, ver estadísticas, cargar nuevo RM (modal), ver historial. Para tiempo/repeticiones: mismo patrón, el cálculo de "carga" se reemplaza por tiempo o cantidad. |
-| Nuevo ejercicio | `wasabi (9).jpeg` | Formulario para elegir un ejercicio pre-cargado o crear uno nuevo si no existe. |
+| Página                     | Mockup                                                   | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presentación               | `wasabi (1).jpeg`                                        | Splash con logo y nombre al abrir la app                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Login                      | `wasabi (2).jpeg`                                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Registro                   | `wasabi (3).jpeg`                                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Header (componente global) | —                                                        | Logo + nombre a la izquierda; toggle de tema y menú de navegación a la derecha. Presente en todas las páginas.                                                                                                                                                                                                                                                                                                                                                                   |
+| Home                       | `wasabi (4).jpeg`                                        | Lista de ejercicios cargados: nombre, fecha de última modificación, valor actual (RM / tiempo / reps). Botón "New Exercice" (si el plan lo permite).                                                                                                                                                                                                                                                                                                                             |
+| Estadísticas               | `wasabi (10).jpeg`                                       | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior.                                                                                                                                                                                  |
+| Ejercicio                  | `wasabi (5).jpeg`, `wasabi (6).jpeg`, `wasabi (11).jpeg` | Detalle de un ejercicio. Para Fuerza: RM actual + porcentajes de carga (default 65/75/80/85/90/95%, configurables) + cálculo de un porcentaje custom. Tags de contexto: carga liviana/media/pesada, tipo (fuerza, hipertrofia, gimnástico, running…), nivel del usuario, malestar/dolor. Acciones: editar ejercicio, ver estadísticas, cargar nuevo RM (modal), ver historial. Para tiempo/repeticiones: mismo patrón, el cálculo de "carga" se reemplaza por tiempo o cantidad. |
+| Nuevo ejercicio            | `wasabi (9).jpeg`                                        | Formulario para elegir un ejercicio pre-cargado o crear uno nuevo si no existe.                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 **PWA**: instalable en el dispositivo. Al haber una nueva versión, se notifica al usuario con un popup para actualizar.
 
@@ -87,16 +87,16 @@ Mockups en [`../mockup`](../mockup).
 
 Un solo deployable de backend, módulos aislados (`domain / application / infrastructure` cada uno). Se comunican por interfaces o eventos internos — nunca importando modelos de otro módulo directamente.
 
-| Módulo | Responsabilidad |
-|---|---|
-| `auth` | Login, registro, sesión (Better Auth) |
-| `users` | Perfil, configuración (tema, porcentajes de carga default) |
-| `exercises` | Catálogo pre-cargado + ejercicios custom del usuario, tags |
-| `records` | Carga y evolución de RM / tiempos / repeticiones, cálculo de porcentajes |
-| `stats` | Agregaciones y análisis (por ejercicio y generales) |
-| `subscriptions` | Plan Free/Max, límites, entitlements |
-| `billing` | Pago de la suscripción Max |
-| `notifications` | Popup de nueva versión PWA, avisos |
+| Módulo          | Responsabilidad                                                          |
+| --------------- | ------------------------------------------------------------------------ |
+| `auth`          | Login, registro, sesión (Better Auth)                                    |
+| `users`         | Perfil, configuración (tema, porcentajes de carga default)               |
+| `exercises`     | Catálogo pre-cargado + ejercicios custom del usuario, tags               |
+| `records`       | Carga y evolución de RM / tiempos / repeticiones, cálculo de porcentajes |
+| `stats`         | Agregaciones y análisis (por ejercicio y generales)                      |
+| `subscriptions` | Plan Free/Max, límites, entitlements                                     |
+| `billing`       | Pago de la suscripción Max                                               |
+| `notifications` | Popup de nueva versión PWA, avisos                                       |
 
 ### Eventos de dominio (in-process, cola si hace falta después)
 
@@ -123,7 +123,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 
 - **CLAUDE.md** en la raíz (y por app si el monorepo lo justifica): stack, convenciones, comandos, estructura, cosas prohibidas.
 - Copia de CLAUDE.md como AGENT.md para otros LLM.
-- **Flujo 4D** por tarea: *Delegation* (qué hace la IA y qué no) → *Description* (spec de la tarea con criterios de aceptación) → *Discernment* (revisar salida contra los criterios) → *Diligence* (tests, seguridad, atribución).
+- **Flujo 4D** por tarea: _Delegation_ (qué hace la IA y qué no) → _Description_ (spec de la tarea con criterios de aceptación) → _Discernment_ (revisar salida contra los criterios) → _Diligence_ (tests, seguridad, atribución).
 - **La spec manda**: ver §7.
 - Tests de flujos de dinero (billing) y permisos, escritos o revisados por humano. Ahí no aplica autopiloto.
 - Subagentes por rol cuando el flujo los use: `spec-reviewer`, `test-writer`, `security-reviewer`.
@@ -202,6 +202,6 @@ El trabajo se divide siempre en tareas chicas, nunca en bloques grandes sin desg
 - **Story points Fibonacci** 1/2/3/5/8/13. Ninguna tarea supera 8 — toda tarea de 13 se parte antes de empezar.
 - **Una tarea no arranca** si sus `depends_on` no están cerradas.
 - **Tablero de Trello**: https://trello.com/b/pK3RPkCT/wasabi-cross — listas `Sin iniciar` / `En proceso` / `Bloqueadas` / `Completadas` / `Canceladas`.
-- **Dirección de la sincronización**: `docs/ACTION-PLAN.md` es la fuente de verdad del *contenido*; Trello es la fuente de verdad del *estado*. Si difieren en contenido, gana el plan; si difieren en estado, gana el tablero.
+- **Dirección de la sincronización**: `docs/ACTION-PLAN.md` es la fuente de verdad del _contenido_; Trello es la fuente de verdad del _estado_. Si difieren en contenido, gana el plan; si difieren en estado, gana el tablero.
 - **Definition of Done** de una tarea: tests pasando · error codes nuevos documentados en [docs/error-codes.md](../error-codes.md) · entrada en la [bitácora](../state/bitacora) · **tarjeta movida en Trello**. No se marca `[x]` en el plan sin las cuatro cosas.
 - Nadie mueve una tarjeta a `Completadas` salvo quien terminó la tarea y cumplió el Definition of Done — no lo hace la IA por su cuenta.

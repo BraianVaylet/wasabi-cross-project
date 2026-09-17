@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es-AR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#24333d" />
+    <meta name="description" content="Gestioná tus ejercicios, RMs y tu evolución en el tiempo." />
+    <title>Wasabi Cross</title>
+  </head>
+  <body>
+    <!--
+      Aplica el tema antes del primer pintado. Si esperara al bundle de React, el usuario
+      vería un parpadeo claro/oscuro en cada carga. Copiado de THEME_BOOTSTRAP_SCRIPT en
+      @wasabi-cross/ui — un test verifica que sigan siendo el mismo script.
+    -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('wasabi-cross:theme');
+          var t =
+            s === 'dark' || s === 'light'
+              ? s
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark';
+          document.documentElement.dataset.theme = t;
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

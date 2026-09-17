@@ -1,0 +1,20 @@
+.wc-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--wc-tap-target);
+  height: var(--wc-tap-target);
+
+  background-color: var(--wc-bg);
+  border: none;
+  border-radius: var(--wc-radius-pill);
+  color: var(--wc-text);
+
+  cursor: pointer;
+  transition: background-color var(--wc-transition);
+}
+
+.wc-theme-toggle:hover {
+  background-color: var(--wc-surface-muted);
+}

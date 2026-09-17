@@ -1,0 +1,30 @@
+.wc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wc-space-1);
+
+  padding: var(--wc-space-1) var(--wc-space-3);
+
+  border: 1px solid var(--wc-accent);
+  border-radius: var(--wc-radius-pill);
+
+  font-size: var(--wc-font-size-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.wc-tag--outline {
+  background-color: transparent;
+  color: var(--wc-accent-text);
+}
+
+.wc-tag--solid {
+  background-color: var(--wc-accent);
+  color: var(--wc-text-on-accent);
+}
+
+.wc-tag--neutral {
+  background-color: transparent;
+  border-color: var(--wc-border);
+  color: var(--wc-text-muted);
+}

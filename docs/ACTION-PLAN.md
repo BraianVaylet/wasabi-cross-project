@@ -13,9 +13,13 @@
 
 ## Estado
 
-| Fase                  | Tareas | Story points | Hechas |
-| ---------------------- | -----: | ------------: | -----: |
-| Fase 0 — Fundaciones   |      8 |            27 |      0 |
+| Fase                 | Tareas | Story points | Hechas |
+| -------------------- | -----: | -----------: | -----: |
+| Fase 0 — Fundaciones |      8 |           27 |      0 |
+
+Las siete tareas de código de la Fase 0 están en `[~]`: el código está hecho, revisado y con los
+tests pasando, pero el Definition of Done (spec §16) pide además mover la tarjeta en Trello, y eso
+lo hace quien terminó la tarea — no la IA. Pasan a `[x]` cuando se muevan las tarjetas.
 
 ## Etiquetas del tablero
 
@@ -23,14 +27,14 @@ Trello da seis colores por defecto y el MCP no puede nombrarlos (`trelloWriteBoa
 crean y renombran tableros y listas, no etiquetas) — **hay que nombrarlas a mano, una única vez**,
 con este mapeo:
 
-| Color   | Etiqueta   |
-| ------- | ---------- |
-| verde   | `API`      |
+| Color    | Etiqueta  |
+| -------- | --------- |
+| verde    | `API`     |
 | amarillo | `WEB`     |
-| naranja | `INFRA`    |
-| rojo    | `BUG`      |
-| violeta | `TECNICO`  |
-| azul    | `SPEC`     |
+| naranja  | `INFRA`   |
+| rojo     | `BUG`     |
+| violeta  | `TECNICO` |
+| azul     | `SPEC`    |
 
 Son seis y no siete: si en algún momento hace falta una categoría más, se reutiliza la más cercana
 antes de forzar una etiqueta nueva a mano.
@@ -42,7 +46,7 @@ antes de forzar una etiqueta nueva a mano.
 Bloqueante de todo lo demás: sin monorepo, auth, schemas y manejo de errores, cualquier feature de
 negocio arrastra decisiones de infraestructura a mitad de camino.
 
-## [ ] F0-01 · Monorepo: `apps/web`, `apps/api`, `packages/schemas`, `packages/ui`
+## [~] F0-01 · Monorepo: `apps/web`, `apps/api`, `packages/schemas`, `packages/ui`
 
 - **module:** infra
 - **description:** Workspace con `apps/web` (React PWA), `apps/api` (Node), `packages/schemas`
@@ -59,8 +63,13 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
 - **test_plan:** pipeline de CI verde en un PR de prueba.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho. pnpm workspaces con catálogo de versiones, TS strict sin `any`, ESLint
+  con reglas que hacen cumplir la arquitectura, CI en GitHub Actions (formato, lint, typecheck,
+  build, tests con umbral de coverage, Storybook y audit). Decisiones en
+  [ADR-0002](./adr/0002-pnpm-workspaces-como-monorepo.md) y
+  [ADR-0003](./adr/0003-fastify-como-framework-http.md). Falta mover la tarjeta en Trello.
 
-## [ ] F0-02 · `@wasabi-cross/schemas` base
+## [~] F0-02 · `@wasabi-cross/schemas` base
 
 - **module:** schemas
 - **description:** Paquete Zod compartido front/back. Primeros schemas: `User`, `Exercise`,
@@ -78,8 +87,12 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
   desde el día uno.
 - **error-codes:** ninguno
 - **data-model-impact:** define el modelo base de `User`, `Exercise`, `Record`.
+- **estado:** código hecho. `User`, `Exercise` y `Record` en Zod, 63 tests, 100% de coverage. El
+  tipo de `Record` se exporta como `ExerciseRecord` para no pisar el `Record<K, V>` de TypeScript.
+  IDs con prefijo, ver [ADR-0004](./adr/0004-ids-de-dominio-con-prefijo.md). Falta mover la tarjeta
+  en Trello.
 
-## [ ] F0-03 · Better Auth + Mongo
+## [~] F0-03 · Better Auth + Mongo
 
 - **module:** auth
 - **description:** Login y registro con email + contraseña, sesión persistida en Mongo.
@@ -97,8 +110,12 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
   error.
 - **error-codes:** `WC-AUTH-401-001`, `WC-AUTH-403-002`, `WC-AUTH-429-003`
 - **data-model-impact:** `User` con credenciales gestionadas por Better Auth.
+- **estado:** código hecho. Registro, login y sesión en Mongo; login fallido indistinguible entre
+  email inexistente y contraseña mala; `plan` no aceptado como input; rate limit 5/min en login,
+  registro y recupero; contraseñas chequeadas contra listas filtradas. Falta mover la tarjeta en
+  Trello.
 
-## [ ] F0-04 · Error envelope + logger Pino
+## [~] F0-04 · Error envelope + logger Pino
 
 - **module:** infra
 - **description:** Middleware de error único que responde `{ errorCode, message, requestId }` y
@@ -114,8 +131,12 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
 - **test_plan:** test que falla si se lanza un `errorCode` no catalogado en el diccionario.
 - **error-codes:** `WC-SYS-500-001`
 - **data-model-impact:** ninguno
+- **estado:** código hecho. Envelope `{ errorCode, message, requestId }` en toda respuesta de
+  error, logger Pino con redacción por path, y un test que falla si el código y
+  [el diccionario](./error-codes.md) divergen en cualquier dirección. Falta mover la tarjeta en
+  Trello.
 
-## [ ] F0-05 · Health checks `/health` y `/ready`
+## [~] F0-05 · Health checks `/health` y `/ready`
 
 - **module:** infra
 - **description:** Liveness sin dependencias externas, readiness con ping a Mongo.
@@ -130,8 +151,11 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
   mientras `/health` sigue OK.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho. `/health` no toca Mongo, `/ready` hace ping y responde 503 si falla. El
+  test de integración tira el Mongo en memoria y verifica las dos cosas. Falta mover la tarjeta en
+  Trello.
 
-## [ ] F0-06 · `@wasabi-cross/ui` base + Storybook
+## [~] F0-06 · `@wasabi-cross/ui` base + Storybook
 
 - **module:** ui
 - **description:** Setup de Storybook, tema dark/light (dark first), tokens de color y tipografía
@@ -147,8 +171,12 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
 - **test_plan:** build de Storybook en CI.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho. Tokens tomados de los mockups, dark first con override por usuario,
+  cinco Componentes Cross con story y test, Storybook con addon-a11y en modo error y build en CI.
+  El script inline que evita el flash de tema se verifica ejecutándolo. Falta mover la tarjeta en
+  Trello.
 
-## [ ] F0-07 · Catálogo pre-cargado de ejercicios (seed)
+## [~] F0-07 · Catálogo pre-cargado de ejercicios (seed)
 
 - **module:** exercises
 - **description:** Seed de Mongo con el listado base de ejercicios (fuerza, hipertrofia,
@@ -164,6 +192,9 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
 - **test_plan:** test de idempotencia del seed.
 - **error-codes:** ninguno
 - **data-model-impact:** primeros documentos de `Exercise` en la colección compartida.
+- **estado:** código hecho. 34 ejercicios base, seed idempotente que además sólo escribe lo que
+  cambió, índice único `(ownerId, name)` como red de seguridad, y `GET /api/v1/exercises/catalog`
+  para que el usuario nuevo efectivamente los vea. Falta mover la tarjeta en Trello.
 
 ## [~] F0-08 · El tablero de Trello
 
