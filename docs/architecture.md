@@ -4,19 +4,28 @@ Detalle técnico que soporta [la spec de producto](./spec/wasabi-cross.spec.md) 
 
 ## Estructura de carpetas (monorepo)
 
-Propuesta inicial — ajustar en un ADR cuando se bootstrapee el código real y se confirme la herramienta de workspaces (pnpm asumido, no confirmado).
+Estructura real del repo desde la Fase 0. La herramienta de workspaces es **pnpm** ([ADR-0002](./adr/0002-pnpm-workspaces-como-monorepo.md)) y el framework HTTP de la API es **Fastify** ([ADR-0003](./adr/0003-fastify-como-framework-http.md)).
 
 ```
 wasabi-cross/
 ├── apps/
-│   ├── web/            # React PWA
-│   └── api/              # Node API REST
+│   ├── web/               # React PWA (Vite)
+│   └── api/               # API REST (Fastify)
+│       └── src/
+│           ├── config/     # entorno validado con Zod
+│           ├── shared/     # logger, errores, Mongo, IDs
+│           ├── modules/    # auth, exercises, health…
+│           └── scripts/    # seed y utilidades de línea de comandos
 ├── packages/
-│   ├── schemas/          # @wasabi-cross/schemas — Zod compartido front/back
+│   ├── schemas/           # @wasabi-cross/schemas — Zod compartido front/back
 │   └── ui/                # @wasabi-cross/ui — Componentes Cross + Storybook
 ├── docs/
 └── CLAUDE.md
 ```
+
+Las versiones compartidas entre workspaces viven en el `catalog:` de `pnpm-workspace.yaml`: un
+workspace que quiera otra versión tiene que escribirla explícitamente, así "sin duplicar
+dependencias" es verificable y no una convención.
 
 ## Backend: modular monolith + hexagonal-lite
 
@@ -30,6 +39,8 @@ Un solo deployable. Cada módulo vive en `apps/api/src/modules/<modulo>/` con tr
 ```
 
 **Regla de dependencia:** un módulo nunca importa el modelo/entidad de otro módulo directamente. La comunicación es por interfaces (inyectadas) o por eventos de dominio internos.
+
+Esto no es sólo una convención escrita: `eslint.config.js` la hace cumplir. `domain` y `application` no pueden importar de `infrastructure`, y ningún módulo puede importar el interior de otro. Cuando un módulo necesita algo de otro —por ejemplo, `exercises` necesitando el guard de sesión de `auth`— lo recibe inyectado desde `app.ts`, que es la única capa que conoce a los dos.
 
 Lista de módulos y qué hace cada uno: ver [spec §7](./spec/wasabi-cross.spec.md#módulos-de-dominio).
 

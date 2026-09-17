@@ -42,11 +42,26 @@ wasabi-cross/
 └── CLAUDE.md
 ```
 
-> El proyecto todavía no tiene código (`apps/` y `packages/` no existen aún). No asumir comandos de build/test/lint que no estén confirmados en un `package.json` real — si hace falta correr algo y no existe, proponerlo y avisar antes de asumirlo.
+> El monorepo ya existe y los comandos de abajo están verificados contra los `package.json` reales. Si hace falta uno que no está listado, proponerlo y avisar antes de asumirlo.
 
 ## Comandos
 
-_A completar cuando se bootstrapee el monorepo. No inventar `npm run <algo>` sin verificar que existe en `package.json`._
+Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
+
+| Comando                                    | Qué hace                                                |
+| ------------------------------------------ | ------------------------------------------------------- |
+| `pnpm install`                             | Instala los cuatro workspaces                           |
+| `pnpm dev`                                 | Levanta API y web en paralelo                           |
+| `pnpm verify`                              | lint + typecheck + test + build — lo mismo que corre CI |
+| `pnpm lint` / `pnpm lint:fix`              | ESLint sobre todo el monorepo                           |
+| `pnpm typecheck`                           | `tsc --noEmit` por workspace                            |
+| `pnpm test` / `pnpm test:coverage`         | Vitest; el coverage falla por debajo de 90%             |
+| `pnpm build`                               | Compila los cuatro workspaces en orden de dependencia   |
+| `pnpm format` / `pnpm format:check`        | Prettier                                                |
+| `pnpm --filter @wasabi-cross/api seed`     | Carga el catálogo de ejercicios (idempotente)           |
+| `pnpm --filter @wasabi-cross/ui storybook` | Storybook en el puerto 6006                             |
+
+Antes de levantar la API hace falta un `.env` — copiar de `apps/api/.env.example`.
 
 ## Reglas de arquitectura
 
