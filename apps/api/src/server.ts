@@ -6,7 +6,10 @@ async function main(): Promise<void> {
   const env = parseEnv();
   const mongo = await connectMongo(env);
 
-  const app = await buildApp({ env });
+  const app = await buildApp({
+    env,
+    probes: [{ name: 'mongo', check: mongo.ping }],
+  });
 
   // Cerrar la conexión cuando se cae el server, no cuando el proceso ya se fue.
   app.addHook('onClose', async () => {

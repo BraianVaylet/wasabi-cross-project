@@ -12,6 +12,8 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import type { Env } from './config/env.ts';
+import type { DependencyProbe } from './modules/health/domain/readiness.ts';
+import { healthRoutes } from './modules/health/infrastructure/health.routes.ts';
 import { buildLoggerOptions } from './shared/logger.ts';
 import { registerErrorHandler } from './shared/errors/error-handler.ts';
 
@@ -19,9 +21,11 @@ export const API_PREFIX = '/api/v1';
 
 export interface BuildAppOptions {
   env: Env;
+  /** Dependencias que mira `/ready`. Se inyectan para poder testear sin Mongo real. */
+  probes?: readonly DependencyProbe[];
 }
 
-export async function buildApp({ env }: BuildAppOptions): Promise<FastifyInstance> {
+export async function buildApp({ env, probes = [] }: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({
     logger: buildLoggerOptions(env),
     // El requestId viaja del front al back y vuelve al usuario en el error,
@@ -31,7 +35,6 @@ export async function buildApp({ env }: BuildAppOptions): Promise<FastifyInstanc
       return typeof incoming === 'string' && incoming.length > 0 ? incoming : randomUUID();
     },
     requestIdHeader: 'x-request-id',
-    disableRequestLogging: false,
   }).withTypeProvider<ZodTypeProvider>();
 
   // Zod valida la entrada y serializa la salida: una sola definición para validar,
@@ -80,6 +83,9 @@ export async function buildApp({ env }: BuildAppOptions): Promise<FastifyInstanc
   await app.register(swaggerUi, { routePrefix: '/docs' });
 
   registerErrorHandler(app);
+
+  // Liveness y readiness van fuera de /api/v1: los consume el orquestador, no el front.
+  await app.register(healthRoutes(probes));
 
   return app;
 }
