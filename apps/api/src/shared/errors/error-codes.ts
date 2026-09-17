@@ -9,6 +9,7 @@ export const ERROR_CATALOG = {
   'WC-AUTH-401-001': { status: 401, userMessage: 'Email o contraseña incorrectos.' },
   'WC-AUTH-403-002': { status: 403, userMessage: 'No tenés permisos para esta acción.' },
   'WC-AUTH-429-003': { status: 429, userMessage: 'Demasiados intentos. Probá en 5 minutos.' },
+  'WC-AUTH-401-004': { status: 401, userMessage: 'Iniciá sesión para continuar.' },
   'WC-EXO-403-001': {
     status: 403,
     userMessage: 'Alcanzaste el máximo de ejercicios de tu plan {plan}.',

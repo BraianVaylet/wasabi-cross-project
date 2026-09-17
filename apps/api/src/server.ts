@@ -1,13 +1,17 @@
 import { parseEnv } from './config/env.ts';
 import { buildApp } from './app.ts';
+import { createAuth } from './modules/auth/infrastructure/better-auth.ts';
 import { connectMongo } from './shared/db/mongo.ts';
 
 async function main(): Promise<void> {
   const env = parseEnv();
   const mongo = await connectMongo(env);
 
+  const auth = createAuth({ env, db: mongo.db, client: mongo.client });
+
   const app = await buildApp({
     env,
+    auth,
     probes: [{ name: 'mongo', check: mongo.ping }],
   });
 

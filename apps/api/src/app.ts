@@ -12,6 +12,9 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import type { Env } from './config/env.ts';
+import type { Auth } from './modules/auth/infrastructure/better-auth.ts';
+import { authRoutes } from './modules/auth/infrastructure/auth.routes.ts';
+import { sessionRoutes } from './modules/auth/infrastructure/session.routes.ts';
 import type { DependencyProbe } from './modules/health/domain/readiness.ts';
 import { healthRoutes } from './modules/health/infrastructure/health.routes.ts';
 import { buildLoggerOptions } from './shared/logger.ts';
@@ -23,9 +26,15 @@ export interface BuildAppOptions {
   env: Env;
   /** Dependencias que mira `/ready`. Se inyectan para poder testear sin Mongo real. */
   probes?: readonly DependencyProbe[];
+  /** Sin `auth`, la app levanta sin endpoints de sesión — útil para tests de infra. */
+  auth?: Auth;
 }
 
-export async function buildApp({ env, probes = [] }: BuildAppOptions): Promise<FastifyInstance> {
+export async function buildApp({
+  env,
+  probes = [],
+  auth,
+}: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({
     logger: buildLoggerOptions(env),
     // El requestId viaja del front al back y vuelve al usuario en el error,
@@ -85,6 +94,13 @@ export async function buildApp({ env, probes = [] }: BuildAppOptions): Promise<F
 
   // Liveness y readiness van fuera de /api/v1: los consume el orquestador, no el front.
   await app.register(healthRoutes(probes));
+
+  if (auth) {
+    // Better Auth sirve sus propias rutas bajo /api/auth, fuera del versionado:
+    // el contrato de esas rutas lo define la librería, no nosotros.
+    await app.register(authRoutes(auth));
+    await app.register(sessionRoutes(auth), { prefix: API_PREFIX });
+  }
 
   return app;
 }
