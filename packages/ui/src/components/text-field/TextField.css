@@ -1,0 +1,64 @@
+.wc-text-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+}
+
+.wc-text-field__label {
+  font-size: var(--wc-font-size-sm);
+  font-weight: 600;
+  color: var(--wc-text-muted);
+}
+
+.wc-text-field__control {
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-2);
+
+  min-height: var(--wc-tap-target);
+  padding: 0 var(--wc-space-4);
+
+  background-color: transparent;
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-sm);
+}
+
+.wc-text-field__control:focus-within {
+  outline: 2px solid var(--wc-focus);
+  outline-offset: 2px;
+}
+
+.wc-text-field__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--wc-space-3) 0;
+
+  background: none;
+  border: none;
+  color: var(--wc-text);
+  font-family: inherit;
+  /* 16px como piso: por debajo, iOS hace zoom al enfocar (spec §11). */
+  font-size: max(1rem, var(--wc-font-size-base));
+}
+
+.wc-text-field__input:focus {
+  outline: none;
+}
+
+.wc-text-field__input::placeholder {
+  color: var(--wc-text-muted);
+  opacity: 1;
+}
+
+.wc-text-field__suffix {
+  color: var(--wc-text-muted);
+}
+
+.wc-text-field__error {
+  color: var(--wc-danger-text);
+  font-size: var(--wc-font-size-sm);
+}
+
+.wc-text-field--invalid .wc-text-field__control {
+  border-color: var(--wc-danger);
+}

@@ -1,4 +1,110 @@
-/* Tokens de diseño — se completan en F0-06 contra los mockups. */
-:root {
+/*
+ * Tokens de Wasabi Cross, tomados de los mockups (docs/mockup): fondo pizarra oscuro,
+ * superficies un escalón más claras y un acento verde lima.
+ *
+ * Dark first (spec §11): el tema oscuro es el default del `:root`, y el claro se aplica
+ * con `[data-theme='light']`. Nada de media query sola: el usuario puede elegir, y su
+ * elección tiene que ganarle a la preferencia del sistema.
+ */
+
+:root,
+:root[data-theme='dark'] {
   color-scheme: dark;
+
+  --wc-bg: #24333d;
+  --wc-surface: #4b5c68;
+  --wc-surface-muted: #3a4a55;
+  --wc-border: #6b7a85;
+
+  --wc-text: #ffffff;
+  --wc-text-muted: #c4cdd4;
+  --wc-text-on-accent: #1d2a33;
+
+  --wc-accent: #a6da4b;
+  --wc-accent-hover: #b6e463;
+  --wc-accent-subtle: #5f7d21;
+  --wc-accent-text: #a6da4b;
+
+  --wc-danger: #ff8a80;
+  --wc-danger-text: #ff8a80;
+
+  --wc-focus: #ffffff;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --wc-bg: #f2f5f3;
+  --wc-surface: #ffffff;
+  --wc-surface-muted: #e4eae6;
+  --wc-border: #b7c2bb;
+
+  --wc-text: #1d2a33;
+  --wc-text-muted: #4d5c66;
+  --wc-text-on-accent: #1d2a33;
+
+  /*
+   * El lima de la marca sobre blanco da 1.8:1 y no llega a AA. Como color de relleno
+   * sirve (el texto encima es oscuro), pero como color de texto se usa una versión
+   * oscurecida que sí pasa 4.5:1.
+   */
+  --wc-accent: #a6da4b;
+  --wc-accent-hover: #93c73c;
+  --wc-accent-subtle: #d9edb4;
+  --wc-accent-text: #3f6212;
+
+  --wc-danger: #c62828;
+  --wc-danger-text: #b3261e;
+
+  --wc-focus: #1d2a33;
+}
+
+:root {
+  --wc-radius-sm: 4px;
+  --wc-radius-md: 6px;
+  --wc-radius-pill: 999px;
+
+  --wc-space-1: 0.25rem;
+  --wc-space-2: 0.5rem;
+  --wc-space-3: 0.75rem;
+  --wc-space-4: 1rem;
+  --wc-space-5: 1.5rem;
+  --wc-space-6: 2rem;
+
+  --wc-font-family: 'Space Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Tipografía fluida (spec §11). Nunca por debajo de 16px en inputs: iOS hace zoom solo. */
+  --wc-font-size-sm: clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem);
+  --wc-font-size-base: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  --wc-font-size-lg: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --wc-font-size-xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+  --wc-font-size-display: clamp(2.5rem, 1.8rem + 3.5vw, 4rem);
+
+  --wc-line-height: 1.5;
+
+  /* Target táctil mínimo de WCAG 2.2 AA. */
+  --wc-tap-target: 44px;
+
+  --wc-transition: 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --wc-transition: 0ms;
+  }
+}
+
+.wc-root {
+  background-color: var(--wc-bg);
+  color: var(--wc-text);
+  font-family: var(--wc-font-family);
+  font-size: var(--wc-font-size-base);
+  line-height: var(--wc-line-height);
+}
+
+/* Foco visible siempre, en cualquier tema (spec §11). */
+.wc-focusable:focus-visible,
+.wc-root :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--wc-focus);
+  outline-offset: 2px;
 }

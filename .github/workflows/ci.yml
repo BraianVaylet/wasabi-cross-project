@@ -49,6 +49,11 @@ jobs:
       - name: Tests + coverage (>90%, spec §10)
         run: pnpm test:coverage
 
+      # F0-06: el build de Storybook es parte del pipeline. Si una story rompe,
+      # rompe el PR.
+      - name: Build de Storybook
+        run: pnpm --filter @wasabi-cross/ui build-storybook
+
   audit:
     name: audit de dependencias
     runs-on: ubuntu-latest

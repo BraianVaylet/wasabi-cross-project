@@ -1,0 +1,28 @@
+.wc-card {
+  display: block;
+  width: 100%;
+  padding: var(--wc-space-4);
+
+  background-color: var(--wc-surface);
+  border: 1px solid transparent;
+  border-radius: var(--wc-radius-sm);
+  color: var(--wc-text);
+
+  text-align: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.wc-card--highlighted {
+  background-color: var(--wc-accent-subtle);
+  border-color: var(--wc-accent);
+}
+
+.wc-card--interactive {
+  cursor: pointer;
+  transition: background-color var(--wc-transition);
+}
+
+.wc-card--interactive:hover {
+  background-color: var(--wc-surface-muted);
+}
