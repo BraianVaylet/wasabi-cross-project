@@ -2,9 +2,13 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
+# Únicos paquetes con permiso para correr scripts de postinstall; todo lo demás se
+# instala sin ejecutar nada (spec §13 — dependencias). Los dos lo necesitan de verdad:
+# esbuild baja su binario nativo y mongodb-memory-server el mongod que usan los tests.
+# Agregar una dependencia acá es una decisión, no un trámite.
 allowBuilds:
-  esbuild: set this to true or false
-  mongodb-memory-server: set this to true or false
+  esbuild: true
+  mongodb-memory-server: true
 
 # Catálogo de versiones compartidas: una única versión por dependencia en todo el
 # monorepo. Cumple el criterio de aceptación de F0-01 ("resuelve los cuatro workspaces
@@ -42,9 +46,3 @@ minimumReleaseAgeExclude:
   - '@tanstack/react-router@1.170.38'
   - '@tanstack/router-core@1.171.32'
   - jsdom@30.1.0
-
-# Únicos paquetes con permiso para correr scripts de postinstall. Todo lo demás
-# se instala sin ejecutar nada (spec §13 — dependencias).
-onlyBuiltDependencies:
-  - esbuild
-  - mongodb-memory-server
