@@ -1,0 +1,7 @@
+# Un solo final de línea en el repo, sin importar el SO de quien clona.
+* text=auto eol=lf
+
+*.png binary
+*.jpeg binary
+*.jpg binary
+pnpm-lock.yaml linguist-generated=true -diff
