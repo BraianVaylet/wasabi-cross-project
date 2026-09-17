@@ -76,6 +76,7 @@ Consumidores típicos: `notifications` (avisar al usuario), `stats` (recalcular 
 ```
 
 **Reglas:**
+
 - Nunca loguear passwords, tokens ni datos de pago.
 - `requestId` viaja del front al back y vuelve al usuario en el mensaje de error (para poder correlacionar un reporte de soporte con el log exacto).
 - `errorCode` siempre que el log sea de un error de negocio — ver [diccionario de códigos](./error-codes.md).

@@ -3,7 +3,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ERROR_CATALOG, isErrorCode, type ErrorCode } from './error-codes.ts';
 
-const DICTIONARY_PATH = fileURLToPath(new URL('../../../../../docs/error-codes.md', import.meta.url));
+const DICTIONARY_PATH = fileURLToPath(
+  new URL('../../../../../docs/error-codes.md', import.meta.url),
+);
 
 interface DictionaryEntry {
   code: string;
@@ -14,7 +16,8 @@ interface DictionaryEntry {
 /** Lee la tabla "Semilla" de docs/error-codes.md y devuelve sus filas. */
 function readDictionary(): DictionaryEntry[] {
   const markdown = readFileSync(DICTIONARY_PATH, 'utf8');
-  const rowPattern = /^\|\s*`(WC-[A-Z]+-\d{3}-\d{3})`\s*\|\s*(\d{3})\s*\|[^|]*\|\s*([^|]+?)\s*\|$/gm;
+  const rowPattern =
+    /^\|\s*`(WC-[A-Z]+-\d{3}-\d{3})`\s*\|\s*(\d{3})\s*\|[^|]*\|\s*([^|]+?)\s*\|$/gm;
 
   return [...markdown.matchAll(rowPattern)].map((match) => ({
     code: match[1] ?? '',
@@ -54,8 +57,7 @@ describe('catálogo de códigos de error', () => {
   it('el HTTP status y el mensaje al usuario coinciden con el diccionario', () => {
     for (const entry of dictionary) {
       const catalogEntry = ERROR_CATALOG[entry.code as ErrorCode] as
-        | { status: number; userMessage: string }
-        | undefined;
+        { status: number; userMessage: string } | undefined;
       expect(catalogEntry, `${entry.code} no está en ERROR_CATALOG`).toBeDefined();
       expect(catalogEntry?.status, `status de ${entry.code}`).toBe(entry.status);
       expect(catalogEntry?.userMessage, `mensaje de ${entry.code}`).toBe(entry.userMessage);
@@ -65,9 +67,10 @@ describe('catálogo de códigos de error', () => {
   it('el HTTP del código coincide con el status que declara', () => {
     for (const [code, entry] of Object.entries(ERROR_CATALOG)) {
       const httpInCode = Number(code.split('-')[2]);
-      expect(entry.status, `${code} declara ${String(entry.status)} pero su nombre dice ${String(httpInCode)}`).toBe(
-        httpInCode,
-      );
+      expect(
+        entry.status,
+        `${code} declara ${String(entry.status)} pero su nombre dice ${String(httpInCode)}`,
+      ).toBe(httpInCode);
     }
   });
 

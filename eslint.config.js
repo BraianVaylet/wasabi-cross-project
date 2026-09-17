@@ -34,10 +34,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-return': 'error',
       '@typescript-eslint/no-unsafe-argument': 'error',
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { fixStyle: 'inline-type-imports' },
-      ],
+      '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
@@ -86,8 +83,7 @@ export default tseslint.config(
           patterns: [
             {
               group: ['**/modules/**', '@wasabi-cross/schemas/*'],
-              message:
-                '@wasabi-cross/ui no importa lógica de negocio (CLAUDE.md → Prohibido).',
+              message: '@wasabi-cross/ui no importa lógica de negocio (CLAUDE.md → Prohibido).',
             },
           ],
         },

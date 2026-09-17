@@ -34,7 +34,12 @@ export function buildLoggerOptions(env: Env): NonNullable<FastifyServerOptions['
     timestamp: () => `,"ts":"${new Date().toISOString()}"`,
     redact: { paths: [...REDACTED_PATHS], censor: '[REDACTED]' },
     ...(env.NODE_ENV === 'development'
-      ? { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname' } } }
+      ? {
+          transport: {
+            target: 'pino-pretty',
+            options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname' },
+          },
+        }
       : {}),
   };
 }

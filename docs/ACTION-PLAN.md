@@ -13,9 +13,9 @@
 
 ## Estado
 
-| Fase                  | Tareas | Story points | Hechas |
-| ---------------------- | -----: | ------------: | -----: |
-| Fase 0 — Fundaciones   |      8 |            27 |      0 |
+| Fase                 | Tareas | Story points | Hechas |
+| -------------------- | -----: | -----------: | -----: |
+| Fase 0 — Fundaciones |      8 |           27 |      0 |
 
 ## Etiquetas del tablero
 
@@ -23,14 +23,14 @@ Trello da seis colores por defecto y el MCP no puede nombrarlos (`trelloWriteBoa
 crean y renombran tableros y listas, no etiquetas) — **hay que nombrarlas a mano, una única vez**,
 con este mapeo:
 
-| Color   | Etiqueta   |
-| ------- | ---------- |
-| verde   | `API`      |
+| Color    | Etiqueta  |
+| -------- | --------- |
+| verde    | `API`     |
 | amarillo | `WEB`     |
-| naranja | `INFRA`    |
-| rojo    | `BUG`      |
-| violeta | `TECNICO`  |
-| azul    | `SPEC`     |
+| naranja  | `INFRA`   |
+| rojo     | `BUG`     |
+| violeta  | `TECNICO` |
+| azul     | `SPEC`    |
 
 Son seis y no siete: si en algún momento hace falta una categoría más, se reutiliza la más cercana
 antes de forzar una etiqueta nueva a mano.

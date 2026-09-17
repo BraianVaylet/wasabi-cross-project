@@ -19,8 +19,8 @@
     "build": "vite build && tsc -p tsconfig.build.json",
     "dev": "vite build --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

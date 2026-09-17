@@ -1,5 +1,8 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { hasZodFastifySchemaValidationErrors, isResponseSerializationError } from 'fastify-type-provider-zod';
+import {
+  hasZodFastifySchemaValidationErrors,
+  isResponseSerializationError,
+} from 'fastify-type-provider-zod';
 import { AppError, isAppError } from './app-error.ts';
 
 /**
@@ -63,11 +66,7 @@ export function registerErrorHandler(app: FastifyInstance): void {
     // 3. Error de negocio con código del catálogo.
     if (isAppError(error)) {
       const log = error.statusCode >= 500 ? request.log.error : request.log.warn;
-      log.call(
-        request.log,
-        { errorCode: error.errorCode, ...error.meta },
-        error.message,
-      );
+      log.call(request.log, { errorCode: error.errorCode, ...error.meta }, error.message);
       send(reply, error.statusCode, {
         errorCode: error.errorCode,
         message: error.userMessage,
@@ -77,7 +76,12 @@ export function registerErrorHandler(app: FastifyInstance): void {
     }
 
     // 4. Rate limit (@fastify/rate-limit responde 429 sin pasar por AppError).
-    if (typeof error === 'object' && error !== null && 'statusCode' in error && error.statusCode === 429) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'statusCode' in error &&
+      error.statusCode === 429
+    ) {
       request.log.warn({ errorCode: 'WC-AUTH-429-003', url: request.url }, 'Rate limit alcanzado');
       send(reply, 429, {
         errorCode: 'WC-AUTH-429-003',

@@ -71,8 +71,7 @@ export async function buildApp({ env, probes = [] }: BuildAppOptions): Promise<F
     openapi: {
       info: {
         title: 'Wasabi Cross API',
-        description:
-          'Generado desde los schemas Zod de @wasabi-cross/schemas. No editar a mano.',
+        description: 'Generado desde los schemas Zod de @wasabi-cross/schemas. No editar a mano.',
         version: '1.0.0',
       },
       servers: [{ url: API_PREFIX }],
