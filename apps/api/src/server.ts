@@ -1,17 +1,26 @@
 import { parseEnv } from './config/env.ts';
 import { buildApp } from './app.ts';
 import { createAuth } from './modules/auth/infrastructure/better-auth.ts';
+import {
+  createMongoExerciseRepository,
+  ensureExerciseIndexes,
+} from './modules/exercises/infrastructure/mongo-exercise.repository.ts';
 import { connectMongo } from './shared/db/mongo.ts';
 
 async function main(): Promise<void> {
   const env = parseEnv();
   const mongo = await connectMongo(env);
 
+  // Los índices se aseguran al arrancar: son parte de la forma de los datos, no algo
+  // que dependa de que alguien se acuerde de correr un script.
+  await ensureExerciseIndexes(mongo.db);
+
   const auth = createAuth({ env, db: mongo.db, client: mongo.client });
 
   const app = await buildApp({
     env,
     auth,
+    exerciseRepository: createMongoExerciseRepository(mongo.db),
     probes: [{ name: 'mongo', check: mongo.ping }],
   });
 

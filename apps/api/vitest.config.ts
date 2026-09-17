@@ -10,7 +10,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/server.ts', 'src/test/**'],
+      // Entrypoints: no tienen lógica propia, sólo cablean lo que ya está probado.
+      exclude: ['src/**/*.test.ts', 'src/server.ts', 'src/scripts/**', 'src/test/**'],
       thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 },
     },
   },

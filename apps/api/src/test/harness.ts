@@ -3,6 +3,10 @@ import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
 import type { Env } from '../config/env.ts';
 import { createAuth } from '../modules/auth/infrastructure/better-auth.ts';
+import {
+  createMongoExerciseRepository,
+  ensureExerciseIndexes,
+} from '../modules/exercises/infrastructure/mongo-exercise.repository.ts';
 import { connectMongo, type MongoConnection } from '../shared/db/mongo.ts';
 import { testEnv } from './env.ts';
 
@@ -30,7 +34,14 @@ export async function startTestApi(): Promise<TestHarness> {
     transactions: false,
   });
 
-  const app = await buildApp({ env, auth, probes: [{ name: 'mongo', check: mongo.ping }] });
+  await ensureExerciseIndexes(mongo.db);
+
+  const app = await buildApp({
+    env,
+    auth,
+    exerciseRepository: createMongoExerciseRepository(mongo.db),
+    probes: [{ name: 'mongo', check: mongo.ping }],
+  });
   await app.ready();
 
   return {
