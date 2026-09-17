@@ -1,0 +1,38 @@
+{
+  "name": "@wasabi-cross/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PWA de Wasabi Cross.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.103.1",
+    "@tanstack/react-router": "^1.170.38",
+    "@wasabi-cross/schemas": "workspace:*",
+    "@wasabi-cross/ui": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "jsdom": "^30.1.0",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "catalog:"
+  }
+}
