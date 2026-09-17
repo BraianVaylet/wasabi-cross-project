@@ -4,55 +4,52 @@
 
 ## Fase actual
 
-Fase 0 — Fundaciones, código terminado. El monorepo existe y corre: `apps/web`, `apps/api`,
-`packages/schemas` y `packages/ui`, con CI en GitHub Actions.
+**Fase 0 — Fundaciones: cerrada.** PR #1 mergeada el 2026-09-17 con CI verde, y las siete tarjetas
+de código movidas a `Completadas` en Trello. El monorepo corre: `apps/web`, `apps/api`,
+`packages/schemas` y `packages/ui`.
 
-Estado por tarea (ver [docs/ACTION-PLAN.md](../ACTION-PLAN.md)):
+Queda abierta sólo F0-08 (el tablero): las seis etiquetas de Trello siguen sin nombre, y el MCP no
+puede nombrarlas. Es el único pendiente de la fase y no bloquea nada.
 
-| Tarea                       | Código | Falta                   |
-| --------------------------- | ------ | ----------------------- |
-| F0-01 Monorepo              | ✅     | mover tarjeta en Trello |
-| F0-02 Schemas Zod           | ✅     | mover tarjeta en Trello |
-| F0-03 Better Auth + Mongo   | ✅     | mover tarjeta en Trello |
-| F0-04 Error envelope + Pino | ✅     | mover tarjeta en Trello |
-| F0-05 Health checks         | ✅     | mover tarjeta en Trello |
-| F0-06 UI base + Storybook   | ✅     | mover tarjeta en Trello |
-| F0-07 Seed del catálogo     | ✅     | mover tarjeta en Trello |
-| F0-08 Tablero de Trello     | ➖     | nombrar las 6 etiquetas |
+Lo que hay hoy, en una línea cada uno:
 
-Ninguna está en `[x]`: el Definition of Done (spec §16) pide la tarjeta movida, y esa movida la
-hace una persona, no la IA.
+- API Fastify con envelope de error único, logger Pino con redacción, y `/health` + `/ready`.
+- Auth con Better Auth sobre Mongo: registro, login, sesión persistida, rate limit.
+- `@wasabi-cross/schemas`: `User`, `Exercise`, `ExerciseRecord` en Zod, fuente única de tipos.
+- `@wasabi-cross/ui`: cinco Componentes Cross con tema dark/light y Storybook.
+- Catálogo de 34 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
+- CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
+  Storybook y audit de dependencias.
 
 ## En progreso
 
-Pull request de la Fase 0 abierta contra `main` desde `feat/fase-0-fundaciones`. Siete commits, uno
-por tarea. A la espera de revisión humana — la spec §9 pide revisión de persona en los flujos de
-permisos, y F0-03 (auth) es exactamente eso.
+Nada. La Fase 1 todavía no está escrita en el plan de acción.
 
 ## Bloqueado
 
-Nada bloquea el código. Dos cosas dependen de una persona:
-
-1. Nombrar a mano las seis etiquetas del tablero de Trello (el MCP no puede).
-2. Mover las tarjetas de F0-01 a F0-07 cuando se apruebe la PR.
+Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de la Fase 0.
-2. Nombrar las etiquetas de Trello y mover las tarjetas de F0-01 a F0-07.
-3. Escribir la Fase 1 en [docs/ACTION-PLAN.md](../ACTION-PLAN.md): CRUD de ejercicios con
-   entitlements de plan, carga de RM, cálculo de porcentajes y las páginas de la spec §5.
+1. **Escribir la Fase 1 en [docs/ACTION-PLAN.md](../ACTION-PLAN.md)**, con el mismo formato de tarea
+   y story points Fibonacci. Lo que la spec pide a continuación: CRUD de ejercicios con
+   entitlements de plan validados en el backend, carga de RM/tiempo/reps, cálculo de porcentajes de
+   carga, y las páginas de la spec §5 (Home, Ejercicio, Nuevo ejercicio).
+2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+3. Revisar las PRs de Dependabot que se abrieron después del merge.
 
 ## Decisiones abiertas
 
-- **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro). Sigue abierta.
+- **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro).
 - **Migraciones de Mongo.** La spec §12 pide `migrate-mongo` o similar; hoy los índices se aseguran
-  al arrancar la API. Alcanza para la Fase 0, pero el primer cambio de forma de datos necesita la
+  al arrancar la API. Alcanzó para la Fase 0, pero el primer cambio de forma de datos necesita la
   herramienta de verdad.
 - **Unidad de peso por usuario.** Los registros de RM aceptan kg y lb por registro; falta definir si
   el usuario elige una unidad por defecto en su perfil.
+- **TypeScript 7.** Hoy el monorepo está en 5.9.3 porque `typescript-eslint@8` declara
+  `typescript >=4.8.4 <6.1.0` como peer. Revisar cuando typescript-eslint lo soporte.
 
-Cerradas en esta fase: herramienta de monorepo → pnpm ([ADR-0002](../adr/0002-pnpm-workspaces-como-monorepo.md));
+Cerradas en la Fase 0: herramienta de monorepo → pnpm ([ADR-0002](../adr/0002-pnpm-workspaces-como-monorepo.md));
 framework HTTP → Fastify ([ADR-0003](../adr/0003-fastify-como-framework-http.md)); forma de los IDs
 → prefijo por entidad ([ADR-0004](../adr/0004-ids-de-dominio-con-prefijo.md)).
 
@@ -61,10 +58,11 @@ framework HTTP → Fastify ([ADR-0003](../adr/0003-fastify-como-framework-http.m
 ```bash
 pnpm install
 cp apps/api/.env.example apps/api/.env   # completar MONGODB_URI y BETTER_AUTH_SECRET
-pnpm verify                              # lint + typecheck + test + build
+pnpm verify                              # build + formato + lint + typecheck + test
 pnpm dev                                 # API en :3000, web en :5173
+pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 ```
 
 ## Última actualización
 
-2026-09-17 — código de la Fase 0 completo. Ver [bitácora](./bitacora/2026-09-17-fase-0-fundaciones.md).
+2026-09-17 — Fase 0 cerrada y mergeada. Ver [bitácora](./bitacora/2026-09-17-fase-0-fundaciones.md).
