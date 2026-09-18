@@ -36,7 +36,6 @@ Nada.
    entitlements de plan validados en el backend, carga de RM/tiempo/reps, cálculo de porcentajes de
    carga, y las páginas de la spec §5 (Home, Ejercicio, Nuevo ejercicio).
 2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
-3. Revisar las PRs de Dependabot que se abrieron después del merge.
 
 ## Decisiones abiertas
 
@@ -47,7 +46,10 @@ Nada.
 - **Unidad de peso por usuario.** Los registros de RM aceptan kg y lb por registro; falta definir si
   el usuario elige una unidad por defecto en su perfil.
 - **TypeScript 7.** Hoy el monorepo está en 5.9.3 porque `typescript-eslint@8` declara
-  `typescript >=4.8.4 <6.1.0` como peer. Revisar cuando typescript-eslint lo soporte.
+  `typescript >=4.8.4 <6.1.0` como peer, y con TS 7.0 directamente se niega a cargar (probado:
+  build, typecheck y tests pasan; el lint muere). `.github/dependabot.yml` ignora
+  `typescript >=6.1.0` con el mismo rango. Revisar cuando typescript-eslint lo soporte
+  (typescript-eslint/typescript-eslint#10940, apunta a TS ≥7.1).
 
 Cerradas en la Fase 0: herramienta de monorepo → pnpm ([ADR-0002](../adr/0002-pnpm-workspaces-como-monorepo.md));
 framework HTTP → Fastify ([ADR-0003](../adr/0003-fastify-como-framework-http.md)); forma de los IDs
@@ -65,4 +67,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-17 — Fase 0 cerrada y mergeada. Ver [bitácora](./bitacora/2026-09-17-fase-0-fundaciones.md).
+2026-09-18 — reglas de Dependabot después de la PR #5. Ver [bitácora](./bitacora/2026-09-18-dependabot-y-typescript-7.md).
