@@ -48,14 +48,11 @@ export function createMongoExerciseRepository(db: Db): ExerciseRepository {
         ownerId: null,
         name: exercise.name,
         category: exercise.category,
-        kind: exercise.kind,
         capacities: exercise.capacities,
         muscleGroups: exercise.muscleGroups,
         bodySegment: exercise.bodySegment,
-        tags: exercise.tags ?? {},
         createdAt: now,
         updatedAt: now,
-        ...(exercise.notes === undefined ? {} : { notes: exercise.notes }),
       };
 
       await collection.insertOne(document);
@@ -70,7 +67,6 @@ export function createMongoExerciseRepository(db: Db): ExerciseRepository {
           $set: {
             name: exercise.name,
             category: exercise.category,
-            kind: exercise.kind,
             capacities: exercise.capacities,
             muscleGroups: exercise.muscleGroups,
             bodySegment: exercise.bodySegment,

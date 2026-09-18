@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { exerciseIdSchema, recordIdSchema, userIdSchema } from './ids.ts';
+import { exerciseIdSchema, managedExerciseIdSchema, recordIdSchema, userIdSchema } from './ids.ts';
 
 describe('IDs de dominio', () => {
   it('acepta un ID con su prefijo', () => {
     expect(userIdSchema.parse('usr_a1b2c3d4')).toBe('usr_a1b2c3d4');
     expect(exerciseIdSchema.parse('exo_a1b2c3d4')).toBe('exo_a1b2c3d4');
     expect(recordIdSchema.parse('rec_a1b2c3d4')).toBe('rec_a1b2c3d4');
+    expect(managedExerciseIdSchema.parse('mex_a1b2c3d4')).toBe('mex_a1b2c3d4');
   });
 
   it('rechaza un ID de otra entidad: pasar un exerciseId donde va un userId falla acá', () => {
     expect(userIdSchema.safeParse('exo_a1b2c3d4').success).toBe(false);
     expect(exerciseIdSchema.safeParse('usr_a1b2c3d4').success).toBe(false);
+    expect(managedExerciseIdSchema.safeParse('exo_a1b2c3d4').success).toBe(false);
   });
 
   it('rechaza un ID sin prefijo', () => {

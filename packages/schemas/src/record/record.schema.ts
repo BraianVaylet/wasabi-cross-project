@@ -1,88 +1,100 @@
 import { z } from 'zod';
 import { isoDateTimeSchema, timestampsSchema } from '../common/datetime.ts';
-import { exerciseIdSchema, recordIdSchema, userIdSchema } from '../common/ids.ts';
+import { managedExerciseIdSchema, recordIdSchema, userIdSchema } from '../common/ids.ts';
 import { plainText } from '../common/text.ts';
+import type { MeasureKind } from '../exercise/exercise.schema.ts';
 
-export const weightUnitSchema = z.enum(['kg', 'lb']);
-export type WeightUnit = z.infer<typeof weightUnitSchema>;
+/** Cada medición tiene una sola unidad. El peso es sólo en kg (spec §5.1). */
+export const UNIT_BY_KIND = { rm: 'kg', reps: 'reps', time: 's' } as const satisfies Record<
+  MeasureKind,
+  string
+>;
 
+const rmValueSchema = z
+  .number()
+  .positive('El RM tiene que ser mayor a cero')
+  .max(1000, 'Ese valor de RM no es realista');
+
+const repsValueSchema = z
+  .number()
+  .int('Las repeticiones son un número entero')
+  .positive('Las repeticiones tienen que ser más de cero')
+  .max(10_000, 'Ese número de repeticiones no es realista');
+
+/** Siempre en segundos. La UI decide si lo muestra como 3:42 o como 222 s. */
+const timeValueSchema = z
+  .number()
+  .positive('El tiempo tiene que ser mayor a cero')
+  .max(86_400, 'El tiempo no puede superar las 24 horas');
+
+const VALUE_BY_KIND = {
+  rm: rmValueSchema,
+  reps: repsValueSchema,
+  time: timeValueSchema,
+} as const satisfies Record<MeasureKind, z.ZodNumber>;
+
+/** Cómo se valida el valor de una marca según qué mide su ejercicio. */
+export function recordValueSchemaFor(kind: MeasureKind): z.ZodNumber {
+  return VALUE_BY_KIND[kind];
+}
+
+/**
+ * La marca referencia al **ejercicio gestionado**, no al ejercicio compartido: es una
+ * marca de este usuario sobre su entrada en la lista (spec §5.1).
+ *
+ * `userId` es redundante con el del ejercicio gestionado, a propósito: deja filtrar por
+ * dueño en la misma consulta, que es la defensa contra IDOR (spec §13).
+ */
 const identity = z.object({
   id: recordIdSchema,
   userId: userIdSchema,
-  exerciseId: exerciseIdSchema,
+  managedExerciseId: managedExerciseIdSchema,
   /** Cuándo se hizo, que no siempre es cuándo se cargó. */
   performedAt: isoDateTimeSchema,
   notes: plainText(300).optional(),
 });
 
 /**
- * Un registro mide una sola cosa, y qué cosa lo dice `kind`. Es una unión discriminada
- * y no un `value` suelto con un `unit` libre: así no existe el estado inválido de un
- * RM medido en repeticiones.
- */
-const rmRecordSchema = identity.extend({
-  kind: z.literal('rm'),
-  value: z
-    .number()
-    .positive('El RM tiene que ser mayor a cero')
-    .max(1000, 'Ese valor de RM no es realista'),
-  unit: weightUnitSchema,
-});
-
-const timeRecordSchema = identity.extend({
-  kind: z.literal('time'),
-  /** Siempre en segundos. La UI decide si lo muestra como 3:42 o como 222 s. */
-  value: z
-    .number()
-    .positive('El tiempo tiene que ser mayor a cero')
-    .max(86_400, 'El tiempo no puede superar las 24 horas'),
-  unit: z.literal('s'),
-});
-
-const repsRecordSchema = identity.extend({
-  kind: z.literal('reps'),
-  value: z
-    .number()
-    .int('Las repeticiones son un número entero')
-    .positive('Las repeticiones tienen que ser más de cero')
-    .max(10_000, 'Ese número de repeticiones no es realista'),
-  unit: z.literal('reps'),
-});
-
-/**
+ * Unión discriminada por `kind`, con la unidad atada al tipo: no existe el estado
+ * inválido de un RM medido en repeticiones.
+ *
  * El tipo se llama `ExerciseRecord` y no `Record`: en TypeScript, `Record` es el tipo
  * utilitario `Record<K, V>`, y exportarlo con ese nombre lo pisaría en todo archivo que
- * importe de este paquete. El concepto de la spec no cambia, sólo el nombre del tipo.
- *
- * Los timestamps se agregan a cada variante en vez de intersecar el union entero, para
- * que siga siendo una unión discriminada — que es lo que necesita el generador de
- * OpenAPI para emitir un `oneOf` con discriminador en vez de un `allOf` ilegible.
+ * importe de este paquete.
  */
 export const recordSchema = z.discriminatedUnion('kind', [
-  rmRecordSchema.extend(timestampsSchema.shape),
-  timeRecordSchema.extend(timestampsSchema.shape),
-  repsRecordSchema.extend(timestampsSchema.shape),
+  identity
+    .extend({ kind: z.literal('rm'), value: rmValueSchema, unit: z.literal(UNIT_BY_KIND.rm) })
+    .extend(timestampsSchema.shape),
+  identity
+    .extend({
+      kind: z.literal('reps'),
+      value: repsValueSchema,
+      unit: z.literal(UNIT_BY_KIND.reps),
+    })
+    .extend(timestampsSchema.shape),
+  identity
+    .extend({
+      kind: z.literal('time'),
+      value: timeValueSchema,
+      unit: z.literal(UNIT_BY_KIND.time),
+    })
+    .extend(timestampsSchema.shape),
 ]);
 
 export type ExerciseRecord = z.infer<typeof recordSchema>;
 
 /**
- * Lo que manda el cliente al cargar un registro. No trae `id` ni `userId` (los pone el
- * servidor desde la sesión) ni `exerciseId`: ese viaja en la ruta
- * `POST /exercises/:exerciseId/records`, así no hay dos fuentes para el mismo dato.
+ * Lo que manda el cliente al cargar una marca: valor, fecha y comentario. El tipo de
+ * medición no viaja del cliente — lo sabe el servidor por la categoría del ejercicio —,
+ * así que el schema se arma para ese tipo.
  */
-const CLIENT_PROVIDED = { id: true, userId: true, exerciseId: true, performedAt: true } as const;
+export function createRecordSchemaFor(kind: MeasureKind) {
+  return z.object({
+    value: recordValueSchemaFor(kind),
+    performedAt: isoDateTimeSchema.optional(),
+    notes: plainText(300).optional(),
+  });
+}
 
-export const createRecordSchema = z.discriminatedUnion('kind', [
-  rmRecordSchema.omit(CLIENT_PROVIDED).extend({ performedAt: isoDateTimeSchema.optional() }),
-  timeRecordSchema.omit(CLIENT_PROVIDED).extend({ performedAt: isoDateTimeSchema.optional() }),
-  repsRecordSchema.omit(CLIENT_PROVIDED).extend({ performedAt: isoDateTimeSchema.optional() }),
-]);
-
-export type CreateRecord = z.infer<typeof createRecordSchema>;
-
-/**
- * Unidad que le corresponde a cada tipo de medición. `rm` no está acá porque es la
- * única que el usuario elige (kg o lb).
- */
-export const FIXED_UNIT_BY_KIND = { time: 's', reps: 'reps' } as const;
+export type CreateRecord = z.infer<ReturnType<typeof createRecordSchemaFor>>;

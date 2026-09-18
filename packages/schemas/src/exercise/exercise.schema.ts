@@ -3,19 +3,28 @@ import { timestampsSchema } from '../common/datetime.ts';
 import { exerciseIdSchema, userIdSchema } from '../common/ids.ts';
 import { plainText } from '../common/text.ts';
 
-/** Qué se mide en este ejercicio. Determina cómo se lee un registro y qué se calcula. */
-export const measureKindSchema = z.enum(['rm', 'time', 'reps']);
+/** Qué se mide en un ejercicio. Determina cómo se lee una marca y qué se calcula. */
+export const measureKindSchema = z.enum(['rm', 'reps', 'time']);
 export type MeasureKind = z.infer<typeof measureKindSchema>;
 
-/** Tipo de ejercicio (spec §5). */
-export const exerciseCategorySchema = z.enum([
-  'fuerza',
-  'hipertrofia',
-  'gimnastico',
-  'running',
-  'otro',
-]);
+/** Las cuatro categorías de los mockups (leyenda del mockup 12). */
+export const exerciseCategorySchema = z.enum(['fuerza', 'hipertrofia', 'gimnastico', 'running']);
 export type ExerciseCategory = z.infer<typeof exerciseCategorySchema>;
+
+const MEASURE_BY_CATEGORY = {
+  fuerza: 'rm',
+  hipertrofia: 'reps',
+  gimnastico: 'reps',
+  running: 'time',
+} as const satisfies Record<ExerciseCategory, MeasureKind>;
+
+/**
+ * La categoría define qué se mide; no se elige por separado (spec §5.1). Es la única
+ * fuente de esta regla: nadie más guarda ni recalcula la medición de un ejercicio.
+ */
+export function measureKindFor(category: ExerciseCategory): MeasureKind {
+  return MEASURE_BY_CATEGORY[category];
+}
 
 /** Capacidad que entrena. Es el eje de las estadísticas generales (spec §5). */
 export const capacitySchema = z.enum(['fuerza', 'resistencia', 'velocidad']);
@@ -49,44 +58,52 @@ export const bodySegmentSchema = z.enum([
 ]);
 export type BodySegment = z.infer<typeof bodySegmentSchema>;
 
-export const loadTagSchema = z.enum(['liviana', 'media', 'pesada']);
-export const levelTagSchema = z.enum(['principiante', 'intermedio', 'avanzado']);
+const capacitiesSchema = z
+  .array(capacitySchema)
+  .min(1, 'Elegí al menos una capacidad')
+  .refine((values) => new Set(values).size === values.length, 'Capacidades repetidas');
+
+const muscleGroupsSchema = z
+  .array(muscleGroupSchema)
+  .min(1, 'Elegí al menos un grupo muscular')
+  .refine((values) => new Set(values).size === values.length, 'Grupos musculares repetidos');
 
 /**
- * Etiqueta de UX sobre cómo le cae el ejercicio al usuario. **No es un registro
- * clínico** (spec §2): no se usa para diagnosticar ni se comparte con nadie.
+ * Lo que define un ejercicio: nombre y categoría. Es todo lo que pide el formulario de
+ * "Nuevo ejercicio" para uno propio (mockup 9). El dueño y el ID los pone el servidor.
+ *
+ * Nivel, "con dolor" y comentarios **no** están acá: son del usuario sobre el ejercicio,
+ * y viven en el ejercicio gestionado (spec §5.1).
  */
-export const discomfortTagSchema = z.enum(['ninguno', 'molestia', 'dolor']);
-
-export const exerciseTagsSchema = z.object({
-  load: loadTagSchema.optional(),
-  level: levelTagSchema.optional(),
-  discomfort: discomfortTagSchema.optional(),
+export const exerciseDefinitionSchema = z.object({
+  name: plainText(80).pipe(z.string().min(1, 'El nombre no puede estar vacío')),
+  category: exerciseCategorySchema,
 });
-export type ExerciseTags = z.infer<typeof exerciseTagsSchema>;
+export type ExerciseDefinition = z.infer<typeof exerciseDefinitionSchema>;
 
-export const exerciseSchema = z
-  .object({
+/**
+ * Una entrada del catálogo pre-cargado. Además de nombre y categoría, lleva lo que
+ * necesita Estadísticas para comparar por capacidad y por grupo muscular.
+ */
+export const catalogExerciseDefinitionSchema = exerciseDefinitionSchema.extend({
+  capacities: capacitiesSchema,
+  muscleGroups: muscleGroupsSchema,
+  bodySegment: bodySegmentSchema,
+});
+export type CatalogExerciseDefinition = z.infer<typeof catalogExerciseDefinitionSchema>;
+
+export const exerciseSchema = exerciseDefinitionSchema
+  .extend({
     id: exerciseIdSchema,
     /**
-     * `null` = ejercicio del catálogo pre-cargado, visible para todos.
-     * Con `userId` = ejercicio custom, visible sólo para su dueño.
+     * `null` = ejercicio del catálogo, visible para todos.
+     * Con `userId` = ejercicio propio, visible sólo para su dueño.
      */
     ownerId: userIdSchema.nullable(),
-    name: plainText(80).pipe(z.string().min(1, 'El nombre no puede estar vacío')),
-    category: exerciseCategorySchema,
-    kind: measureKindSchema,
-    capacities: z
-      .array(capacitySchema)
-      .min(1, 'Elegí al menos una capacidad')
-      .refine((values) => new Set(values).size === values.length, 'Capacidades repetidas'),
-    muscleGroups: z
-      .array(muscleGroupSchema)
-      .min(1, 'Elegí al menos un grupo muscular')
-      .refine((values) => new Set(values).size === values.length, 'Grupos musculares repetidos'),
-    bodySegment: bodySegmentSchema,
-    tags: exerciseTagsSchema,
-    notes: plainText(500).optional(),
+    // Opcionales porque un ejercicio propio no los tiene: el formulario no los pide.
+    capacities: capacitiesSchema.optional(),
+    muscleGroups: muscleGroupsSchema.optional(),
+    bodySegment: bodySegmentSchema.optional(),
   })
   .extend(timestampsSchema.shape);
 
@@ -96,26 +113,3 @@ export type Exercise = z.infer<typeof exerciseSchema>;
 export function isCatalogExercise(exercise: Pick<Exercise, 'ownerId'>): boolean {
   return exercise.ownerId === null;
 }
-
-/** Lo que manda el cliente para crear un ejercicio custom. El dueño lo pone la sesión. */
-export const createExerciseSchema = exerciseSchema
-  .pick({
-    name: true,
-    category: true,
-    kind: true,
-    capacities: true,
-    muscleGroups: true,
-    bodySegment: true,
-  })
-  .extend({
-    tags: exerciseTagsSchema.optional(),
-    notes: exerciseSchema.shape.notes,
-  });
-
-export type CreateExercise = z.infer<typeof createExerciseSchema>;
-
-export const updateExerciseSchema = createExerciseSchema
-  .partial()
-  .refine((value) => Object.keys(value).length > 0, 'No hay nada para actualizar');
-
-export type UpdateExercise = z.infer<typeof updateExerciseSchema>;

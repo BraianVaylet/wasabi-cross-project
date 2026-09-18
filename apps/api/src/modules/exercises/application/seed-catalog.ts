@@ -8,19 +8,32 @@ export interface SeedReport {
   unchanged: string[];
 }
 
-/** Campos que definen un ejercicio del catálogo. Lo demás (id, fechas) no se compara. */
+/**
+ * Campos que definen un ejercicio del catálogo. Lo demás (id, fechas) no se compara, y
+ * la medición tampoco: sale de la categoría, así que comparar la categoría alcanza.
+ */
 function hasSameDefinition(stored: Exercise, definition: CatalogExercise): boolean {
   return (
     stored.category === definition.category &&
-    stored.kind === definition.kind &&
     stored.bodySegment === definition.bodySegment &&
     sameSet(stored.capacities, definition.capacities) &&
     sameSet(stored.muscleGroups, definition.muscleGroups)
   );
 }
 
-function sameSet(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && [...a].sort().join('|') === [...b].sort().join('|');
+/**
+ * `stored` puede venir sin el campo: en el schema es opcional porque un ejercicio propio
+ * no lo tiene. Un documento del catálogo sin él está incompleto y cuenta como cambio.
+ */
+function sameSet(stored: readonly string[] | undefined, expected: readonly string[]): boolean {
+  if (!stored) {
+    return false;
+  }
+
+  return (
+    stored.length === expected.length &&
+    [...stored].sort().join('|') === [...expected].sort().join('|')
+  );
 }
 
 /**

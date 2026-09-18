@@ -1,4 +1,8 @@
-import { exerciseSchema } from '@wasabi-cross/schemas';
+import {
+  catalogExerciseDefinitionSchema,
+  exerciseSchema,
+  measureKindFor,
+} from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { EXERCISE_CATALOG } from '../domain/catalog.ts';
 import { seedCatalog } from '../application/seed-catalog.ts';
@@ -44,12 +48,19 @@ describe('catálogo de ejercicios', () => {
   });
 
   describe('el catálogo del código', () => {
-    it('cada entrada es un ejercicio válido según el schema compartido', () => {
+    it('cada entrada es una definición de catálogo completa, con lo que pide Estadísticas', () => {
+      for (const definition of EXERCISE_CATALOG) {
+        const result = catalogExerciseDefinitionSchema.safeParse(definition);
+
+        expect(result.success, `${definition.name}: ${result.error?.message ?? ''}`).toBe(true);
+      }
+    });
+
+    it('cada entrada, guardada, es un ejercicio válido según el schema compartido', () => {
       for (const definition of EXERCISE_CATALOG) {
         const result = exerciseSchema.safeParse({
           id: 'exo_a1b2c3d4',
           ownerId: null,
-          tags: {},
           createdAt: '2026-09-17T14:03:11.412Z',
           updatedAt: '2026-09-17T14:03:11.412Z',
           ...definition,
@@ -57,6 +68,16 @@ describe('catálogo de ejercicios', () => {
 
         expect(result.success, `${definition.name}: ${result.error?.message ?? ''}`).toBe(true);
       }
+    });
+
+    it('la hipertrofia se mide en repeticiones, como en el Home del mockup 4', () => {
+      const butterfly = EXERCISE_CATALOG.find((exercise) => exercise.name === 'Butterfly');
+
+      expect(butterfly && measureKindFor(butterfly.category)).toBe('reps');
+    });
+
+    it('no incluye la plancha: ninguna categoría la mide en tiempo', () => {
+      expect(EXERCISE_CATALOG.map((exercise) => exercise.name)).not.toContain('Plancha');
     });
 
     it('no hay nombres repetidos: el nombre es la clave del seed', () => {
@@ -75,7 +96,7 @@ describe('catálogo de ejercicios', () => {
     });
 
     it('cubre las tres formas de medir', () => {
-      const kinds = new Set(EXERCISE_CATALOG.map((exercise) => exercise.kind));
+      const kinds = new Set(EXERCISE_CATALOG.map((exercise) => measureKindFor(exercise.category)));
 
       expect(kinds).toEqual(new Set(['rm', 'time', 'reps']));
     });
@@ -132,27 +153,15 @@ describe('catálogo de ejercicios', () => {
       ).rejects.toThrow(/exo_noexiste00000/);
     });
 
-    it('guarda las notas cuando la definición las trae', async () => {
-      const repository = createMongoExerciseRepository(harness.mongo.db);
-
-      const created = await repository.insertCatalogExercise({
-        name: 'Ejercicio con notas',
-        category: 'otro',
-        kind: 'reps',
-        capacities: ['fuerza'],
-        muscleGroups: ['core'],
-        bodySegment: 'core',
-        notes: 'Mantener la espalda neutra.',
-        tags: { level: 'principiante' },
-      });
-
-      expect(created.notes).toBe('Mantener la espalda neutra.');
-      expect(created.tags).toEqual({ level: 'principiante' });
-
-      // No es parte del catálogo real: se borra para no desviar los conteos de abajo.
-      await harness.mongo.db
+    it('el documento guardado no lleva tags ni medición: son del usuario o se derivan', async () => {
+      const stored = await harness.mongo.db
         .collection<{ _id: string }>(EXERCISES_COLLECTION)
-        .deleteOne({ _id: created.id });
+        .findOne({ name: firstCatalogExercise().name });
+
+      expect(stored).not.toBeNull();
+      expect(stored).not.toHaveProperty('tags');
+      expect(stored).not.toHaveProperty('kind');
+      expect(stored).not.toHaveProperty('notes');
     });
 
     it('los ejercicios del catálogo no tienen dueño y llevan ID con prefijo', async () => {

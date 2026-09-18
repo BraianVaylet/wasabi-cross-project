@@ -21,7 +21,9 @@ function idSchema(prefix: string, label: string) {
 export const userIdSchema = idSchema('usr', 'ID de usuario');
 export const exerciseIdSchema = idSchema('exo', 'ID de ejercicio');
 export const recordIdSchema = idSchema('rec', 'ID de registro');
+export const managedExerciseIdSchema = idSchema('mex', 'ID de ejercicio gestionado');
 
 export type UserId = z.infer<typeof userIdSchema>;
 export type ExerciseId = z.infer<typeof exerciseIdSchema>;
 export type RecordId = z.infer<typeof recordIdSchema>;
+export type ManagedExerciseId = z.infer<typeof managedExerciseIdSchema>;

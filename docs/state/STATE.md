@@ -16,7 +16,7 @@ Lo que hay hoy, en una línea cada uno:
 - API Fastify con envelope de error único, logger Pino con redacción, y `/health` + `/ready`.
 - Auth con Better Auth sobre Mongo: registro, login, sesión persistida, rate limit.
 - `@wasabi-cross/schemas`: `User`, `Exercise`, `ExerciseRecord` en Zod, fuente única de tipos.
-  **Ojo:** este modelo no coincide con los mockups (ver spec §5.1); F1-01 lo corrige.
+  En `main` este modelo todavía no coincide con los mockups; la PR de F1-01 lo corrige.
 - `@wasabi-cross/ui`: cinco Componentes Cross con tema dark/light y Storybook.
 - Catálogo de 34 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
 - CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
@@ -24,9 +24,10 @@ Lo que hay hoy, en una línea cada uno:
 
 ## En progreso
 
-**Fase 1 — El loop del atleta, planificada.** 18 tareas, 71 puntos, en
-[docs/ACTION-PLAN.md](../ACTION-PLAN.md). La spec ganó la §5.1 con el modelo de ejercicios, marcas y
-porcentajes. Todo en una PR a la espera de revisión; ninguna tarea arrancó.
+**Fase 1 — El loop del atleta.** 18 tareas, 71 puntos, cargadas en Trello.
+
+- **F1-01 · Schemas**: código hecho, en PR a la espera de revisión. Corrige el modelo de F0-02
+  contra los mockups.
 
 ## Bloqueado
 
@@ -34,12 +35,11 @@ Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR con el plan de la Fase 1 y la spec §5.1.
-2. Cargar la Fase 1 en Trello con `/trello-sync F1`, recién después del merge: el plan manda en el
-   contenido, y conviene que esté aprobado antes de volverlo tarjetas.
-3. Arrancar **F1-01** (schemas). En paralelo se puede tomar **F1-09** (shell del front), que no
-   depende de nada.
-4. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+1. Revisar y mergear la PR de F1-01, y mover su tarjeta a `Completadas`.
+2. Con F1-01 cerrada se destraban cuatro tareas: **F1-02** (migraciones), **F1-03**
+   (entitlements), **F1-04** (cálculo) y **F1-08** (preferencias). **F1-09** (shell del front) no
+   depende de nada y se puede tomar en cualquier momento.
+3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 
@@ -80,4 +80,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — plan de la Fase 1 y spec §5.1. Ver [bitácora](./bitacora/2026-09-18-plan-fase-1.md).
+2026-09-18 — F1-01, schemas alineados con la spec §5.1. Ver [bitácora](./bitacora/2026-09-18-f1-01-schemas.md).
