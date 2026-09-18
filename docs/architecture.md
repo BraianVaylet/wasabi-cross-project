@@ -40,7 +40,7 @@ Un solo deployable. Cada módulo vive en `apps/api/src/modules/<modulo>/` con tr
 
 **Regla de dependencia:** un módulo nunca importa el modelo/entidad de otro módulo directamente. La comunicación es por interfaces (inyectadas) o por eventos de dominio internos.
 
-Esto no es sólo una convención escrita: `eslint.config.js` la hace cumplir. `domain` y `application` no pueden importar de `infrastructure`, y ningún módulo puede importar el interior de otro. Cuando un módulo necesita algo de otro —por ejemplo, `exercises` necesitando el guard de sesión de `auth`— lo recibe inyectado desde `app.ts`, que es la única capa que conoce a los dos.
+Esto no es sólo una convención escrita: `eslint.config.js` la hace cumplir. `domain` y `application` no pueden importar de `infrastructure`, y ningún módulo puede importar el interior de otro. Cuando un módulo necesita algo de otro —por ejemplo, `exercises` necesitando el cupo del plan de `subscriptions` o guardar marcas en `records`— define un **puerto** con lo que necesita, y otro módulo lo cumple sin importarlo. Los conecta la **raíz de composición** (`apps/api/src/composition.ts`, más `app.ts` para las rutas): es el único lugar que conoce a todos los módulos, y si un contrato no coincide, TypeScript lo marca ahí.
 
 Lista de módulos y qué hace cada uno: ver [spec §7](./spec/wasabi-cross.spec.md#módulos-de-dominio).
 
@@ -124,6 +124,8 @@ sin el lock ese test falla.
 ## API REST y OpenAPI
 
 Versionada (`/api/v1/...`). El spec OpenAPI se **genera** desde los schemas Zod de `@wasabi-cross/schemas` — nunca se escribe a mano, porque se desactualiza siempre. Documentación servida con Swagger.
+
+**Sesión antes que nada.** El guard de sesión va en el hook `onRequest` de cada ruta protegida, no en `preHandler`: en Fastify la validación del cuerpo corre antes de `preHandler`, y ahí un request sin sesión con un cuerpo inválido recibía 400 en vez de 401 — podía sondear el contrato de la API sin estar autenticado.
 
 ## Decisiones de arquitectura
 

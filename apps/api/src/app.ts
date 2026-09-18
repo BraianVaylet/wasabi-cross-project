@@ -16,8 +16,10 @@ import type { Auth } from './modules/auth/infrastructure/better-auth.ts';
 import { authRoutes } from './modules/auth/infrastructure/auth.routes.ts';
 import { sessionRoutes } from './modules/auth/infrastructure/session.routes.ts';
 import { requireSession } from './modules/auth/infrastructure/require-session.ts';
-import type { ExerciseRepository } from './modules/exercises/domain/exercise-repository.ts';
-import { exerciseRoutes } from './modules/exercises/infrastructure/exercise.routes.ts';
+import {
+  exerciseRoutes,
+  type ExerciseRoutesOptions,
+} from './modules/exercises/infrastructure/exercise.routes.ts';
 import type { DependencyProbe } from './modules/health/domain/readiness.ts';
 import { healthRoutes } from './modules/health/infrastructure/health.routes.ts';
 import { buildLoggerOptions } from './shared/logger.ts';
@@ -31,15 +33,15 @@ export interface BuildAppOptions {
   probes?: readonly DependencyProbe[];
   /** Sin `auth`, la app levanta sin endpoints de sesión — útil para tests de infra. */
   auth?: Auth;
-  /** Se registra sólo junto con `auth`: el catálogo es para usuarios con sesión. */
-  exerciseRepository?: ExerciseRepository;
+  /** Se registra sólo junto con `auth`: los ejercicios son para usuarios con sesión. */
+  exercises?: Omit<ExerciseRoutesOptions, 'requireSession'>;
 }
 
 export async function buildApp({
   env,
   probes = [],
   auth,
-  exerciseRepository,
+  exercises,
 }: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({
     logger: buildLoggerOptions(env),
@@ -107,11 +109,10 @@ export async function buildApp({
     await app.register(authRoutes(auth));
     await app.register(sessionRoutes(auth), { prefix: API_PREFIX });
 
-    if (exerciseRepository) {
-      await app.register(
-        exerciseRoutes({ repository: exerciseRepository, requireSession: requireSession(auth) }),
-        { prefix: API_PREFIX },
-      );
+    if (exercises) {
+      await app.register(exerciseRoutes({ ...exercises, requireSession: requireSession(auth) }), {
+        prefix: API_PREFIX,
+      });
     }
   }
 

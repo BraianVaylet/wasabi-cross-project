@@ -17,6 +17,8 @@ export class AppError extends Error {
   readonly statusCode: number;
   readonly userMessage: string;
   readonly meta: Readonly<Record<string, unknown>>;
+  /** Motivo por campo, para que la UI lo muestre junto al campo y no como un error suelto. */
+  readonly details: readonly { path: string; message: string }[] | undefined;
 
   constructor(
     errorCode: ErrorCode,
@@ -24,6 +26,7 @@ export class AppError extends Error {
       message?: string;
       meta?: Record<string, unknown>;
       params?: Record<string, string>;
+      details?: { path: string; message: string }[];
       cause?: unknown;
     } = {},
   ) {
@@ -36,6 +39,7 @@ export class AppError extends Error {
     this.statusCode = entry.status;
     this.userMessage = userMessage;
     this.meta = Object.freeze({ ...options.meta });
+    this.details = options.details;
   }
 }
 

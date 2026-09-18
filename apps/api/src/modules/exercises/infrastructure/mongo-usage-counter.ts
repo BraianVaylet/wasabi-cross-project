@@ -12,15 +12,17 @@ import { EXERCISES_COLLECTION, MANAGED_EXERCISES_COLLECTION } from './mongo-exer
  */
 export function createMongoExerciseUsageCounter(db: Db) {
   return {
-    count: async (userId: string, session: ClientSession) => {
+    // `session` es opcional: el cupo cuenta dentro de la transacción del alta, la lista de
+    // Home cuenta afuera.
+    count: async (userId: string, session?: ClientSession) => {
       // En secuencia y no con Promise.all: una transacción no admite operaciones en
       // paralelo sobre la misma sesión.
       const total = await db
         .collection(MANAGED_EXERCISES_COLLECTION)
-        .countDocuments({ userId }, { session });
+        .countDocuments({ userId }, session ? { session } : {});
       const custom = await db
         .collection(EXERCISES_COLLECTION)
-        .countDocuments({ ownerId: userId }, { session });
+        .countDocuments({ ownerId: userId }, session ? { session } : {});
 
       return { total, custom };
     },

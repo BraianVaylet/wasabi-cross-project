@@ -1,9 +1,9 @@
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
 import type { Env } from '../config/env.ts';
 import { createAuth } from '../modules/auth/infrastructure/better-auth.ts';
-import { createMongoExerciseRepository } from '../modules/exercises/infrastructure/mongo-exercise.repository.ts';
+import { composeExercises } from '../composition.ts';
 import { migrateUp, migrationsProbe } from '../shared/db/migrations.ts';
 import { connectMongo, type MongoConnection } from '../shared/db/mongo.ts';
 import { testEnv } from './env.ts';
@@ -18,19 +18,19 @@ export interface TestHarness {
 /**
  * Levanta la API completa contra un Mongo en memoria. Los tests de integración usan
  * esto en vez de mocks: la parte que más falla de auth es la que toca la base.
+ *
+ * Es un replica set, como Atlas: el cupo de ejercicios (F1-03) y el alta atómica (F1-05)
+ * usan transacciones, y en un Mongo standalone no existen. Así los tests corren con las
+ * mismas garantías que producción, Better Auth incluido.
  */
 export async function startTestApi(): Promise<TestHarness> {
-  const mongod = await MongoMemoryServer.create();
-  const env = testEnv({ MONGODB_URI: mongod.getUri() });
+  const replSet = await MongoMemoryReplSet.create({
+    replSet: { count: 1, storageEngine: 'wiredTiger' },
+  });
+  const env = testEnv({ MONGODB_URI: replSet.getUri() });
   const mongo = await connectMongo(env);
 
-  const auth = createAuth({
-    env,
-    db: mongo.db,
-    client: mongo.client,
-    // mongodb-memory-server es standalone: sin replica set no hay transacciones.
-    transactions: false,
-  });
+  const auth = createAuth({ env, db: mongo.db, client: mongo.client });
 
   // La base de test se prepara igual que la de producción: con las migraciones.
   await migrateUp(mongo.db, mongo.client);
@@ -38,7 +38,7 @@ export async function startTestApi(): Promise<TestHarness> {
   const app = await buildApp({
     env,
     auth,
-    exerciseRepository: createMongoExerciseRepository(mongo.db),
+    exercises: composeExercises(mongo),
     probes: [{ name: 'mongo', check: mongo.ping }, migrationsProbe(mongo.db)],
   });
   await app.ready();
@@ -50,7 +50,7 @@ export async function startTestApi(): Promise<TestHarness> {
     stop: async () => {
       await app.close();
       await mongo.close();
-      await mongod.stop();
+      await replSet.stop();
     },
   };
 }

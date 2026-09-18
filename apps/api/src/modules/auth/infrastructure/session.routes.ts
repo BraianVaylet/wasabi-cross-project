@@ -22,7 +22,7 @@ export function sessionRoutes(auth: Auth): FastifyPluginAsyncZod {
     app.get(
       '/me',
       {
-        preHandler: requireSession(auth),
+        onRequest: requireSession(auth),
         schema: {
           summary: 'Usuario de la sesión actual',
           tags: ['auth'],
