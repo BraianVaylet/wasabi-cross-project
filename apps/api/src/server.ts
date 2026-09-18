@@ -1,7 +1,7 @@
 import { parseEnv } from './config/env.ts';
 import { buildApp } from './app.ts';
 import { createAuth } from './modules/auth/infrastructure/better-auth.ts';
-import { composeExercises } from './composition.ts';
+import { composeExercises, composeRecords } from './composition.ts';
 import { migrationsProbe } from './shared/db/migrations.ts';
 import { connectMongo } from './shared/db/mongo.ts';
 
@@ -15,6 +15,7 @@ async function main(): Promise<void> {
     env,
     auth,
     exercises: composeExercises(mongo),
+    records: composeRecords(mongo),
     // La API no migra al arrancar: las migraciones corren una vez por deploy (ADR-0005).
     // Si alguien se las saltea, /ready lo dice y la instancia no recibe tráfico.
     probes: [{ name: 'mongo', check: mongo.ping }, migrationsProbe(mongo.db)],

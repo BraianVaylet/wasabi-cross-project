@@ -34,6 +34,8 @@ Lo que hay hoy, en una línea cada uno:
   ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
 - **F1-05 · Agregar y listar ejercicios**: cerrada.
 - **F1-06 · Editar y borrar**: código hecho, en PR. `PATCH` y `DELETE /api/v1/exercises/:id`.
+- **F1-07 · Marcas e historial**: código hecho, en PR apilada sobre la de F1-06.
+  `POST` y `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
 
 ## Bloqueado
 
@@ -41,15 +43,16 @@ Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F1-06.
-2. Destrabadas y sin arrancar: **F1-07** (marcas e historial, la última del backend grande),
-   **F1-08** (preferencias) y **F1-09** (shell del front). Con F1-09, se destraban F1-10, F1-11 y
-   F1-12.
+1. Revisar y mergear la PR de F1-06, y después la de F1-07 (GitHub la reapunta a `main` sola).
+2. Destrabadas y sin arrancar: **F1-08** (preferencias) y **F1-09** (shell del front). Con F1-09,
+   se destraban F1-10, F1-11 y F1-12.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 
 - **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro).
+- **Marcas con fecha futura.** Hoy se aceptan: la spec no dice nada. Una marca de mañana pasaría a
+  ser el valor actual hasta que llegue su fecha. ¿Se rechazan?
 - **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
   Queda fuera de la Fase 1 hasta que se decida.
 - **TypeScript 7.** Hoy el monorepo está en 5.9.3 porque `typescript-eslint@8` declara
@@ -67,7 +70,8 @@ Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 - El peso es sólo en kg. La opción de lb nunca estuvo en los mockups: la había agregado F0-02.
 
 Defaults fijados sin consulta explícita, para revisar en la PR: carga redondeada al 0,5 kg,
-repeticiones redondeadas hacia abajo con mínimo 1, y "valor actual" = la marca de fecha más reciente.
+repeticiones redondeadas hacia abajo con mínimo 1, "valor actual" = la marca de fecha más reciente, y
+si la mejor marca se repite, cuenta la primera vez que se logró.
 
 Cerradas en la Fase 0: herramienta de monorepo → pnpm ([ADR-0002](../adr/0002-pnpm-workspaces-como-monorepo.md));
 framework HTTP → Fastify ([ADR-0003](../adr/0003-fastify-como-framework-http.md)); forma de los IDs
@@ -87,4 +91,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-06, editar y borrar ejercicios. Ver [bitácora](./bitacora/2026-09-18-f1-06-editar-borrar.md).
+2026-09-18 — F1-07, marcas e historial. Ver [bitácora](./bitacora/2026-09-18-f1-07-marcas.md).
