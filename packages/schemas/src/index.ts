@@ -6,3 +6,4 @@ export * from './user/user.schema.ts';
 export * from './exercise/exercise.schema.ts';
 export * from './exercise/managed-exercise.schema.ts';
 export * from './record/record.schema.ts';
+export * from './calc/percentages.ts';

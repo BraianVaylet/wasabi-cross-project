@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      2 |
+| Fase 1 — El loop del atleta |     18 |           71 |      3 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -303,7 +303,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   base desde `src/` y desde `dist/`, que haría aplicar dos veces cada migración. Cerrada: PR #11
   mergeada el 2026-09-18.
 
-## [~] F1-03 · Entitlements de plan
+## [x] F1-03 · Entitlements de plan
 
 - **module:** subscriptions
 - **description:** El módulo `subscriptions` decide si un usuario puede agregar un ejercicio, según
@@ -333,10 +333,10 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   serializada con un documento de lock por usuario, porque una transacción sola deja pasar dos altas
   simultáneas (write skew). Una prueba inversa confirmó que sin el lock el test de concurrencia
   falla. Suma interpolación de variables en `AppError`: el mensaje de `WC-SUBS-403-001` llegaba al
-  usuario con `{limite}` y `{plan}` literales. Requiere Mongo en replica set. Falta mover la
-  tarjeta.
+  usuario con `{limite}` y `{plan}` literales. Requiere Mongo en replica set. Cerrada: PR #12
+  revisada y mergeada el 2026-09-18.
 
-## [ ] F1-04 · Cálculo de porcentajes y bandas de carga
+## [~] F1-04 · Cálculo de porcentajes y bandas de carga
 
 - **module:** records
 - **description:** Funciones puras de la spec §5.1, compartidas por front y back para que calculen
@@ -359,6 +359,10 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **data-model-impact:** ninguno. **Decisión estructural:** dónde vive lógica de dominio compartida
   (propuesta: `@wasabi-cross/schemas`; alternativa: un paquete `@wasabi-cross/domain`). ADR en esta
   tarea.
+- **estado:** código hecho, a la espera de revisión. `loadFor`, `repsFor`, `loadBandFor`,
+  `supportsPercentages` y `percentageTable` en `packages/schemas/src/calc/`, con 100% de coverage.
+  La decisión estructural quedó en [ADR-0006](./adr/0006-reglas-de-dominio-compartidas-en-schemas.md):
+  schemas, porque ya alojaba reglas de dominio compartidas. Falta mover la tarjeta.
 
 ## [ ] F1-05 · Agregar y listar ejercicios gestionados
 

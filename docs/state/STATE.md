@@ -29,8 +29,9 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
 - **F1-02 · Migraciones**: cerrada. migrate-mongo
   ([ADR-0005](../adr/0005-migraciones-con-migrate-mongo.md)).
-- **F1-03 · Entitlements**: código hecho, en PR. **Necesita revisión humana de sus tests** (flujo
-  de permisos, spec §9).
+- **F1-03 · Entitlements**: cerrada, con revisión humana de sus tests.
+- **F1-04 · Cálculo de porcentajes**: código hecho, en PR. Reglas compartidas en schemas
+  ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
 
 ## Bloqueado
 
@@ -38,9 +39,9 @@ Nada.
 
 ## Próximo paso
 
-1. **Revisar a mano los tests de F1-03** —es flujo de permisos— y mergear su PR.
-2. Destrabadas y sin arrancar: **F1-04** (cálculo) y **F1-08** (preferencias). **F1-05** espera a
-   F1-03. **F1-09** (shell del front) no depende de nada.
+1. Revisar y mergear la PR de F1-04.
+2. Destrabadas y sin arrancar: **F1-05** (agregar y listar ejercicios, 8 puntos, camino crítico) y
+   **F1-08** (preferencias). **F1-09** (shell del front) no depende de nada.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -83,4 +84,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-03, entitlements de plan. Ver [bitácora](./bitacora/2026-09-18-f1-03-entitlements.md).
+2026-09-18 — F1-04, cálculo de porcentajes. Ver [bitácora](./bitacora/2026-09-18-f1-04-porcentajes.md).
