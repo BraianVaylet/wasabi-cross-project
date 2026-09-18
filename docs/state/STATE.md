@@ -33,9 +33,9 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-04 · Cálculo de porcentajes**: cerrada. Reglas compartidas en schemas
   ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
 - **F1-05 · Agregar y listar ejercicios**: cerrada.
-- **F1-06 · Editar y borrar**: código hecho, en PR. `PATCH` y `DELETE /api/v1/exercises/:id`.
-- **F1-07 · Marcas e historial**: código hecho, en PR apilada sobre la de F1-06.
-  `POST` y `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
+- **F1-06 · Editar y borrar**: cerrada.
+- **F1-07 · Marcas e historial**: código hecho, en PR contra `main`. `POST` y
+  `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
 
 ## Bloqueado
 
@@ -43,7 +43,7 @@ Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F1-06, y después la de F1-07 (GitHub la reapunta a `main` sola).
+1. Mergear la PR de F1-07.
 2. Destrabadas y sin arrancar: **F1-08** (preferencias) y **F1-09** (shell del front). Con F1-09,
    se destraban F1-10, F1-11 y F1-12.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
@@ -55,7 +55,7 @@ Nada.
   ser el valor actual hasta que llegue su fecha. ¿Se rechazan?
 - **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
   Queda fuera de la Fase 1 hasta que se decida.
-- **TypeScript 7.** Hoy el monorepo está en 5.9.3 porque `typescript-eslint@8` declara
+- **TypeScript 7.** Hoy el monorepo está en 6.0.3 (PR #8) porque `typescript-eslint@8` declara
   `typescript >=4.8.4 <6.1.0` como peer, y con TS 7.0 directamente se niega a cargar (probado:
   build, typecheck y tests pasan; el lint muere). `.github/dependabot.yml` ignora
   `typescript >=6.1.0` con el mismo rango. Revisar cuando typescript-eslint lo soporte

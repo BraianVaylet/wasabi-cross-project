@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      5 |
+| Fase 1 — El loop del atleta |     18 |           71 |      6 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -403,7 +403,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   encontró y corrigió que el guard de sesión corría después de validar el cuerpo. Cerrada: PR #14
   mergeada el 2026-09-18.
 
-## [~] F1-06 · Editar y borrar un ejercicio gestionado
+## [x] F1-06 · Editar y borrar un ejercicio gestionado
 
 - **module:** exercises
 - **description:** `PATCH /api/v1/exercises/:id` cambia nivel, "con dolor" y comentarios; en uno
@@ -429,7 +429,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   store sólo busca un ejercicio gestionado por ID **y** dueño, así que un ID ajeno se comporta igual
   que uno inexistente por construcción. Editar y borrar son todo o nada (un ejecutor de
   transacciones genérico, porque no consumen cupo); el borrado también se probó con una falla
-  forzada y una prueba inversa. Falta mover la tarjeta.
+  forzada y una prueba inversa. Cerrada: PR #15 mergeada el 2026-09-18.
 
 ## [~] F1-07 · Marcas: cargar e historial
 
@@ -462,8 +462,9 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   de la misma fecha: sin eso el cursor repetiría o saltearía alguna. La regla de mejor marca vive
   en la consulta (orden por valor, ascendente en tiempo), así que se prueba por integración en las
   tres mediciones y no con unitarios. Siete pruebas inversas confirman que los tests detectan cada
-  regla rota. `WC-RM-404-002` no se usa todavía: ningún endpoint apunta a una marca por ID. Apilada
-  sobre F1-06. Falta mover la tarjeta.
+  regla rota. `WC-RM-404-002` no se usa todavía: ningún endpoint apunta a una marca por ID. La PR
+  #16 iba apilada sobre F1-06 y se mergeó contra esa rama después de que F1-06 entrara a `main`, así
+  que no llegó: va de nuevo en una PR contra `main`. Falta mover la tarjeta.
 
 ## [ ] F1-08 · Preferencias del usuario
 
