@@ -38,24 +38,66 @@ Webapp donde el usuario carga sus ejercicios (o los elige de un listado pre-carg
 
 Los límites de plan son un **entitlement por usuario**, se validan en el módulo `subscriptions` en el backend — nunca solo en el frontend.
 
+**Qué cuenta como "gestionado"**: todo ejercicio que el usuario tiene en su lista, venga del catálogo o lo haya creado él. Un usuario Free puede elegir cualquier ejercicio del catálogo, pero su lista completa no pasa de 10, y de esos, como máximo 3 son propios. El límite se controla al agregar; qué pasa con un usuario que baja de Max a Free con más de 10 se define en la fase de suscripción.
+
 ## 5. Páginas y componentes
 
 Mockups en [`../mockup`](../mockup).
 
-| Página                     | Mockup                                                   | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presentación               | `wasabi (1).jpeg`                                        | Splash con logo y nombre al abrir la app                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Login                      | `wasabi (2).jpeg`                                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Registro                   | `wasabi (3).jpeg`                                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Header (componente global) | —                                                        | Logo + nombre a la izquierda; toggle de tema y menú de navegación a la derecha. Presente en todas las páginas.                                                                                                                                                                                                                                                                                                                                                                   |
-| Home                       | `wasabi (4).jpeg`                                        | Lista de ejercicios cargados: nombre, fecha de última modificación, valor actual (RM / tiempo / reps). Botón "New Exercice" (si el plan lo permite).                                                                                                                                                                                                                                                                                                                             |
-| Estadísticas               | `wasabi (10).jpeg`                                       | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior.                                                                                                                                                                                  |
-| Ejercicio                  | `wasabi (5).jpeg`, `wasabi (6).jpeg`, `wasabi (11).jpeg` | Detalle de un ejercicio. Para Fuerza: RM actual + porcentajes de carga (default 65/75/80/85/90/95%, configurables) + cálculo de un porcentaje custom. Tags de contexto: carga liviana/media/pesada, tipo (fuerza, hipertrofia, gimnástico, running…), nivel del usuario, malestar/dolor. Acciones: editar ejercicio, ver estadísticas, cargar nuevo RM (modal), ver historial. Para tiempo/repeticiones: mismo patrón, el cálculo de "carga" se reemplaza por tiempo o cantidad. |
-| Nuevo ejercicio            | `wasabi (9).jpeg`                                        | Formulario para elegir un ejercicio pre-cargado o crear uno nuevo si no existe.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Página                     | Mockup                                                | Descripción                                                                                                                                                                                                                                                                                     |
+| -------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presentación               | `wasabi (1).png`                                      | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                       |
+| Login                      | `wasabi (2).png`                                      | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                           |
+| Registro                   | `wasabi (3).png`                                      | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                              |
+| Header (componente global) | `wasabi (4a).png`                                     | Logo + nombre a la izquierda; toggle de tema y menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Color, Cerrar sesión. Presente en todas las páginas.                                                                                                                              |
+| Home                       | `wasabi (4).png`                                      | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                        |
+| Estadísticas               | `wasabi (10).png`                                     | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. |
+| Ejercicio                  | `wasabi (5).png`, `wasabi (6).png`, `wasabi (11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1.                                                   |
+| Nuevo ejercicio            | `wasabi (9).png`                                      | Nombre (elige del catálogo o crea uno propio si no existe), categoría (sólo si es propio: la de un ejercicio del catálogo ya está definida), primera marca con su fecha, nivel, comentarios y "con dolor".                                                                                      |
+
+Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
 **PWA**: instalable en el dispositivo. Al haber una nueva versión, se notifica al usuario con un popup para actualizar.
 
 **Landing page**: fuera de esta fase de desarrollo.
+
+### 5.1 Ejercicios, marcas y porcentajes
+
+**La categoría define qué se mide.** No se elige por separado:
+
+| Categoría   | Se mide en   | Porcentajes                                   |
+| ----------- | ------------ | --------------------------------------------- |
+| Fuerza      | RM, en kg    | Sí: carga = RM × %                            |
+| Hipertrofia | Repeticiones | Sí: repeticiones = máximo × %                 |
+| Gimnástico  | Repeticiones | Sí                                            |
+| Running     | Tiempo       | No: se muestran la mejor marca y el historial |
+
+El peso se registra sólo en kg.
+
+**Tres conceptos distintos:**
+
+- **Ejercicio**: la definición — nombre y categoría, y en los del catálogo, además capacidades y grupos musculares para Estadísticas. Es del catálogo (sin dueño, lo ven todos) o propio (lo creó un usuario y sólo lo ve él).
+- **Ejercicio gestionado**: la entrada de un ejercicio en la lista de un usuario. Lleva lo que es del usuario y no del ejercicio: nivel, "con dolor" y comentarios. Un ejercicio aparece una sola vez en la lista de cada usuario.
+- **Marca**: un valor con su fecha de realización y un comentario opcional, sobre un ejercicio gestionado.
+
+**Tags:**
+
+- **Categoría**: Fuerza, Hipertrofia, Gimnástico, Running.
+- **Nivel**: Principiante, Intermedio, Avanzado, Elite. Del usuario sobre ese ejercicio.
+- **Con dolor**: sí o no. Del usuario. Etiqueta de UX, no registro clínico (§2).
+- **Carga**: liviana, media o pesada. **Se calcula, no se guarda**: menos de 70% es liviana, de 70% a 84% media, desde 85% pesada.
+
+**Valor actual y mejor marca:**
+
+- **Valor actual**: la marca con la fecha de realización más reciente. Sobre ella se calculan los porcentajes, porque refleja la capacidad de hoy.
+- **Mejor marca**: el máximo histórico (el mínimo, en tiempo). Es lo que dispara `pr.achieved`.
+
+**Redondeo:**
+
+- Carga: al 0,5 kg más cercano.
+- Repeticiones: hacia abajo, con mínimo 1. Nunca por encima de la intensidad pedida.
+
+**Porcentajes por defecto**: 65, 75, 80, 85, 90 y 95%, configurables por usuario en su perfil.
 
 ## 6. Stack
 
@@ -87,16 +129,16 @@ Mockups en [`../mockup`](../mockup).
 
 Un solo deployable de backend, módulos aislados (`domain / application / infrastructure` cada uno). Se comunican por interfaces o eventos internos — nunca importando modelos de otro módulo directamente.
 
-| Módulo          | Responsabilidad                                                          |
-| --------------- | ------------------------------------------------------------------------ |
-| `auth`          | Login, registro, sesión (Better Auth)                                    |
-| `users`         | Perfil, configuración (tema, porcentajes de carga default)               |
-| `exercises`     | Catálogo pre-cargado + ejercicios custom del usuario, tags               |
-| `records`       | Carga y evolución de RM / tiempos / repeticiones, cálculo de porcentajes |
-| `stats`         | Agregaciones y análisis (por ejercicio y generales)                      |
-| `subscriptions` | Plan Free/Max, límites, entitlements                                     |
-| `billing`       | Pago de la suscripción Max                                               |
-| `notifications` | Popup de nueva versión PWA, avisos                                       |
+| Módulo          | Responsabilidad                                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `auth`          | Login, registro, sesión (Better Auth)                                                                            |
+| `users`         | Perfil, configuración (tema, porcentajes de carga default)                                                       |
+| `exercises`     | Catálogo pre-cargado, ejercicios propios y la lista de ejercicios gestionados de cada usuario (nivel, con dolor) |
+| `records`       | Carga y evolución de RM / tiempos / repeticiones, cálculo de porcentajes                                         |
+| `stats`         | Agregaciones y análisis (por ejercicio y generales)                                                              |
+| `subscriptions` | Plan Free/Max, límites, entitlements                                                                             |
+| `billing`       | Pago de la suscripción Max                                                                                       |
+| `notifications` | Popup de nueva versión PWA, avisos                                                                               |
 
 ### Eventos de dominio (in-process, cola si hace falta después)
 
@@ -171,7 +213,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 ## 13. Seguridad, privacidad y cumplimiento
 
 - OWASP Top 10 como checklist de revisión por módulo.
-- **Autorización en cada endpoint** (recurso + acción + usuario dueño del recurso). El riesgo real acá es **IDOR** — un usuario cambiando un ID en la URL para ver/editar ejercicios de otro. Test obligatorio.
+- **Autorización en cada endpoint** (recurso + acción + usuario dueño del recurso). El riesgo real acá es **IDOR** — un usuario cambiando un ID en la URL para ver/editar ejercicios de otro. Test obligatorio. Un recurso de otro usuario responde **404, no 403**: confirmar que existe ya es filtrar información.
 - Rate limiting: login (5/min/IP), registro, recupero de contraseña, webhooks de pago.
 - Validación de entrada con Zod en el borde; sanitización de HTML en notas/descripciones de ejercicio.
 - Prevención de NoSQL injection (nunca pasar objetos del usuario directo a `find`).
