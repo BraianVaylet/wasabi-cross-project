@@ -3,6 +3,7 @@ export * from './common/ids.ts';
 export * from './common/text.ts';
 export * from './user/plan.ts';
 export * from './user/user.schema.ts';
+export * from './user/preferences.api.ts';
 export * from './exercise/exercise.schema.ts';
 export * from './exercise/managed-exercise.schema.ts';
 export * from './exercise/managed-exercise.api.ts';

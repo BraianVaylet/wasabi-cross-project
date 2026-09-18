@@ -34,8 +34,9 @@ Lo que hay hoy, en una línea cada uno:
   ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
 - **F1-05 · Agregar y listar ejercicios**: cerrada.
 - **F1-06 · Editar y borrar**: cerrada.
-- **F1-07 · Marcas e historial**: código hecho, en PR contra `main`. `POST` y
+- **F1-07 · Marcas e historial**: código hecho, en PR #17 contra `main`. `POST` y
   `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
+- **F1-08 · Preferencias**: cerrada. `GET` y `PATCH /api/v1/me/preferences`, en el módulo `users`.
 
 ## Bloqueado
 
@@ -43,9 +44,8 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear la PR de F1-07.
-2. Destrabadas y sin arrancar: **F1-08** (preferencias) y **F1-09** (shell del front). Con F1-09,
-   se destraban F1-10, F1-11 y F1-12.
+1. Mergear #17 (F1-07). Ya trae `main` con F1-08 y los conflictos de cableado resueltos.
+2. Destrabada y en curso: **F1-09** (shell del front). Con F1-09, se destraban F1-10, F1-11 y F1-12.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -91,4 +91,5 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-07, marcas e historial. Ver [bitácora](./bitacora/2026-09-18-f1-07-marcas.md).
+2026-09-18 — F1-07 llevada a `main` después de F1-08. Ver [bitácora de F1-07](./bitacora/2026-09-18-f1-07-marcas.md)
+y [de F1-08](./bitacora/2026-09-18-f1-08-preferencias.md).

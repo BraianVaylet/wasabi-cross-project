@@ -26,6 +26,10 @@ import {
   recordRoutes,
   type RecordRoutesOptions,
 } from './modules/records/infrastructure/record.routes.ts';
+import {
+  preferencesRoutes,
+  type PreferencesRoutesOptions,
+} from './modules/users/infrastructure/preferences.routes.ts';
 import { buildLoggerOptions } from './shared/logger.ts';
 import { registerErrorHandler } from './shared/errors/error-handler.ts';
 
@@ -37,6 +41,8 @@ export interface BuildAppOptions {
   probes?: readonly DependencyProbe[];
   /** Sin `auth`, la app levanta sin endpoints de sesión — útil para tests de infra. */
   auth?: Auth;
+  /** Se registra sólo junto con `auth`, como todo lo que es de un usuario. */
+  users?: Omit<PreferencesRoutesOptions, 'requireSession'>;
   /** Se registra sólo junto con `auth`: los ejercicios son para usuarios con sesión. */
   exercises?: Omit<ExerciseRoutesOptions, 'requireSession'>;
   /** Igual que `exercises`: las marcas son de usuarios con sesión. */
@@ -47,6 +53,7 @@ export async function buildApp({
   env,
   probes = [],
   auth,
+  users,
   exercises,
   records,
 }: BuildAppOptions): Promise<FastifyInstance> {
@@ -115,6 +122,12 @@ export async function buildApp({
     // el contrato de esas rutas lo define la librería, no nosotros.
     await app.register(authRoutes(auth));
     await app.register(sessionRoutes(auth), { prefix: API_PREFIX });
+
+    if (users) {
+      await app.register(preferencesRoutes({ ...users, requireSession: requireSession(auth) }), {
+        prefix: API_PREFIX,
+      });
+    }
 
     if (exercises) {
       await app.register(exerciseRoutes({ ...exercises, requireSession: requireSession(auth) }), {

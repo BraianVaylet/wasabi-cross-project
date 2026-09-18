@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      6 |
+| Fase 1 — El loop del atleta |     18 |           71 |      7 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -466,7 +466,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   #16 iba apilada sobre F1-06 y se mergeó contra esa rama después de que F1-06 entrara a `main`, así
   que no llegó: va de nuevo en una PR contra `main`. Falta mover la tarjeta.
 
-## [ ] F1-08 · Preferencias del usuario
+## [x] F1-08 · Preferencias del usuario
 
 - **module:** users
 - **description:** `GET` y `PATCH /api/v1/me/preferences`: tema y porcentajes de carga por defecto
@@ -486,6 +486,12 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** integración de lectura por defecto, guardado y cada validación.
 - **error-codes:** `WC-SYS-400-002`.
 - **data-model-impact:** colección de preferencias del módulo `users`.
+- **estado:** código hecho, a la espera de revisión. `GET` y `PATCH /api/v1/me/preferences`, en la
+  colección `user_preferences` con el ID del usuario como `_id` (uno por usuario sin índice, así que
+  sin migración). Se guarda sólo lo que el usuario cambió; lo demás toma el default al leer, que es
+  lo que dice la spec ("si nunca los cambió"). El cambio es un único `$set` con upsert: tema y
+  porcentajes a la vez no se pisan. Cuatro pruebas inversas detectadas. Cerrada: PR #18 mergeada el
+  2026-09-18.
 
 ## [ ] F1-09 · Shell de la app: rutas, sesión, header y menú
 
