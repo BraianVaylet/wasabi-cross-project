@@ -16,6 +16,9 @@ import { createMongoExerciseUsageCounter } from './modules/exercises/infrastruct
 import { createMongoRecordGateway } from './modules/records/infrastructure/mongo-record.gateway.ts';
 import { withExerciseSlot } from './modules/subscriptions/application/with-exercise-slot.ts';
 import { createMongoUserSerializer } from './modules/subscriptions/infrastructure/mongo-user-serializer.ts';
+import { getPreferences, updatePreferences } from './modules/users/application/preferences.ts';
+import { createMongoPreferencesStore } from './modules/users/infrastructure/mongo-preferences.store.ts';
+import type { PreferencesRoutesOptions } from './modules/users/infrastructure/preferences.routes.ts';
 import type { MongoConnection } from './shared/db/mongo.ts';
 import { createMongoTransactionRunner } from './shared/db/transactions.ts';
 
@@ -55,5 +58,17 @@ export function composeExercises(
         { store, records, transactions },
         { userId: user.id, managedExerciseId },
       ),
+  };
+}
+
+/** Las preferencias (F1-08). `users` no necesita nada de otro módulo. */
+export function composeUsers(
+  mongo: MongoConnection,
+): Omit<PreferencesRoutesOptions, 'requireSession'> {
+  const store = createMongoPreferencesStore(mongo.db);
+
+  return {
+    getPreferences: (userId) => getPreferences(store, userId),
+    updatePreferences: (userId, change) => updatePreferences(store, userId, change),
   };
 }

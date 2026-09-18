@@ -33,7 +33,11 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-04 · Cálculo de porcentajes**: cerrada. Reglas compartidas en schemas
   ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
 - **F1-05 · Agregar y listar ejercicios**: cerrada.
-- **F1-06 · Editar y borrar**: código hecho, en PR. `PATCH` y `DELETE /api/v1/exercises/:id`.
+- **F1-06 · Editar y borrar**: cerrada.
+- **F1-07 · Marcas e historial**: código hecho, en PR #17 contra `main`. `POST` y
+  `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
+- **F1-08 · Preferencias**: código hecho, en PR. `GET` y `PATCH /api/v1/me/preferences`, en el
+  módulo `users` nuevo.
 
 ## Bloqueado
 
@@ -41,18 +45,20 @@ Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F1-06.
-2. Destrabadas y sin arrancar: **F1-07** (marcas e historial, la última del backend grande),
-   **F1-08** (preferencias) y **F1-09** (shell del front). Con F1-09, se destraban F1-10, F1-11 y
+1. Mergear #17 (F1-07) y la PR de F1-08. Las dos tocan los archivos de cableado de la API y STATE:
+   la segunda que entre necesita traer `main` antes.
+2. Destrabada y sin arrancar: **F1-09** (shell del front). Con F1-09, se destraban F1-10, F1-11 y
    F1-12.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 
 - **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro).
+- **Marcas con fecha futura.** Hoy se aceptan: la spec no dice nada. Una marca de mañana pasaría a
+  ser el valor actual hasta que llegue su fecha. ¿Se rechazan?
 - **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
   Queda fuera de la Fase 1 hasta que se decida.
-- **TypeScript 7.** Hoy el monorepo está en 5.9.3 porque `typescript-eslint@8` declara
+- **TypeScript 7.** Hoy el monorepo está en 6.0.3 (PR #8) porque `typescript-eslint@8` declara
   `typescript >=4.8.4 <6.1.0` como peer, y con TS 7.0 directamente se niega a cargar (probado:
   build, typecheck y tests pasan; el lint muere). `.github/dependabot.yml` ignora
   `typescript >=6.1.0` con el mismo rango. Revisar cuando typescript-eslint lo soporte
@@ -67,7 +73,8 @@ Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 - El peso es sólo en kg. La opción de lb nunca estuvo en los mockups: la había agregado F0-02.
 
 Defaults fijados sin consulta explícita, para revisar en la PR: carga redondeada al 0,5 kg,
-repeticiones redondeadas hacia abajo con mínimo 1, y "valor actual" = la marca de fecha más reciente.
+repeticiones redondeadas hacia abajo con mínimo 1, "valor actual" = la marca de fecha más reciente, y
+si la mejor marca se repite, cuenta la primera vez que se logró.
 
 Cerradas en la Fase 0: herramienta de monorepo → pnpm ([ADR-0002](../adr/0002-pnpm-workspaces-como-monorepo.md));
 framework HTTP → Fastify ([ADR-0003](../adr/0003-fastify-como-framework-http.md)); forma de los IDs
@@ -87,4 +94,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-06, editar y borrar ejercicios. Ver [bitácora](./bitacora/2026-09-18-f1-06-editar-borrar.md).
+2026-09-18 — F1-08, preferencias del usuario. Ver [bitácora](./bitacora/2026-09-18-f1-08-preferencias.md).
