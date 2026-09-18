@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      3 |
+| Fase 1 — El loop del atleta |     18 |           71 |      4 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -336,7 +336,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   usuario con `{limite}` y `{plan}` literales. Requiere Mongo en replica set. Cerrada: PR #12
   revisada y mergeada el 2026-09-18.
 
-## [~] F1-04 · Cálculo de porcentajes y bandas de carga
+## [x] F1-04 · Cálculo de porcentajes y bandas de carga
 
 - **module:** records
 - **description:** Funciones puras de la spec §5.1, compartidas por front y back para que calculen
@@ -362,9 +362,10 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **estado:** código hecho, a la espera de revisión. `loadFor`, `repsFor`, `loadBandFor`,
   `supportsPercentages` y `percentageTable` en `packages/schemas/src/calc/`, con 100% de coverage.
   La decisión estructural quedó en [ADR-0006](./adr/0006-reglas-de-dominio-compartidas-en-schemas.md):
-  schemas, porque ya alojaba reglas de dominio compartidas. Falta mover la tarjeta.
+  schemas, porque ya alojaba reglas de dominio compartidas. Cerrada: PR #13 mergeada el
+  2026-09-18.
 
-## [ ] F1-05 · Agregar y listar ejercicios gestionados
+## [~] F1-05 · Agregar y listar ejercicios gestionados
 
 - **module:** exercises
 - **description:** `POST /api/v1/exercises` agrega a la lista del usuario un ejercicio del catálogo
@@ -394,6 +395,13 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** `WC-EXO-404-002`, `WC-SUBS-403-001`, nuevos `WC-EXO-409-003` (ya está en tu lista)
   y `WC-EXO-409-004` (ya existe en el catálogo).
 - **data-model-impact:** primeros documentos de ejercicios gestionados y de ejercicios propios.
+- **estado:** código hecho, a la espera de revisión. `exercises` pide el cupo y la primera marca por
+  puertos; `subscriptions` y `records` los cumplen, conectados en `src/composition.ts`. `records`
+  nace con lo mínimo (guardar la primera marca y leer el valor actual). Probado: cada criterio por
+  HTTP, IDOR con dos usuarios, atomicidad forzando la falla de la marca y las carreras de alta
+  duplicada, con pruebas inversas que confirman que los tests detectan la falla. De camino se
+  encontró y corrigió que el guard de sesión corría después de validar el cuerpo. Falta mover la
+  tarjeta.
 
 ## [ ] F1-06 · Editar y borrar un ejercicio gestionado
 

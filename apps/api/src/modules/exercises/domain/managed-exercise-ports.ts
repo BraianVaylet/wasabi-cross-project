@@ -1,0 +1,74 @@
+import type {
+  Exercise,
+  ExerciseCategory,
+  Level,
+  ManagedExercise,
+  MeasureKind,
+  Plan,
+} from '@wasabi-cross/schemas';
+
+/*
+ * Puertos del alta y la lista de ejercicios gestionados (F1-05). `Tx` es la transacción,
+ * genérica: ni el dominio ni la aplicación saben que del otro lado hay Mongo.
+ *
+ * Dos de estos puertos los cumplen otros módulos, y se conectan en la raíz de composición:
+ * `ExerciseSlots` lo cumple `subscriptions` (el cupo del plan) y `RecordsGateway` lo cumple
+ * `records` (las marcas). Ningún módulo importa a otro.
+ */
+
+export interface ExerciseSlots<Tx> {
+  withSlot: <T>(
+    request: { userId: string; plan: Plan; isCustom: boolean },
+    work: (tx: Tx) => Promise<T>,
+  ) => Promise<T>;
+}
+
+export interface CurrentValue {
+  readonly value: number;
+  readonly unit: 'kg' | 'reps' | 's';
+  readonly performedAt: string;
+}
+
+export interface NewRecord {
+  userId: string;
+  managedExerciseId: string;
+  kind: MeasureKind;
+  value: number;
+  performedAt: string;
+  notes?: string;
+}
+
+export interface RecordsGateway<Tx> {
+  /** Guarda la primera marca dentro de la transacción del alta. */
+  logFirst: (tx: Tx, record: NewRecord) => Promise<CurrentValue>;
+  /** Valor actual (la marca de fecha más reciente) de cada ejercicio gestionado. */
+  currentFor: (managedExerciseIds: readonly string[]) => Promise<ReadonlyMap<string, CurrentValue>>;
+}
+
+export interface NewManagedExercise {
+  userId: string;
+  exerciseId: string;
+  level: Level;
+  withPain: boolean;
+  notes?: string;
+}
+
+export interface ManagedExerciseStore<Tx> {
+  findExercise: (id: string) => Promise<Exercise | null>;
+  findExercisesByIds: (ids: readonly string[]) => Promise<Exercise[]>;
+  findCatalog: () => Promise<Exercise[]>;
+  findCustomsOf: (userId: string) => Promise<Exercise[]>;
+  findManaged: (userId: string, exerciseId: string) => Promise<ManagedExercise | null>;
+  listManaged: (userId: string) => Promise<ManagedExercise[]>;
+  /** Tira `WC-EXO-409-003` si el índice único detecta un duplicado (carrera). */
+  createCustom: (
+    tx: Tx,
+    exercise: { ownerId: string; name: string; category: ExerciseCategory },
+  ) => Promise<Exercise>;
+  /** Tira `WC-EXO-409-003` si el índice único detecta un duplicado (carrera). */
+  createManaged: (tx: Tx, managed: NewManagedExercise) => Promise<ManagedExercise>;
+}
+
+export interface UsageCounter {
+  count: (userId: string) => Promise<{ total: number; custom: number }>;
+}
