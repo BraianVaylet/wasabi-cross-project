@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      4 |
+| Fase 1 — El loop del atleta |     18 |           71 |      5 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -365,7 +365,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   schemas, porque ya alojaba reglas de dominio compartidas. Cerrada: PR #13 mergeada el
   2026-09-18.
 
-## [~] F1-05 · Agregar y listar ejercicios gestionados
+## [x] F1-05 · Agregar y listar ejercicios gestionados
 
 - **module:** exercises
 - **description:** `POST /api/v1/exercises` agrega a la lista del usuario un ejercicio del catálogo
@@ -400,10 +400,10 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   nace con lo mínimo (guardar la primera marca y leer el valor actual). Probado: cada criterio por
   HTTP, IDOR con dos usuarios, atomicidad forzando la falla de la marca y las carreras de alta
   duplicada, con pruebas inversas que confirman que los tests detectan la falla. De camino se
-  encontró y corrigió que el guard de sesión corría después de validar el cuerpo. Falta mover la
-  tarjeta.
+  encontró y corrigió que el guard de sesión corría después de validar el cuerpo. Cerrada: PR #14
+  mergeada el 2026-09-18.
 
-## [ ] F1-06 · Editar y borrar un ejercicio gestionado
+## [~] F1-06 · Editar y borrar un ejercicio gestionado
 
 - **module:** exercises
 - **description:** `PATCH /api/v1/exercises/:id` cambia nivel, "con dolor" y comentarios; en uno
@@ -425,6 +425,11 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   del borrado.
 - **error-codes:** `WC-EXO-404-002`, `WC-SYS-400-002`.
 - **data-model-impact:** borrado en cascada de las marcas del ejercicio gestionado.
+- **estado:** código hecho, a la espera de revisión. `PATCH` y `DELETE /api/v1/exercises/:id`. El
+  store sólo busca un ejercicio gestionado por ID **y** dueño, así que un ID ajeno se comporta igual
+  que uno inexistente por construcción. Editar y borrar son todo o nada (un ejecutor de
+  transacciones genérico, porque no consumen cupo); el borrado también se probó con una falla
+  forzada y una prueba inversa. Falta mover la tarjeta.
 
 ## [ ] F1-07 · Marcas: cargar e historial
 

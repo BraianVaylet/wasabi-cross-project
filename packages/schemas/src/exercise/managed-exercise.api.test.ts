@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { addExerciseSchema, exerciseListSchema } from './managed-exercise.api.ts';
+import {
+  addExerciseSchema,
+  exerciseListSchema,
+  updateManagedExerciseSchema,
+} from './managed-exercise.api.ts';
 
 const firstRecord = { value: 100, performedAt: '2026-09-18T10:00:00.000Z' };
 
@@ -116,5 +120,33 @@ describe('exerciseListSchema — lo que muestra Home (mockup 4)', () => {
         usage: { plan: 'max', total: 40, custom: 20, maxTotal: null, maxCustom: null },
       }).success,
     ).toBe(true);
+  });
+});
+
+describe('updateManagedExerciseSchema — el lápiz del detalle (F1-06)', () => {
+  it('acepta un cambio parcial', () => {
+    expect(updateManagedExerciseSchema.parse({ level: 'avanzado' })).toEqual({ level: 'avanzado' });
+    expect(updateManagedExerciseSchema.parse({ withPain: true })).toEqual({ withPain: true });
+  });
+
+  it('acepta comentarios vacíos: es la forma de borrarlos', () => {
+    expect(updateManagedExerciseSchema.parse({ notes: '   ' })).toEqual({ notes: '' });
+  });
+
+  it('rechaza un update vacío', () => {
+    expect(updateManagedExerciseSchema.safeParse({}).success).toBe(false);
+  });
+
+  it('rechaza cambiar la categoría: las marcas ya están en su unidad', () => {
+    // Estricto a propósito: un campo de más no se descarta en silencio, se rechaza.
+    expect(updateManagedExerciseSchema.safeParse({ category: 'running' }).success).toBe(false);
+    expect(
+      updateManagedExerciseSchema.safeParse({ level: 'avanzado', category: 'running' }).success,
+    ).toBe(false);
+  });
+
+  it('rechaza un nombre vacío o con HTML', () => {
+    expect(updateManagedExerciseSchema.safeParse({ name: '  ' }).success).toBe(false);
+    expect(updateManagedExerciseSchema.safeParse({ name: '<b>x</b>' }).success).toBe(false);
   });
 });

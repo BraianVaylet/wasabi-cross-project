@@ -75,6 +75,11 @@ export function createMongoRecordGateway(db: Db) {
       return { value: document.value, unit: document.unit, performedAt: document.performedAt };
     },
 
+    deleteAllFor: async (session: ClientSession, managedExerciseId: string) => {
+      const result = await records.deleteMany({ managedExerciseId }, { session });
+      return result.deletedCount;
+    },
+
     currentFor: async (managedExerciseIds: readonly string[]) => {
       // El valor actual es la marca de fecha de realización más reciente (spec §5.1). Si
       // hay dos con la misma fecha, gana la que se cargó después.

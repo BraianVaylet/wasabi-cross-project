@@ -1,6 +1,10 @@
 import type { ClientSession } from 'mongodb';
 import { addManagedExercise } from './modules/exercises/application/add-managed-exercise.ts';
 import {
+  deleteManagedExercise,
+  editManagedExercise,
+} from './modules/exercises/application/edit-managed-exercise.ts';
+import {
   listManagedExercises,
   searchCatalog,
 } from './modules/exercises/application/list-managed-exercises.ts';
@@ -13,6 +17,7 @@ import { createMongoRecordGateway } from './modules/records/infrastructure/mongo
 import { withExerciseSlot } from './modules/subscriptions/application/with-exercise-slot.ts';
 import { createMongoUserSerializer } from './modules/subscriptions/infrastructure/mongo-user-serializer.ts';
 import type { MongoConnection } from './shared/db/mongo.ts';
+import { createMongoTransactionRunner } from './shared/db/transactions.ts';
 
 /**
  * Raíz de composición: el único lugar que conoce a todos los módulos y los conecta.
@@ -29,6 +34,7 @@ export function composeExercises(
   const records = createMongoRecordGateway(mongo.db);
   const counter = createMongoExerciseUsageCounter(mongo.db);
   const serializer = createMongoUserSerializer(mongo.client, mongo.db);
+  const transactions = createMongoTransactionRunner(mongo.client);
 
   const slots: ExerciseSlots<ClientSession> = {
     withSlot: (request, work) => withExerciseSlot({ serializer, counter }, request, work),
@@ -39,5 +45,15 @@ export function composeExercises(
     addExercise: (user, input) =>
       addManagedExercise({ store, slots, records }, { userId: user.id, plan: user.plan, input }),
     listExercises: (user) => listManagedExercises({ store, records, counter }, user),
+    editExercise: (user, managedExerciseId, input) =>
+      editManagedExercise(
+        { store, records, transactions },
+        { userId: user.id, managedExerciseId, input },
+      ),
+    deleteExercise: (user, managedExerciseId) =>
+      deleteManagedExercise(
+        { store, records, transactions },
+        { userId: user.id, managedExerciseId },
+      ),
   };
 }
