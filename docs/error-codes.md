@@ -16,7 +16,6 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 | `WC-AUTH-403-002` | 403  | Sin permiso sobre el recurso                           | No tenés permisos para esta acción.                      |
 | `WC-AUTH-429-003` | 429  | Demasiados intentos                                    | Demasiados intentos. Probá en 5 minutos.                 |
 | `WC-AUTH-401-004` | 401  | Sin sesión, o sesión vencida                           | Iniciá sesión para continuar.                            |
-| `WC-EXO-403-001`  | 403  | Límite de ejercicios del plan alcanzado                | Alcanzaste el máximo de ejercicios de tu plan {plan}.    |
 | `WC-EXO-404-002`  | 404  | Ejercicio no encontrado                                | No encontramos ese ejercicio.                            |
 | `WC-RM-422-001`   | 422  | Valor de RM/tiempo/reps inválido                       | El valor cargado no es válido.                           |
 | `WC-RM-404-002`   | 404  | Registro no encontrado                                 | No encontramos ese registro.                             |

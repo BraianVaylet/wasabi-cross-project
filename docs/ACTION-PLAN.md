@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      1 |
+| Fase 1 — El loop del atleta |     18 |           71 |      2 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -277,7 +277,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   Se retiraron `createExerciseSchema` y `updateExerciseSchema`: cada payload lo define la tarea que
   lo usa (F1-05, F1-06). Cerrada: PR #10 mergeada el 2026-09-18.
 
-## [~] F1-02 · Migraciones versionadas de Mongo
+## [x] F1-02 · Migraciones versionadas de Mongo
 
 - **module:** infra
 - **description:** Herramienta de migraciones versionadas y reversibles (spec §12), antes del primer
@@ -300,10 +300,10 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   ([ADR-0005](./adr/0005-migraciones-con-migrate-mongo.md)), corriendo una vez por deploy y no al
   arrancar, porque su lock no es atómico. Suma dos cosas que no estaban en el plan y salieron de
   probarlo: `/ready` responde no-listo con migraciones pendientes, y una guarda impide migrar la misma
-  base desde `src/` y desde `dist/`, que haría aplicar dos veces cada migración. Falta mover la
-  tarjeta.
+  base desde `src/` y desde `dist/`, que haría aplicar dos veces cada migración. Cerrada: PR #11
+  mergeada el 2026-09-18.
 
-## [ ] F1-03 · Entitlements de plan
+## [~] F1-03 · Entitlements de plan
 
 - **module:** subscriptions
 - **description:** El módulo `subscriptions` decide si un usuario puede agregar un ejercicio, según
@@ -328,6 +328,13 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** `WC-SUBS-403-001`. Se retira `WC-EXO-403-001`, que decía lo mismo desde el módulo
   equivocado: el límite lo decide `subscriptions`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, **a la espera de revisión humana de los tests** (flujo de permisos,
+  spec §9). La regla vive pura en el dominio; el conteo y el alta van en la misma transacción,
+  serializada con un documento de lock por usuario, porque una transacción sola deja pasar dos altas
+  simultáneas (write skew). Una prueba inversa confirmó que sin el lock el test de concurrencia
+  falla. Suma interpolación de variables en `AppError`: el mensaje de `WC-SUBS-403-001` llegaba al
+  usuario con `{limite}` y `{plan}` literales. Requiere Mongo en replica set. Falta mover la
+  tarjeta.
 
 ## [ ] F1-04 · Cálculo de porcentajes y bandas de carga
 
