@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      5 |
+| Fase 1 — El loop del atleta |     18 |           71 |      6 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -403,7 +403,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   encontró y corrigió que el guard de sesión corría después de validar el cuerpo. Cerrada: PR #14
   mergeada el 2026-09-18.
 
-## [~] F1-06 · Editar y borrar un ejercicio gestionado
+## [x] F1-06 · Editar y borrar un ejercicio gestionado
 
 - **module:** exercises
 - **description:** `PATCH /api/v1/exercises/:id` cambia nivel, "con dolor" y comentarios; en uno
@@ -429,7 +429,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   store sólo busca un ejercicio gestionado por ID **y** dueño, así que un ID ajeno se comporta igual
   que uno inexistente por construcción. Editar y borrar son todo o nada (un ejecutor de
   transacciones genérico, porque no consumen cupo); el borrado también se probó con una falla
-  forzada y una prueba inversa. Falta mover la tarjeta.
+  forzada y una prueba inversa. Cerrada: PR #15 mergeada el 2026-09-18.
 
 ## [ ] F1-07 · Marcas: cargar e historial
 
@@ -458,7 +458,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **data-model-impact:** índice por `(managedExerciseId, performedAt)` para el historial, en una
   migración.
 
-## [ ] F1-08 · Preferencias del usuario
+## [~] F1-08 · Preferencias del usuario
 
 - **module:** users
 - **description:** `GET` y `PATCH /api/v1/me/preferences`: tema y porcentajes de carga por defecto
@@ -478,6 +478,11 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** integración de lectura por defecto, guardado y cada validación.
 - **error-codes:** `WC-SYS-400-002`.
 - **data-model-impact:** colección de preferencias del módulo `users`.
+- **estado:** código hecho, a la espera de revisión. `GET` y `PATCH /api/v1/me/preferences`, en la
+  colección `user_preferences` con el ID del usuario como `_id` (uno por usuario sin índice, así que
+  sin migración). Se guarda sólo lo que el usuario cambió; lo demás toma el default al leer, que es
+  lo que dice la spec ("si nunca los cambió"). El cambio es un único `$set` con upsert: tema y
+  porcentajes a la vez no se pisan. Cuatro pruebas inversas detectadas. Falta mover la tarjeta.
 
 ## [ ] F1-09 · Shell de la app: rutas, sesión, header y menú
 
