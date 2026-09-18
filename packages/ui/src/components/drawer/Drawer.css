@@ -1,0 +1,82 @@
+.wc-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.wc-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(0 0 0 / 45%);
+}
+
+.wc-drawer__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+  width: min(22rem, 82vw);
+  padding: var(--wc-space-4) var(--wc-space-5) var(--wc-space-6);
+  overflow-y: auto;
+
+  background-color: var(--wc-surface);
+  border-left: 1px solid var(--wc-border);
+  color: var(--wc-text);
+
+  animation: wc-drawer-in 200ms ease-out;
+}
+
+.wc-drawer__panel:focus {
+  outline: none;
+}
+
+.wc-drawer__top {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Las opciones del menú: grandes, como en el mockup 4a, y con target táctil de 44px. */
+.wc-drawer__item {
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-3);
+  width: 100%;
+  min-height: var(--wc-tap-target);
+  padding: var(--wc-space-2) 0;
+
+  background: none;
+  border: none;
+  color: var(--wc-text);
+  font: inherit;
+  font-size: var(--wc-font-size-lg);
+  text-align: left;
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.wc-drawer__item:hover,
+.wc-drawer__item[aria-current='page'] {
+  color: var(--wc-accent-text);
+}
+
+/* Lo que va al final del panel, como "Cerrar sesión". */
+.wc-drawer__footer {
+  margin-top: auto;
+}
+
+@keyframes wc-drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wc-drawer__panel {
+    animation: none;
+  }
+}

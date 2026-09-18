@@ -1,3 +1,4 @@
+import { errorEnvelopeSchema } from '@wasabi-cross/schemas';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
@@ -53,6 +54,21 @@ describe('envelope de error', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it('todo error respeta el envelope que lee el front (@wasabi-cross/schemas)', async () => {
+    const responses = await Promise.all([
+      app.inject({ method: 'GET', url: '/no-existe' }),
+      app.inject({ method: 'POST', url: '/test/validacion', payload: { value: -1 } }),
+      app.inject({ method: 'GET', url: '/test/negocio' }),
+      app.inject({ method: 'GET', url: '/test/explota' }),
+      app.inject({ method: 'GET', url: '/test/respuesta-mentirosa' }),
+    ]);
+
+    for (const response of responses) {
+      expect(response.statusCode, response.body).toBeGreaterThanOrEqual(400);
+      expect(errorEnvelopeSchema.safeParse(response.json()).success, response.body).toBe(true);
+    }
   });
 
   it('una ruta inexistente responde 404 con WC-SYS-404-003', async () => {

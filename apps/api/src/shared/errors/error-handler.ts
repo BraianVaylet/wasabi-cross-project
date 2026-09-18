@@ -1,21 +1,10 @@
+import type { ErrorEnvelope } from '@wasabi-cross/schemas';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
 } from 'fastify-type-provider-zod';
 import { AppError, isAppError } from './app-error.ts';
-
-/**
- * Envelope único de error. Todo error que sale de la API tiene esta forma —
- * el front no tiene que adivinar según el endpoint.
- */
-export interface ErrorEnvelope {
-  errorCode: string;
-  message: string;
-  requestId: string;
-  /** Errores por campo, sólo en fallos de validación de entrada. */
-  details?: { path: string; message: string }[];
-}
 
 function send(reply: FastifyReply, status: number, envelope: ErrorEnvelope): void {
   void reply.status(status).send(envelope);
