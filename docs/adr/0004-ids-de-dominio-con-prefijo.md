@@ -25,6 +25,9 @@ Opción 3. El id del dominio lleva prefijo por entidad y se guarda directo como 
 cualquier tipo, no sólo `ObjectId`). Los schemas de `@wasabi-cross/schemas` validan el prefijo, así
 que pasar un `exerciseId` donde va un `userId` falla en validación y no en producción.
 
+**Prefijos en uso:** `usr_` (usuario), `exo_` (ejercicio), `rec_` (marca) y `mex_` (ejercicio
+gestionado, desde F1-01). Una entidad nueva suma su prefijo a esta lista.
+
 ## Consecuencias
 
 - El id del dominio es aleatorio y no secuencial: no filtra cuántos usuarios hay, ni permite

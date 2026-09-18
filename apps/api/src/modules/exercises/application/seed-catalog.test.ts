@@ -7,23 +7,18 @@ import { seedCatalog } from './seed-catalog.ts';
 const backSquat: CatalogExercise = {
   name: 'Back squat',
   category: 'fuerza',
-  kind: 'rm',
   capacities: ['fuerza'],
   muscleGroups: ['cuadriceps', 'gluteo'],
   bodySegment: 'tren_inferior',
 };
 
 function storedFrom(definition: CatalogExercise, id = 'exo_a1b2c3d4'): Exercise {
-  const { tags, notes, ...rest } = definition;
-
   return {
     id,
     ownerId: null,
     createdAt: '2026-09-01T10:00:00.000Z',
     updatedAt: '2026-09-01T10:00:00.000Z',
-    tags: tags ?? {},
-    ...(notes === undefined ? {} : { notes }),
-    ...rest,
+    ...definition,
   };
 }
 
@@ -106,10 +101,29 @@ describe('seedCatalog', () => {
     expect(report.unchanged).toEqual(['Back squat']);
   });
 
-  it('detecta un cambio de tipo de medición', async () => {
+  it('detecta un cambio de categoría, que es también un cambio de medición', async () => {
     const repository = fakeRepository([storedFrom(backSquat)]);
 
-    const report = await seedCatalog(repository, [{ ...backSquat, kind: 'reps' }]);
+    const report = await seedCatalog(repository, [{ ...backSquat, category: 'hipertrofia' }]);
+
+    expect(report.updated).toEqual(['Back squat']);
+  });
+
+  it('detecta un cambio de segmento del cuerpo', async () => {
+    const repository = fakeRepository([storedFrom(backSquat)]);
+
+    const report = await seedCatalog(repository, [
+      { ...backSquat, bodySegment: 'cuerpo_completo' },
+    ]);
+
+    expect(report.updated).toEqual(['Back squat']);
+  });
+
+  it('un documento viejo sin capacidades cuenta como cambio y se completa', async () => {
+    const { capacities: _c, ...sinCapacidades } = storedFrom(backSquat);
+    const repository = fakeRepository([sinCapacidades]);
+
+    const report = await seedCatalog(repository, [backSquat]);
 
     expect(report.updated).toEqual(['Back squat']);
   });

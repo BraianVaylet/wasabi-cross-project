@@ -244,7 +244,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   esta fase: emitirlos sin nadie escuchando sería código muerto. El bus llega con su primer
   consumidor.
 
-## [ ] F1-01 · Schemas alineados con la spec §5.1
+## [~] F1-01 · Schemas alineados con la spec §5.1
 
 - **module:** schemas
 - **description:** Corregir el modelo de `@wasabi-cross/schemas` contra los mockups y la spec §5.1.
@@ -271,6 +271,11 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **data-model-impact:** cambia `Exercise`, crea `ManagedExercise` (IDs `mex_`, sumar a
   [ADR-0004](./adr/0004-ids-de-dominio-con-prefijo.md)) y cambia a qué referencia la marca. No hay
   datos que migrar: todavía no existe ningún ambiente desplegado.
+- **estado:** código hecho, a la espera de revisión. `measureKindFor` es la única fuente de la
+  regla categoría → medición; `ManagedExercise` con nivel de cuatro valores y `withPain` booleano;
+  la marca referencia al ejercicio gestionado y sólo acepta kg. El catálogo queda en 33 entradas.
+  Se retiraron `createExerciseSchema` y `updateExerciseSchema`: cada payload lo define la tarea que
+  lo usa (F1-05, F1-06). Falta mover la tarjeta.
 
 ## [ ] F1-02 · Migraciones versionadas de Mongo
 
