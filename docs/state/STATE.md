@@ -15,8 +15,8 @@ Lo que hay hoy, en una línea cada uno:
 
 - API Fastify con envelope de error único, logger Pino con redacción, y `/health` + `/ready`.
 - Auth con Better Auth sobre Mongo: registro, login, sesión persistida, rate limit.
-- `@wasabi-cross/schemas`: `User`, `Exercise`, `ExerciseRecord` en Zod, fuente única de tipos.
-  En `main` este modelo todavía no coincide con los mockups; la PR de F1-01 lo corrige.
+- `@wasabi-cross/schemas`: `User`, `Exercise`, `ManagedExercise`, `ExerciseRecord` en Zod, fuente
+  única de tipos, alineados con la spec §5.1.
 - `@wasabi-cross/ui`: cinco Componentes Cross con tema dark/light y Storybook.
 - Catálogo de 34 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
 - CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
@@ -26,8 +26,9 @@ Lo que hay hoy, en una línea cada uno:
 
 **Fase 1 — El loop del atleta.** 18 tareas, 71 puntos, cargadas en Trello.
 
-- **F1-01 · Schemas**: código hecho, en PR a la espera de revisión. Corrige el modelo de F0-02
-  contra los mockups.
+- **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
+- **F1-02 · Migraciones**: código hecho, en PR a la espera de revisión. migrate-mongo
+  ([ADR-0005](../adr/0005-migraciones-con-migrate-mongo.md)).
 
 ## Bloqueado
 
@@ -35,10 +36,9 @@ Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F1-01, y mover su tarjeta a `Completadas`.
-2. Con F1-01 cerrada se destraban cuatro tareas: **F1-02** (migraciones), **F1-03**
-   (entitlements), **F1-04** (cálculo) y **F1-08** (preferencias). **F1-09** (shell del front) no
-   depende de nada y se puede tomar en cualquier momento.
+1. Revisar y mergear la PR de F1-02, y mover su tarjeta a `Completadas`.
+2. Ya están destrabadas **F1-03** (entitlements), **F1-04** (cálculo) y **F1-08** (preferencias).
+   **F1-05** espera a F1-02 y F1-03. **F1-09** (shell del front) no depende de nada.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -46,7 +46,6 @@ Nada.
 - **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro).
 - **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
   Queda fuera de la Fase 1 hasta que se decida.
-- **Herramienta de migraciones** (`migrate-mongo` u otra). Planificada en F1-02; se elige ahí.
 - **TypeScript 7.** Hoy el monorepo está en 5.9.3 porque `typescript-eslint@8` declara
   `typescript >=4.8.4 <6.1.0` como peer, y con TS 7.0 directamente se niega a cargar (probado:
   build, typecheck y tests pasan; el lint muere). `.github/dependabot.yml` ignora
@@ -66,13 +65,15 @@ repeticiones redondeadas hacia abajo con mínimo 1, y "valor actual" = la marca 
 
 Cerradas en la Fase 0: herramienta de monorepo → pnpm ([ADR-0002](../adr/0002-pnpm-workspaces-como-monorepo.md));
 framework HTTP → Fastify ([ADR-0003](../adr/0003-fastify-como-framework-http.md)); forma de los IDs
-→ prefijo por entidad ([ADR-0004](../adr/0004-ids-de-dominio-con-prefijo.md)).
+→ prefijo por entidad ([ADR-0004](../adr/0004-ids-de-dominio-con-prefijo.md)). Cerrada en F1-02:
+herramienta de migraciones → migrate-mongo ([ADR-0005](../adr/0005-migraciones-con-migrate-mongo.md)).
 
 ## Cómo correrlo
 
 ```bash
 pnpm install
 cp apps/api/.env.example apps/api/.env   # completar MONGODB_URI y BETTER_AUTH_SECRET
+pnpm --filter @wasabi-cross/api migrate up   # sin esto, /ready responde no-listo
 pnpm verify                              # build + formato + lint + typecheck + test
 pnpm dev                                 # API en :3000, web en :5173
 pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
@@ -80,4 +81,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-01, schemas alineados con la spec §5.1. Ver [bitácora](./bitacora/2026-09-18-f1-01-schemas.md).
+2026-09-18 — F1-02, migraciones con migrate-mongo. Ver [bitácora](./bitacora/2026-09-18-f1-02-migraciones.md).

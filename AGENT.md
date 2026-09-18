@@ -48,20 +48,23 @@ wasabi-cross/
 
 Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 
-| Comando                                    | Qué hace                                                |
-| ------------------------------------------ | ------------------------------------------------------- |
-| `pnpm install`                             | Instala los cuatro workspaces                           |
-| `pnpm dev`                                 | Levanta API y web en paralelo                           |
-| `pnpm verify`                              | lint + typecheck + test + build — lo mismo que corre CI |
-| `pnpm lint` / `pnpm lint:fix`              | ESLint sobre todo el monorepo                           |
-| `pnpm typecheck`                           | `tsc --noEmit` por workspace                            |
-| `pnpm test` / `pnpm test:coverage`         | Vitest; el coverage falla por debajo de 90%             |
-| `pnpm build`                               | Compila los cuatro workspaces en orden de dependencia   |
-| `pnpm format` / `pnpm format:check`        | Prettier                                                |
-| `pnpm --filter @wasabi-cross/api seed`     | Carga el catálogo de ejercicios (idempotente)           |
-| `pnpm --filter @wasabi-cross/ui storybook` | Storybook en el puerto 6006                             |
+| Comando                                           | Qué hace                                                         |
+| ------------------------------------------------- | ---------------------------------------------------------------- |
+| `pnpm install`                                    | Instala los cuatro workspaces                                    |
+| `pnpm dev`                                        | Levanta API y web en paralelo                                    |
+| `pnpm verify`                                     | lint + typecheck + test + build — lo mismo que corre CI          |
+| `pnpm lint` / `pnpm lint:fix`                     | ESLint sobre todo el monorepo                                    |
+| `pnpm typecheck`                                  | `tsc --noEmit` por workspace                                     |
+| `pnpm test` / `pnpm test:coverage`                | Vitest; el coverage falla por debajo de 90%                      |
+| `pnpm build`                                      | Compila los cuatro workspaces en orden de dependencia            |
+| `pnpm format` / `pnpm format:check`               | Prettier                                                         |
+| `pnpm --filter @wasabi-cross/api migrate up`      | Aplica las migraciones pendientes (`down`, `status`)             |
+| `pnpm --filter @wasabi-cross/api migrate:dist up` | Lo mismo, compilado: para los ambientes desplegados              |
+| `pnpm --filter @wasabi-cross/api seed`            | Carga el catálogo de ejercicios (idempotente; pide migrar antes) |
+| `pnpm --filter @wasabi-cross/ui storybook`        | Storybook en el puerto 6006                                      |
 
-Antes de levantar la API hace falta un `.env` — copiar de `apps/api/.env.example`.
+Antes de levantar la API hace falta un `.env` — copiar de `apps/api/.env.example` — y correr las
+migraciones: sin ellas, `/ready` responde no-listo.
 
 ## Reglas de arquitectura
 

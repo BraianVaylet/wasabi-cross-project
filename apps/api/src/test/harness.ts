@@ -3,10 +3,8 @@ import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
 import type { Env } from '../config/env.ts';
 import { createAuth } from '../modules/auth/infrastructure/better-auth.ts';
-import {
-  createMongoExerciseRepository,
-  ensureExerciseIndexes,
-} from '../modules/exercises/infrastructure/mongo-exercise.repository.ts';
+import { createMongoExerciseRepository } from '../modules/exercises/infrastructure/mongo-exercise.repository.ts';
+import { migrateUp, migrationsProbe } from '../shared/db/migrations.ts';
 import { connectMongo, type MongoConnection } from '../shared/db/mongo.ts';
 import { testEnv } from './env.ts';
 
@@ -34,13 +32,14 @@ export async function startTestApi(): Promise<TestHarness> {
     transactions: false,
   });
 
-  await ensureExerciseIndexes(mongo.db);
+  // La base de test se prepara igual que la de producción: con las migraciones.
+  await migrateUp(mongo.db, mongo.client);
 
   const app = await buildApp({
     env,
     auth,
     exerciseRepository: createMongoExerciseRepository(mongo.db),
-    probes: [{ name: 'mongo', check: mongo.ping }],
+    probes: [{ name: 'mongo', check: mongo.ping }, migrationsProbe(mongo.db)],
   });
   await app.ready();
 

@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      0 |
+| Fase 1 — El loop del atleta |     18 |           71 |      1 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -244,7 +244,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   esta fase: emitirlos sin nadie escuchando sería código muerto. El bus llega con su primer
   consumidor.
 
-## [~] F1-01 · Schemas alineados con la spec §5.1
+## [x] F1-01 · Schemas alineados con la spec §5.1
 
 - **module:** schemas
 - **description:** Corregir el modelo de `@wasabi-cross/schemas` contra los mockups y la spec §5.1.
@@ -275,9 +275,9 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   regla categoría → medición; `ManagedExercise` con nivel de cuatro valores y `withPain` booleano;
   la marca referencia al ejercicio gestionado y sólo acepta kg. El catálogo queda en 33 entradas.
   Se retiraron `createExerciseSchema` y `updateExerciseSchema`: cada payload lo define la tarea que
-  lo usa (F1-05, F1-06). Falta mover la tarjeta.
+  lo usa (F1-05, F1-06). Cerrada: PR #10 mergeada el 2026-09-18.
 
-## [ ] F1-02 · Migraciones versionadas de Mongo
+## [~] F1-02 · Migraciones versionadas de Mongo
 
 - **module:** infra
 - **description:** Herramienta de migraciones versionadas y reversibles (spec §12), antes del primer
@@ -296,6 +296,12 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** ninguno
 - **data-model-impact:** índice único `(userId, exerciseId)` en ejercicios gestionados. Registro de
   migraciones aplicadas en una colección propia.
+- **estado:** código hecho, a la espera de revisión. migrate-mongo
+  ([ADR-0005](./adr/0005-migraciones-con-migrate-mongo.md)), corriendo una vez por deploy y no al
+  arrancar, porque su lock no es atómico. Suma dos cosas que no estaban en el plan y salieron de
+  probarlo: `/ready` responde no-listo con migraciones pendientes, y una guarda impide migrar la misma
+  base desde `src/` y desde `dist/`, que haría aplicar dos veces cada migración. Falta mover la
+  tarjeta.
 
 ## [ ] F1-03 · Entitlements de plan
 
