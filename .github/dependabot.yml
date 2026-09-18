@@ -6,13 +6,43 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+
+    # Se agrupa por tipo de update y no por tipo de dependencia. Dependabot clasifica
+    # todo lo que viene del `catalog:` de pnpm como "production", aunque en el
+    # package.json esté en devDependencies, así que agrupar por dependency-type mezclaba
+    # un bump inocuo con uno que rompe y no dejaba mergear uno sin el otro (PR #5).
+    #
+    # Minor y patch viajan juntos. Cada major llega en su propia PR, para revisarlo solo.
     groups:
-      dev-dependencies:
-        dependency-type: development
-      production-dependencies:
-        dependency-type: production
+      minor-y-patch:
+        patterns: ['*']
+        update-types: [minor, patch]
+
+    ignore:
+      # typescript-eslint declara `typescript >=4.8.4 <6.1.0` como peer, y con TS 7.0
+      # directamente se niega a cargar: `pnpm lint` muere y con él la prohibición de `any`.
+      # El rango de acá es el mismo que el del peer, a propósito — cuando typescript-eslint
+      # lo amplíe, se amplía este. Seguimiento: typescript-eslint/typescript-eslint#10940.
+      # Contexto de la decisión: docs/adr/0002-pnpm-workspaces-como-monorepo.md
+      - dependency-name: typescript
+        versions: ['>=6.1.0']
+
+      # Los tipos de Node siguen a la versión de Node que corremos (.nvmrc). Adelantarlos
+      # deja compilar código que usa APIs que en runtime no existen. Se suben a mano,
+      # junto con .nvmrc y `engines`.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+
+    # Bug conocido de Dependabot con catálogos de pnpm: en la PR #5 reescribió el
+    # specifier del importer raíz de `catalog:` a la versión literal, y CI murió con
+    # ERR_PNPM_OUTDATED_LOCKFILE. Si vuelve a pasar: `pnpm install` en la rama y push.
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    # Todas las actions en una sola PR. Por separado, cada merge dispara su propia corrida
+    # en main y se cancelan entre ellas.
+    groups:
+      actions:
+        patterns: ['*']
