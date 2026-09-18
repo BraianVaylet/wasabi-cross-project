@@ -48,6 +48,7 @@ describe('migraciones', () => {
     expect(await pendingMigrations(db)).toEqual([]);
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
     expect(await indexNames(db, 'managed_exercises')).toContain('user_exercise_unique');
+    expect(await indexNames(db, 'records')).toContain('managed_history');
   });
 
   it('con todo migrado, la instancia está lista', async () => {
@@ -76,11 +77,22 @@ describe('migraciones', () => {
     await managed.deleteMany({});
   });
 
-  it('down revierte la última migración y saca sus índices', async () => {
+  it('down revierte sólo la última migración', async () => {
     const reverted = await migrateDown(db, client);
 
     expect(reverted).toHaveLength(1);
+    expect(reverted[0]).toMatch(/indice-historial-marcas/);
     expect(await pendingMigrations(db)).toEqual(reverted);
+    expect(await indexNames(db, 'records')).not.toContain('managed_history');
+    // La anterior sigue aplicada.
+    expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
+  });
+
+  it('otro down revierte la anterior, en orden inverso', async () => {
+    const reverted = await migrateDown(db, client);
+
+    expect(reverted).toHaveLength(1);
+    expect(reverted[0]).toMatch(/indices-ejercicios/);
     expect(await indexNames(db, 'exercises')).not.toContain('owner_name_unique');
     expect(await indexNames(db, 'managed_exercises')).not.toContain('user_exercise_unique');
   });
@@ -91,6 +103,7 @@ describe('migraciones', () => {
     expect(await pendingMigrations(db)).toEqual([]);
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
     expect(await indexNames(db, 'managed_exercises')).toContain('user_exercise_unique');
+    expect(await indexNames(db, 'records')).toContain('managed_history');
   });
 
   it('no mezcla modos: si la base se migró con los .js compilados, desde src se niega', async () => {
