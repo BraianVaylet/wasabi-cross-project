@@ -8,7 +8,7 @@ import {
 import { MongoServerError, type ClientSession, type Db } from 'mongodb';
 import { AppError } from '../../../shared/errors/app-error.ts';
 import { generateId } from '../../../shared/ids.ts';
-import type { NewManagedExercise } from '../domain/managed-exercise-ports.ts';
+import type { ManagedExercisePatch, NewManagedExercise } from '../domain/managed-exercise-ports.ts';
 import { EXERCISES_COLLECTION, MANAGED_EXERCISES_COLLECTION } from './mongo-exercise.repository.ts';
 
 interface ExerciseDocument extends Omit<Exercise, 'id'> {
@@ -58,6 +58,12 @@ export function createMongoManagedExerciseStore(db: Db) {
 
     findCustomsOf: async (userId: string) =>
       (await exercises.find({ ownerId: userId }).toArray()).map(toExercise),
+
+    findManagedById: async (userId: string, id: string) => {
+      // Por ID y dueño, siempre juntos: un ID ajeno no se distingue de uno inexistente.
+      const document = await managed.findOne({ _id: id, userId });
+      return document ? toManaged(document) : null;
+    },
 
     findManaged: async (userId: string, exerciseId: string) => {
       const document = await managed.findOne({ userId, exerciseId });
@@ -110,6 +116,60 @@ export function createMongoManagedExerciseStore(db: Db) {
       }
 
       return toManaged(document);
+    },
+
+    updateManaged: async (
+      session: ClientSession,
+      id: string,
+      userId: string,
+      patch: ManagedExercisePatch,
+    ) => {
+      const set: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+      if (patch.level !== undefined) set.level = patch.level;
+      if (patch.withPain !== undefined) set.withPain = patch.withPain;
+      if (patch.notes !== undefined && patch.notes !== null) set.notes = patch.notes;
+
+      const updated = await managed.findOneAndUpdate(
+        { _id: id, userId },
+        { $set: set, ...(patch.notes === null ? { $unset: { notes: '' } } : {}) },
+        { session, returnDocument: 'after' },
+      );
+
+      if (!updated) {
+        throw new AppError('WC-EXO-404-002', { meta: { userId, managedExerciseId: id } });
+      }
+      return toManaged(updated);
+    },
+
+    renameCustom: async (
+      session: ClientSession,
+      exerciseId: string,
+      ownerId: string,
+      name: string,
+    ) => {
+      try {
+        const updated = await exercises.findOneAndUpdate(
+          // Filtra por dueño: un ejercicio del catálogo (ownerId null) nunca matchea.
+          { _id: exerciseId, ownerId },
+          { $set: { name, updatedAt: new Date().toISOString() } },
+          { session, returnDocument: 'after' },
+        );
+
+        if (!updated) {
+          throw new AppError('WC-EXO-404-002', { meta: { ownerId, exerciseId } });
+        }
+        return toExercise(updated);
+      } catch (error) {
+        return rethrowDuplicate(error, { ownerId, exerciseId, name });
+      }
+    },
+
+    deleteManaged: async (session: ClientSession, id: string, userId: string) => {
+      await managed.deleteOne({ _id: id, userId }, { session });
+    },
+
+    deleteCustom: async (session: ClientSession, exerciseId: string, ownerId: string) => {
+      await exercises.deleteOne({ _id: exerciseId, ownerId }, { session });
     },
   };
 }

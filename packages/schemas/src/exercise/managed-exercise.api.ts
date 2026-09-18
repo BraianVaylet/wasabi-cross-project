@@ -87,3 +87,22 @@ export const exerciseListSchema = z.object({
 });
 
 export type ExerciseList = z.infer<typeof exerciseListSchema>;
+
+/**
+ * Lo que manda el lápiz del detalle (F1-06): nivel, "con dolor", comentarios y, sólo en un
+ * ejercicio propio, el nombre. Un comentario vacío borra el que había.
+ *
+ * Es estricto: un campo que no está acá —la categoría, sobre todo— se rechaza en vez de
+ * descartarse en silencio. La categoría no se cambia porque las marcas ya están en su
+ * unidad, y el cliente tiene que enterarse de que el cambio no se aplicó.
+ */
+export const updateManagedExerciseSchema = z
+  .strictObject({
+    level: levelSchema.optional(),
+    withPain: z.boolean().optional(),
+    notes: plainText(500).optional(),
+    name: exerciseDefinitionSchema.shape.name.optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'No hay nada para actualizar');
+
+export type UpdateManagedExercise = z.infer<typeof updateManagedExerciseSchema>;

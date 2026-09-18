@@ -11,6 +11,8 @@ import { createMongoExerciseRepository } from './mongo-exercise.repository.ts';
 import { createMongoManagedExerciseStore } from './mongo-managed-exercise.store.ts';
 import { createMongoExerciseUsageCounter } from './mongo-usage-counter.ts';
 import { addManagedExercise } from '../application/add-managed-exercise.ts';
+import { deleteManagedExercise } from '../application/edit-managed-exercise.ts';
+import { createMongoTransactionRunner } from '../../../shared/db/transactions.ts';
 import { seedCatalog } from '../application/seed-catalog.ts';
 
 /*
@@ -54,6 +56,7 @@ describe('alta de ejercicio: atomicidad', () => {
     return {
       logFirst: () => Promise.reject(new Error('falla forzada al guardar la marca')),
       currentFor: real.currentFor,
+      deleteAllFor: real.deleteAllFor,
     };
   }
 
@@ -125,5 +128,42 @@ describe('alta de ejercicio: atomicidad', () => {
       current: { value: 80, unit: 'kg', performedAt: '2026-09-10T12:00:00.000Z' },
     });
     expect(await db.collection('records').countDocuments({ userId: 'usr_atomico0003' })).toBe(1);
+  });
+
+  it('borrar: si falla a mitad de camino, no se pierde ninguna marca', async () => {
+    const records = createMongoRecordGateway(db);
+    const created = await addManagedExercise(deps(records), {
+      userId: 'usr_atomico0004',
+      plan: 'free',
+      input: {
+        source: 'custom',
+        name: 'Yoke carry',
+        category: 'fuerza',
+        level: 'avanzado',
+        withPain: false,
+        firstRecord: { value: 120 },
+      },
+    });
+
+    // Las marcas se borran primero; después falla el borrado del ejercicio gestionado.
+    const store = createMongoManagedExerciseStore(db);
+    const failingStore = {
+      ...store,
+      deleteManaged: () => Promise.reject(new Error('falla forzada al borrar')),
+    };
+
+    await expect(
+      deleteManagedExercise(
+        { store: failingStore, records, transactions: createMongoTransactionRunner(client) },
+        { userId: 'usr_atomico0004', managedExerciseId: created.id },
+      ),
+    ).rejects.toThrow('falla forzada al borrar');
+
+    expect(await db.collection('records').countDocuments({ managedExerciseId: created.id })).toBe(
+      1,
+    );
+    expect(
+      await db.collection('managed_exercises').countDocuments({ userId: 'usr_atomico0004' }),
+    ).toBe(1);
   });
 });

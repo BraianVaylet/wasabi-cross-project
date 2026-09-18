@@ -32,8 +32,8 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-03 · Entitlements**: cerrada, con revisión humana de sus tests.
 - **F1-04 · Cálculo de porcentajes**: cerrada. Reglas compartidas en schemas
   ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
-- **F1-05 · Agregar y listar ejercicios**: código hecho, en PR. `POST` y `GET /api/v1/exercises`,
-  con cupo, primera marca atómica y búsqueda en el catálogo.
+- **F1-05 · Agregar y listar ejercicios**: cerrada.
+- **F1-06 · Editar y borrar**: código hecho, en PR. `PATCH` y `DELETE /api/v1/exercises/:id`.
 
 ## Bloqueado
 
@@ -41,10 +41,10 @@ Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F1-05.
-2. Con F1-05 cerrada se destraban **F1-06** (editar y borrar), **F1-07** (marcas) y, del front,
-   **F1-11** (Home) y **F1-12** (nuevo ejercicio) cuando esté F1-09. Sin arrancar: **F1-08**
-   (preferencias) y **F1-09** (shell del front), que no dependen de nada pendiente.
+1. Revisar y mergear la PR de F1-06.
+2. Destrabadas y sin arrancar: **F1-07** (marcas e historial, la última del backend grande),
+   **F1-08** (preferencias) y **F1-09** (shell del front). Con F1-09, se destraban F1-10, F1-11 y
+   F1-12.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -87,4 +87,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-05, agregar y listar ejercicios. Ver [bitácora](./bitacora/2026-09-18-f1-05-ejercicios-gestionados.md).
+2026-09-18 — F1-06, editar y borrar ejercicios. Ver [bitácora](./bitacora/2026-09-18-f1-06-editar-borrar.md).
