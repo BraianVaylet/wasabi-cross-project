@@ -84,15 +84,3 @@ export function createMongoExerciseRepository(db: Db): ExerciseRepository {
     },
   };
 }
-
-/**
- * Índices de la colección. El único no evidente es el de `(ownerId, name)`: es lo que
- * hace que el seed no pueda duplicar una entrada del catálogo aunque dos procesos lo
- * corran a la vez, y de paso impide que un usuario tenga dos ejercicios con el mismo
- * nombre.
- */
-export async function ensureExerciseIndexes(db: Db): Promise<void> {
-  await db
-    .collection<ExerciseDocument>(EXERCISES_COLLECTION)
-    .createIndex({ ownerId: 1, name: 1 }, { unique: true, name: 'owner_name_unique' });
-}

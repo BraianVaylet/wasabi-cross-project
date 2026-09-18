@@ -16,6 +16,7 @@ Comandos verificados en [CLAUDE.md](../CLAUDE.md#comandos). Lo mínimo:
 ```bash
 pnpm install
 cp apps/api/.env.example apps/api/.env
+pnpm --filter @wasabi-cross/api migrate up
 pnpm verify   # lint + typecheck + test + build, lo mismo que corre CI
 pnpm dev      # API en :3000, web en :5173
 ```

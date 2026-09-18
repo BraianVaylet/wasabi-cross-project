@@ -92,10 +92,22 @@ Consumidores típicos: `notifications` (avisar al usuario), `stats` (recalcular 
 - `requestId` viaja del front al back y vuelve al usuario en el mensaje de error (para poder correlacionar un reporte de soporte con el log exacto).
 - `errorCode` siempre que el log sea de un error de negocio — ver [diccionario de códigos](./error-codes.md).
 
+## Migraciones
+
+Versionadas y reversibles con migrate-mongo ([ADR-0005](./adr/0005-migraciones-con-migrate-mongo.md)).
+Viven en `apps/api/src/migrations/`, en TypeScript, una por archivo, con nombre
+`AAAAMMDDHHMMSS-descripcion.ts` y dos funciones: `up` y `down`.
+
+- Corren **una sola vez por deploy, antes de levantar la API** — nunca al arrancar cada instancia.
+- `/ready` responde no-listo mientras haya migraciones pendientes.
+- Una migración **no importa código de la app**: es una foto de la base en ese momento.
+- Contra una misma base se usa siempre el mismo modo: `migrate` (desde `src/`) en desarrollo,
+  `migrate:dist` (compilado) en los ambientes desplegados.
+
 ## Health checks
 
 - `GET /health` — liveness. No depende de nada externo (Mongo, etc.). Si responde, el proceso está vivo.
-- `GET /ready` — readiness. Hace ping a Mongo. Si falla, el orquestador no debe enrutar tráfico a esa instancia.
+- `GET /ready` — readiness. Hace ping a Mongo y verifica que no haya migraciones pendientes. Si algo falla, el orquestador no debe enrutar tráfico a esa instancia.
 
 ## API REST y OpenAPI
 
