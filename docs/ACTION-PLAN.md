@@ -13,9 +13,10 @@
 
 ## Estado
 
-| Fase                 | Tareas | Story points | Hechas |
-| -------------------- | -----: | -----------: | -----: |
-| Fase 0 — Fundaciones |      8 |           27 |      7 |
+| Fase                        | Tareas | Story points | Hechas |
+| --------------------------- | -----: | -----------: | -----: |
+| Fase 0 — Fundaciones        |      8 |           27 |      7 |
+| Fase 1 — El loop del atleta |     18 |           71 |      0 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -215,3 +216,427 @@ negocio arrastra decisiones de infraestructura a mitad de camino.
     etiquetas. Las seis por defecto están sin nombre — nombrarlas a mano según la tabla de arriba.
   - Queda en `[~]` y en `En proceso` a propósito: el tablero manda en el estado, y con las
     etiquetas sin nombre el criterio de aceptación no se cumple del todo.
+
+---
+
+# Fase 1 — El loop del atleta
+
+Lo mínimo para que Wasabi Cross sirva de verdad: entrar, armar la lista de ejercicios, cargar
+marcas y ver los porcentajes de carga. Todo según la spec §5 y §5.1.
+
+**Antes de arrancar:** la Fase 0 dejó un modelo que no coincide con los mockups (tags en el
+ejercicio compartido, categoría y medición independientes, kg o lb). F1-01 lo corrige y va primera
+por eso: todo lo demás se apoya en ese modelo.
+
+**Orden sugerido.** El backend (F1-01 a F1-08) y el shell del front (F1-09, F1-10) pueden avanzar en
+paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la fase.
+
+**Fuera de la Fase 1**, para que no se cuele:
+
+- Estadísticas (spec §5, mockup 10). Próxima fase.
+- Deploy a Railway y Mongo Atlas, backups, monitoreo (spec §12). Fase propia.
+- Suscripción Max y cobro. Bloqueado por la decisión del proveedor de pago.
+- Recupero de contraseña. Necesita un proveedor de email, que no está decidido.
+- Login con username y con Google. Decidido el 2026-09-18.
+- Editar o borrar marcas sueltas. No aparece en los mockups.
+- Qué pasa si un usuario baja de Max a Free con más de 10 ejercicios. Va con la suscripción.
+- Eventos de dominio (spec §7). Sus consumidores son `stats` y `notifications`, que no están en
+  esta fase: emitirlos sin nadie escuchando sería código muerto. El bus llega con su primer
+  consumidor.
+
+## [ ] F1-01 · Schemas alineados con la spec §5.1
+
+- **module:** schemas
+- **description:** Corregir el modelo de `@wasabi-cross/schemas` contra los mockups y la spec §5.1.
+  `Exercise` pierde `tags` y `kind` (la medición sale de la categoría) y las categorías quedan en
+  cuatro, sin `otro`. Nace `ManagedExercise` (el ejercicio en la lista de un usuario, con nivel,
+  "con dolor" y comentarios). La marca pasa a referenciar al ejercicio gestionado y el peso queda
+  sólo en kg. El catálogo del seed se ajusta: la hipertrofia se mide en repeticiones, y la plancha
+  sale porque ninguna categoría la mide en tiempo.
+- **acceptance-criteria:**
+  - Dada una categoría, cuando se pide su medición, entonces Fuerza da RM, Hipertrofia y Gimnástico
+    dan repeticiones, y Running da tiempo — con una sola función, sin tabla duplicada.
+  - Dado un ejercicio del catálogo, cuando dos usuarios lo agregan, entonces cada uno tiene su propio
+    nivel y su propio "con dolor", sin pisarse.
+  - Dado un nivel, cuando se valida, entonces sólo acepta Principiante, Intermedio, Avanzado o Elite.
+  - Dada una marca de fuerza, cuando llega con una unidad que no es kg, entonces se rechaza.
+- **example:** Braian y un amigo agregan "Back squat" del catálogo. Braian lo marca "con dolor" y
+  nivel Intermedio; el amigo no ve ninguna de las dos cosas.
+- **story-points:** 5
+- **depends_on:** —
+- **risk:** medium
+- **test_plan:** tests de schema por caso válido e inválido, como en F0-02. Test de que cada entrada
+  del catálogo valida contra el schema nuevo. Coverage ≥90%.
+- **error-codes:** ninguno
+- **data-model-impact:** cambia `Exercise`, crea `ManagedExercise` (IDs `mex_`, sumar a
+  [ADR-0004](./adr/0004-ids-de-dominio-con-prefijo.md)) y cambia a qué referencia la marca. No hay
+  datos que migrar: todavía no existe ningún ambiente desplegado.
+
+## [ ] F1-02 · Migraciones versionadas de Mongo
+
+- **module:** infra
+- **description:** Herramienta de migraciones versionadas y reversibles (spec §12), antes del primer
+  deploy. Los índices dejan de crearse al arrancar la API y pasan a migraciones: el de
+  `(ownerId, name)` de ejercicios y el nuevo `(userId, exerciseId)` de ejercicios gestionados.
+- **acceptance-criteria:**
+  - Dada una base vacía, cuando se corren las migraciones, entonces quedan todos los índices.
+  - Dada una migración aplicada, cuando se revierte, entonces la base vuelve al estado anterior.
+  - Dada una migración ya aplicada, cuando se corre de nuevo, entonces no hace nada.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-01
+- **risk:** medium
+- **test_plan:** up, down y up de nuevo contra `mongodb-memory-server`, verificando los índices en
+  cada paso.
+- **error-codes:** ninguno
+- **data-model-impact:** índice único `(userId, exerciseId)` en ejercicios gestionados. Registro de
+  migraciones aplicadas en una colección propia.
+
+## [ ] F1-03 · Entitlements de plan
+
+- **module:** subscriptions
+- **description:** El módulo `subscriptions` decide si un usuario puede agregar un ejercicio, según
+  la spec §4: Free llega a 10 en total y a 3 propios; Max no tiene límite. Lo consulta `exercises` a
+  través de una interfaz; los conteos llegan inyectados, sin importar el modelo de otro módulo.
+- **acceptance-criteria:**
+  - Dado un usuario Free con 9 ejercicios, cuando agrega uno, entonces puede; con 10, responde
+    `WC-SUBS-403-001`.
+  - Dado un usuario Free con 3 propios y 5 en total, cuando crea un cuarto propio, entonces responde
+    `WC-SUBS-403-001` aunque le queden lugares en el total.
+  - Dado un usuario Max, cuando agrega ejercicios, entonces nunca hay límite.
+  - Dadas dos altas simultáneas de un usuario con 9 ejercicios, cuando llegan juntas, entonces sólo
+    una entra.
+- **example:** Braian, en Free, tiene 10 ejercicios. Intenta agregar "Snatch" y la API se lo impide
+  aunque el front no haya escondido el botón.
+- **story-points:** 5
+- **depends_on:** F1-01
+- **risk:** high. 🔴 **El límite se valida en el backend. El front sólo lo refleja.**
+- **test_plan:** unitarios del caso de uso con conteos inyectados; integración con alta concurrente
+  sobre `MongoMemoryReplSet` (hace falta replica set para transacciones). Flujo de permisos: revisión
+  humana obligatoria (spec §9).
+- **error-codes:** `WC-SUBS-403-001`. Se retira `WC-EXO-403-001`, que decía lo mismo desde el módulo
+  equivocado: el límite lo decide `subscriptions`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-04 · Cálculo de porcentajes y bandas de carga
+
+- **module:** records
+- **description:** Funciones puras de la spec §5.1, compartidas por front y back para que calculen
+  igual: carga = RM × % redondeada al 0,5 kg; repeticiones = máximo × % hacia abajo con mínimo 1;
+  banda de carga liviana/media/pesada (<70 / 70–84 / ≥85). En tiempo no hay porcentajes. El front
+  las necesita para calcular el porcentaje custom mientras se tipea, sin ir a la API.
+- **acceptance-criteria:**
+  - Dado un RM de 100 kg, cuando se pide el 65%, entonces da 65 kg y banda liviana.
+  - Dado un RM de 87,5 kg, cuando se pide el 65%, entonces da 57 kg (56,875 redondeado al 0,5).
+  - Dado un máximo de 13 repeticiones, cuando se pide el 80%, entonces da 10 (10,4 hacia abajo).
+  - Dado un máximo de 1 repetición, cuando se pide cualquier porcentaje, entonces da 1.
+  - Dado 70%, cuando se pide la banda, entonces es media; 84% es media; 85% es pesada.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-01
+- **risk:** medium
+- **test_plan:** tabla de casos por función, con los bordes de cada banda y de cada redondeo.
+  Coverage 100%: es el cálculo que el usuario usa para cargar la barra.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno. **Decisión estructural:** dónde vive lógica de dominio compartida
+  (propuesta: `@wasabi-cross/schemas`; alternativa: un paquete `@wasabi-cross/domain`). ADR en esta
+  tarea.
+
+## [ ] F1-05 · Agregar y listar ejercicios gestionados
+
+- **module:** exercises
+- **description:** `POST /api/v1/exercises` agrega a la lista del usuario un ejercicio del catálogo
+  o uno propio, junto con su primera marca, en una sola operación. `GET /api/v1/exercises` devuelve
+  la lista con el valor actual, su fecha y el uso del plan. El catálogo suma búsqueda por nombre para
+  el formulario de "Nuevo ejercicio".
+- **acceptance-criteria:**
+  - Dado un ejercicio del catálogo, cuando el usuario lo agrega con su primera marca, entonces
+    aparece en su lista con ese valor actual.
+  - Dado un nombre que no está en el catálogo, cuando el usuario crea un ejercicio propio, entonces
+    queda en su lista y nadie más lo ve.
+  - Dado un nombre que ya está en el catálogo, sin distinguir mayúsculas ni acentos, cuando se
+    intenta crear como propio, entonces responde `WC-EXO-409-004`.
+  - Dado un ejercicio que ya está en la lista, cuando se agrega de nuevo, entonces responde
+    `WC-EXO-409-003`.
+  - Dado que falla la primera marca, cuando se procesa el alta, entonces no queda ni el ejercicio
+    gestionado ni el propio: todo o nada.
+  - Dado un `exerciseId` de un ejercicio propio de otro usuario, cuando se intenta agregar, entonces
+    responde 404.
+- **example:** Braian busca "squ" y le aparecen "Back squat", "Front squat" y "Overhead squat".
+  Elige "Front squat", carga 90 kg con fecha de hoy, nivel Intermedio, y vuelve a Home.
+- **story-points:** 8
+- **depends_on:** F1-01, F1-02, F1-03
+- **risk:** high. 🔴 **IDOR: un recurso de otro usuario responde 404, no 403** (spec §13).
+- **test_plan:** integración de cada criterio. Test de IDOR con dos usuarios. Test de atomicidad
+  forzando la falla de la marca.
+- **error-codes:** `WC-EXO-404-002`, `WC-SUBS-403-001`, nuevos `WC-EXO-409-003` (ya está en tu lista)
+  y `WC-EXO-409-004` (ya existe en el catálogo).
+- **data-model-impact:** primeros documentos de ejercicios gestionados y de ejercicios propios.
+
+## [ ] F1-06 · Editar y borrar un ejercicio gestionado
+
+- **module:** exercises
+- **description:** `PATCH /api/v1/exercises/:id` cambia nivel, "con dolor" y comentarios; en uno
+  propio, también el nombre. La categoría no se cambia: las marcas ya están en su unidad.
+  `DELETE /api/v1/exercises/:id` borra el ejercicio gestionado y todas sus marcas; si era propio,
+  también la definición.
+- **acceptance-criteria:**
+  - Dado un ejercicio gestionado, cuando se edita el nivel, entonces el cambio es sólo del usuario.
+  - Dado un ejercicio del catálogo, cuando se intenta cambiar su nombre, entonces se rechaza.
+  - Dado un intento de cambiar la categoría, cuando llega, entonces se rechaza.
+  - Dado un ejercicio borrado, cuando se busca, entonces no quedan ni él ni sus marcas.
+  - Dado el ID de un ejercicio de otro usuario, cuando se edita o se borra, entonces responde 404.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-05
+- **risk:** high. 🔴 **IDOR: 404, no 403.** El borrado es irreversible y la confirmación con el nombre escrito vive
+  en el front (F1-15).
+- **test_plan:** integración de cada criterio, IDOR con dos usuarios, y conteo de marcas después
+  del borrado.
+- **error-codes:** `WC-EXO-404-002`, `WC-SYS-400-002`.
+- **data-model-impact:** borrado en cascada de las marcas del ejercicio gestionado.
+
+## [ ] F1-07 · Marcas: cargar e historial
+
+- **module:** records
+- **description:** `POST /api/v1/exercises/:id/records` carga una marca en la unidad que dicta la
+  categoría. `GET /api/v1/exercises/:id/records` devuelve el historial paginado, más reciente primero,
+  indicando el valor actual y la mejor marca (spec §5.1).
+- **acceptance-criteria:**
+  - Dada una marca con fecha anterior a otra existente, cuando se carga, entonces el valor actual no
+    cambia: sigue siendo la de fecha más reciente.
+  - Dada una marca de fuerza que supera la mejor, cuando se carga, entonces pasa a ser la mejor
+    marca.
+  - Dada una marca de tiempo **menor** a la mejor, cuando se carga, entonces pasa a ser la mejor
+    marca: en tiempo, menos es mejor.
+  - Dado un valor inválido para la categoría (repeticiones con decimales, tiempo cero), cuando se
+    carga, entonces responde `WC-RM-422-001` con el motivo.
+  - Dado un ejercicio de otro usuario, cuando se cargan o se leen marcas, entonces responde 404.
+- **example:** Braian tenía 100 kg en "Back squat" y carga 105. El historial marca 105 como valor
+  actual y como mejor marca,.
+- **story-points:** 5
+- **depends_on:** F1-04, F1-05
+- **risk:** medium. 🔴 **IDOR: 404, no 403.**
+- **test_plan:** integración por criterio, con fechas desordenadas; unitarios de la regla de mejor
+  marca por categoría; IDOR con dos usuarios.
+- **error-codes:** `WC-RM-422-001`, `WC-RM-404-002`, `WC-EXO-404-002`.
+- **data-model-impact:** índice por `(managedExerciseId, performedAt)` para el historial, en una
+  migración.
+
+## [ ] F1-08 · Preferencias del usuario
+
+- **module:** users
+- **description:** `GET` y `PATCH /api/v1/me/preferences`: tema y porcentajes de carga por defecto
+  (65/75/80/85/90/95 si nunca los cambió). Viven en el módulo `users`, no en el documento que maneja
+  Better Auth.
+- **acceptance-criteria:**
+  - Dado un usuario nuevo, cuando pide sus preferencias, entonces recibe los porcentajes por defecto
+    y tema oscuro.
+  - Dados porcentajes repetidos, fuera de 1–100 o más de 12, cuando se guardan, entonces se
+    rechazan con el motivo por campo.
+  - Dado un cambio de tema, cuando se guarda, entonces el próximo login en otro dispositivo lo
+    recupera.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-01
+- **risk:** low
+- **test_plan:** integración de lectura por defecto, guardado y cada validación.
+- **error-codes:** `WC-SYS-400-002`.
+- **data-model-impact:** colección de preferencias del módulo `users`.
+
+## [ ] F1-09 · Shell de la app: rutas, sesión, header y menú
+
+- **module:** web
+- **description:** TanStack Router con rutas protegidas, TanStack Query, cliente de sesión de Better
+  Auth, y un cliente HTTP tipado con los schemas compartidos que manda `x-request-id` y entiende el
+  envelope de error. Splash (mockup 1), header y menú lateral (mockup 4a).
+- **acceptance-criteria:**
+  - Dada una ruta protegida, cuando se entra sin sesión, entonces redirige a login y, después de
+    entrar, vuelve a donde iba.
+  - Dado un error de la API, cuando llega, entonces la UI tiene el `errorCode` y el `requestId` para
+    mostrarlo o reportarlo.
+  - Dado el menú, cuando se abre con teclado, entonces el foco queda atrapado adentro y Escape lo
+    cierra.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** —
+- **risk:** medium
+- **test_plan:** tests de componentes del header y el menú; test de la redirección con y sin sesión.
+- **error-codes:** consume `WC-AUTH-401-004`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-10 · Login y registro
+
+- **module:** web
+- **description:** Pantallas de los mockups 2 y 3, sin username ni Google (spec §5). Registro con
+  email, nombre, contraseña y confirmación. TanStack Form con los schemas compartidos.
+- **acceptance-criteria:**
+  - Dadas credenciales inválidas, cuando se intenta entrar, entonces se muestra el mensaje de
+    `WC-AUTH-401-001` sin indicar qué campo estaba mal.
+  - Dados demasiados intentos, cuando responde `WC-AUTH-429-003`, entonces se explica cuánto esperar.
+  - Dadas dos contraseñas distintas, cuando se registra, entonces el error aparece en el campo de
+    confirmación antes de llamar a la API.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-09
+- **risk:** medium
+- **test_plan:** tests de componentes con la API simulada, uno por criterio. axe sin violaciones.
+- **error-codes:** consume `WC-AUTH-401-001`, `WC-AUTH-429-003`, `WC-SYS-400-002`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-11 · Home: lista de ejercicios
+
+- **module:** web
+- **description:** Mockup 4. Cada ejercicio con nombre, fecha del valor actual y valor con su
+  unidad. Estado vacío con acción (spec §11), skeletons mientras carga, y "New Exercise" que se
+  deshabilita con explicación cuando el plan no deja agregar más.
+- **acceptance-criteria:**
+  - Dado un usuario sin ejercicios, cuando entra, entonces ve "Todavía no tenés ejercicios" con un
+    botón para agregar el primero.
+  - Dado un usuario Free con 10 ejercicios, cuando entra, entonces "New Exercise" está deshabilitado
+    y dice por qué.
+  - Dada una lista cargando, cuando todavía no llegó, entonces se ven skeletons, no un spinner.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-05, F1-09
+- **risk:** low
+- **test_plan:** tests de componentes por estado: vacío, cargando, con datos, en el límite.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F1-12 · Nuevo ejercicio
+
+- **module:** web
+- **description:** Mockup 9. El nombre busca en el catálogo mientras se tipea; si no hay coincidencia,
+  permite crear uno propio y ahí sí pide la categoría. El campo de la primera marca cambia según la
+  categoría: RM en kg, repeticiones o tiempo. Fecha en formato es-AR con la semana empezando en
+  lunes. Nivel, comentarios y "con dolor".
+- **acceptance-criteria:**
+  - Dado un nombre del catálogo, cuando se elige, entonces la categoría queda fija y no se puede
+    cambiar.
+  - Dado un ejercicio de tiempo, cuando se carga la marca, entonces se escribe como `mm:ss` y se
+    guarda en segundos.
+  - Dado `WC-SUBS-403-001`, cuando la API lo devuelve, entonces se explica el límite del plan en vez
+    de un error genérico.
+  - Dado el formulario, cuando se recorre con teclado, entonces el buscador del catálogo se opera
+    entero sin mouse.
+- **example:** Braian escribe "Wall ball", no aparece en el catálogo, elige Gimnástico y carga 30
+  repeticiones.
+- **story-points:** 5
+- **depends_on:** F1-05, F1-09
+- **risk:** medium
+- **test_plan:** tests de componentes por criterio; test del parseo `mm:ss` con sus bordes.
+- **error-codes:** consume `WC-SUBS-403-001`, `WC-EXO-409-003`, `WC-EXO-409-004`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-13 · Detalle de ejercicio con porcentajes
+
+- **module:** web
+- **description:** Mockups 5 y 6. Valor actual con su fecha, tags (categoría, nivel, con dolor),
+  tabla de porcentajes con los del perfil del usuario, porcentaje custom, número grande con la
+  carga del porcentaje elegido, barra y banda de carga, e historial con el valor actual marcado. En
+  tiempo, sólo mejor marca e historial (spec §5.1). El porcentaje elegido vive en la URL (Nuqs).
+- **acceptance-criteria:**
+  - Dado un RM de 100 kg, cuando se elige 65%, entonces se ve 65 kg y "Light load".
+  - Dado un porcentaje custom, cuando se tipea, entonces el resultado se actualiza sin llamar a la
+    API.
+  - Dado un ejercicio de tiempo, cuando se abre, entonces no hay tabla de porcentajes.
+  - Dado un link con `?pct=80`, cuando se abre, entonces arranca con 80% elegido.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F1-04, F1-07, F1-08, F1-09
+- **risk:** medium
+- **test_plan:** tests de componentes por criterio y por categoría. axe sin violaciones.
+- **error-codes:** consume `WC-EXO-404-002`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-14 · Cargar una marca nueva
+
+- **module:** web
+- **description:** Modal del mockup 11. Se llama "New RM" en fuerza y "New Record" en el resto
+  (leyenda del mockup 12). Optimistic UI (spec §11): la marca aparece en el historial antes de que
+  responda la API, y se revierte si falla.
+- **acceptance-criteria:**
+  - Dada una marca válida, cuando se guarda, entonces aparece en el historial sin esperar a la API.
+  - Dado un error de la API, cuando llega, entonces la marca optimista desaparece y se muestra el
+    motivo.
+  - Dado el modal abierto, cuando se aprieta Escape, entonces se cierra y el foco vuelve al botón
+    que lo abrió.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-07, F1-13
+- **risk:** low
+- **test_plan:** tests de componentes del camino feliz, del rollback y del manejo de foco.
+- **error-codes:** consume `WC-RM-422-001`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-15 · Editar y borrar ejercicio
+
+- **module:** web
+- **description:** Desde el lápiz del detalle: nivel, "con dolor", comentarios, y el nombre si es
+  propio. Borrar pide escribir el nombre del ejercicio para confirmar (spec §11), porque se lleva
+  todo el historial.
+- **acceptance-criteria:**
+  - Dado el diálogo de borrado, cuando el nombre escrito no coincide, entonces el botón de borrar
+    sigue deshabilitado.
+  - Dado un ejercicio del catálogo, cuando se edita, entonces el nombre no es editable.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-06, F1-13
+- **risk:** medium
+- **test_plan:** tests de componentes por criterio.
+- **error-codes:** consume `WC-EXO-404-002`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-16 · Perfil: porcentajes y tema
+
+- **module:** web
+- **description:** Pantalla de perfil para editar los porcentajes por defecto, y el tema desde
+  "Color" en el menú. Con sesión, el tema de la API manda; `localStorage` queda sólo para evitar el
+  flash antes de que cargue.
+- **acceptance-criteria:**
+  - Dado un porcentaje repetido, cuando se guarda, entonces el error aparece en ese campo.
+  - Dado un cambio de tema, cuando se hace, entonces se ve al instante y se guarda en la API.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F1-08, F1-09
+- **risk:** low
+- **test_plan:** tests de componentes por criterio.
+- **error-codes:** consume `WC-SYS-400-002`.
+- **data-model-impact:** ninguno
+
+## [ ] F1-17 · Aviso de nueva versión de la PWA
+
+- **module:** web
+- **description:** El popup de la spec §5. `registerType: 'prompt'` ya está desde F0-01; falta el
+  componente que avisa y deja actualizar.
+- **acceptance-criteria:**
+  - Dada una versión nueva publicada, cuando el service worker la detecta, entonces aparece el
+    aviso con un botón para actualizar.
+  - Dado el aviso, cuando se descarta, entonces no vuelve a aparecer hasta la siguiente versión.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F1-09
+- **risk:** low
+- **test_plan:** test del componente con el registro del service worker simulado.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F1-18 · E2E del flujo principal y axe en CI
+
+- **module:** infra
+- **description:** Playwright contra la app completa para el flujo crítico (spec §10), y auditoría
+  de accesibilidad con axe en CI (spec §11). Cierra la fase.
+- **acceptance-criteria:**
+  - Dado un usuario nuevo, cuando se registra, agrega un ejercicio del catálogo, carga una marca y
+    abre el detalle, entonces ve los porcentajes correctos.
+  - Dado un usuario Free, cuando llega a 10 ejercicios, entonces el E2E comprueba que no puede
+    agregar el undécimo, ni por la UI ni llamando a la API directo.
+  - Dada cualquier pantalla de la fase, cuando corre axe, entonces no hay violaciones WCAG 2.2 AA.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F1-10, F1-11, F1-12, F1-13, F1-14
+- **risk:** medium
+- **test_plan:** el propio E2E, corriendo en CI contra un Mongo efímero.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
