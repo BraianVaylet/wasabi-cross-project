@@ -15,7 +15,7 @@ allowBuilds:
 # sin duplicar dependencias") de forma verificable, no por convención.
 catalog:
   # Lenguaje y tooling
-  typescript: 5.9.3
+  typescript: 6.0.3
   '@types/node': ^24.10.1
   tsx: ^4.20.6
 
