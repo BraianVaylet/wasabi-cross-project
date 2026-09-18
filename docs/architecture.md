@@ -104,6 +104,18 @@ Viven en `apps/api/src/migrations/`, en TypeScript, una por archivo, con nombre
 - Contra una misma base se usa siempre el mismo modo: `migrate` (desde `src/`) en desarrollo,
   `migrate:dist` (compilado) en los ambientes desplegados.
 
+## Transacciones y cupos del plan
+
+El cupo de ejercicios (spec §4) se controla en una transacción de Mongo, junto con el alta que
+consume el cupo. **Mongo tiene que ser un replica set**, aunque sea de un nodo: Atlas lo es; en
+local, ver `apps/api/.env.example`.
+
+Una transacción sola no alcanza para que dos altas simultáneas no se pasen del límite: Mongo aísla
+por snapshot, y dos transacciones que cuentan 9 e insertan documentos distintos confirman las dos.
+Por eso cada una escribe además un documento de lock por usuario (`entitlement_locks`): la segunda
+choca, se reintenta y cuenta 10. Hay un test que lo demuestra, y una prueba inversa confirmó que
+sin el lock ese test falla.
+
 ## Health checks
 
 - `GET /health` — liveness. No depende de nada externo (Mongo, etc.). Si responde, el proceso está vivo.

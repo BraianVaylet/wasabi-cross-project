@@ -5,6 +5,7 @@ import type { CatalogExercise } from '../domain/catalog.ts';
 import type { ExerciseRepository } from '../domain/exercise-repository.ts';
 
 export const EXERCISES_COLLECTION = 'exercises';
+export const MANAGED_EXERCISES_COLLECTION = 'managed_exercises';
 
 /**
  * Documento tal como vive en Mongo. `_id` es el ID de dominio con prefijo (ADR-0004),

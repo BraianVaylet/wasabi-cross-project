@@ -7,6 +7,10 @@ import { ERROR_CATALOG, type ErrorCode } from './error-codes.ts';
  *
  * `meta` es contexto para el log. Nunca metas ahí password, token ni datos de pago:
  * el logger los redacta por path, pero la regla es no ponerlos de entrada.
+ *
+ * `params` completa las variables del mensaje del catálogo (`{plan}`, `{limite}`). Una
+ * variable que no se pasa queda visible tal cual: mejor un `{plan}` que se note en un test
+ * que un "tu plan ." que pase inadvertido.
  */
 export class AppError extends Error {
   readonly errorCode: ErrorCode;
@@ -16,17 +20,27 @@ export class AppError extends Error {
 
   constructor(
     errorCode: ErrorCode,
-    options: { message?: string; meta?: Record<string, unknown>; cause?: unknown } = {},
+    options: {
+      message?: string;
+      meta?: Record<string, unknown>;
+      params?: Record<string, string>;
+      cause?: unknown;
+    } = {},
   ) {
     const entry = ERROR_CATALOG[errorCode];
-    super(options.message ?? entry.userMessage, { cause: options.cause });
+    const userMessage = fillParams(entry.userMessage, options.params ?? {});
+    super(options.message ?? userMessage, { cause: options.cause });
 
     this.name = 'AppError';
     this.errorCode = errorCode;
     this.statusCode = entry.status;
-    this.userMessage = entry.userMessage;
+    this.userMessage = userMessage;
     this.meta = Object.freeze({ ...options.meta });
   }
+}
+
+function fillParams(template: string, params: Readonly<Record<string, string>>): string {
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) => params[name] ?? placeholder);
 }
 
 export function isAppError(error: unknown): error is AppError {

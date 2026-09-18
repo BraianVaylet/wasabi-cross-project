@@ -27,8 +27,10 @@ Lo que hay hoy, en una línea cada uno:
 **Fase 1 — El loop del atleta.** 18 tareas, 71 puntos, cargadas en Trello.
 
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
-- **F1-02 · Migraciones**: código hecho, en PR a la espera de revisión. migrate-mongo
+- **F1-02 · Migraciones**: cerrada. migrate-mongo
   ([ADR-0005](../adr/0005-migraciones-con-migrate-mongo.md)).
+- **F1-03 · Entitlements**: código hecho, en PR. **Necesita revisión humana de sus tests** (flujo
+  de permisos, spec §9).
 
 ## Bloqueado
 
@@ -36,9 +38,9 @@ Nada.
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F1-02, y mover su tarjeta a `Completadas`.
-2. Ya están destrabadas **F1-03** (entitlements), **F1-04** (cálculo) y **F1-08** (preferencias).
-   **F1-05** espera a F1-02 y F1-03. **F1-09** (shell del front) no depende de nada.
+1. **Revisar a mano los tests de F1-03** —es flujo de permisos— y mergear su PR.
+2. Destrabadas y sin arrancar: **F1-04** (cálculo) y **F1-08** (preferencias). **F1-05** espera a
+   F1-03. **F1-09** (shell del front) no depende de nada.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -72,7 +74,7 @@ herramienta de migraciones → migrate-mongo ([ADR-0005](../adr/0005-migraciones
 
 ```bash
 pnpm install
-cp apps/api/.env.example apps/api/.env   # completar MONGODB_URI y BETTER_AUTH_SECRET
+cp apps/api/.env.example apps/api/.env   # MONGODB_URI tiene que ser un replica set (ver el archivo)
 pnpm --filter @wasabi-cross/api migrate up   # sin esto, /ready responde no-listo
 pnpm verify                              # build + formato + lint + typecheck + test
 pnpm dev                                 # API en :3000, web en :5173
@@ -81,4 +83,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-02, migraciones con migrate-mongo. Ver [bitácora](./bitacora/2026-09-18-f1-02-migraciones.md).
+2026-09-18 — F1-03, entitlements de plan. Ver [bitácora](./bitacora/2026-09-18-f1-03-entitlements.md).

@@ -10,10 +10,6 @@ export const ERROR_CATALOG = {
   'WC-AUTH-403-002': { status: 403, userMessage: 'No tenés permisos para esta acción.' },
   'WC-AUTH-429-003': { status: 429, userMessage: 'Demasiados intentos. Probá en 5 minutos.' },
   'WC-AUTH-401-004': { status: 401, userMessage: 'Iniciá sesión para continuar.' },
-  'WC-EXO-403-001': {
-    status: 403,
-    userMessage: 'Alcanzaste el máximo de ejercicios de tu plan {plan}.',
-  },
   'WC-EXO-404-002': { status: 404, userMessage: 'No encontramos ese ejercicio.' },
   'WC-RM-422-001': { status: 422, userMessage: 'El valor cargado no es válido.' },
   'WC-RM-404-002': { status: 404, userMessage: 'No encontramos ese registro.' },
