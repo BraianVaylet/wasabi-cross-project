@@ -8,12 +8,16 @@ import {
   listManagedExercises,
   searchCatalog,
 } from './modules/exercises/application/list-managed-exercises.ts';
+import { findOwnedMeasure } from './modules/exercises/application/owned-exercise.ts';
 import type { ExerciseSlots } from './modules/exercises/domain/managed-exercise-ports.ts';
 import type { ExerciseRoutesOptions } from './modules/exercises/infrastructure/exercise.routes.ts';
 import { createMongoExerciseRepository } from './modules/exercises/infrastructure/mongo-exercise.repository.ts';
 import { createMongoManagedExerciseStore } from './modules/exercises/infrastructure/mongo-managed-exercise.store.ts';
 import { createMongoExerciseUsageCounter } from './modules/exercises/infrastructure/mongo-usage-counter.ts';
+import { logRecord, recordHistory } from './modules/records/application/records.ts';
+import type { OwnedExerciseLookup } from './modules/records/domain/record-ports.ts';
 import { createMongoRecordGateway } from './modules/records/infrastructure/mongo-record.gateway.ts';
+import type { RecordRoutesOptions } from './modules/records/infrastructure/record.routes.ts';
 import { withExerciseSlot } from './modules/subscriptions/application/with-exercise-slot.ts';
 import { createMongoUserSerializer } from './modules/subscriptions/infrastructure/mongo-user-serializer.ts';
 import type { MongoConnection } from './shared/db/mongo.ts';
@@ -55,5 +59,28 @@ export function composeExercises(
         { store, records, transactions },
         { userId: user.id, managedExerciseId },
       ),
+  };
+}
+
+/**
+ * Las marcas (F1-07). `records` necesita saber si un ejercicio gestionado es del usuario y
+ * qué mide; se lo responde `exercises`, que es su dueño.
+ */
+export function composeRecords(
+  mongo: MongoConnection,
+): Omit<RecordRoutesOptions, 'requireSession'> {
+  const exercises = createMongoManagedExerciseStore(mongo.db);
+  const store = createMongoRecordGateway(mongo.db);
+
+  const lookup: OwnedExerciseLookup = {
+    findOwned: (userId, managedExerciseId) =>
+      findOwnedMeasure(exercises, userId, managedExerciseId),
+  };
+
+  return {
+    logRecord: (userId, managedExerciseId, input) =>
+      logRecord({ lookup, store }, { userId, managedExerciseId, input }),
+    recordHistory: (userId, managedExerciseId, page) =>
+      recordHistory({ lookup, store }, { userId, managedExerciseId, ...page }),
   };
 }

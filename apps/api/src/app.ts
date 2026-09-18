@@ -22,6 +22,10 @@ import {
 } from './modules/exercises/infrastructure/exercise.routes.ts';
 import type { DependencyProbe } from './modules/health/domain/readiness.ts';
 import { healthRoutes } from './modules/health/infrastructure/health.routes.ts';
+import {
+  recordRoutes,
+  type RecordRoutesOptions,
+} from './modules/records/infrastructure/record.routes.ts';
 import { buildLoggerOptions } from './shared/logger.ts';
 import { registerErrorHandler } from './shared/errors/error-handler.ts';
 
@@ -35,6 +39,8 @@ export interface BuildAppOptions {
   auth?: Auth;
   /** Se registra sólo junto con `auth`: los ejercicios son para usuarios con sesión. */
   exercises?: Omit<ExerciseRoutesOptions, 'requireSession'>;
+  /** Igual que `exercises`: las marcas son de usuarios con sesión. */
+  records?: Omit<RecordRoutesOptions, 'requireSession'>;
 }
 
 export async function buildApp({
@@ -42,6 +48,7 @@ export async function buildApp({
   probes = [],
   auth,
   exercises,
+  records,
 }: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({
     logger: buildLoggerOptions(env),
@@ -111,6 +118,12 @@ export async function buildApp({
 
     if (exercises) {
       await app.register(exerciseRoutes({ ...exercises, requireSession: requireSession(auth) }), {
+        prefix: API_PREFIX,
+      });
+    }
+
+    if (records) {
+      await app.register(recordRoutes({ ...records, requireSession: requireSession(auth) }), {
         prefix: API_PREFIX,
       });
     }
