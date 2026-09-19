@@ -1,16 +1,8 @@
-import { planSchema } from '@wasabi-cross/schemas';
+import { sessionUserSchema } from '@wasabi-cross/schemas';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
-import { z } from 'zod';
 import { AppError } from '../../../shared/errors/app-error.ts';
 import type { Auth } from './better-auth.ts';
 import { requireSession } from './require-session.ts';
-
-const currentUserResponse = z.object({
-  id: z.string(),
-  email: z.email(),
-  name: z.string(),
-  plan: planSchema,
-});
 
 /**
  * Quién soy. Es el endpoint protegido más chico posible, y el que usa el front al
@@ -26,7 +18,7 @@ export function sessionRoutes(auth: Auth): FastifyPluginAsyncZod {
         schema: {
           summary: 'Usuario de la sesión actual',
           tags: ['auth'],
-          response: { 200: currentUserResponse },
+          response: { 200: sessionUserSchema },
         },
       },
       (request) => {

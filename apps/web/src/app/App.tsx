@@ -1,38 +1,44 @@
-import { Button, Card, Tag, TextField, ThemeToggle, useTheme } from '@wasabi-cross/ui';
+import { QueryClientProvider, useQuery, type QueryClient } from '@tanstack/react-query';
+import { RouterProvider } from '@tanstack/react-router';
+import { ErrorScreen } from './ErrorNotice.tsx';
+import type { AppRouter } from './router.tsx';
+import { sessionQueryOptions, type SessionClient } from './session.ts';
+import { Splash } from './Splash.tsx';
+import './app.css';
+
+export interface AppProps {
+  queryClient: QueryClient;
+  router: AppRouter;
+  session: SessionClient;
+}
+
+export function App({ queryClient, router, session }: AppProps): React.JSX.Element {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SessionGate router={router} session={session} />
+    </QueryClientProvider>
+  );
+}
 
 /**
- * Pantalla puente de la Fase 0: prueba de punta a punta que los Componentes Cross y el
- * tema andan en la app real. Las páginas de la spec §5 llegan en la Fase 1.
+ * Hasta saber si hay sesión, el splash. Así el router arranca con la respuesta en caché y
+ * nunca muestra una pantalla protegida para después sacarla.
  */
-export function App(): React.JSX.Element {
-  const { theme, toggle } = useTheme();
+function SessionGate({ router, session }: Omit<AppProps, 'queryClient'>): React.JSX.Element {
+  const query = useQuery(sessionQueryOptions(session));
 
-  return (
-    <div className="wc-root" style={{ minHeight: '100vh', padding: '1rem' }}>
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
+  if (query.isPending) {
+    return <Splash />;
+  }
+  if (query.isError) {
+    return (
+      <ErrorScreen
+        error={query.error}
+        onRetry={() => {
+          void query.refetch();
         }}
-      >
-        <h1 style={{ fontSize: 'var(--wc-font-size-lg)', margin: 0 }}>Wasabi Cross</h1>
-        <ThemeToggle theme={theme} onToggle={toggle} />
-      </header>
-
-      <main style={{ display: 'grid', gap: '1rem', marginTop: '1.5rem' }}>
-        <Card>
-          <strong style={{ color: 'var(--wc-accent-text)' }}>Back SQ</strong>
-          <p style={{ margin: '0.25rem 0 0' }}>RM from 23/06/2026 · 100 kg</p>
-        </Card>
-
-        <Tag>Light load</Tag>
-
-        <TextField label="Custom percentage" placeholder="Ej: 98" suffix="%" inputMode="numeric" />
-
-        <Button block>New Exercice</Button>
-      </main>
-    </div>
-  );
+      />
+    );
+  }
+  return <RouterProvider router={router} />;
 }

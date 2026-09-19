@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      7 |
+| Fase 1 — El loop del atleta |     18 |           71 |      8 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -493,7 +493,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   porcentajes a la vez no se pisan. Cuatro pruebas inversas detectadas. Cerrada: PR #18 mergeada el
   2026-09-18.
 
-## [ ] F1-09 · Shell de la app: rutas, sesión, header y menú
+## [x] F1-09 · Shell de la app: rutas, sesión, header y menú
 
 - **module:** web
 - **description:** TanStack Router con rutas protegidas, TanStack Query, cliente de sesión de Better
@@ -511,8 +511,17 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **depends_on:** —
 - **risk:** medium
 - **test_plan:** tests de componentes del header y el menú; test de la redirección con y sin sesión.
-- **error-codes:** consume `WC-AUTH-401-004`.
+- **error-codes:** consume `WC-AUTH-401-004`. Introduce `WC-SYS-503-004` (lo genera el front: la
+  API no respondió, o no con el envelope).
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. Router con rutas protegidas y `redirect` validado
+  (sólo rutas internas: no es un open redirect), splash mientras se averigua la sesión, header y
+  menú lateral con foco atrapado. La sesión va por el mismo cliente HTTP que el resto, también contra
+  Better Auth, porque la API ya traduce sus errores al envelope: un solo formato de error en el
+  front. El envelope, el usuario de `/me` y el catálogo de códigos pasaron a
+  `@wasabi-cross/schemas`. Del menú del mockup quedan afuera "Estadísticas" (próxima fase) y
+  "Color" (F1-16). Probado también a mano contra la API real. Cerrada: PR #19 mergeada el
+  2026-09-18.
 
 ## [ ] F1-10 · Login y registro
 
