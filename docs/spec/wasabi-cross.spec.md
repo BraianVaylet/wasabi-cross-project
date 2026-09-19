@@ -80,6 +80,8 @@ El peso se registra sólo en kg.
 - **Ejercicio gestionado**: la entrada de un ejercicio en la lista de un usuario. Lleva lo que es del usuario y no del ejercicio: nivel, "con dolor" y comentarios. Un ejercicio aparece una sola vez en la lista de cada usuario.
 - **Marca**: un valor con su fecha de realización y un comentario opcional, sobre un ejercicio gestionado.
 
+**La fecha de realización no puede ser futura**: una marca de mañana pasaría a ser el valor actual antes de existir. Se tolera un margen de 5 minutos por la diferencia de reloj entre el dispositivo y el servidor. Vale también para la primera marca, al agregar un ejercicio.
+
 **Tags:**
 
 - **Categoría**: Fuerza, Hipertrofia, Gimnástico, Running.

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { isoDateTimeSchema, timestampsSchema } from '../common/datetime.ts';
+import {
+  isoDateTimeSchema,
+  notFutureDateTimeSchema,
+  timestampsSchema,
+} from '../common/datetime.ts';
 import { managedExerciseIdSchema, recordIdSchema, userIdSchema } from '../common/ids.ts';
 import { plainText } from '../common/text.ts';
 import type { MeasureKind } from '../exercise/exercise.schema.ts';
@@ -92,7 +96,7 @@ export type ExerciseRecord = z.infer<typeof recordSchema>;
 export function createRecordSchemaFor(kind: MeasureKind) {
   return z.object({
     value: recordValueSchemaFor(kind),
-    performedAt: isoDateTimeSchema.optional(),
+    performedAt: notFutureDateTimeSchema.optional(),
     notes: plainText(300).optional(),
   });
 }
