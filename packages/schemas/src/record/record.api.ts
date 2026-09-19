@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isoDateTimeSchema } from '../common/datetime.ts';
+import { isoDateTimeSchema, notFutureDateTimeSchema } from '../common/datetime.ts';
 import { recordIdSchema } from '../common/ids.ts';
 import { plainText } from '../common/text.ts';
 
@@ -13,7 +13,7 @@ export const recordUnitSchema = z.enum(['kg', 'reps', 's']);
 /** Lo que manda el modal de "New RM" / "New Record" (mockup 11). */
 export const recordInputSchema = z.object({
   value: z.number(),
-  performedAt: isoDateTimeSchema.optional(),
+  performedAt: notFutureDateTimeSchema.optional(),
   notes: plainText(300).optional(),
 });
 

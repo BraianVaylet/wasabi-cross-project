@@ -447,6 +447,8 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   - Dado un valor inválido para la categoría (repeticiones con decimales, tiempo cero), cuando se
     carga, entonces responde `WC-RM-422-001` con el motivo.
   - Dado un ejercicio de otro usuario, cuando se cargan o se leen marcas, entonces responde 404.
+  - Dada una marca con fecha futura, cuando se carga, entonces se rechaza con el motivo en la fecha.
+    Vale también para la primera marca al agregar un ejercicio (spec §5.1, decidido el 2026-09-18).
 - **example:** Braian tenía 100 kg en "Back squat" y carga 105. El historial marca 105 como valor
   actual y como mejor marca.
 - **story-points:** 5

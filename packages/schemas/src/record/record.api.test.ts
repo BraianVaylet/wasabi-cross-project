@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { addExerciseSchema } from '../exercise/managed-exercise.api.ts';
 import { historyQuerySchema, recordHistorySchema, recordInputSchema } from './record.api.ts';
+import { createRecordSchemaFor } from './record.schema.ts';
 
 describe('recordInputSchema — el modal de "New RM" / "New Record" (mockup 11)', () => {
   it('pide valor; fecha y comentario son opcionales', () => {
@@ -56,5 +58,29 @@ describe('recordHistorySchema', () => {
         nextCursor: null,
       }).success,
     ).toBe(true);
+  });
+});
+
+describe('una marca no puede tener fecha futura (spec §5.1)', () => {
+  it('ni al cargarla, ni como primera marca, ni en el schema por medición', () => {
+    const manana = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    expect(
+      recordInputSchema.safeParse({ value: 100, performedAt: manana }).error?.issues[0],
+    ).toMatchObject({
+      path: ['performedAt'],
+      message: 'La fecha no puede ser futura',
+    });
+    expect(createRecordSchemaFor('rm').safeParse({ value: 100, performedAt: manana }).success).toBe(
+      false,
+    );
+    expect(
+      addExerciseSchema.safeParse({
+        source: 'catalog',
+        exerciseId: 'exo_a1b2c3d4',
+        level: 'intermedio',
+        firstRecord: { value: 100, performedAt: manana },
+      }).error?.issues[0]?.path,
+    ).toEqual(['firstRecord', 'performedAt']);
   });
 });

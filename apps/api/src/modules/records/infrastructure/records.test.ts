@@ -142,6 +142,23 @@ describe('marcas: cargar e historial (F1-07)', () => {
     });
   });
 
+  describe('fecha futura (spec §5.1)', () => {
+    it('una marca con fecha futura se rechaza con el motivo, y no guarda nada', async () => {
+      const cookie = await newUser();
+      const squat = await addFromCatalog(cookie, 'Back squat', 100, '2026-06-23T10:00:00.000Z');
+      const manana = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+      const response = await log(cookie, squat.id, { value: 200, performedAt: manana });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({
+        errorCode: 'WC-SYS-400-002',
+        details: [{ path: 'performedAt', message: 'La fecha no puede ser futura' }],
+      });
+      expect((await history(cookie, squat.id)).json<RecordHistory>().records).toHaveLength(1);
+    });
+  });
+
   describe('valor actual: la marca de fecha más reciente (spec §5.1)', () => {
     it('una marca con fecha anterior no cambia el valor actual', async () => {
       const cookie = await newUser();
