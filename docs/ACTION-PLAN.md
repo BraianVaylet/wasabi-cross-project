@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |     10 |
+| Fase 1 — El loop del atleta |     18 |           71 |     11 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -678,7 +678,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** consume `WC-SYS-400-002`.
 - **data-model-impact:** ninguno
 
-## [ ] F1-17 · Aviso de nueva versión de la PWA
+## [x] F1-17 · Aviso de nueva versión de la PWA
 
 - **module:** web
 - **description:** El popup de la spec §5. `registerType: 'prompt'` ya está desde F0-01; falta el
@@ -694,6 +694,12 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** test del componente con el registro del service worker simulado.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. El aviso vive fuera del router, así aparece
+  esté donde esté el usuario, y nunca actualiza solo: el service worker queda esperando hasta que
+  el usuario acepta. Descartarlo no lo vuelve a mostrar hasta la próxima versión. En los tests, el
+  módulo virtual del plugin se resuelve a un stub. De paso se destapó que faltaba `workbox-window`:
+  el build de la PWA fallaba al generar el service worker. Tres pruebas inversas. Cerrada: PR #23 mergeada el
+  2026-09-21.
 
 ## [ ] F1-18 · E2E del flujo principal y axe en CI
 

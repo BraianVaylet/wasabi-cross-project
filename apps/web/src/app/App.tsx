@@ -1,6 +1,7 @@
 import { QueryClientProvider, useQuery, type QueryClient } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { ErrorScreen } from './ErrorNotice.tsx';
+import { PwaUpdate } from './PwaUpdate.tsx';
 import type { AppRouter } from './router.tsx';
 import { sessionQueryOptions, type SessionClient } from './session.ts';
 import { Splash } from './Splash.tsx';
@@ -16,6 +17,8 @@ export function App({ queryClient, router, session }: AppProps): React.JSX.Eleme
   return (
     <QueryClientProvider client={queryClient}>
       <SessionGate router={router} session={session} />
+      {/* Fuera del router: una versión nueva se avisa esté donde esté el usuario (spec §5). */}
+      <PwaUpdate />
     </QueryClientProvider>
   );
 }
