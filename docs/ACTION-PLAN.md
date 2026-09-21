@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      9 |
+| Fase 1 — El loop del atleta |     18 |           71 |     10 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -552,7 +552,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   violaciones en las dos pantallas; probado a mano contra la API real. Cerrada: PR #20 mergeada el
   2026-09-21.
 
-## [ ] F1-11 · Home: lista de ejercicios
+## [x] F1-11 · Home: lista de ejercicios
 
 - **module:** web
 - **description:** Mockup 4. Cada ejercicio con nombre, fecha del valor actual y valor con su
@@ -571,6 +571,13 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes por estado: vacío, cargando, con datos, en el límite.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. La lista con nombre, fecha y valor; el tiempo se
+  muestra como tiempo (4:32) y no como 272 segundos, y las fechas en es-AR. `Skeleton` nuevo en los
+  Componentes Cross. El cliente de API del front se inyecta como la sesión, así que las pantallas se
+  prueban sin `fetch`. En el límite del plan el botón queda deshabilitado con el mensaje de
+  `WC-SUBS-403-001`, que ya estaba en el catálogo. Las filas y el botón llevan a F1-13 y F1-12, que
+  por ahora son marcadores. Seis pruebas inversas; axe sin violaciones; probado a mano contra la API
+  real. Cerrada: PR #21 mergeada el 2026-09-21.
 
 ## [ ] F1-12 · Nuevo ejercicio
 

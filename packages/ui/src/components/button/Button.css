@@ -1,4 +1,9 @@
+/*
+ * La clase también se usa en un `<a>` que se ve como botón (el "Nuevo ejercicio" de Home):
+ * por eso van acá el `box-sizing` y el `text-decoration`, que un `<button>` ya trae.
+ */
 .wc-button {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -15,6 +20,7 @@
   font-weight: 500;
   line-height: 1.2;
   text-align: center;
+  text-decoration: none;
 
   cursor: pointer;
   transition:

@@ -1,8 +1,9 @@
-import type { SessionUser } from '@wasabi-cross/schemas';
+import type { ExerciseList, SessionUser } from '@wasabi-cross/schemas';
 import { createMemoryHistory } from '@tanstack/react-router';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 import { App } from '../app/App.tsx';
+import type { ApiClient } from '../app/api.ts';
 import { createApp } from '../app/create-app.ts';
 import type { SessionClient } from '../app/session.ts';
 
@@ -47,9 +48,29 @@ export function fakeSession(initial: SessionUser | null): FakeSession {
   };
 }
 
-export function renderApp(path: string, session: SessionClient) {
+export interface FakeApi {
+  client: {
+    [K in keyof ApiClient]: ReturnType<typeof vi.fn<ApiClient[K]>>;
+  };
+}
+
+const LISTA_VACIA: ExerciseList = {
+  exercises: [],
+  usage: { plan: 'free', total: 0, custom: 0, maxTotal: 10, maxCustom: 3 },
+};
+
+/** La API del front, en memoria: devuelve lo que le pasa el test. */
+export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
+  return {
+    client: {
+      listExercises: vi.fn<ApiClient['listExercises']>(() => Promise.resolve(list)),
+    },
+  };
+}
+
+export function renderApp(path: string, session: SessionClient, api: ApiClient = fakeApi().client) {
   const history = createMemoryHistory({ initialEntries: [path] });
-  const app = createApp({ session, history });
+  const app = createApp({ session, api, history });
   render(<App queryClient={app.queryClient} router={app.router} session={session} />);
   return app;
 }

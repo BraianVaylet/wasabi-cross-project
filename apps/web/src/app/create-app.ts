@@ -2,6 +2,7 @@ import type { ErrorCode } from '@wasabi-cross/schemas';
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import type { RouterHistory } from '@tanstack/react-router';
 import { ApiError } from '../lib/http.ts';
+import type { ApiClient } from './api.ts';
 import { createAppRouter, type AppRouter } from './router.tsx';
 import { SESSION_QUERY_KEY, type SessionClient } from './session.ts';
 
@@ -21,9 +22,11 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
  */
 export function createApp({
   session,
+  api,
   history,
 }: {
   session: SessionClient;
+  api: ApiClient;
   history?: RouterHistory;
 }): { queryClient: QueryClient; router: AppRouter } {
   const onError = (error: unknown): void => {
@@ -42,6 +45,7 @@ export function createApp({
   const router = createAppRouter({
     queryClient,
     session,
+    api,
     ...(history === undefined ? {} : { history }),
   });
 

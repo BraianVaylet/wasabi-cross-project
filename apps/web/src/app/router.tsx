@@ -1,5 +1,5 @@
 import type { SignIn, SignUpRequest } from '@wasabi-cross/schemas';
-import { useMutation, type QueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import {
   Outlet,
   createRootRouteWithContext,
@@ -15,8 +15,11 @@ import { HomePage } from '../pages/HomePage.tsx';
 import { LoginPage } from '../pages/auth/LoginPage.tsx';
 import { RegisterPage } from '../pages/auth/RegisterPage.tsx';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
+import { NewExercisePage } from '../pages/NewExercisePage.tsx';
+import { ExerciseDetailPage } from '../pages/ExerciseDetailPage.tsx';
 import { ProfilePage } from '../pages/ProfilePage.tsx';
 import { refreshSession } from './create-app.ts';
+import { exerciseListQueryOptions, type ApiClient } from './api.ts';
 import { ErrorScreen } from './ErrorNotice.tsx';
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
@@ -25,6 +28,7 @@ import { AppShell } from './shell/AppShell.tsx';
 export interface RouterContext {
   queryClient: QueryClient;
   session: SessionClient;
+  api: ApiClient;
 }
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
@@ -154,9 +158,24 @@ const homeRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/',
   component: function HomeRoute() {
-    const { user } = appRoute.useRouteContext();
-    return <HomePage user={user} />;
+    const { user, api } = appRoute.useRouteContext();
+    const exercises = useQuery(exerciseListQueryOptions(api));
+
+    return <HomePage user={user} exercises={exercises} />;
   },
+});
+
+/* Las dos pantallas de ejercicios llegan con F1-12 y F1-13; la lista ya lleva a ellas. */
+const newExerciseRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/ejercicios/nuevo',
+  component: NewExercisePage,
+});
+
+const exerciseDetailRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/ejercicios/$id',
+  component: ExerciseDetailPage,
 });
 
 const profileRoute = createRoute({
@@ -168,7 +187,7 @@ const profileRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
-  appRoute.addChildren([homeRoute, profileRoute]),
+  appRoute.addChildren([homeRoute, newExerciseRoute, exerciseDetailRoute, profileRoute]),
 ]);
 
 export function createAppRouter(options: RouterContext & { history?: RouterHistory }) {

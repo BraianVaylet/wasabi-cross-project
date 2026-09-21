@@ -27,6 +27,15 @@ export function CloseIcon(): React.JSX.Element {
   );
 }
 
+/** El "entrar acá" de cada fila de la lista (mockup 4). */
+export function ChevronIcon(): React.JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" {...STROKE}>
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
 /** El marcador de imagen de los mockups, hasta que haya logo de marca. */
 export function ImageIcon(): React.JSX.Element {
   return (
