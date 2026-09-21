@@ -38,6 +38,7 @@ Lo que hay hoy, en una línea cada uno:
   `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
 - **F1-08 · Preferencias**: cerrada. `GET` y `PATCH /api/v1/me/preferences`, en el módulo `users`.
 - **F1-09 · Shell del front**: cerrada. Rutas protegidas, sesión, splash, header y menú.
+- **F1-10 · Login y registro**: cerrada. `/login` y `/registro` con TanStack Form.
 
 ## Bloqueado
 
@@ -45,9 +46,10 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear #17 (F1-07). Ya trae `main` con F1-08 y F1-09, y la regla de marcas con fecha futura.
-2. Con F1-09 se destraban **F1-10** (login y registro), **F1-11** (Home) y **F1-12** (nuevo
-   ejercicio). F1-10 va primera: sin ella no se puede entrar desde la app.
+1. Mergear #17 (F1-07). Ya trae `main` con F1-08, F1-09 y F1-10, y la regla de marcas con fecha
+   futura.
+2. Destrabadas: **F1-11** (Home, la lista de ejercicios) y **F1-12** (nuevo ejercicio). F1-11 va
+   primera: es la pantalla que hoy es un marcador.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -92,5 +94,6 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — Marcas con fecha futura: se rechazan (decidido por Braian, en la spec §5.1). Ver
-[bitácora de F1-07](./bitacora/2026-09-18-f1-07-marcas.md).
+2026-09-21 — F1-10, login y registro, y la regla de marcas con fecha futura (decidida por Braian,
+en la spec §5.1). Ver [bitácora de F1-10](./bitacora/2026-09-21-f1-10-login-registro.md) y
+[la de F1-07](./bitacora/2026-09-18-f1-07-marcas.md).

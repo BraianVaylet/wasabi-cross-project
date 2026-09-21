@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      8 |
+| Fase 1 — El loop del atleta |     18 |           71 |      9 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -525,7 +525,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   "Color" (F1-16). Probado también a mano contra la API real. Cerrada: PR #19 mergeada el
   2026-09-18.
 
-## [ ] F1-10 · Login y registro
+## [x] F1-10 · Login y registro
 
 - **module:** web
 - **description:** Pantallas de los mockups 2 y 3, sin username ni Google (spec §5). Registro con
@@ -543,6 +543,14 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes con la API simulada, uno por criterio. axe sin violaciones.
 - **error-codes:** consume `WC-AUTH-401-001`, `WC-AUTH-429-003`, `WC-SYS-400-002`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `/login` y `/registro` con TanStack Form y los
+  schemas nuevos de `@wasabi-cross/schemas`, que también configuran el largo de contraseña de Better
+  Auth: el formulario y la API exigen lo mismo. El error de la API se muestra sin repartirlo por
+  campo (decir cuál falló diría si el email existe). De paso se corrigió el mensaje de
+  `WC-AUTH-429-003`, que decía "5 minutos" con una ventana de un minuto, y el handler de errores
+  pasó a leer los mensajes del catálogo en vez de repetirlos. Cinco pruebas inversas; axe sin
+  violaciones en las dos pantallas; probado a mano contra la API real. Cerrada: PR #20 mergeada el
+  2026-09-21.
 
 ## [ ] F1-11 · Home: lista de ejercicios
 

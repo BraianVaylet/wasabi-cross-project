@@ -156,7 +156,7 @@ describe('envelope de error', () => {
     expect(response.statusCode).toBe(429);
     expect(response.json()).toMatchObject({
       errorCode: 'WC-AUTH-429-003',
-      message: 'Demasiados intentos. Probá en 5 minutos.',
+      message: 'Demasiados intentos. Esperá un minuto y probá de nuevo.',
     });
     expect(response.json()).toHaveProperty('requestId');
   });

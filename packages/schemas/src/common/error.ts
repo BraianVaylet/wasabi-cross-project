@@ -25,7 +25,10 @@ export type ErrorEnvelope = z.infer<typeof errorEnvelopeSchema>;
 export const ERROR_CATALOG = {
   'WC-AUTH-401-001': { status: 401, userMessage: 'Email o contraseña incorrectos.' },
   'WC-AUTH-403-002': { status: 403, userMessage: 'No tenés permisos para esta acción.' },
-  'WC-AUTH-429-003': { status: 429, userMessage: 'Demasiados intentos. Probá en 5 minutos.' },
+  'WC-AUTH-429-003': {
+    status: 429,
+    userMessage: 'Demasiados intentos. Esperá un minuto y probá de nuevo.',
+  },
   'WC-AUTH-401-004': { status: 401, userMessage: 'Iniciá sesión para continuar.' },
   'WC-EXO-404-002': { status: 404, userMessage: 'No encontramos ese ejercicio.' },
   'WC-EXO-409-003': { status: 409, userMessage: 'Ya tenés ese ejercicio en tu lista.' },

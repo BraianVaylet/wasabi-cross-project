@@ -1,4 +1,9 @@
-import { sessionUserSchema, type SessionUser } from '@wasabi-cross/schemas';
+import {
+  sessionUserSchema,
+  type SignIn,
+  type SessionUser,
+  type SignUpRequest,
+} from '@wasabi-cross/schemas';
 import { queryOptions } from '@tanstack/react-query';
 import { z } from 'zod';
 import { ApiError, type HttpClient } from '../lib/http.ts';
@@ -11,10 +16,18 @@ import { ApiError, type HttpClient } from '../lib/http.ts';
 export interface SessionClient {
   /** El usuario de la sesión, o `null` si no hay. */
   current: () => Promise<SessionUser | null>;
+  signIn: (credentials: SignIn) => Promise<void>;
+  signUp: (input: SignUpRequest) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const signOutResponse = z.object({ success: z.boolean() });
+
+/*
+ * De entrar y registrarse sólo importa que hayan salido bien: quién es el usuario se
+ * vuelve a pedir a `/me`, que es el contrato nuestro. Lo que devuelve Better Auth es suyo.
+ */
+const ignoredResponse = z.unknown();
 
 export function createSessionClient(http: HttpClient): SessionClient {
   return {
@@ -28,6 +41,20 @@ export function createSessionClient(http: HttpClient): SessionClient {
         }
         throw error;
       }
+    },
+
+    signIn: async (credentials) => {
+      await http.request(ignoredResponse, '/api/auth/sign-in/email', {
+        method: 'POST',
+        body: credentials,
+      });
+    },
+
+    signUp: async (input) => {
+      await http.request(ignoredResponse, '/api/auth/sign-up/email', {
+        method: 'POST',
+        body: input,
+      });
     },
 
     signOut: async () => {

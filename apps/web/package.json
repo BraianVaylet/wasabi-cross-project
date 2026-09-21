@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-query": "^5.103.1",
     "@tanstack/react-router": "^1.170.38",
     "@wasabi-cross/schemas": "workspace:*",
@@ -31,6 +32,7 @@
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "axe-core": "^4.13.0",
     "jsdom": "^30.1.0",
     "typescript": "catalog:",
     "vite": "catalog:",

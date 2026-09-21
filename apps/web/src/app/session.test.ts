@@ -34,6 +34,34 @@ describe('cliente de sesión', () => {
     await expect(session.current()).rejects.toBe(caida);
   });
 
+  it('entrar manda las credenciales a Better Auth, por el mismo cliente', async () => {
+    const request = vi.fn().mockResolvedValue(undefined);
+    const session = createSessionClient(httpWith(request));
+
+    await session.signIn({ email: 'braian@example.com', password: 'una-frase-larga-y-propia' });
+
+    expect(request).toHaveBeenCalledWith(expect.anything(), '/api/auth/sign-in/email', {
+      method: 'POST',
+      body: { email: 'braian@example.com', password: 'una-frase-larga-y-propia' },
+    });
+  });
+
+  it('registrarse manda email, nombre y contraseña', async () => {
+    const request = vi.fn().mockResolvedValue(undefined);
+    const session = createSessionClient(httpWith(request));
+
+    await session.signUp({
+      email: 'braian@example.com',
+      name: 'Braian',
+      password: 'una-frase-larga-y-propia',
+    });
+
+    expect(request).toHaveBeenCalledWith(expect.anything(), '/api/auth/sign-up/email', {
+      method: 'POST',
+      body: { email: 'braian@example.com', name: 'Braian', password: 'una-frase-larga-y-propia' },
+    });
+  });
+
   it('cerrar sesión le pide a Better Auth que la invalide', async () => {
     const request = vi.fn().mockResolvedValue({ success: true });
     const session = createSessionClient(httpWith(request));
