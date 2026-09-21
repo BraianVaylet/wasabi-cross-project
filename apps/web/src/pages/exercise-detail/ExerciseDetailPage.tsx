@@ -103,7 +103,13 @@ function Detail({ exercise, percentages, selected, onSelect }: DetailProps): Rea
 
   return (
     <>
-      <h1 className="page__title">{exercise.name}</h1>
+      <div className="detail__head">
+        <h1 className="page__title">{exercise.name}</h1>
+        {/* El lápiz del mockup 5. Las estadísticas son de la próxima fase. */}
+        <Link to="/ejercicios/$id/editar" params={{ id: exercise.id }} className="detail__edit">
+          Editar
+        </Link>
+      </div>
 
       <div className="detail__current">
         <div>
