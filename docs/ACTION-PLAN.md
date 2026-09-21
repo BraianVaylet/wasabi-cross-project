@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      9 |
+| Fase 1 — El loop del atleta |     18 |           71 |     10 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -542,7 +542,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   violaciones en las dos pantallas; probado a mano contra la API real. Cerrada: PR #20 mergeada el
   2026-09-21.
 
-## [~] F1-11 · Home: lista de ejercicios
+## [x] F1-11 · Home: lista de ejercicios
 
 - **module:** web
 - **description:** Mockup 4. Cada ejercicio con nombre, fecha del valor actual y valor con su
@@ -567,7 +567,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   prueban sin `fetch`. En el límite del plan el botón queda deshabilitado con el mensaje de
   `WC-SUBS-403-001`, que ya estaba en el catálogo. Las filas y el botón llevan a F1-13 y F1-12, que
   por ahora son marcadores. Seis pruebas inversas; axe sin violaciones; probado a mano contra la API
-  real. Falta mover la tarjeta.
+  real. Cerrada: PR #21 mergeada el 2026-09-21.
 
 ## [ ] F1-12 · Nuevo ejercicio
 
@@ -670,7 +670,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** consume `WC-SYS-400-002`.
 - **data-model-impact:** ninguno
 
-## [ ] F1-17 · Aviso de nueva versión de la PWA
+## [~] F1-17 · Aviso de nueva versión de la PWA
 
 - **module:** web
 - **description:** El popup de la spec §5. `registerType: 'prompt'` ya está desde F0-01; falta el
@@ -686,6 +686,12 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** test del componente con el registro del service worker simulado.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. El aviso vive fuera del router, así aparece
+  esté donde esté el usuario, y nunca actualiza solo: el service worker queda esperando hasta que
+  el usuario acepta. Descartarlo no lo vuelve a mostrar hasta la próxima versión. En los tests, el
+  módulo virtual del plugin se resuelve a un stub. De paso se destapó que faltaba `workbox-window`:
+  el build de la PWA fallaba al generar el service worker. Tres pruebas inversas. Falta mover la
+  tarjeta.
 
 ## [ ] F1-18 · E2E del flujo principal y axe en CI
 

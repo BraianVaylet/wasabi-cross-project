@@ -1,0 +1,32 @@
+/* El aviso de versión nueva: abajo, sin tapar lo que el usuario está haciendo. */
+.pwa-update {
+  position: fixed;
+  right: var(--wc-space-4);
+  bottom: var(--wc-space-4);
+  left: var(--wc-space-4);
+  z-index: 90;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+  width: fit-content;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--wc-space-3) var(--wc-space-4);
+
+  background-color: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-sm);
+  color: var(--wc-text);
+}
+
+.pwa-update__text {
+  margin: 0;
+}
+
+.pwa-update__actions {
+  display: flex;
+  gap: var(--wc-space-2);
+}
