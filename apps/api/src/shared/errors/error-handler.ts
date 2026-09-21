@@ -1,10 +1,15 @@
-import type { ErrorEnvelope } from '@wasabi-cross/schemas';
+import { ERROR_CATALOG, type ErrorEnvelope } from '@wasabi-cross/schemas';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
 } from 'fastify-type-provider-zod';
 import { AppError, isAppError } from './app-error.ts';
+
+/** El mensaje del catálogo con su `{code}` ya reemplazado. */
+function unexpectedMessage(): string {
+  return ERROR_CATALOG['WC-SYS-500-001'].userMessage.replace('{code}', 'WC-SYS-500-001');
+}
 
 function send(reply: FastifyReply, status: number, envelope: ErrorEnvelope): void {
   void reply.status(status).send(envelope);
@@ -31,7 +36,7 @@ export function registerErrorHandler(app: FastifyInstance): void {
       request.log.info({ errorCode: 'WC-SYS-400-002', details }, 'Entrada inválida');
       send(reply, 400, {
         errorCode: 'WC-SYS-400-002',
-        message: 'Revisá los datos enviados.',
+        message: ERROR_CATALOG['WC-SYS-400-002'].userMessage,
         requestId: request.id,
         details,
       });
@@ -46,7 +51,7 @@ export function registerErrorHandler(app: FastifyInstance): void {
       );
       send(reply, 500, {
         errorCode: 'WC-SYS-500-001',
-        message: 'Ocurrió un error. Compartí el código WC-SYS-500-001 con soporte.',
+        message: unexpectedMessage(),
         requestId: request.id,
       });
       return;
@@ -75,7 +80,7 @@ export function registerErrorHandler(app: FastifyInstance): void {
       request.log.warn({ errorCode: 'WC-AUTH-429-003', url: request.url }, 'Rate limit alcanzado');
       send(reply, 429, {
         errorCode: 'WC-AUTH-429-003',
-        message: 'Demasiados intentos. Probá en 5 minutos.',
+        message: ERROR_CATALOG['WC-AUTH-429-003'].userMessage,
         requestId: request.id,
       });
       return;
@@ -86,7 +91,7 @@ export function registerErrorHandler(app: FastifyInstance): void {
     request.log.error({ errorCode: 'WC-SYS-500-001', err: error }, 'Error no controlado');
     send(reply, 500, {
       errorCode: 'WC-SYS-500-001',
-      message: 'Ocurrió un error. Compartí el código WC-SYS-500-001 con soporte.',
+      message: unexpectedMessage(),
       requestId: request.id,
     });
   });

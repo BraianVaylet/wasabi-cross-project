@@ -1,40 +1,9 @@
-import type { SessionUser } from '@wasabi-cross/schemas';
-import { createMemoryHistory } from '@tanstack/react-router';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../lib/http.ts';
-import { App } from './App.tsx';
-import { createApp, refreshSession } from './create-app.ts';
-import type { SessionClient } from './session.ts';
-
-const braian: SessionUser = { id: 'u1', email: 'braian@example.com', name: 'Braian', plan: 'free' };
-
-/** Una sesión en memoria: arranca con o sin usuario, y se puede "entrar" desde el test. */
-function fakeSession(initial: SessionUser | null) {
-  let user = initial;
-  const client = {
-    current: vi.fn<SessionClient['current']>(() => Promise.resolve(user)),
-    signOut: vi.fn<SessionClient['signOut']>(() => {
-      user = null;
-      return Promise.resolve();
-    }),
-  } satisfies SessionClient;
-
-  return {
-    client,
-    login: (who: SessionUser) => {
-      user = who;
-    },
-  };
-}
-
-function renderApp(path: string, session: SessionClient) {
-  const history = createMemoryHistory({ initialEntries: [path] });
-  const app = createApp({ session, history });
-  render(<App queryClient={app.queryClient} router={app.router} session={session} />);
-  return app;
-}
+import { braian, fakeSession, renderApp } from '../test/app.tsx';
+import { refreshSession } from './create-app.ts';
 
 describe('shell de la app (F1-09)', () => {
   beforeEach(() => {

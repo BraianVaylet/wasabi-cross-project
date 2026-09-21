@@ -4,7 +4,7 @@ import './TextField.css';
 export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string;
   /** Mensaje de error del campo. Su presencia es lo que marca el campo como inválido. */
-  error?: string;
+  error?: string | undefined;
   /** Unidad o símbolo a la derecha, como el "%" del porcentaje custom. */
   suffix?: ReactNode;
 }

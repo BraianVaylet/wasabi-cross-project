@@ -14,7 +14,7 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 | ----------------- | ---- | -------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `WC-AUTH-401-001` | 401  | Credenciales inválidas                                         | Email o contraseña incorrectos.                                    |
 | `WC-AUTH-403-002` | 403  | Sin permiso sobre el recurso                                   | No tenés permisos para esta acción.                                |
-| `WC-AUTH-429-003` | 429  | Demasiados intentos                                            | Demasiados intentos. Probá en 5 minutos.                           |
+| `WC-AUTH-429-003` | 429  | Demasiados intentos                                            | Demasiados intentos. Esperá un minuto y probá de nuevo.            |
 | `WC-AUTH-401-004` | 401  | Sin sesión, o sesión vencida                                   | Iniciá sesión para continuar.                                      |
 | `WC-EXO-404-002`  | 404  | Ejercicio no encontrado                                        | No encontramos ese ejercicio.                                      |
 | `WC-EXO-409-003`  | 409  | El ejercicio ya está en la lista del usuario                   | Ya tenés ese ejercicio en tu lista.                                |
