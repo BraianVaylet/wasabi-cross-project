@@ -1,6 +1,7 @@
 import type {
   ExerciseList,
   ManagedExerciseSummary,
+  RecordHistory,
   SessionUser,
   UserPreferences,
 } from '@wasabi-cross/schemas';
@@ -72,6 +73,13 @@ const ALTA_OK: ManagedExerciseSummary = {
   current: { value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
 };
 
+const HISTORIAL_VACIO: RecordHistory = {
+  records: [],
+  current: { value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
+  best: { value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
+  nextCursor: null,
+};
+
 const PREFERENCIAS: UserPreferences = {
   theme: 'dark',
   loadPercentages: [65, 75, 80, 85, 90, 95],
@@ -89,6 +97,7 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       listExercises: vi.fn<ApiClient['listExercises']>(() => Promise.resolve(list)),
       catalog: vi.fn<ApiClient['catalog']>(() => Promise.resolve([])),
       addExercise: vi.fn<ApiClient['addExercise']>(() => Promise.resolve(ALTA_OK)),
+      history: vi.fn<ApiClient['history']>(() => Promise.resolve(HISTORIAL_VACIO)),
       preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
       savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>
         Promise.resolve({
@@ -105,4 +114,16 @@ export function renderApp(path: string, session: SessionClient, api: ApiClient =
   const app = createApp({ session, api, history });
   render(<App queryClient={app.queryClient} router={app.router} session={session} />);
   return app;
+}
+
+/**
+ * La fila `index` de una lista, sin aserciones: `as HTMLElement` y `!` los pelea el lint
+ * entre sí, y un índice que no existe tiene que fallar con un mensaje que se entienda.
+ */
+export function fila(items: HTMLElement[], index: number): HTMLElement {
+  const found = items[index];
+  if (!found) {
+    throw new Error(`No hay fila ${String(index)}: la lista tiene ${String(items.length)}`);
+  }
+  return found;
 }

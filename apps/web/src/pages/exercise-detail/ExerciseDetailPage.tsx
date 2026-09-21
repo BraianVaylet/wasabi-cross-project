@@ -12,6 +12,7 @@ import { Skeleton, Tag, TextField } from '@wasabi-cross/ui';
 import { useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark } from '../../lib/format.ts';
+import { History, type HistoryProps } from './History.tsx';
 import { parsePercentage } from './percentage.ts';
 import './exercise-detail.css';
 
@@ -24,6 +25,8 @@ export interface ExerciseDetailPageProps {
   /** El porcentaje elegido vive en la URL, así un link lleva a la misma carga. */
   selected: number | undefined;
   onSelect: (percentage: number) => void;
+  /** El historial de marcas (F1-13b), que se pide aparte de la lista. */
+  history: Omit<HistoryProps, 'showBest'>;
 }
 
 const CATEGORY_LABEL = {
@@ -61,6 +64,7 @@ export function ExerciseDetailPage({
   error,
   selected,
   onSelect,
+  history,
 }: ExerciseDetailPageProps): React.JSX.Element {
   return (
     <>
@@ -84,6 +88,7 @@ export function ExerciseDetailPage({
           percentages={percentages}
           selected={selected}
           onSelect={onSelect}
+          history={history}
         />
       ) : null}
     </>
@@ -95,9 +100,16 @@ interface DetailProps {
   percentages: number[];
   selected: number | undefined;
   onSelect: (percentage: number) => void;
+  history: Omit<HistoryProps, 'showBest'>;
 }
 
-function Detail({ exercise, percentages, selected, onSelect }: DetailProps): React.JSX.Element {
+function Detail({
+  exercise,
+  percentages,
+  selected,
+  onSelect,
+  history,
+}: DetailProps): React.JSX.Element {
   const rows = percentageTable(exercise.kind, exercise.current.value, percentages) ?? [];
   const current = selected ?? rows[0]?.percentage;
 
@@ -134,6 +146,8 @@ function Detail({ exercise, percentages, selected, onSelect }: DetailProps): Rea
           la mejor marca y el historial.
         </p>
       )}
+
+      <History {...history} showBest={!supportsPercentages(exercise.kind)} />
     </>
   );
 }

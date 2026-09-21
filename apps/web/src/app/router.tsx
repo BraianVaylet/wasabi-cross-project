@@ -1,5 +1,5 @@
 import type { AddExercise, SignIn, SignUpRequest } from '@wasabi-cross/schemas';
-import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import {
   Outlet,
   createRootRouteWithContext,
@@ -22,6 +22,7 @@ import { refreshSession } from './create-app.ts';
 import {
   catalogQueryOptions,
   exerciseListQueryOptions,
+  historyQueryOptions,
   preferencesQueryOptions,
   EXERCISES_QUERY_KEY,
   PREFERENCES_QUERY_KEY,
@@ -225,9 +226,21 @@ const exerciseDetailRoute = createRoute({
     const navigate = useNavigate();
     const exercises = useQuery(exerciseListQueryOptions(api));
     const preferences = useQuery(preferencesQueryOptions(api));
+    const history = useInfiniteQuery(historyQueryOptions(api, id));
 
     return (
       <ExerciseDetailPage
+        history={{
+          records: history.data?.pages.flatMap((page) => page.records) ?? [],
+          best: history.data?.pages[0]?.best,
+          loading: history.isPending,
+          error: history.error,
+          hasMore: history.hasNextPage,
+          loadingMore: history.isFetchingNextPage,
+          onMore: () => {
+            void history.fetchNextPage();
+          },
+        }}
         exercise={exercises.data?.exercises.find((exercise) => exercise.id === id)}
         percentages={preferences.data?.loadPercentages ?? []}
         loading={exercises.isPending || preferences.isPending}

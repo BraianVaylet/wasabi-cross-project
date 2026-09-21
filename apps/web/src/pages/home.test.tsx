@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../lib/http.ts';
-import { braian, fakeApi, fakeSession, renderApp, type FakeApi } from '../test/app.tsx';
+import { braian, fakeApi, fakeSession, fila, renderApp, type FakeApi } from '../test/app.tsx';
 
 function lista(exercises: ExerciseList['exercises'], usage?: Partial<ExerciseList['usage']>) {
   return {
@@ -41,14 +41,6 @@ const carrera = {
   kind: 'time' as const,
   current: { value: 272, unit: 's' as const, performedAt: '2026-07-01T10:00:00.000Z' },
 };
-
-function fila(items: HTMLElement[], index: number): HTMLElement {
-  const found = items[index];
-  if (!found) {
-    throw new Error(`No hay fila ${String(index)} en la lista`);
-  }
-  return found;
-}
 
 function renderHome(api: FakeApi) {
   return renderApp('/', fakeSession(braian).client, api.client);
