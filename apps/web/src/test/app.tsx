@@ -89,6 +89,8 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       listExercises: vi.fn<ApiClient['listExercises']>(() => Promise.resolve(list)),
       catalog: vi.fn<ApiClient['catalog']>(() => Promise.resolve([])),
       addExercise: vi.fn<ApiClient['addExercise']>(() => Promise.resolve(ALTA_OK)),
+      updateExercise: vi.fn<ApiClient['updateExercise']>(() => Promise.resolve(ALTA_OK)),
+      deleteExercise: vi.fn<ApiClient['deleteExercise']>(() => Promise.resolve()),
       preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
       savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>
         Promise.resolve({

@@ -669,7 +669,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** consume `WC-RM-422-001`.
 - **data-model-impact:** ninguno
 
-## [ ] F1-15 · Editar y borrar ejercicio
+## [~] F1-15 · Editar y borrar ejercicio
 
 - **module:** web
 - **description:** Desde el lápiz del detalle: nivel, "con dolor", comentarios, y el nombre si es
@@ -686,6 +686,14 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes por criterio.
 - **error-codes:** consume `WC-EXO-404-002`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. Se llega desde el lápiz del detalle. En uno del
+  catálogo el nombre se muestra pero no se edita; en uno propio sí. Se manda **sólo lo que cambió**.
+  El borrado vive en una sección aparte, en rojo, y su botón queda deshabilitado hasta escribir el
+  nombre (con la misma comparación que el resto: no distingue mayúsculas ni acentos). Seis pruebas
+  inversas; axe sin violaciones; edición probada a mano contra la API real. El borrado no se pudo
+  clickear en el navegador automatizado (el panel estaba oculto y las coordenadas quedan viejas):
+  se cubrió con el test del recorrido completo y con tests nuevos del cliente de API. Falta mover la
+  tarjeta.
 
 ## [x] F1-16 · Perfil: porcentajes y tema
 
