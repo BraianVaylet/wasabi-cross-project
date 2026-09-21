@@ -43,7 +43,8 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-12 · Nuevo ejercicio**: cerrada. Formulario del mockup 9.
 - **F1-13a · Detalle, porcentajes**: cerrada. F1-13 se partió en dos.
 - **F1-13b · Detalle, historial**: código hecho, en PR. Historial paginado y mejor marca en tiempo.
-- **F1-15 · Editar y borrar**: código hecho, en PR #26.
+- **F1-15 · Editar y borrar**: cerrada. Desde el lápiz del detalle, con borrado confirmado
+  escribiendo el nombre.
 - **F1-16 · Perfil**: cerrada. Porcentajes por defecto y tema, guardados en la API.
 - **F1-17 · Aviso de nueva versión**: cerrada. El popup de la PWA.
 
@@ -53,8 +54,7 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear #26 (F1-15) y la PR de F1-13b. Las dos tocan el cliente de API del front: la segunda que
-   entre necesita traer `main` antes.
+1. Mergear la PR de F1-13b.
 2. Quedan **F1-14** (cargar una marca desde el detalle) y **F1-18** (E2E + axe en CI).
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
@@ -101,5 +101,6 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-13b, historial del detalle. Ver
-[bitácora](./bitacora/2026-09-21-f1-13b-historial.md).
+2026-09-21 — F1-13b (historial del detalle) y F1-15 (editar y borrar). Ver
+[bitácora de F1-13b](./bitacora/2026-09-21-f1-13b-historial.md) y
+[la de F1-15](./bitacora/2026-09-21-f1-15-editar-borrar.md).

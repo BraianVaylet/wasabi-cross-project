@@ -1,4 +1,9 @@
-import type { AddExercise, SignIn, SignUpRequest } from '@wasabi-cross/schemas';
+import type {
+  AddExercise,
+  SignIn,
+  SignUpRequest,
+  UpdateManagedExercise,
+} from '@wasabi-cross/schemas';
 import { useInfiniteQuery, useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import {
   Outlet,
@@ -16,6 +21,7 @@ import { LoginPage } from '../pages/auth/LoginPage.tsx';
 import { RegisterPage } from '../pages/auth/RegisterPage.tsx';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { NewExercisePage } from '../pages/new-exercise/NewExercisePage.tsx';
+import { EditExercisePage } from '../pages/edit-exercise/EditExercisePage.tsx';
 import { ExerciseDetailPage } from '../pages/exercise-detail/ExerciseDetailPage.tsx';
 import { ProfilePage } from '../pages/profile/ProfilePage.tsx';
 import { refreshSession } from './create-app.ts';
@@ -255,6 +261,53 @@ const exerciseDetailRoute = createRoute({
   },
 });
 
+const editExerciseRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/ejercicios/$id/editar',
+  component: function EditExerciseRoute() {
+    const { api, queryClient } = appRoute.useRouteContext();
+    const { id } = editExerciseRoute.useParams();
+    const navigate = useNavigate();
+    const exercises = useQuery(exerciseListQueryOptions(api));
+    const exercise = exercises.data?.exercises.find((item) => item.id === id);
+
+    const refreshList = () => queryClient.invalidateQueries({ queryKey: EXERCISES_QUERY_KEY });
+
+    const save = useMutation({
+      mutationFn: (change: UpdateManagedExercise) => api.updateExercise(id, change),
+      onSuccess: async () => {
+        await refreshList();
+        await navigate({ to: '/ejercicios/$id', params: { id }, search: {} });
+      },
+    });
+
+    const remove = useMutation({
+      mutationFn: () => api.deleteExercise(id),
+      onSuccess: async () => {
+        await refreshList();
+        await navigate({ to: '/' });
+      },
+    });
+
+    return (
+      <EditExercisePage
+        exercise={exercise}
+        loading={exercises.isPending}
+        loadError={exercises.error}
+        saving={save.isPending}
+        deleting={remove.isPending}
+        actionError={save.error ?? remove.error}
+        onSave={(change) => {
+          save.mutate(change);
+        }}
+        onDelete={() => {
+          remove.mutate();
+        }}
+      />
+    );
+  },
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/perfil',
@@ -288,7 +341,13 @@ const profileRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
-  appRoute.addChildren([homeRoute, newExerciseRoute, exerciseDetailRoute, profileRoute]),
+  appRoute.addChildren([
+    homeRoute,
+    newExerciseRoute,
+    exerciseDetailRoute,
+    editExerciseRoute,
+    profileRoute,
+  ]),
 ]);
 
 export function createAppRouter(options: RouterContext & { history?: RouterHistory }) {

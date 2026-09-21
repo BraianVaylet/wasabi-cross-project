@@ -9,6 +9,7 @@ import {
   type ExerciseList,
   type ManagedExerciseSummary,
   type RecordHistory,
+  type UpdateManagedExercise,
   type UpdatePreferences,
   type UserPreferences,
 } from '@wasabi-cross/schemas';
@@ -25,6 +26,8 @@ export interface ApiClient {
   /** El catálogo pre-cargado, para el buscador de "Nuevo ejercicio". */
   catalog: () => Promise<Exercise[]>;
   addExercise: (input: AddExercise) => Promise<ManagedExerciseSummary>;
+  updateExercise: (id: string, change: UpdateManagedExercise) => Promise<ManagedExerciseSummary>;
+  deleteExercise: (id: string) => Promise<void>;
   /** Una página del historial de marcas (F1-07), de la más reciente a la más vieja. */
   history: (id: string, page: { limit: number; cursor?: string }) => Promise<RecordHistory>;
   preferences: () => Promise<UserPreferences>;
@@ -43,6 +46,15 @@ export function createApiClient(http: HttpClient): ApiClient {
         method: 'POST',
         body: input,
       }),
+    updateExercise: (id, change) =>
+      http.request(managedExerciseSummarySchema, `/api/v1/exercises/${id}`, {
+        method: 'PATCH',
+        body: change,
+      }),
+    deleteExercise: async (id) => {
+      // 204: la API no devuelve nada al borrar.
+      await http.request(z.undefined(), `/api/v1/exercises/${id}`, { method: 'DELETE' });
+    },
     history: (id, page) => {
       const query = new URLSearchParams({ limit: String(page.limit) });
       if (page.cursor !== undefined) {

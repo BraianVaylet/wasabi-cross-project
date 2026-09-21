@@ -1,5 +1,21 @@
 /* Detalle de ejercicio (mockups 5 y 6). */
 
+.detail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+}
+
+.detail__edit {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--wc-tap-target);
+  padding: 0 var(--wc-space-3);
+  color: var(--wc-accent-text);
+  text-decoration: none;
+}
+
 .detail__current {
   display: flex;
   align-items: center;

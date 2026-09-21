@@ -1,0 +1,54 @@
+/* Editar y borrar un ejercicio (F1-15). */
+
+.edit__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-4);
+}
+
+.edit__fixed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-1);
+  margin: 0;
+}
+
+.edit__fixed-label {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+  font-weight: 500;
+}
+
+.edit__missing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  align-items: center;
+  padding: var(--wc-space-6) 0;
+  text-align: center;
+}
+
+/* Lo irreversible, separado y en rojo: que no se toque por accidente (spec §11). */
+.edit__danger {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-6);
+  padding: var(--wc-space-4);
+
+  border: 1px solid var(--wc-danger);
+  border-radius: var(--wc-radius-sm);
+}
+
+.edit__danger-title {
+  margin: 0;
+  color: var(--wc-danger-text);
+  font-size: var(--wc-font-size-lg);
+  font-weight: 500;
+}
+
+.edit__danger-warning {
+  margin: 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+}
