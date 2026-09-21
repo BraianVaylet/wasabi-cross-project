@@ -21,5 +21,8 @@ describe('Tag', () => {
 
     rerender(<Tag variant="neutral">running</Tag>);
     expect(screen.getByText('running')).toHaveClass('wc-tag--neutral');
+
+    rerender(<Tag variant="danger">Con dolor</Tag>);
+    expect(screen.getByText('Con dolor')).toHaveClass('wc-tag--danger');
   });
 });

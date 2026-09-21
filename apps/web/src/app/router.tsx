@@ -16,7 +16,7 @@ import { LoginPage } from '../pages/auth/LoginPage.tsx';
 import { RegisterPage } from '../pages/auth/RegisterPage.tsx';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { NewExercisePage } from '../pages/new-exercise/NewExercisePage.tsx';
-import { ExerciseDetailPage } from '../pages/ExerciseDetailPage.tsx';
+import { ExerciseDetailPage } from '../pages/exercise-detail/ExerciseDetailPage.tsx';
 import { ProfilePage } from '../pages/profile/ProfilePage.tsx';
 import { refreshSession } from './create-app.ts';
 import {
@@ -206,10 +206,40 @@ const newExerciseRoute = createRoute({
   },
 });
 
+/*
+ * El porcentaje elegido vive en la URL: un link a `?pct=80` abre el detalle con esa carga.
+ * Si llega cualquier otra cosa, se ignora en vez de romper la pantalla.
+ */
+const detailSearch = z.object({
+  pct: z.coerce.number().int().min(1).max(100).optional().catch(undefined),
+});
+
 const exerciseDetailRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/ejercicios/$id',
-  component: ExerciseDetailPage,
+  validateSearch: (search) => detailSearch.parse(search),
+  component: function ExerciseDetailRoute() {
+    const { api } = appRoute.useRouteContext();
+    const { id } = exerciseDetailRoute.useParams();
+    const { pct } = exerciseDetailRoute.useSearch();
+    const navigate = useNavigate();
+    const exercises = useQuery(exerciseListQueryOptions(api));
+    const preferences = useQuery(preferencesQueryOptions(api));
+
+    return (
+      <ExerciseDetailPage
+        exercise={exercises.data?.exercises.find((exercise) => exercise.id === id)}
+        percentages={preferences.data?.loadPercentages ?? []}
+        loading={exercises.isPending || preferences.isPending}
+        error={exercises.error ?? preferences.error}
+        selected={pct}
+        onSelect={(percentage) => {
+          // `replace`: elegir porcentajes no llena el historial del navegador.
+          void navigate({ to: '.', search: { pct: percentage }, replace: true });
+        }}
+      />
+    );
+  },
 });
 
 const profileRoute = createRoute({
