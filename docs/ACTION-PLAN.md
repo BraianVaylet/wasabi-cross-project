@@ -431,7 +431,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   transacciones genérico, porque no consumen cupo); el borrado también se probó con una falla
   forzada y una prueba inversa. Cerrada: PR #15 mergeada el 2026-09-18.
 
-## [ ] F1-07 · Marcas: cargar e historial
+## [~] F1-07 · Marcas: cargar e historial
 
 - **module:** records
 - **description:** `POST /api/v1/exercises/:id/records` carga una marca en la unidad que dicta la
@@ -447,8 +447,10 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   - Dado un valor inválido para la categoría (repeticiones con decimales, tiempo cero), cuando se
     carga, entonces responde `WC-RM-422-001` con el motivo.
   - Dado un ejercicio de otro usuario, cuando se cargan o se leen marcas, entonces responde 404.
+  - Dada una marca con fecha futura, cuando se carga, entonces se rechaza con el motivo en la fecha.
+    Vale también para la primera marca al agregar un ejercicio (spec §5.1, decidido el 2026-09-18).
 - **example:** Braian tenía 100 kg en "Back squat" y carga 105. El historial marca 105 como valor
-  actual y como mejor marca,.
+  actual y como mejor marca.
 - **story-points:** 5
 - **depends_on:** F1-04, F1-05
 - **risk:** medium. 🔴 **IDOR: 404, no 403.**
@@ -457,6 +459,14 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** `WC-RM-422-001`, `WC-RM-404-002`, `WC-EXO-404-002`.
 - **data-model-impact:** índice por `(managedExerciseId, performedAt)` para el historial, en una
   migración.
+- **estado:** código hecho, a la espera de revisión. `POST` y `GET /api/v1/exercises/:id/records`,
+  paginado por cursor. El índice `managed_history` suma `createdAt` y el ID para desempatar marcas
+  de la misma fecha: sin eso el cursor repetiría o saltearía alguna. La regla de mejor marca vive
+  en la consulta (orden por valor, ascendente en tiempo), así que se prueba por integración en las
+  tres mediciones y no con unitarios. Siete pruebas inversas confirman que los tests detectan cada
+  regla rota. `WC-RM-404-002` no se usa todavía: ningún endpoint apunta a una marca por ID. La PR
+  #16 iba apilada sobre F1-06 y se mergeó contra esa rama después de que F1-06 entrara a `main`, así
+  que no llegó: va de nuevo en una PR contra `main`. Falta mover la tarjeta.
 
 ## [x] F1-08 · Preferencias del usuario
 

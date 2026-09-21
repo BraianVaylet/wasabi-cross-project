@@ -59,8 +59,6 @@ Nada.
 ## Decisiones abiertas
 
 - **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro).
-- **Marcas con fecha futura.** Hoy se aceptan: la spec no dice nada. Una marca de mañana pasaría a
-  ser el valor actual hasta que llegue su fecha. ¿Se rechazan?
 - **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
   Queda fuera de la Fase 1 hasta que se decida.
 - **TypeScript 7.** Hoy el monorepo está en 6.0.3 (PR #8) porque `typescript-eslint@8` declara
@@ -76,6 +74,7 @@ Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 - Los ejercicios del catálogo cuentan para el límite de 10 del plan Free.
 - Bandas de carga: menos de 70% liviana, de 70% a 84% media, desde 85% pesada.
 - El peso es sólo en kg. La opción de lb nunca estuvo en los mockups: la había agregado F0-02.
+- Una marca no puede tener fecha futura (spec §5.1).
 
 Defaults fijados sin consulta explícita, para revisar en la PR: carga redondeada al 0,5 kg,
 repeticiones redondeadas hacia abajo con mínimo 1, "valor actual" = la marca de fecha más reciente, y
@@ -100,5 +99,7 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-13a, detalle con porcentajes. Ver
-[bitácora](./bitacora/2026-09-21-f1-13a-detalle-porcentajes.md).
+2026-09-21 — F1-13a (detalle con porcentajes) y la regla de marcas con fecha futura (decidida por
+Braian, en la spec §5.1). Ver
+[bitácora de F1-13a](./bitacora/2026-09-21-f1-13a-detalle-porcentajes.md) y
+[la de F1-07](./bitacora/2026-09-18-f1-07-marcas.md).

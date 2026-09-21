@@ -12,4 +12,5 @@ export * from './exercise/names.ts';
 export * from './exercise/managed-exercise.schema.ts';
 export * from './exercise/managed-exercise.api.ts';
 export * from './record/record.schema.ts';
+export * from './record/record.api.ts';
 export * from './calc/percentages.ts';
