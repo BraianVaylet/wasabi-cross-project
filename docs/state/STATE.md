@@ -38,7 +38,8 @@ Lo que hay hoy, en una línea cada uno:
   `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
 - **F1-08 · Preferencias**: cerrada. `GET` y `PATCH /api/v1/me/preferences`, en el módulo `users`.
 - **F1-09 · Shell del front**: cerrada. Rutas protegidas, sesión, splash, header y menú.
-- **F1-10 · Login y registro**: código hecho, en PR. `/login` y `/registro` con TanStack Form.
+- **F1-10 · Login y registro**: cerrada. `/login` y `/registro` con TanStack Form.
+- **F1-11 · Home**: código hecho, en PR. La lista de ejercicios con sus estados.
 
 ## Bloqueado
 
@@ -46,9 +47,9 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear #17 (F1-07) y la PR de F1-10.
-2. Destrabadas: **F1-11** (Home, la lista de ejercicios) y **F1-12** (nuevo ejercicio). F1-11 va
-   primera: es la pantalla que hoy es un marcador.
+1. Mergear #17 (F1-07) y la PR de F1-11.
+2. Destrabadas: **F1-12** (nuevo ejercicio) y **F1-13** (detalle con porcentajes). Las dos pantallas
+   hoy son marcadores a los que Home ya lleva.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -74,7 +75,8 @@ Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 
 Defaults fijados sin consulta explícita, para revisar en la PR: carga redondeada al 0,5 kg,
 repeticiones redondeadas hacia abajo con mínimo 1, "valor actual" = la marca de fecha más reciente, y
-si la mejor marca se repite, cuenta la primera vez que se logró.
+si la mejor marca se repite, cuenta la primera vez que se logró. Un tiempo se muestra como mm:ss (4:32)
+y, por debajo del minuto, en segundos.
 
 Cerradas en la Fase 0: herramienta de monorepo → pnpm ([ADR-0002](../adr/0002-pnpm-workspaces-como-monorepo.md));
 framework HTTP → Fastify ([ADR-0003](../adr/0003-fastify-como-framework-http.md)); forma de los IDs
@@ -94,4 +96,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-10, login y registro. Ver [bitácora](./bitacora/2026-09-21-f1-10-login-registro.md).
+2026-09-21 — F1-11, Home. Ver [bitácora](./bitacora/2026-09-21-f1-11-home.md).

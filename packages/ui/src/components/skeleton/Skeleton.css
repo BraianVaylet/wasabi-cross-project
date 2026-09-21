@@ -1,0 +1,25 @@
+.wc-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+}
+
+.wc-skeleton__piece {
+  height: 4.5rem;
+  border-radius: var(--wc-radius-sm);
+  background-color: var(--wc-surface);
+  animation: wc-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes wc-skeleton-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Sin animación para quien la pidió apagada (spec §11). */
+@media (prefers-reduced-motion: reduce) {
+  .wc-skeleton__piece {
+    animation: none;
+  }
+}
