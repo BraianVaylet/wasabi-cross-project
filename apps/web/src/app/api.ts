@@ -1,5 +1,6 @@
 import {
   exerciseListSchema,
+  recordHistorySchema,
   exerciseSchema,
   managedExerciseSummarySchema,
   userPreferencesSchema,
@@ -7,12 +8,13 @@ import {
   type Exercise,
   type ExerciseList,
   type ManagedExerciseSummary,
+  type RecordHistory,
   type UpdateManagedExercise,
   type UpdatePreferences,
   type UserPreferences,
 } from '@wasabi-cross/schemas';
 import { z } from 'zod';
-import { queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import type { HttpClient } from '../lib/http.ts';
 
 /**
@@ -26,6 +28,8 @@ export interface ApiClient {
   addExercise: (input: AddExercise) => Promise<ManagedExerciseSummary>;
   updateExercise: (id: string, change: UpdateManagedExercise) => Promise<ManagedExerciseSummary>;
   deleteExercise: (id: string) => Promise<void>;
+  /** Una página del historial de marcas (F1-07), de la más reciente a la más vieja. */
+  history: (id: string, page: { limit: number; cursor?: string }) => Promise<RecordHistory>;
   preferences: () => Promise<UserPreferences>;
   savePreferences: (change: UpdatePreferences) => Promise<UserPreferences>;
 }
@@ -50,6 +54,16 @@ export function createApiClient(http: HttpClient): ApiClient {
     deleteExercise: async (id) => {
       // 204: la API no devuelve nada al borrar.
       await http.request(z.undefined(), `/api/v1/exercises/${id}`, { method: 'DELETE' });
+    },
+    history: (id, page) => {
+      const query = new URLSearchParams({ limit: String(page.limit) });
+      if (page.cursor !== undefined) {
+        query.set('cursor', page.cursor);
+      }
+      return http.request(
+        recordHistorySchema,
+        `/api/v1/exercises/${id}/records?${query.toString()}`,
+      );
     },
     preferences: () => http.request(userPreferencesSchema, '/api/v1/me/preferences'),
     savePreferences: (change) =>
@@ -96,5 +110,29 @@ export function preferencesQueryOptions(api: ApiClient) {
     queryKey: PREFERENCES_QUERY_KEY,
     queryFn: () => api.preferences(),
     staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+/** Cuántas marcas se ven de entrada en el detalle (mockup 6). */
+export const HISTORY_PAGE_SIZE = 3;
+
+export function historyQueryKey(id: string): readonly unknown[] {
+  return ['history', id];
+}
+
+/**
+ * El historial de un ejercicio, paginado por cursor: "Ver más" trae la página siguiente sin
+ * repetir ninguna marca.
+ */
+export function historyQueryOptions(api: ApiClient, id: string) {
+  return infiniteQueryOptions({
+    queryKey: historyQueryKey(id),
+    queryFn: ({ pageParam }) =>
+      api.history(id, {
+        limit: HISTORY_PAGE_SIZE,
+        ...(pageParam === undefined ? {} : { cursor: pageParam }),
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 }

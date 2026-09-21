@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     19 |           71 |     15 |
+| Fase 1 — El loop del atleta |     19 |           71 |     16 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -640,7 +640,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   la spec §6 que hay que confirmar). Seis pruebas inversas; axe sin violaciones; probado a mano
   contra la API real. Cerrada: PR #25 mergeada el 2026-09-21.
 
-## [ ] F1-13b · Detalle de ejercicio: historial
+## [~] F1-13b · Detalle de ejercicio: historial
 
 - **module:** web
 - **description:** La parte de los mockups 5 y 6 que necesita las marcas: historial con el valor
@@ -658,6 +658,12 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes por criterio, con la API simulada.
 - **error-codes:** consume `WC-EXO-404-002`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. El historial se pide aparte de la lista, con
+  `useInfiniteQuery` y el cursor de F1-07: "Ver más" trae la página siguiente y desaparece cuando no
+  hay más. La marca de fecha más reciente va etiquetada como actual. En tiempo se muestra la mejor
+  marca (la menor) en lugar de la tabla. Si el historial falla, el resto de la pantalla sigue
+  funcionando. Seis pruebas inversas; axe sin violaciones; probado a mano contra la API real,
+  incluida la paginación. Falta mover la tarjeta.
 
 ## [ ] F1-14 · Cargar una marca nueva
 
@@ -679,7 +685,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** consume `WC-RM-422-001`.
 - **data-model-impact:** ninguno
 
-## [~] F1-15 · Editar y borrar ejercicio
+## [x] F1-15 · Editar y borrar ejercicio
 
 - **module:** web
 - **description:** Desde el lápiz del detalle: nivel, "con dolor", comentarios, y el nombre si es
@@ -702,8 +708,8 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   nombre (con la misma comparación que el resto: no distingue mayúsculas ni acentos). Seis pruebas
   inversas; axe sin violaciones; edición probada a mano contra la API real. El borrado no se pudo
   clickear en el navegador automatizado (el panel estaba oculto y las coordenadas quedan viejas):
-  se cubrió con el test del recorrido completo y con tests nuevos del cliente de API. Falta mover la
-  tarjeta.
+  se cubrió con el test del recorrido completo y con tests nuevos del cliente de API. Cerrada: PR #26
+  mergeada el 2026-09-21.
 
 ## [x] F1-16 · Perfil: porcentajes y tema
 
