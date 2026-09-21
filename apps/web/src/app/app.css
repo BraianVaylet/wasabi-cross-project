@@ -59,6 +59,21 @@ body {
   margin: 0;
 }
 
+/* El "‹ Ejercicios" de las pantallas internas (mockup 9). */
+.page__back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wc-space-2);
+  min-height: var(--wc-tap-target);
+  color: var(--wc-text-muted);
+  text-decoration: none;
+}
+
+.page__back:hover {
+  color: var(--wc-text);
+}
+
 .page__title {
   margin: 0;
   font-size: var(--wc-font-size-xl);

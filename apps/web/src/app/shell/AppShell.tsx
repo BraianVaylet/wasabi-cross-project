@@ -1,18 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import {
-  AppHeader,
-  Drawer,
-  IconButton,
-  Logo,
-  MenuIcon,
-  ThemeToggle,
-  useTheme,
-} from '@wasabi-cross/ui';
+import type { Theme } from '@wasabi-cross/schemas';
+import { AppHeader, Drawer, IconButton, Logo, MenuIcon, ThemeToggle } from '@wasabi-cross/ui';
 import { useState, type ReactNode } from 'react';
 import { ErrorNotice } from '../ErrorNotice.tsx';
 
 export interface AppShellProps {
   children: ReactNode;
+  /** El tema llega de afuera: con sesión lo guarda la API, no el dispositivo (F1-16). */
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
   onSignOut: () => void;
   signingOut: boolean;
   signOutError: unknown;
@@ -26,11 +22,12 @@ export interface AppShellProps {
 /** Header y menú, presentes en todas las páginas con sesión (spec §5). */
 export function AppShell({
   children,
+  theme,
+  onThemeChange,
   onSignOut,
   signingOut,
   signOutError,
 }: AppShellProps): React.JSX.Element {
-  const { theme, toggle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => {
     setMenuOpen(false);
@@ -47,7 +44,12 @@ export function AppShell({
         }
         actions={
           <>
-            <ThemeToggle theme={theme} onToggle={toggle} />
+            <ThemeToggle
+              theme={theme}
+              onToggle={() => {
+                onThemeChange(theme === 'dark' ? 'light' : 'dark');
+              }}
+            />
             <IconButton
               label="Abrir menú"
               aria-haspopup="dialog"

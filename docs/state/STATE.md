@@ -96,6 +96,9 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-17 (aviso de nueva versión) y la regla de marcas con fecha futura (decidida por
-Braian, en la spec §5.1). Ver [bitácora de F1-17](./bitacora/2026-09-21-f1-17-aviso-version.md) y
+2026-09-21 — F1-12 (nuevo ejercicio), F1-16 (perfil), F1-17 (aviso de nueva versión) y la regla de
+marcas con fecha futura (decidida por Braian, en la spec §5.1). Ver
+[bitácora de F1-12](./bitacora/2026-09-21-f1-12-nuevo-ejercicio.md),
+[la de F1-16](./bitacora/2026-09-21-f1-16-perfil.md),
+[la de F1-17](./bitacora/2026-09-21-f1-17-aviso-version.md) y
 [la de F1-07](./bitacora/2026-09-18-f1-07-marcas.md).

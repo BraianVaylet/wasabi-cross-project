@@ -1,0 +1,19 @@
+.new-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-4);
+}
+
+/* La categoría de un ejercicio del catálogo: se muestra, no se elige. */
+.new-exercise__fixed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-1);
+  margin: 0;
+}
+
+.new-exercise__fixed-label {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+  font-weight: 500;
+}

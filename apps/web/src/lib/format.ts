@@ -45,3 +45,37 @@ export interface FormattableMark {
 export function formatMark({ value, unit }: FormattableMark): string {
   return unit === 's' ? formatSeconds(value) : `${NUMBER.format(value)} ${unit}`;
 }
+
+const DURATION = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})$/;
+
+/**
+ * Lo que se escribe en el campo de un ejercicio de tiempo: `4:32`, `1:02:05`, o segundos
+ * sueltos (`45`, `12,4`). Devuelve `null` si no es un tiempo; el formulario avisa.
+ */
+export function parseDuration(input: string): number | null {
+  const text = input.trim().replace(',', '.');
+  if (text === '') {
+    return null;
+  }
+
+  if (!text.includes(':')) {
+    const seconds = Number(text);
+    return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+  }
+
+  const parts = DURATION.exec(text);
+  if (!parts) {
+    return null;
+  }
+
+  const [hours, minutes, seconds] = [parts[1] ?? '0', parts[2] ?? '0', parts[3] ?? '0'].map(Number);
+  // 4:72 no es un tiempo: quien lo escribió quiso decir otra cosa.
+  if (minutes === undefined || seconds === undefined || hours === undefined) {
+    return null;
+  }
+  if (seconds > 59 || (parts[1] !== undefined && minutes > 59)) {
+    return null;
+  }
+
+  return hours * 3600 + minutes * 60 + seconds;
+}

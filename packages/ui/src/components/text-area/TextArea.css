@@ -1,0 +1,37 @@
+.wc-text-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+}
+
+.wc-text-area__label {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+  font-weight: 500;
+}
+
+.wc-text-area__input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--wc-space-3) var(--wc-space-4);
+  resize: vertical;
+
+  background-color: transparent;
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-sm);
+  color: var(--wc-text);
+
+  font-family: inherit;
+  font-size: max(1rem, var(--wc-font-size-base));
+  line-height: var(--wc-line-height);
+}
+
+.wc-text-area--invalid .wc-text-area__input {
+  border-color: var(--wc-danger);
+}
+
+.wc-text-area__error {
+  margin: 0;
+  color: var(--wc-danger-text);
+  font-size: var(--wc-font-size-sm);
+}

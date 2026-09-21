@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |     11 |
+| Fase 1 — El loop del atleta |     18 |           71 |     12 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -579,7 +579,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   por ahora son marcadores. Seis pruebas inversas; axe sin violaciones; probado a mano contra la API
   real. Cerrada: PR #21 mergeada el 2026-09-21.
 
-## [ ] F1-12 · Nuevo ejercicio
+## [~] F1-12 · Nuevo ejercicio
 
 - **module:** web
 - **description:** Mockup 9. El nombre busca en el catálogo mientras se tipea; si no hay coincidencia,
@@ -603,6 +603,14 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes por criterio; test del parseo `mm:ss` con sus bordes.
 - **error-codes:** consume `WC-SUBS-403-001`, `WC-EXO-409-003`, `WC-EXO-409-004`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. El nombre busca en el catálogo con un
+  `datalist` (se opera entero con el teclado, sin inventar un combobox); si coincide, la categoría
+  queda fija y el campo de la marca cambia solo. El tiempo se escribe `mm:ss` y viaja en segundos,
+  y la fecha se manda al mediodía para que no se corra de día por la zona horaria. La lógica del
+  formulario vive aparte de la pantalla (`new-exercise/form.ts`) y se prueba sola. Cuatro
+  Componentes Cross nuevos: `Select`, `TextArea`, `Checkbox` y `RadioGroup`. La normalización de
+  nombres pasó a `@wasabi-cross/schemas`: es la misma regla que usa la API. Siete pruebas inversas;
+  axe sin violaciones; probado a mano contra la API real. Falta mover la tarjeta.
 
 ## [ ] F1-13 · Detalle de ejercicio con porcentajes
 
@@ -663,7 +671,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** consume `WC-EXO-404-002`.
 - **data-model-impact:** ninguno
 
-## [ ] F1-16 · Perfil: porcentajes y tema
+## [x] F1-16 · Perfil: porcentajes y tema
 
 - **module:** web
 - **description:** Pantalla de perfil para editar los porcentajes por defecto, y el tema desde
@@ -679,6 +687,13 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes por criterio.
 - **error-codes:** consume `WC-SYS-400-002`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. Los porcentajes se editan campo por campo, con
+  el error **en el campo** que lo causa (un repetido no es culpa de la lista entera); las reglas
+  salen de `@wasabi-cross/schemas`, las mismas que aplica la API. El tema se guarda en la API y,
+  con sesión, le gana a lo guardado en el dispositivo: `localStorage` queda sólo para que no haya
+  parpadeo antes de que cargue. El toggle del header también guarda, si no al recargar volvería
+  atrás. Cinco pruebas inversas; axe sin violaciones; probado a mano contra la API real. Cerrada: PR #24
+  mergeada el 2026-09-21.
 
 ## [x] F1-17 · Aviso de nueva versión de la PWA
 
