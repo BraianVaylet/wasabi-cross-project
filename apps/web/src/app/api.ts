@@ -2,10 +2,13 @@ import {
   exerciseListSchema,
   exerciseSchema,
   managedExerciseSummarySchema,
+  userPreferencesSchema,
   type AddExercise,
   type Exercise,
   type ExerciseList,
   type ManagedExerciseSummary,
+  type UpdatePreferences,
+  type UserPreferences,
 } from '@wasabi-cross/schemas';
 import { z } from 'zod';
 import { queryOptions } from '@tanstack/react-query';
@@ -20,6 +23,8 @@ export interface ApiClient {
   /** El catálogo pre-cargado, para el buscador de "Nuevo ejercicio". */
   catalog: () => Promise<Exercise[]>;
   addExercise: (input: AddExercise) => Promise<ManagedExerciseSummary>;
+  preferences: () => Promise<UserPreferences>;
+  savePreferences: (change: UpdatePreferences) => Promise<UserPreferences>;
 }
 
 const catalogResponse = z.object({ exercises: z.array(exerciseSchema) });
@@ -33,6 +38,12 @@ export function createApiClient(http: HttpClient): ApiClient {
       http.request(managedExerciseSummarySchema, '/api/v1/exercises', {
         method: 'POST',
         body: input,
+      }),
+    preferences: () => http.request(userPreferencesSchema, '/api/v1/me/preferences'),
+    savePreferences: (change) =>
+      http.request(userPreferencesSchema, '/api/v1/me/preferences', {
+        method: 'PATCH',
+        body: change,
       }),
   };
 }
@@ -58,6 +69,20 @@ export function catalogQueryOptions(api: ApiClient) {
   return queryOptions({
     queryKey: CATALOG_QUERY_KEY,
     queryFn: () => api.catalog(),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+export const PREFERENCES_QUERY_KEY = ['preferences'] as const;
+
+/**
+ * Las preferencias del usuario (F1-08). Cambian poco y las cambia él mismo: se piden una
+ * vez y se actualizan con lo que responde el guardado.
+ */
+export function preferencesQueryOptions(api: ApiClient) {
+  return queryOptions({
+    queryKey: PREFERENCES_QUERY_KEY,
+    queryFn: () => api.preferences(),
     staleTime: Number.POSITIVE_INFINITY,
   });
 }

@@ -1,4 +1,9 @@
-import type { ExerciseList, ManagedExerciseSummary, SessionUser } from '@wasabi-cross/schemas';
+import type {
+  ExerciseList,
+  ManagedExerciseSummary,
+  SessionUser,
+  UserPreferences,
+} from '@wasabi-cross/schemas';
 import { createMemoryHistory } from '@tanstack/react-router';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
@@ -67,6 +72,11 @@ const ALTA_OK: ManagedExerciseSummary = {
   current: { value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
 };
 
+const PREFERENCIAS: UserPreferences = {
+  theme: 'dark',
+  loadPercentages: [65, 75, 80, 85, 90, 95],
+};
+
 const LISTA_VACIA: ExerciseList = {
   exercises: [],
   usage: { plan: 'free', total: 0, custom: 0, maxTotal: 10, maxCustom: 3 },
@@ -79,6 +89,13 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       listExercises: vi.fn<ApiClient['listExercises']>(() => Promise.resolve(list)),
       catalog: vi.fn<ApiClient['catalog']>(() => Promise.resolve([])),
       addExercise: vi.fn<ApiClient['addExercise']>(() => Promise.resolve(ALTA_OK)),
+      preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
+      savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>
+        Promise.resolve({
+          theme: change.theme ?? PREFERENCIAS.theme,
+          loadPercentages: change.loadPercentages ?? PREFERENCIAS.loadPercentages,
+        }),
+      ),
     },
   };
 }

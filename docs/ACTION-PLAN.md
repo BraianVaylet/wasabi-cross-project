@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |     11 |
+| Fase 1 — El loop del atleta |     18 |           71 |     12 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -661,7 +661,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** consume `WC-EXO-404-002`.
 - **data-model-impact:** ninguno
 
-## [ ] F1-16 · Perfil: porcentajes y tema
+## [x] F1-16 · Perfil: porcentajes y tema
 
 - **module:** web
 - **description:** Pantalla de perfil para editar los porcentajes por defecto, y el tema desde
@@ -677,6 +677,13 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes por criterio.
 - **error-codes:** consume `WC-SYS-400-002`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. Los porcentajes se editan campo por campo, con
+  el error **en el campo** que lo causa (un repetido no es culpa de la lista entera); las reglas
+  salen de `@wasabi-cross/schemas`, las mismas que aplica la API. El tema se guarda en la API y,
+  con sesión, le gana a lo guardado en el dispositivo: `localStorage` queda sólo para que no haya
+  parpadeo antes de que cargue. El toggle del header también guarda, si no al recargar volvería
+  atrás. Cinco pruebas inversas; axe sin violaciones; probado a mano contra la API real. Cerrada: PR #24
+  mergeada el 2026-09-21.
 
 ## [x] F1-17 · Aviso de nueva versión de la PWA
 
