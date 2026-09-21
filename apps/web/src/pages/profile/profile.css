@@ -1,0 +1,74 @@
+/* Perfil (F1-16): tema y porcentajes por defecto. */
+
+.profile__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-5);
+}
+
+.profile__heading {
+  margin: 0;
+  font-size: var(--wc-font-size-lg);
+  font-weight: 500;
+}
+
+.profile__hint {
+  margin: 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+}
+
+.profile__theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+  padding: var(--wc-space-3) var(--wc-space-4);
+  background-color: var(--wc-surface);
+  border-radius: var(--wc-radius-sm);
+}
+
+.profile__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-4);
+}
+
+.profile__percentages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile__percentage {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--wc-space-3);
+}
+
+/* `min-width: 0` para que el campo achique y el botón no se vaya del borde. */
+.profile__percentage > .wc-text-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile__percentage > .wc-button {
+  flex-shrink: 0;
+  padding-inline: var(--wc-space-4);
+}
+
+.profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wc-space-3);
+}
+
+.profile__group-error {
+  margin: 0;
+  color: var(--wc-danger-text);
+  font-size: var(--wc-font-size-sm);
+}
