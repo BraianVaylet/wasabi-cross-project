@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Drawer } from './Drawer.tsx';
+import { Button } from '../button/Button.tsx';
 import { IconButton } from '../icon-button/IconButton.tsx';
+import { TextField } from '../text-field/TextField.tsx';
 import { MenuIcon } from '../icons/icons.tsx';
 
 const meta = {
@@ -49,6 +51,54 @@ export const Menu: Story = {
             <button type="button" className="wc-drawer__item">
               Cerrar sesión
             </button>
+          </div>
+        </Drawer>
+      </div>
+    );
+  },
+};
+
+/** La hoja que sube desde abajo (mockup 11): el mismo diálogo, con otra forma. */
+export const Sheet: Story = {
+  args: { open: false, label: 'Nuevo RM', onClose: () => undefined, children: null },
+  render: function Sheet() {
+    const [open, setOpen] = useState(false);
+
+    return (
+      <div className="wc-root" style={{ minHeight: '24rem', padding: '1rem' }}>
+        <Button
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          Nuevo RM
+        </Button>
+        <Drawer
+          open={open}
+          placement="bottom"
+          label="Nuevo RM"
+          onClose={() => {
+            setOpen(false);
+          }}
+        >
+          <h2 style={{ margin: '0 0 1rem' }}>Nuevo RM</h2>
+          <TextField label="RM (kg)" placeholder="Ej: 100" inputMode="decimal" />
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setOpen(false);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                setOpen(false);
+              }}
+            >
+              Guardar
+            </Button>
           </div>
         </Drawer>
       </div>

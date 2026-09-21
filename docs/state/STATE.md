@@ -42,7 +42,9 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-11 · Home**: cerrada. La lista de ejercicios con sus estados.
 - **F1-12 · Nuevo ejercicio**: cerrada. Formulario del mockup 9.
 - **F1-13a · Detalle, porcentajes**: cerrada. F1-13 se partió en dos.
-- **F1-13b · Detalle, historial**: código hecho, en PR. Historial paginado y mejor marca en tiempo.
+- **F1-13b · Detalle, historial**: cerrada. Historial paginado y mejor marca en tiempo.
+- **F1-14 · Cargar una marca**: cerrada. El modal del mockup 11, con la marca en el historial
+  antes de que responda la API y rollback si la rechaza.
 - **F1-15 · Editar y borrar**: cerrada. Desde el lápiz del detalle, con borrado confirmado
   escribiendo el nombre.
 - **F1-16 · Perfil**: cerrada. Porcentajes por defecto y tema, guardados en la API.
@@ -54,9 +56,8 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear la PR de F1-13b.
-2. Quedan **F1-14** (cargar una marca desde el detalle) y **F1-18** (E2E + axe en CI).
-3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+1. Queda **F1-18** (E2E del flujo principal + axe en CI), la última de la Fase 1.
+2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 
@@ -101,6 +102,7 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-13b (historial del detalle) y F1-15 (editar y borrar). Ver
-[bitácora de F1-13b](./bitacora/2026-09-21-f1-13b-historial.md) y
-[la de F1-15](./bitacora/2026-09-21-f1-15-editar-borrar.md).
+2026-09-21 — F1-13b (historial del detalle), F1-15 (editar y borrar) y F1-14 (cargar una marca).
+Ver [bitácora de F1-13b](./bitacora/2026-09-21-f1-13b-historial.md),
+[la de F1-15](./bitacora/2026-09-21-f1-15-editar-borrar.md) y
+[la de F1-14](./bitacora/2026-09-21-f1-14-cargar-marca.md).

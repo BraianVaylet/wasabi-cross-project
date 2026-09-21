@@ -11,7 +11,7 @@ import {
   type MeasureKind,
 } from '@wasabi-cross/schemas';
 import { z } from 'zod';
-import { parseDuration } from '../../lib/format.ts';
+import { markValueError, parseMarkValue, performedAtFrom } from '../../lib/mark-input.ts';
 
 /*
  * El formulario de "Nuevo ejercicio" (mockup 9), aparte de la pantalla: qué se valida y
@@ -62,15 +62,6 @@ export function kindFor(
   return category === '' ? null : measureKindFor(category);
 }
 
-function parseValue(kind: MeasureKind | null, value: string): number | null {
-  if (kind === 'time') {
-    return parseDuration(value);
-  }
-
-  const parsed = Number(value.trim().replace(',', '.'));
-  return value.trim() !== '' && Number.isFinite(parsed) ? parsed : null;
-}
-
 /**
  * Lo que se valida antes de llamar a la API. Depende del catálogo: el mismo formulario
  * pide categoría o no según el nombre que se haya escrito.
@@ -95,25 +86,14 @@ export function newExerciseSchemaFor(catalog: readonly Exercise[]) {
       }
 
       const kind = kindFor(catalog, values.name, values.category);
-      if (parseValue(kind, values.value) === null) {
+      if (parseMarkValue(kind, values.value) === null) {
         ctx.addIssue({
           code: 'custom',
           path: ['value'],
-          message:
-            kind === 'time'
-              ? 'Escribilo como mm:ss, por ejemplo 4:32'
-              : 'Cargá un número, como 100',
+          message: markValueError(kind ?? 'rm'),
         });
       }
     });
-}
-
-/**
- * La fecha elegida, al mediodía de la zona del usuario: a medianoche, un huso negativo la
- * correría al día anterior.
- */
-function performedAtFrom(date: string): string | undefined {
-  return date === '' ? undefined : new Date(`${date}T12:00:00`).toISOString();
 }
 
 /** Lo que viaja a la API: uno del catálogo por su ID, o uno propio con su categoría. */
@@ -131,7 +111,7 @@ export function toAddExercise(
     withPain: values.withPain,
     ...(notes === '' ? {} : { notes }),
     firstRecord: {
-      value: parseValue(kind, values.value) ?? 0,
+      value: parseMarkValue(kind, values.value) ?? 0,
       ...(performedAt === undefined ? {} : { performedAt }),
     },
   };

@@ -1,0 +1,19 @@
+/* El modal de marca nueva (mockup 11), adentro de la hoja que sube. */
+
+.new-mark__title {
+  margin: 0 0 var(--wc-space-4);
+  font-size: var(--wc-font-size-lg);
+  font-weight: 600;
+}
+
+.new-mark__form {
+  display: grid;
+  gap: var(--wc-space-4);
+}
+
+.new-mark__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-2);
+}

@@ -6,15 +6,24 @@ import {
   type ManagedExerciseSummary,
   type MeasureKind,
   type PercentageRow,
+  type RecordInput,
 } from '@wasabi-cross/schemas';
 import { Link } from '@tanstack/react-router';
-import { Skeleton, Tag, TextField } from '@wasabi-cross/ui';
+import { Button, Skeleton, Tag, TextField } from '@wasabi-cross/ui';
 import { useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark } from '../../lib/format.ts';
 import { History, type HistoryProps } from './History.tsx';
+import { NewMark, newMarkLabel } from './NewMark.tsx';
 import { parsePercentage } from './percentage.ts';
 import './exercise-detail.css';
+
+/** Cargar una marca nueva (F1-14). Lo que falla lo cuenta la pantalla, no el modal. */
+export interface MarkFormProps {
+  saving: boolean;
+  error: unknown;
+  onSave: (input: RecordInput) => void;
+}
 
 export interface ExerciseDetailPageProps {
   exercise: ManagedExerciseSummary | undefined;
@@ -27,6 +36,7 @@ export interface ExerciseDetailPageProps {
   onSelect: (percentage: number) => void;
   /** El historial de marcas (F1-13b), que se pide aparte de la lista. */
   history: Omit<HistoryProps, 'showBest'>;
+  mark: MarkFormProps;
 }
 
 const CATEGORY_LABEL = {
@@ -65,6 +75,7 @@ export function ExerciseDetailPage({
   selected,
   onSelect,
   history,
+  mark,
 }: ExerciseDetailPageProps): React.JSX.Element {
   return (
     <>
@@ -89,6 +100,7 @@ export function ExerciseDetailPage({
           selected={selected}
           onSelect={onSelect}
           history={history}
+          mark={mark}
         />
       ) : null}
     </>
@@ -101,6 +113,7 @@ interface DetailProps {
   selected: number | undefined;
   onSelect: (percentage: number) => void;
   history: Omit<HistoryProps, 'showBest'>;
+  mark: MarkFormProps;
 }
 
 function Detail({
@@ -109,9 +122,11 @@ function Detail({
   selected,
   onSelect,
   history,
+  mark,
 }: DetailProps): React.JSX.Element {
   const rows = percentageTable(exercise.kind, exercise.current.value, percentages) ?? [];
   const current = selected ?? rows[0]?.percentage;
+  const [marking, setMarking] = useState(false);
 
   return (
     <>
@@ -138,6 +153,18 @@ function Detail({
         {exercise.withPain ? <Tag variant="danger">Con dolor</Tag> : null}
       </div>
 
+      <Button
+        block
+        disabled={mark.saving}
+        onClick={() => {
+          setMarking(true);
+        }}
+      >
+        {newMarkLabel(exercise.kind)}
+      </Button>
+
+      {mark.error ? <ErrorNotice error={mark.error} /> : null}
+
       {supportsPercentages(exercise.kind) ? (
         <Percentages
           kind={exercise.kind}
@@ -154,6 +181,15 @@ function Detail({
       )}
 
       <History {...history} showBest={!supportsPercentages(exercise.kind)} />
+
+      <NewMark
+        kind={exercise.kind}
+        open={marking}
+        onClose={() => {
+          setMarking(false);
+        }}
+        onSave={mark.onSave}
+      />
     </>
   );
 }

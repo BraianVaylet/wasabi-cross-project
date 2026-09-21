@@ -77,6 +77,29 @@ describe('cliente de API del front', () => {
     });
   });
 
+  it('el historial pide una página por cursor', async () => {
+    const { llamadas, api } = apiEspía();
+
+    await api.history('mex_a1b2c3d4', { limit: 3 });
+    await api.history('mex_a1b2c3d4', { limit: 3, cursor: 'c2' });
+
+    expect(llamadas.map((llamada) => llamada.path)).toEqual([
+      '/api/v1/exercises/mex_a1b2c3d4/records?limit=3',
+      '/api/v1/exercises/mex_a1b2c3d4/records?limit=3&cursor=c2',
+    ]);
+  });
+
+  it('cargar una marca es un POST al historial del ejercicio', async () => {
+    const { llamadas, api } = apiEspía();
+
+    await api.logRecord('mex_a1b2c3d4', { value: 105 });
+
+    expect(llamadas[0]).toEqual({
+      path: '/api/v1/exercises/mex_a1b2c3d4/records',
+      options: { method: 'POST', body: { value: 105 } },
+    });
+  });
+
   it('las preferencias se leen y se guardan en /me/preferences', async () => {
     const { llamadas, api } = apiEspía();
 

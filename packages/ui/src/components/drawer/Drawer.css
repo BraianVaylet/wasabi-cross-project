@@ -12,22 +12,36 @@
 
 .wc-drawer__panel {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
 
   display: flex;
   flex-direction: column;
   gap: var(--wc-space-2);
-  width: min(22rem, 82vw);
   padding: var(--wc-space-4) var(--wc-space-5) var(--wc-space-6);
   overflow-y: auto;
 
   background-color: var(--wc-surface);
-  border-left: 1px solid var(--wc-border);
   color: var(--wc-text);
+}
 
+/* El menú, que entra desde el costado. */
+.wc-drawer__panel--side {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(22rem, 82vw);
+  border-left: 1px solid var(--wc-border);
   animation: wc-drawer-in 200ms ease-out;
+}
+
+/* La hoja que sube desde abajo, para formularios cortos en el celular (mockup 11). */
+.wc-drawer__panel--bottom {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  max-height: 90vh;
+  border-top: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-md) var(--wc-radius-md) 0 0;
+  animation: wc-sheet-in 200ms ease-out;
 }
 
 .wc-drawer__panel:focus {
@@ -72,6 +86,12 @@
 @keyframes wc-drawer-in {
   from {
     transform: translateX(100%);
+  }
+}
+
+@keyframes wc-sheet-in {
+  from {
+    transform: translateY(100%);
   }
 }
 

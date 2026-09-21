@@ -665,7 +665,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   funcionando. Seis pruebas inversas; axe sin violaciones; probado a mano contra la API real,
   incluida la paginación. Falta mover la tarjeta.
 
-## [ ] F1-14 · Cargar una marca nueva
+## [x] F1-14 · Cargar una marca nueva
 
 - **module:** web
 - **description:** Modal del mockup 11. Se llama "New RM" en fuerza y "New Record" en el resto
