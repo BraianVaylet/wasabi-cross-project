@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
-import { fakeSession } from '../test/app.tsx';
+import { fakeApi, fakeSession } from '../test/app.tsx';
 import { createApp, shouldRetry } from './create-app.ts';
 
 describe('política de reintentos', () => {
@@ -20,7 +20,7 @@ describe('política de reintentos', () => {
 
 describe('createApp', () => {
   it('sin history explícito, usa el del navegador', () => {
-    const { router } = createApp({ session: fakeSession(null).client });
+    const { router } = createApp({ session: fakeSession(null).client, api: fakeApi().client });
 
     expect(router.history.location.pathname).toBe(window.location.pathname);
   });

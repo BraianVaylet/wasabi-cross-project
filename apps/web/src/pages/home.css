@@ -1,0 +1,88 @@
+/* Home (mockup 4): la lista de ejercicios. */
+
+.home__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home__row {
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-3);
+  min-height: var(--wc-tap-target);
+  padding: var(--wc-space-3) var(--wc-space-4);
+
+  background-color: var(--wc-surface);
+  border-radius: var(--wc-radius-sm);
+  color: var(--wc-text);
+  text-decoration: none;
+}
+
+.home__row-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home__row-name {
+  color: var(--wc-accent-text);
+  font-size: var(--wc-font-size-lg);
+  overflow-wrap: anywhere;
+}
+
+.home__row-date {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+}
+
+.home__row-value {
+  flex-shrink: 0;
+  font-size: var(--wc-font-size-lg);
+  font-weight: 500;
+}
+
+.home__row-chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--wc-text-muted);
+}
+
+.home__row-chevron > svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Aire entre la lista y la acción, como en el mockup. */
+.home__list + .wc-button,
+.home__full {
+  margin-top: var(--wc-space-3);
+}
+
+.home__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-4);
+  align-items: center;
+  padding: var(--wc-space-6) 0;
+  text-align: center;
+}
+
+.home__full {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+}
+
+.home__full-reason {
+  margin: 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+  text-align: center;
+}
