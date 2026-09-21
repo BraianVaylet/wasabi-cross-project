@@ -14,6 +14,8 @@ const FOCUSABLE = [
 
 export interface DrawerProps {
   open: boolean;
+  /** `side` es el menú (mockup 4a); `bottom`, la hoja que sube (mockup 11). */
+  placement?: 'side' | 'bottom';
   onClose: () => void;
   /** Nombre accesible del diálogo, como "Menú principal". */
   label: string;
@@ -35,6 +37,7 @@ function DrawerPanel({
   onClose,
   label,
   closeLabel = 'Cerrar',
+  placement = 'side',
   children,
 }: Omit<DrawerProps, 'open'>): React.JSX.Element {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -106,7 +109,7 @@ function DrawerPanel({
         aria-modal="true"
         aria-label={label}
         tabIndex={-1}
-        className="wc-drawer__panel"
+        className={`wc-drawer__panel wc-drawer__panel--${placement}`}
       >
         <div className="wc-drawer__top">
           <IconButton label={closeLabel} onClick={onClose}>

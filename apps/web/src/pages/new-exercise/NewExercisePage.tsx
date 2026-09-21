@@ -4,13 +4,13 @@ import {
   type Exercise,
   type ExerciseCategory,
   type Level,
-  type MeasureKind,
 } from '@wasabi-cross/schemas';
 import { useForm } from '@tanstack/react-form';
 import { Link } from '@tanstack/react-router';
 import { Button, Checkbox, RadioGroup, Select, TextArea, TextField } from '@wasabi-cross/ui';
 import { useId } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
+import { MARK_FIELD, today } from '../../lib/mark-input.ts';
 import {
   catalogMatch,
   kindFor,
@@ -41,19 +41,7 @@ const LEVELS: readonly { value: Level; label: string }[] = [
   { value: 'elite', label: 'Elite' },
 ];
 
-/** Cómo se pide la primera marca según lo que mide el ejercicio (spec §5.1). */
-const VALUE_FIELD: Record<MeasureKind, { label: string; placeholder: string }> = {
-  rm: { label: 'RM (kg)', placeholder: 'Ej: 100' },
-  reps: { label: 'Repeticiones', placeholder: 'Ej: 30' },
-  time: { label: 'Tiempo (mm:ss)', placeholder: 'Ej: 4:32' },
-};
-
 const SIN_CATEGORIA = { label: 'Marca', placeholder: 'Elegí primero la categoría' };
-
-/** Hoy, para que no se pueda cargar una marca con fecha futura (spec §5.1). */
-function today(): string {
-  return new Date().toLocaleDateString('sv-SE');
-}
 
 /** Nuevo ejercicio (mockup 9): uno del catálogo o uno propio, con su primera marca. */
 export function NewExercisePage({
@@ -116,7 +104,7 @@ export function NewExercisePage({
           {([name, category]) => {
             const match = catalogMatch(catalog, name);
             const kind = kindFor(catalog, name, category);
-            const field = kind ? VALUE_FIELD[kind] : SIN_CATEGORIA;
+            const field = kind ? MARK_FIELD[kind] : SIN_CATEGORIA;
 
             return (
               <>

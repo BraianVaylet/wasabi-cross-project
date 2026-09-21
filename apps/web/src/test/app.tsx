@@ -1,5 +1,6 @@
 import type {
   ExerciseList,
+  LogRecordResponse,
   ManagedExerciseSummary,
   RecordHistory,
   SessionUser,
@@ -80,6 +81,12 @@ const HISTORIAL_VACIO: RecordHistory = {
   nextCursor: null,
 };
 
+const MARCA_OK: LogRecordResponse = {
+  record: { id: 'rec_00000000', value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
+  current: { value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
+  best: { value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
+};
+
 const PREFERENCIAS: UserPreferences = {
   theme: 'dark',
   loadPercentages: [65, 75, 80, 85, 90, 95],
@@ -100,6 +107,7 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       updateExercise: vi.fn<ApiClient['updateExercise']>(() => Promise.resolve(ALTA_OK)),
       deleteExercise: vi.fn<ApiClient['deleteExercise']>(() => Promise.resolve()),
       history: vi.fn<ApiClient['history']>(() => Promise.resolve(HISTORIAL_VACIO)),
+      logRecord: vi.fn<ApiClient['logRecord']>(() => Promise.resolve(MARCA_OK)),
       preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
       savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>
         Promise.resolve({

@@ -135,4 +135,17 @@ describe('Drawer', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
+
+  it('la hoja de abajo es el mismo diálogo, con otra forma', async () => {
+    render(
+      <Drawer open placement="bottom" label="Nueva marca" onClose={vi.fn()}>
+        <button type="button">Guardar</button>
+      </Drawer>,
+    );
+
+    const dialog = await screen.findByRole('dialog', { name: 'Nueva marca' });
+    expect(dialog).toHaveClass('wc-drawer__panel--bottom');
+    // El foco entra igual que en el menú: la trampa es la misma.
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+  });
 });

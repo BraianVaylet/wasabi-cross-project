@@ -1,5 +1,6 @@
 import type {
   AddExercise,
+  RecordInput,
   SignIn,
   SignUpRequest,
   UpdateManagedExercise,
@@ -28,6 +29,7 @@ import { refreshSession } from './create-app.ts';
 import {
   catalogQueryOptions,
   exerciseListQueryOptions,
+  historyQueryKey,
   historyQueryOptions,
   preferencesQueryOptions,
   EXERCISES_QUERY_KEY,
@@ -35,6 +37,7 @@ import {
   type ApiClient,
 } from './api.ts';
 import { ErrorScreen } from './ErrorNotice.tsx';
+import { optimisticId, prependRecord, type HistoryPages } from './optimistic-history.ts';
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
 import { AppShell } from './shell/AppShell.tsx';
@@ -226,13 +229,49 @@ const exerciseDetailRoute = createRoute({
   path: '/ejercicios/$id',
   validateSearch: (search) => detailSearch.parse(search),
   component: function ExerciseDetailRoute() {
-    const { api } = appRoute.useRouteContext();
+    const { api, queryClient } = appRoute.useRouteContext();
     const { id } = exerciseDetailRoute.useParams();
     const { pct } = exerciseDetailRoute.useSearch();
     const navigate = useNavigate();
     const exercises = useQuery(exerciseListQueryOptions(api));
     const preferences = useQuery(preferencesQueryOptions(api));
     const history = useInfiniteQuery(historyQueryOptions(api, id));
+    const exercise = exercises.data?.exercises.find((item) => item.id === id);
+
+    /*
+     * La marca aparece en el historial apenas se aprieta Guardar (spec §11). Si la API la
+     * rechaza se vuelve al historial de antes y la pantalla dice por qué.
+     */
+    const logMark = useMutation({
+      mutationFn: (input: RecordInput) => api.logRecord(id, input),
+      onMutate: async (input) => {
+        // Si hay un pedido del historial en vuelo, su respuesta pisaría la marca optimista.
+        await queryClient.cancelQueries({ queryKey: historyQueryKey(id) });
+        const previous = queryClient.getQueryData<HistoryPages>(historyQueryKey(id));
+
+        queryClient.setQueryData<HistoryPages>(historyQueryKey(id), (old) =>
+          prependRecord(old, {
+            id: optimisticId(),
+            value: input.value,
+            unit: exercise?.current.unit ?? 'kg',
+            performedAt: input.performedAt ?? new Date().toISOString(),
+            ...(input.notes === undefined ? {} : { notes: input.notes }),
+          }),
+        );
+
+        return { previous };
+      },
+      onError: (_error, _input, context) => {
+        queryClient.setQueryData(historyQueryKey(id), context?.previous);
+      },
+      onSettled: () => {
+        // La marca puede haber cambiado el valor actual y la mejor: los dos salen de la API.
+        // Sin `await`: React Query recién marca el error cuando termina `onSettled`, y un
+        // historial lento dejaría el motivo del rechazo esperando a un pedido que no importa.
+        void queryClient.invalidateQueries({ queryKey: historyQueryKey(id) });
+        void queryClient.invalidateQueries({ queryKey: EXERCISES_QUERY_KEY });
+      },
+    });
 
     return (
       <ExerciseDetailPage
@@ -247,7 +286,14 @@ const exerciseDetailRoute = createRoute({
             void history.fetchNextPage();
           },
         }}
-        exercise={exercises.data?.exercises.find((exercise) => exercise.id === id)}
+        mark={{
+          saving: logMark.isPending,
+          error: logMark.error,
+          onSave: (input) => {
+            logMark.mutate(input);
+          },
+        }}
+        exercise={exercise}
         percentages={preferences.data?.loadPercentages ?? []}
         loading={exercises.isPending || preferences.isPending}
         error={exercises.error ?? preferences.error}

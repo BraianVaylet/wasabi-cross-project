@@ -1,5 +1,6 @@
 import {
   exerciseListSchema,
+  logRecordResponseSchema,
   recordHistorySchema,
   exerciseSchema,
   managedExerciseSummarySchema,
@@ -7,8 +8,10 @@ import {
   type AddExercise,
   type Exercise,
   type ExerciseList,
+  type LogRecordResponse,
   type ManagedExerciseSummary,
   type RecordHistory,
+  type RecordInput,
   type UpdateManagedExercise,
   type UpdatePreferences,
   type UserPreferences,
@@ -30,6 +33,8 @@ export interface ApiClient {
   deleteExercise: (id: string) => Promise<void>;
   /** Una página del historial de marcas (F1-07), de la más reciente a la más vieja. */
   history: (id: string, page: { limit: number; cursor?: string }) => Promise<RecordHistory>;
+  /** Carga una marca nueva (F1-14). La API decide si el valor vale para esa medición. */
+  logRecord: (id: string, input: RecordInput) => Promise<LogRecordResponse>;
   preferences: () => Promise<UserPreferences>;
   savePreferences: (change: UpdatePreferences) => Promise<UserPreferences>;
 }
@@ -65,6 +70,11 @@ export function createApiClient(http: HttpClient): ApiClient {
         `/api/v1/exercises/${id}/records?${query.toString()}`,
       );
     },
+    logRecord: (id, input) =>
+      http.request(logRecordResponseSchema, `/api/v1/exercises/${id}/records`, {
+        method: 'POST',
+        body: input,
+      }),
     preferences: () => http.request(userPreferencesSchema, '/api/v1/me/preferences'),
     savePreferences: (change) =>
       http.request(userPreferencesSchema, '/api/v1/me/preferences', {
