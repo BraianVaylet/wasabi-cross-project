@@ -1,4 +1,4 @@
-import type { ExerciseList, SessionUser } from '@wasabi-cross/schemas';
+import type { ExerciseList, SessionUser, UserPreferences } from '@wasabi-cross/schemas';
 import { createMemoryHistory } from '@tanstack/react-router';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
@@ -54,6 +54,11 @@ export interface FakeApi {
   };
 }
 
+const PREFERENCIAS: UserPreferences = {
+  theme: 'dark',
+  loadPercentages: [65, 75, 80, 85, 90, 95],
+};
+
 const LISTA_VACIA: ExerciseList = {
   exercises: [],
   usage: { plan: 'free', total: 0, custom: 0, maxTotal: 10, maxCustom: 3 },
@@ -64,6 +69,13 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
   return {
     client: {
       listExercises: vi.fn<ApiClient['listExercises']>(() => Promise.resolve(list)),
+      preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
+      savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>
+        Promise.resolve({
+          theme: change.theme ?? PREFERENCIAS.theme,
+          loadPercentages: change.loadPercentages ?? PREFERENCIAS.loadPercentages,
+        }),
+      ),
     },
   };
 }

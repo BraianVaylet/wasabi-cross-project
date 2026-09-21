@@ -17,13 +17,19 @@ import { RegisterPage } from '../pages/auth/RegisterPage.tsx';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { NewExercisePage } from '../pages/NewExercisePage.tsx';
 import { ExerciseDetailPage } from '../pages/ExerciseDetailPage.tsx';
-import { ProfilePage } from '../pages/ProfilePage.tsx';
+import { ProfilePage } from '../pages/profile/ProfilePage.tsx';
 import { refreshSession } from './create-app.ts';
-import { exerciseListQueryOptions, type ApiClient } from './api.ts';
+import {
+  exerciseListQueryOptions,
+  preferencesQueryOptions,
+  PREFERENCES_QUERY_KEY,
+  type ApiClient,
+} from './api.ts';
 import { ErrorScreen } from './ErrorNotice.tsx';
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
 import { AppShell } from './shell/AppShell.tsx';
+import { useSyncedTheme } from './use-synced-theme.ts';
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -130,8 +136,9 @@ const appRoute = createRoute({
     return { user };
   },
   component: function ShellRoute() {
-    const { queryClient, session } = appRoute.useRouteContext();
+    const { queryClient, session, api } = appRoute.useRouteContext();
     const navigate = useNavigate();
+    const { theme, change } = useSyncedTheme(api);
     const signOut = useMutation({
       mutationFn: () => session.signOut(),
       onSuccess: async () => {
@@ -142,6 +149,8 @@ const appRoute = createRoute({
 
     return (
       <AppShell
+        theme={theme}
+        onThemeChange={change}
         onSignOut={() => {
           signOut.mutate();
         }}
@@ -181,7 +190,31 @@ const exerciseDetailRoute = createRoute({
 const profileRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/perfil',
-  component: ProfilePage,
+  component: function ProfileRoute() {
+    const { api, queryClient } = appRoute.useRouteContext();
+    const preferences = useQuery(preferencesQueryOptions(api));
+    const { theme, change } = useSyncedTheme(api);
+    const savePercentages = useMutation({
+      mutationFn: (loadPercentages: number[]) => api.savePreferences({ loadPercentages }),
+      onSuccess: (saved) => {
+        queryClient.setQueryData(PREFERENCES_QUERY_KEY, saved);
+      },
+    });
+
+    return (
+      <ProfilePage
+        preferences={preferences}
+        theme={theme}
+        onThemeChange={change}
+        saving={savePercentages.isPending}
+        saved={savePercentages.isSuccess}
+        saveError={savePercentages.error}
+        onSave={(percentages) => {
+          savePercentages.mutate(percentages);
+        }}
+      />
+    );
+  },
 });
 
 const routeTree = rootRoute.addChildren([
