@@ -3,6 +3,13 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // El módulo virtual lo inyecta vite-plugin-pwa recién en el build; en los tests, un stub.
+      'virtual:pwa-register/react': new URL('./src/test/pwa-register-stub.ts', import.meta.url)
+        .pathname,
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
