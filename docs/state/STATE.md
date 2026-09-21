@@ -41,7 +41,7 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-10 · Login y registro**: cerrada. `/login` y `/registro` con TanStack Form.
 - **F1-11 · Home**: cerrada. La lista de ejercicios con sus estados.
 - **F1-12 · Nuevo ejercicio**: código hecho, en PR #22. Formulario del mockup 9.
-- **F1-17 · Aviso de nueva versión**: código hecho, en PR. El popup de la PWA.
+- **F1-17 · Aviso de nueva versión**: cerrada. El popup de la PWA.
 
 ## Bloqueado
 
@@ -49,8 +49,7 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear #17 (F1-07), #22 (F1-12) y la PR de F1-17. **#17 traba a F1-13**, que necesita el
-   historial de marcas.
+1. Mergear #17 (F1-07) y #22 (F1-12). **#17 traba a F1-13**, que necesita el historial de marcas.
 2. Con eso queda **F1-13** (detalle de ejercicio con porcentajes), y detrás F1-14, F1-15 y F1-16.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
@@ -98,4 +97,6 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-17, aviso de nueva versión. Ver [bitácora](./bitacora/2026-09-21-f1-17-aviso-version.md).
+2026-09-21 — F1-12 (nuevo ejercicio) y F1-17 (aviso de nueva versión). Ver
+[bitácora de F1-12](./bitacora/2026-09-21-f1-12-nuevo-ejercicio.md) y
+[la de F1-17](./bitacora/2026-09-21-f1-17-aviso-version.md).

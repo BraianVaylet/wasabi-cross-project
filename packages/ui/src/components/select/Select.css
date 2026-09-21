@@ -1,0 +1,37 @@
+.wc-select {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+}
+
+.wc-select__label {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+  font-weight: 500;
+}
+
+.wc-select__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--wc-tap-target);
+  padding: var(--wc-space-3) var(--wc-space-4);
+
+  background-color: transparent;
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-sm);
+  color: var(--wc-text);
+
+  /* 16px mínimo: por debajo, iOS hace zoom al enfocar (spec §11). */
+  font-family: inherit;
+  font-size: max(1rem, var(--wc-font-size-base));
+}
+
+.wc-select--invalid .wc-select__input {
+  border-color: var(--wc-danger);
+}
+
+.wc-select__error {
+  margin: 0;
+  color: var(--wc-danger-text);
+  font-size: var(--wc-font-size-sm);
+}
