@@ -265,6 +265,25 @@ describe('ejercicios gestionados (F1-05)', () => {
       expect((await list(cookie)).exercises).toHaveLength(0);
     });
 
+    it('una primera marca con fecha futura se rechaza con el motivo, y no crea nada', async () => {
+      const cookie = await newUser();
+      const manana = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+      const response = await add(cookie, {
+        source: 'catalog',
+        exerciseId: await catalogId('Back squat'),
+        level: 'intermedio',
+        firstRecord: { value: 100, performedAt: manana },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({
+        errorCode: 'WC-SYS-400-002',
+        details: [{ path: 'firstRecord.performedAt', message: 'La fecha no puede ser futura' }],
+      });
+      expect((await list(cookie)).exercises).toHaveLength(0);
+    });
+
     it('un cuerpo incompleto responde WC-SYS-400-002', async () => {
       const cookie = await newUser();
 

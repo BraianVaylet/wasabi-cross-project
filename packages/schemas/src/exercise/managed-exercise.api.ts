@@ -9,6 +9,7 @@ import {
   measureKindSchema,
 } from './exercise.schema.ts';
 import { levelSchema } from './managed-exercise.schema.ts';
+import { recordInputSchema, recordUnitSchema } from '../record/record.api.ts';
 
 /*
  * Contratos HTTP de los ejercicios gestionados (F1-05). Viven acá para que el front y el
@@ -16,14 +17,10 @@ import { levelSchema } from './managed-exercise.schema.ts';
  */
 
 /**
- * La primera marca. El valor se valida recién en el servidor, con la regla de su tipo de
- * medición: para uno del catálogo, el cliente no sabe la categoría — la sabe el servidor.
+ * La primera marca: el mismo contrato que cualquier otra (F1-07). El valor se valida recién
+ * en el servidor, con la regla de su medición.
  */
-const firstRecordSchema = z.object({
-  value: z.number(),
-  performedAt: isoDateTimeSchema.optional(),
-  notes: plainText(300).optional(),
-});
+const firstRecordSchema = recordInputSchema;
 
 /** Lo que es del usuario sobre el ejercicio, igual para uno del catálogo que para uno propio. */
 const userFields = {
@@ -60,7 +57,7 @@ export const managedExerciseSummarySchema = z.object({
   /** La marca de fecha de realización más reciente (spec §5.1). */
   current: z.object({
     value: z.number(),
-    unit: z.enum(['kg', 'reps', 's']),
+    unit: recordUnitSchema,
     performedAt: isoDateTimeSchema,
   }),
 });

@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     19 |           71 |     12 |
+| Fase 1 — El loop del atleta |     19 |           71 |     15 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -431,7 +431,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   transacciones genérico, porque no consumen cupo); el borrado también se probó con una falla
   forzada y una prueba inversa. Cerrada: PR #15 mergeada el 2026-09-18.
 
-## [ ] F1-07 · Marcas: cargar e historial
+## [x] F1-07 · Marcas: cargar e historial
 
 - **module:** records
 - **description:** `POST /api/v1/exercises/:id/records` carga una marca en la unidad que dicta la
@@ -447,8 +447,10 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   - Dado un valor inválido para la categoría (repeticiones con decimales, tiempo cero), cuando se
     carga, entonces responde `WC-RM-422-001` con el motivo.
   - Dado un ejercicio de otro usuario, cuando se cargan o se leen marcas, entonces responde 404.
+  - Dada una marca con fecha futura, cuando se carga, entonces se rechaza con el motivo en la fecha.
+    Vale también para la primera marca al agregar un ejercicio (spec §5.1, decidido el 2026-09-18).
 - **example:** Braian tenía 100 kg en "Back squat" y carga 105. El historial marca 105 como valor
-  actual y como mejor marca,.
+  actual y como mejor marca.
 - **story-points:** 5
 - **depends_on:** F1-04, F1-05
 - **risk:** medium. 🔴 **IDOR: 404, no 403.**
@@ -457,6 +459,14 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **error-codes:** `WC-RM-422-001`, `WC-RM-404-002`, `WC-EXO-404-002`.
 - **data-model-impact:** índice por `(managedExerciseId, performedAt)` para el historial, en una
   migración.
+- **estado:** código hecho, a la espera de revisión. `POST` y `GET /api/v1/exercises/:id/records`,
+  paginado por cursor. El índice `managed_history` suma `createdAt` y el ID para desempatar marcas
+  de la misma fecha: sin eso el cursor repetiría o saltearía alguna. La regla de mejor marca vive
+  en la consulta (orden por valor, ascendente en tiempo), así que se prueba por integración en las
+  tres mediciones y no con unitarios. Siete pruebas inversas confirman que los tests detectan cada
+  regla rota. `WC-RM-404-002` no se usa todavía: ningún endpoint apunta a una marca por ID. La PR
+  #16 iba apilada sobre F1-06 y se mergeó contra esa rama después de que F1-06 entrara a `main`, así
+  que no llegó: entró por la PR #17, mergeada el 2026-09-21.
 
 ## [x] F1-08 · Preferencias del usuario
 
@@ -569,7 +579,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   por ahora son marcadores. Seis pruebas inversas; axe sin violaciones; probado a mano contra la API
   real. Cerrada: PR #21 mergeada el 2026-09-21.
 
-## [~] F1-12 · Nuevo ejercicio
+## [x] F1-12 · Nuevo ejercicio
 
 - **module:** web
 - **description:** Mockup 9. El nombre busca en el catálogo mientras se tipea; si no hay coincidencia,
@@ -600,9 +610,9 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   formulario vive aparte de la pantalla (`new-exercise/form.ts`) y se prueba sola. Cuatro
   Componentes Cross nuevos: `Select`, `TextArea`, `Checkbox` y `RadioGroup`. La normalización de
   nombres pasó a `@wasabi-cross/schemas`: es la misma regla que usa la API. Siete pruebas inversas;
-  axe sin violaciones; probado a mano contra la API real. Falta mover la tarjeta.
+  axe sin violaciones; probado a mano contra la API real. Cerrada: PR #22 mergeada el 2026-09-21.
 
-## [~] F1-13a · Detalle de ejercicio: porcentajes
+## [x] F1-13a · Detalle de ejercicio: porcentajes
 
 > Partida de F1-13 el 2026-09-21, con Braian: el historial necesita F1-07, que estaba en revisión,
 > y el resto de la pantalla no. F1-13b queda con lo que sí depende de las marcas.
@@ -628,7 +638,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **estado:** código hecho, a la espera de revisión. El porcentaje elegido va en la URL con los
   search params tipados de TanStack Router, no con Nuqs (ver la PR: es una desviación del stack de
   la spec §6 que hay que confirmar). Seis pruebas inversas; axe sin violaciones; probado a mano
-  contra la API real. Falta mover la tarjeta.
+  contra la API real. Cerrada: PR #25 mergeada el 2026-09-21.
 
 ## [ ] F1-13b · Detalle de ejercicio: historial
 

@@ -34,8 +34,8 @@ Lo que hay hoy, en una línea cada uno:
   ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
 - **F1-05 · Agregar y listar ejercicios**: cerrada.
 - **F1-06 · Editar y borrar**: cerrada.
-- **F1-07 · Marcas e historial**: código hecho, en PR #17 contra `main`. `POST` y
-  `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
+- **F1-07 · Marcas e historial**: cerrada. `POST` y `GET /api/v1/exercises/:id/records`, con valor
+  actual, mejor marca y cursor.
 - **F1-08 · Preferencias**: cerrada. `GET` y `PATCH /api/v1/me/preferences`, en el módulo `users`.
 - **F1-09 · Shell del front**: cerrada. Rutas protegidas, sesión, splash, header y menú.
 - **F1-10 · Login y registro**: cerrada. `/login` y `/registro` con TanStack Form.
@@ -54,15 +54,14 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear #17 (F1-07) y la PR de F1-15. Con F1-07 adentro sale **F1-13b** (el historial del
-   detalle) y detrás **F1-14** (cargar una marca) y **F1-18** (E2E + axe en CI).
-2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+1. Mergear la PR de F1-15.
+2. Con F1-07 ya en `main` quedan **F1-13b** (el historial del detalle), **F1-14** (cargar una marca)
+   y **F1-18** (E2E + axe en CI). F1-13b va primera: F1-14 carga marcas sobre esa pantalla.
+3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 
 - **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro).
-- **Marcas con fecha futura.** Hoy se aceptan: la spec no dice nada. Una marca de mañana pasaría a
-  ser el valor actual hasta que llegue su fecha. ¿Se rechazan?
 - **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
   Queda fuera de la Fase 1 hasta que se decida.
 - **TypeScript 7.** Hoy el monorepo está en 6.0.3 (PR #8) porque `typescript-eslint@8` declara
@@ -78,6 +77,7 @@ Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 - Los ejercicios del catálogo cuentan para el límite de 10 del plan Free.
 - Bandas de carga: menos de 70% liviana, de 70% a 84% media, desde 85% pesada.
 - El peso es sólo en kg. La opción de lb nunca estuvo en los mockups: la había agregado F0-02.
+- Una marca no puede tener fecha futura (spec §5.1).
 
 Defaults fijados sin consulta explícita, para revisar en la PR: carga redondeada al 0,5 kg,
 repeticiones redondeadas hacia abajo con mínimo 1, "valor actual" = la marca de fecha más reciente, y
@@ -102,5 +102,8 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-15, editar y borrar un ejercicio. Ver
-[bitácora](./bitacora/2026-09-21-f1-15-editar-borrar.md).
+2026-09-21 — F1-15 (editar y borrar), F1-13a (detalle con porcentajes) y la regla de marcas con
+fecha futura (decidida por Braian, en la spec §5.1). Ver
+[bitácora de F1-15](./bitacora/2026-09-21-f1-15-editar-borrar.md),
+[la de F1-13a](./bitacora/2026-09-21-f1-13a-detalle-porcentajes.md) y
+[la de F1-07](./bitacora/2026-09-18-f1-07-marcas.md).
