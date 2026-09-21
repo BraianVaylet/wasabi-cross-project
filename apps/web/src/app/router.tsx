@@ -1,3 +1,4 @@
+import type { SignIn, SignUpRequest } from '@wasabi-cross/schemas';
 import { useMutation, type QueryClient } from '@tanstack/react-query';
 import {
   Outlet,
@@ -6,15 +7,18 @@ import {
   createRouter,
   redirect,
   useNavigate,
+  useRouter,
   type RouterHistory,
 } from '@tanstack/react-router';
 import { z } from 'zod';
 import { HomePage } from '../pages/HomePage.tsx';
-import { LoginPage } from '../pages/LoginPage.tsx';
+import { LoginPage } from '../pages/auth/LoginPage.tsx';
+import { RegisterPage } from '../pages/auth/RegisterPage.tsx';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { ProfilePage } from '../pages/ProfilePage.tsx';
+import { refreshSession } from './create-app.ts';
 import { ErrorScreen } from './ErrorNotice.tsx';
-import { safeRedirect } from './redirect.ts';
+import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
 import { AppShell } from './shell/AppShell.tsx';
 
@@ -33,18 +37,80 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
 // `safeRedirect` al usarlo.
 const loginSearch = z.object({ redirect: z.string().optional().catch(undefined) });
 
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/login',
-  validateSearch: (search) => loginSearch.parse(search),
-  beforeLoad: async ({ context, search }) => {
+/**
+ * Las dos pantallas públicas (F1-10). Con sesión no hay nada que hacer acá: se va a donde
+ * el usuario iba. `beforeLoad` corre otra vez cuando `refreshSession` invalida el router,
+ * así que entrar o registrarse redirige solo.
+ */
+function beforeLoadPublic(): (opts: {
+  context: RouterContext;
+  search: RedirectSearch;
+}) => Promise<void> {
+  return async ({ context, search }) => {
     const user = await context.queryClient.query(sessionQueryOptions(context.session));
     if (user) {
       // eslint-disable-next-line @typescript-eslint/only-throw-error -- así redirige TanStack Router
       throw redirect({ href: safeRedirect(search.redirect) });
     }
+  };
+}
+
+/** Entrar o crear la cuenta, y que el router haga el resto cuando la sesión ya existe. */
+function useEnter<TInput>(enter: (input: TInput) => Promise<void>) {
+  const router = useRouter();
+  // Del router y no de la ruta: el mismo hook sirve en login y en registro.
+  const { queryClient } = router.options.context;
+
+  return useMutation({
+    mutationFn: enter,
+    onSuccess: () => refreshSession({ queryClient, router }),
+  });
+}
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  validateSearch: (search) => loginSearch.parse(search),
+  beforeLoad: beforeLoadPublic(),
+  component: function LoginRoute() {
+    const { session } = loginRoute.useRouteContext();
+    const search = loginRoute.useSearch();
+    const signIn = useEnter<SignIn>((credentials) => session.signIn(credentials));
+
+    return (
+      <LoginPage
+        search={search}
+        pending={signIn.isPending}
+        error={signIn.error}
+        onSubmit={(credentials) => {
+          signIn.mutate(credentials);
+        }}
+      />
+    );
   },
-  component: LoginPage,
+});
+
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/registro',
+  validateSearch: (search) => loginSearch.parse(search),
+  beforeLoad: beforeLoadPublic(),
+  component: function RegisterRoute() {
+    const { session } = registerRoute.useRouteContext();
+    const search = registerRoute.useSearch();
+    const signUp = useEnter<SignUpRequest>((input) => session.signUp(input));
+
+    return (
+      <RegisterPage
+        search={search}
+        pending={signUp.isPending}
+        error={signUp.error}
+        onSubmit={(input) => {
+          signUp.mutate(input);
+        }}
+      />
+    );
+  },
 });
 
 /** Todo lo que cuelga de acá pide sesión y va dentro del shell: header y menú. */
@@ -101,6 +167,7 @@ const profileRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
+  registerRoute,
   appRoute.addChildren([homeRoute, profileRoute]),
 ]);
 

@@ -37,7 +37,8 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-07 · Marcas e historial**: código hecho, en PR #17 contra `main`. `POST` y
   `GET /api/v1/exercises/:id/records`, con valor actual, mejor marca y cursor.
 - **F1-08 · Preferencias**: cerrada. `GET` y `PATCH /api/v1/me/preferences`, en el módulo `users`.
-- **F1-09 · Shell del front**: código hecho, en PR. Rutas protegidas, sesión, splash, header y menú.
+- **F1-09 · Shell del front**: cerrada. Rutas protegidas, sesión, splash, header y menú.
+- **F1-10 · Login y registro**: código hecho, en PR. `/login` y `/registro` con TanStack Form.
 
 ## Bloqueado
 
@@ -45,10 +46,9 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear #17 (F1-07) y la PR de F1-09. Chocan sólo en STATE: la segunda que entre necesita traer
-   `main` antes.
-2. Con F1-09 se destraban **F1-10** (login y registro), **F1-11** (Home) y **F1-12** (nuevo
-   ejercicio). F1-10 va primera: sin ella no se puede entrar desde la app.
+1. Mergear #17 (F1-07) y la PR de F1-10.
+2. Destrabadas: **F1-11** (Home, la lista de ejercicios) y **F1-12** (nuevo ejercicio). F1-11 va
+   primera: es la pantalla que hoy es un marcador.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -94,4 +94,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-18 — F1-09, shell del front. Ver [bitácora](./bitacora/2026-09-18-f1-09-shell.md).
+2026-09-21 — F1-10, login y registro. Ver [bitácora](./bitacora/2026-09-21-f1-10-login-registro.md).

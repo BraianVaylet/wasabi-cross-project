@@ -1,3 +1,4 @@
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '@wasabi-cross/schemas';
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
@@ -31,10 +32,10 @@ export function createAuth({ env, db, client, transactions = true }: CreateAuthO
 
     emailAndPassword: {
       enabled: true,
-      // Más largo que el default de 8: una frase corta es más fácil de recordar
-      // y más difícil de romper que ocho caracteres con símbolos.
-      minPasswordLength: 10,
-      maxPasswordLength: 128,
+      // Los mismos largos que valida el formulario del front (@wasabi-cross/schemas):
+      // una sola fuente, para que el registro no falle recién en la API.
+      minPasswordLength: PASSWORD_MIN_LENGTH,
+      maxPasswordLength: PASSWORD_MAX_LENGTH,
     },
 
     user: {
