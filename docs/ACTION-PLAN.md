@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |     12 |
+| Fase 1 — El loop del atleta |     19 |           71 |     12 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -612,24 +612,50 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   nombres pasó a `@wasabi-cross/schemas`: es la misma regla que usa la API. Siete pruebas inversas;
   axe sin violaciones; probado a mano contra la API real. Falta mover la tarjeta.
 
-## [ ] F1-13 · Detalle de ejercicio con porcentajes
+## [~] F1-13a · Detalle de ejercicio: porcentajes
+
+> Partida de F1-13 el 2026-09-21, con Braian: el historial necesita F1-07, que estaba en revisión,
+> y el resto de la pantalla no. F1-13b queda con lo que sí depende de las marcas.
 
 - **module:** web
-- **description:** Mockups 5 y 6. Valor actual con su fecha, tags (categoría, nivel, con dolor),
-  tabla de porcentajes con los del perfil del usuario, porcentaje custom, número grande con la
-  carga del porcentaje elegido, barra y banda de carga, e historial con el valor actual marcado. En
-  tiempo, sólo mejor marca e historial (spec §5.1). El porcentaje elegido vive en la URL (Nuqs).
+- **description:** Mockups 5 y 6, sin el historial. Valor actual con su fecha, tags (categoría,
+  nivel, con dolor), tabla de porcentajes con los del perfil, porcentaje custom, número grande con
+  la carga del porcentaje elegido, barra y banda de carga. En tiempo, sin tabla (spec §5.1). El
+  porcentaje elegido vive en la URL.
 - **acceptance-criteria:**
-  - Dado un RM de 100 kg, cuando se elige 65%, entonces se ve 65 kg y "Light load".
+  - Dado un RM de 100 kg, cuando se elige 65%, entonces se ve 65 kg y "Carga liviana".
   - Dado un porcentaje custom, cuando se tipea, entonces el resultado se actualiza sin llamar a la
     API.
   - Dado un ejercicio de tiempo, cuando se abre, entonces no hay tabla de porcentajes.
   - Dado un link con `?pct=80`, cuando se abre, entonces arranca con 80% elegido.
 - **example:** —
-- **story-points:** 5
-- **depends_on:** F1-04, F1-07, F1-08, F1-09
+- **story-points:** 3
+- **depends_on:** F1-04, F1-08, F1-09, F1-11
 - **risk:** medium
 - **test_plan:** tests de componentes por criterio y por categoría. axe sin violaciones.
+- **error-codes:** ninguno: un ID que no está en la lista se resuelve en el front.
+- **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. El porcentaje elegido va en la URL con los
+  search params tipados de TanStack Router, no con Nuqs (ver la PR: es una desviación del stack de
+  la spec §6 que hay que confirmar). Seis pruebas inversas; axe sin violaciones; probado a mano
+  contra la API real. Falta mover la tarjeta.
+
+## [ ] F1-13b · Detalle de ejercicio: historial
+
+- **module:** web
+- **description:** La parte de los mockups 5 y 6 que necesita las marcas: historial con el valor
+  actual marcado como `current`, "Ver todo el historial", y en los ejercicios de tiempo la mejor
+  marca en lugar de la tabla.
+- **acceptance-criteria:**
+  - Dado un ejercicio con varias marcas, cuando se abre, entonces se ven las últimas con su fecha y
+    la más reciente marcada como actual.
+  - Dado un ejercicio de tiempo, cuando se abre, entonces se ve la mejor marca y el historial.
+  - Dado el historial paginado, cuando se pide más, entonces se traen las siguientes sin repetir.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F1-07, F1-13a
+- **risk:** low
+- **test_plan:** tests de componentes por criterio, con la API simulada.
 - **error-codes:** consume `WC-EXO-404-002`.
 - **data-model-impact:** ninguno
 
@@ -647,7 +673,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
     que lo abrió.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F1-07, F1-13
+- **depends_on:** F1-07, F1-13a
 - **risk:** low
 - **test_plan:** tests de componentes del camino feliz, del rollback y del manejo de foco.
 - **error-codes:** consume `WC-RM-422-001`.
@@ -665,7 +691,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   - Dado un ejercicio del catálogo, cuando se edita, entonces el nombre no es editable.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F1-06, F1-13
+- **depends_on:** F1-06, F1-13a
 - **risk:** medium
 - **test_plan:** tests de componentes por criterio.
 - **error-codes:** consume `WC-EXO-404-002`.
@@ -731,7 +757,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   - Dada cualquier pantalla de la fase, cuando corre axe, entonces no hay violaciones WCAG 2.2 AA.
 - **example:** —
 - **story-points:** 5
-- **depends_on:** F1-10, F1-11, F1-12, F1-13, F1-14
+- **depends_on:** F1-10, F1-11, F1-12, F1-13a, F1-14
 - **risk:** medium
 - **test_plan:** el propio E2E, corriendo en CI contra un Mongo efímero.
 - **error-codes:** ninguno
