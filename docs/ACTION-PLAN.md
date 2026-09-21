@@ -16,7 +16,7 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     18 |           71 |      9 |
+| Fase 1 — El loop del atleta |     18 |           71 |     10 |
 
 Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
 movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -542,7 +542,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   violaciones en las dos pantallas; probado a mano contra la API real. Cerrada: PR #20 mergeada el
   2026-09-21.
 
-## [~] F1-11 · Home: lista de ejercicios
+## [x] F1-11 · Home: lista de ejercicios
 
 - **module:** web
 - **description:** Mockup 4. Cada ejercicio con nombre, fecha del valor actual y valor con su
@@ -567,9 +567,9 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   prueban sin `fetch`. En el límite del plan el botón queda deshabilitado con el mensaje de
   `WC-SUBS-403-001`, que ya estaba en el catálogo. Las filas y el botón llevan a F1-13 y F1-12, que
   por ahora son marcadores. Seis pruebas inversas; axe sin violaciones; probado a mano contra la API
-  real. Falta mover la tarjeta.
+  real. Cerrada: PR #21 mergeada el 2026-09-21.
 
-## [ ] F1-12 · Nuevo ejercicio
+## [~] F1-12 · Nuevo ejercicio
 
 - **module:** web
 - **description:** Mockup 9. El nombre busca en el catálogo mientras se tipea; si no hay coincidencia,
@@ -593,6 +593,14 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes por criterio; test del parseo `mm:ss` con sus bordes.
 - **error-codes:** consume `WC-SUBS-403-001`, `WC-EXO-409-003`, `WC-EXO-409-004`.
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. El nombre busca en el catálogo con un
+  `datalist` (se opera entero con el teclado, sin inventar un combobox); si coincide, la categoría
+  queda fija y el campo de la marca cambia solo. El tiempo se escribe `mm:ss` y viaja en segundos,
+  y la fecha se manda al mediodía para que no se corra de día por la zona horaria. La lógica del
+  formulario vive aparte de la pantalla (`new-exercise/form.ts`) y se prueba sola. Cuatro
+  Componentes Cross nuevos: `Select`, `TextArea`, `Checkbox` y `RadioGroup`. La normalización de
+  nombres pasó a `@wasabi-cross/schemas`: es la misma regla que usa la API. Siete pruebas inversas;
+  axe sin violaciones; probado a mano contra la API real. Falta mover la tarjeta.
 
 ## [ ] F1-13 · Detalle de ejercicio con porcentajes
 

@@ -39,7 +39,8 @@ Lo que hay hoy, en una línea cada uno:
 - **F1-08 · Preferencias**: cerrada. `GET` y `PATCH /api/v1/me/preferences`, en el módulo `users`.
 - **F1-09 · Shell del front**: cerrada. Rutas protegidas, sesión, splash, header y menú.
 - **F1-10 · Login y registro**: cerrada. `/login` y `/registro` con TanStack Form.
-- **F1-11 · Home**: código hecho, en PR. La lista de ejercicios con sus estados.
+- **F1-11 · Home**: cerrada. La lista de ejercicios con sus estados.
+- **F1-12 · Nuevo ejercicio**: código hecho, en PR. Formulario del mockup 9.
 
 ## Bloqueado
 
@@ -47,9 +48,9 @@ Nada.
 
 ## Próximo paso
 
-1. Mergear #17 (F1-07) y la PR de F1-11.
-2. Destrabadas: **F1-12** (nuevo ejercicio) y **F1-13** (detalle con porcentajes). Las dos pantallas
-   hoy son marcadores a los que Home ya lleva.
+1. Mergear #17 (F1-07) y la PR de F1-12.
+2. Destrabada: **F1-13** (detalle de ejercicio con porcentajes), que es la pantalla a la que ya
+   lleva cada fila de Home. Con ella se destraban F1-14 y F1-15.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -96,4 +97,4 @@ pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
 
 ## Última actualización
 
-2026-09-21 — F1-11, Home. Ver [bitácora](./bitacora/2026-09-21-f1-11-home.md).
+2026-09-21 — F1-12, nuevo ejercicio. Ver [bitácora](./bitacora/2026-09-21-f1-12-nuevo-ejercicio.md).

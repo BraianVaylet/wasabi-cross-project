@@ -2,6 +2,14 @@ import './styles/tokens.css';
 
 export { Button, type ButtonProps, type ButtonVariant } from './components/button/Button.tsx';
 export { Card, type CardProps } from './components/card/Card.tsx';
+export { Checkbox, type CheckboxProps } from './components/checkbox/Checkbox.tsx';
+export {
+  RadioGroup,
+  type RadioGroupProps,
+  type RadioOption,
+} from './components/radio-group/RadioGroup.tsx';
+export { Select, type SelectProps } from './components/select/Select.tsx';
+export { TextArea, type TextAreaProps } from './components/text-area/TextArea.tsx';
 export { Tag, type TagProps, type TagVariant } from './components/tag/Tag.tsx';
 export { TextField, type TextFieldProps } from './components/text-field/TextField.tsx';
 export { ThemeToggle, type ThemeToggleProps } from './components/theme-toggle/ThemeToggle.tsx';

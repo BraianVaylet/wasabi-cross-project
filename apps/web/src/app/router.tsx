@@ -1,4 +1,4 @@
-import type { SignIn, SignUpRequest } from '@wasabi-cross/schemas';
+import type { AddExercise, SignIn, SignUpRequest } from '@wasabi-cross/schemas';
 import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import {
   Outlet,
@@ -15,11 +15,16 @@ import { HomePage } from '../pages/HomePage.tsx';
 import { LoginPage } from '../pages/auth/LoginPage.tsx';
 import { RegisterPage } from '../pages/auth/RegisterPage.tsx';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
-import { NewExercisePage } from '../pages/NewExercisePage.tsx';
+import { NewExercisePage } from '../pages/new-exercise/NewExercisePage.tsx';
 import { ExerciseDetailPage } from '../pages/ExerciseDetailPage.tsx';
 import { ProfilePage } from '../pages/ProfilePage.tsx';
 import { refreshSession } from './create-app.ts';
-import { exerciseListQueryOptions, type ApiClient } from './api.ts';
+import {
+  catalogQueryOptions,
+  exerciseListQueryOptions,
+  EXERCISES_QUERY_KEY,
+  type ApiClient,
+} from './api.ts';
 import { ErrorScreen } from './ErrorNotice.tsx';
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
@@ -169,7 +174,30 @@ const homeRoute = createRoute({
 const newExerciseRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/ejercicios/nuevo',
-  component: NewExercisePage,
+  component: function NewExerciseRoute() {
+    const { api, queryClient } = appRoute.useRouteContext();
+    const navigate = useNavigate();
+    const catalog = useQuery(catalogQueryOptions(api));
+    const add = useMutation({
+      mutationFn: (input: AddExercise) => api.addExercise(input),
+      onSuccess: async () => {
+        // La lista de Home quedó vieja: que se vuelva a pedir.
+        await queryClient.invalidateQueries({ queryKey: EXERCISES_QUERY_KEY });
+        await navigate({ to: '/' });
+      },
+    });
+
+    return (
+      <NewExercisePage
+        catalog={catalog.data ?? []}
+        pending={add.isPending}
+        error={add.error}
+        onSubmit={(input) => {
+          add.mutate(input);
+        }}
+      />
+    );
+  },
 });
 
 const exerciseDetailRoute = createRoute({

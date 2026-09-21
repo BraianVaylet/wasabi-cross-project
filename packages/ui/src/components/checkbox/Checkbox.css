@@ -1,0 +1,14 @@
+.wc-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-3);
+  min-height: var(--wc-tap-target);
+  cursor: pointer;
+}
+
+.wc-checkbox__input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--wc-accent);
+  cursor: pointer;
+}
