@@ -20,6 +20,16 @@ function isSpaNavigation(request: FastifyRequest): boolean {
   return request.method === 'GET' && accept.includes('text/html') && !NOT_FRONT.test(request.url);
 }
 
+/**
+ * Cuánto se cachea cada archivo (F3-05). Lo de `/assets/` lleva el hash del contenido en el
+ * nombre (Vite): si cambia, cambia el nombre, así que se cachea un año sin miedo. Todo lo
+ * demás —el `index.html`, que dice qué assets usar, y el service worker, que decide cuándo
+ * hay versión nueva— se revalida siempre: una copia vieja dejaría la app trabada.
+ */
+function cacheControlFor(path: string): string {
+  return /[\\/]assets[\\/]/.test(path) ? 'public, max-age=31536000, immutable' : 'no-cache';
+}
+
 export type SpaFallback = (request: FastifyRequest, reply: FastifyReply) => boolean;
 
 /**
@@ -37,6 +47,12 @@ export async function registerWebFront(
     // Sin comodín propio: lo que no es un archivo pasa al manejador de 404, que decide.
     wildcard: false,
     index: ['index.html'],
+    // La caché la pone esto y no el plugin: sus defaults no distinguen un asset con hash de
+    // un index.html (F3-05).
+    cacheControl: false,
+    setHeaders: (response, path) => {
+      void response.header('Cache-Control', cacheControlFor(path));
+    },
   });
 
   return (request, reply) => {
