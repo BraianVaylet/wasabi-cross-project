@@ -4,9 +4,9 @@
 
 ## Fase actual
 
-**Fase 0 — Fundaciones: cerrada.** PR #1 mergeada el 2026-09-17 con CI verde, y las siete tarjetas
-de código movidas a `Completadas` en Trello. El monorepo corre: `apps/web`, `apps/api`,
-`packages/schemas` y `packages/ui`.
+**Fases 0 y 1: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde) y la 1 el 2026-09-22, con F1-18. El
+monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y `packages/ui`. La Fase 2 todavía no
+está desglosada en tareas.
 
 Queda abierta sólo F0-08 (el tablero): las seis etiquetas de Trello siguen sin nombre, y el MCP no
 puede nombrarlas. Es el único pendiente de la fase y no bloquea nada.
@@ -20,11 +20,13 @@ Lo que hay hoy, en una línea cada uno:
 - `@wasabi-cross/ui`: cinco Componentes Cross con tema dark/light y Storybook.
 - Catálogo de 34 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
 - CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
-  Storybook y audit de dependencias.
+  Storybook, audit de dependencias y el E2E de Playwright con su auditoría axe.
 
 ## En progreso
 
-**Fase 1 — El loop del atleta.** 18 tareas, 71 puntos, cargadas en Trello.
+**Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos, todas en
+`Completadas`. Un atleta se registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E
+recorre ese camino en cada PR.
 
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
 - **F1-02 · Migraciones**: cerrada. migrate-mongo
@@ -49,6 +51,8 @@ Lo que hay hoy, en una línea cada uno:
   escribiendo el nombre.
 - **F1-16 · Perfil**: cerrada. Porcentajes por defecto y tema, guardados en la API.
 - **F1-17 · Aviso de nueva versión**: cerrada. El popup de la PWA.
+- **F1-18 · E2E y axe en CI**: cerrada. Playwright contra la app entera con un Mongo efímero,
+  auditando cada pantalla de la fase en los dos temas. **Con esto la Fase 1 queda cerrada.**
 
 ## Bloqueado
 
@@ -56,7 +60,8 @@ Nada.
 
 ## Próximo paso
 
-1. Queda **F1-18** (E2E del flujo principal + axe en CI), la última de la Fase 1.
+1. Definir el alcance de la **Fase 2** con el usuario: la spec la tiene planteada, pero el plan de
+   acción todavía no la desglosa en tareas.
 2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -93,16 +98,21 @@ herramienta de migraciones → migrate-mongo ([ADR-0005](../adr/0005-migraciones
 
 ```bash
 pnpm install
-cp apps/api/.env.example apps/api/.env   # MONGODB_URI tiene que ser un replica set (ver el archivo)
-pnpm --filter @wasabi-cross/api migrate up   # sin esto, /ready responde no-listo
 pnpm verify                              # build + formato + lint + typecheck + test
-pnpm dev                                 # API en :3000, web en :5173
-pnpm --filter @wasabi-cross/api seed     # catálogo de ejercicios
+pnpm e2e                                 # Playwright: flujo principal + axe (levanta todo solo)
+
+# Para desarrollar contra datos que se tiran al cerrar: migra y siembra solo.
+pnpm --filter @wasabi-cross/api dev:ephemeral   # API en :3100, Mongo efímero
+
+# Contra un Mongo propio: las variables de apps/api/.env.example van EXPORTADAS en la shell
+# (nadie lee el .env), MONGODB_URI tiene que ser un replica set, y antes de levantar:
+pnpm --filter @wasabi-cross/api migrate up   # sin esto, /ready responde no-listo
+pnpm --filter @wasabi-cross/api seed         # catálogo de ejercicios
+pnpm dev                                     # API en :3000, web en :5173
 ```
 
 ## Última actualización
 
-2026-09-21 — F1-13b (historial del detalle), F1-15 (editar y borrar) y F1-14 (cargar una marca).
-Ver [bitácora de F1-13b](./bitacora/2026-09-21-f1-13b-historial.md),
-[la de F1-15](./bitacora/2026-09-21-f1-15-editar-borrar.md) y
+2026-09-22 — F1-18 (E2E del flujo principal y axe en CI): con esto cierra la Fase 1. Ver
+[su bitácora](./bitacora/2026-09-22-f1-18-e2e.md); la anterior es
 [la de F1-14](./bitacora/2026-09-21-f1-14-cargar-marca.md).

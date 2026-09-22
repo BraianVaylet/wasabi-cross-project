@@ -10,6 +10,10 @@ storybook-static/
 
 # Tests
 coverage/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
 
 # Entorno — los secrets nunca van al repo (spec §12)
 .env

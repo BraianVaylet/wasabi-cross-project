@@ -16,10 +16,13 @@
 | Fase                        | Tareas | Story points | Hechas |
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     19 |           71 |     16 |
+| Fase 1 — El loop del atleta |     19 |           71 |     19 |
 
-Las siete tareas de código están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y sus tarjetas
-movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
+Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
+sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
+
+**Fase 1 cerrada el 2026-09-22** con F1-18: el loop del atleta funciona de punta a punta y el E2E lo
+corre en CI contra un Mongo efímero.
 
 ## Etiquetas del tablero
 
@@ -640,7 +643,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   la spec §6 que hay que confirmar). Seis pruebas inversas; axe sin violaciones; probado a mano
   contra la API real. Cerrada: PR #25 mergeada el 2026-09-21.
 
-## [~] F1-13b · Detalle de ejercicio: historial
+## [x] F1-13b · Detalle de ejercicio: historial
 
 - **module:** web
 - **description:** La parte de los mockups 5 y 6 que necesita las marcas: historial con el valor
@@ -758,7 +761,7 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
   el build de la PWA fallaba al generar el service worker. Tres pruebas inversas. Cerrada: PR #23 mergeada el
   2026-09-21.
 
-## [ ] F1-18 · E2E del flujo principal y axe en CI
+## [x] F1-18 · E2E del flujo principal y axe en CI
 
 - **module:** infra
 - **description:** Playwright contra la app completa para el flujo crítico (spec §10), y auditoría
