@@ -1,9 +1,10 @@
-import type {
-  AddExercise,
-  RecordInput,
-  SignIn,
-  SignUpRequest,
-  UpdateManagedExercise,
+import {
+  statsPeriodSchema,
+  type AddExercise,
+  type RecordInput,
+  type SignIn,
+  type SignUpRequest,
+  type UpdateManagedExercise,
 } from '@wasabi-cross/schemas';
 import { useInfiniteQuery, useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import {
@@ -31,6 +32,7 @@ import {
   catalogQueryOptions,
   exerciseListQueryOptions,
   exerciseStatsQueryOptions,
+  generalStatsQueryOptions,
   historyQueryKey,
   historyQueryOptions,
   preferencesQueryOptions,
@@ -391,7 +393,15 @@ const profileRoute = createRoute({
  * evolución, y es lo que usa el botón del detalle. Un ID inventado no rompe la pantalla:
  * simplemente no coincide con ninguna fila.
  */
-const statsSearch = z.object({ abierto: z.string().optional().catch(undefined) });
+/** Lo que se mira si el usuario no eligió nada (F2-01 lo define igual en la API). */
+const DEFAULT_STATS_PERIOD = '12m';
+
+const statsSearch = z.object({
+  abierto: z.string().optional().catch(undefined),
+  // Opcional: mientras el usuario no elija, la URL no lleva ruido. Un período inventado
+  // tampoco rompe la pantalla: se ignora y se usa el de siempre.
+  periodo: statsPeriodSchema.optional().catch(undefined),
+});
 
 const statsRoute = createRoute({
   getParentRoute: () => appRoute,
@@ -399,25 +409,38 @@ const statsRoute = createRoute({
   validateSearch: (search) => statsSearch.parse(search),
   component: function StatsRoute() {
     const { api } = appRoute.useRouteContext();
-    const { abierto } = statsRoute.useSearch();
+    const { abierto, periodo } = statsRoute.useSearch();
+    const period = periodo ?? DEFAULT_STATS_PERIOD;
     const navigate = useNavigate();
     const exercises = useQuery(exerciseListQueryOptions(api));
 
     // Sólo la del que está abierto: en una lista de diez, nueve consultas no las mira nadie.
     const stats = useQuery({
-      ...exerciseStatsQueryOptions(api, abierto ?? '', '12m'),
+      ...exerciseStatsQueryOptions(api, abierto ?? '', period),
       enabled: abierto !== undefined,
     });
+    const general = useQuery(generalStatsQueryOptions(api, period));
 
     return (
       <StatsPage
         exercises={exercises}
         open={abierto}
         stats={abierto === undefined ? null : stats}
-        onToggle={(id) => {
+        general={general}
+        period={period}
+        onPeriodChange={(elegido) => {
+          // El período y lo abierto se escriben juntos: son toda la búsqueda de la ruta.
           void navigate({
             to: '.',
-            search: id === abierto ? {} : { abierto: id },
+            search: abierto === undefined ? { periodo: elegido } : { periodo: elegido, abierto },
+            replace: true,
+          });
+        }}
+        onToggle={(id) => {
+          const conPeriodo = periodo === undefined ? {} : { periodo };
+          void navigate({
+            to: '.',
+            search: id === abierto ? conPeriodo : { ...conPeriodo, abierto: id },
             replace: true,
           });
         }}

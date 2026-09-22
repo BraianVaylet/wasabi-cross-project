@@ -17,7 +17,7 @@
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
-| Fase 2 — Estadísticas       |     10 |           44 |      4 |
+| Fase 2 — Estadísticas       |     10 |           44 |      9 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1000,7 +1000,7 @@ F2-10 cierra la fase.
   Encontrado al mirarla de verdad: el gráfico se dibujaba más alto que su caja y se comía los
   números; ahora la altura va explícita. Cuatro pruebas inversas.
 
-## [ ] F2-08 · Sección de estadísticas generales
+## [x] F2-08 · Sección de estadísticas generales
 
 - **module:** web
 - **description:** La segunda mitad de la pantalla: la comparación por capacidad y por grupo
@@ -1017,6 +1017,10 @@ F2-10 cierra la fase.
 - **test_plan:** tests de pantalla con la API simulada, incluido el caso sin datos suficientes; axe.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** el período vive en la URL sólo cuando el usuario lo elige (sin ruido por defecto), y
+  uno inventado se ignora. Las etiquetas de capacidades y grupos pasaron a `lib/labels.ts`, que
+  comparten el alta y esta pantalla. Mirándola apareció que `--wc-danger-text` daba 4.0:1 sobre una
+  fila: aclarado a 5:1. Cuatro pruebas inversas.
 
 ## [x] F2-09 · Los accesos a Estadísticas
 

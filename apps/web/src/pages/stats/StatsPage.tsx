@@ -1,9 +1,16 @@
-import type { ExerciseStats, ManagedExerciseSummary } from '@wasabi-cross/schemas';
+import type {
+  ExerciseStats,
+  GeneralStats as Summary,
+  ManagedExerciseSummary,
+  StatsPeriod,
+} from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Chart, ChevronIcon, Skeleton } from '@wasabi-cross/ui';
+import { Chart, ChevronIcon, Select, Skeleton } from '@wasabi-cross/ui';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark } from '../../lib/format.ts';
+import { formatChange } from './change.ts';
+import { GeneralStats } from './GeneralStats.tsx';
 import './stats.css';
 
 export interface StatsPageProps {
@@ -13,21 +20,57 @@ export interface StatsPageProps {
   onToggle: (id: string) => void;
   /** La consulta del que está abierto. No hay más de una a la vez. */
   stats: UseQueryResult<ExerciseStats> | null;
+  /** El resumen por capacidad y grupo muscular (F2-08). */
+  general: UseQueryResult<Summary>;
+  period: StatsPeriod;
+  onPeriodChange: (period: StatsPeriod) => void;
 }
 
-/** Cómo se lee una variación: con signo, porque bajar también es un dato. */
-function formatChange(percent: number): string {
-  return `${percent > 0 ? '+' : ''}${String(percent)}%`;
+/** Las cuatro ventanas de tiempo del resumen (F2-01). */
+const PERIODS: readonly { value: StatsPeriod; label: string }[] = [
+  { value: '3m', label: 'Últimos 3 meses' },
+  { value: '6m', label: 'Últimos 6 meses' },
+  { value: '12m', label: 'Último año' },
+  { value: 'todo', label: 'Todo el historial' },
+];
+
+function isPeriod(value: string): value is StatsPeriod {
+  return PERIODS.some((period) => period.value === value);
 }
 
 /** Tus estadísticas (mockup 10): un acordeón de ejercicios con su evolución. */
-export function StatsPage({ exercises, open, onToggle, stats }: StatsPageProps): React.JSX.Element {
+export function StatsPage({
+  exercises,
+  open,
+  onToggle,
+  stats,
+  general,
+  period,
+  onPeriodChange,
+}: StatsPageProps): React.JSX.Element {
   return (
     <>
       <Link to="/" className="page__back">
         <span aria-hidden="true">‹</span> Ejercicios
       </Link>
       <h1 className="page__title">Tus estadísticas</h1>
+
+      <Select
+        className="stats__period"
+        label="Período"
+        value={period}
+        onChange={(event) => {
+          if (isPeriod(event.target.value)) {
+            onPeriodChange(event.target.value);
+          }
+        }}
+      >
+        {PERIODS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Select>
 
       {exercises.isPending ? <Skeleton label="Cargando tus ejercicios" count={4} /> : null}
       {exercises.isError ? (
@@ -49,7 +92,7 @@ export function StatsPage({ exercises, open, onToggle, stats }: StatsPageProps):
       ) : null}
 
       {exercises.data && exercises.data.exercises.length > 0 ? (
-        <ul className="stats__list">
+        <ul className="stats__list" aria-label="Ejercicios">
           {exercises.data.exercises.map((exercise) => (
             <li key={exercise.id}>
               <Row
@@ -63,6 +106,10 @@ export function StatsPage({ exercises, open, onToggle, stats }: StatsPageProps):
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {exercises.data && exercises.data.exercises.length > 0 ? (
+        <GeneralStats stats={general} />
       ) : null}
     </>
   );

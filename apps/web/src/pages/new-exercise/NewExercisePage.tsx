@@ -22,6 +22,7 @@ import {
 } from '@wasabi-cross/ui';
 import { useId } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
+import { CAPACITY_LABEL, MUSCLE_GROUP_LABEL, optionsFrom } from '../../lib/labels.ts';
 import { MARK_FIELD, today } from '../../lib/mark-input.ts';
 import {
   catalogMatch,
@@ -60,26 +61,9 @@ const SIN_CATEGORIA = { label: 'Marca', placeholder: 'Elegí primero la categor�
  * lo trae cargado. El segmento del cuerpo no está acá porque no se pregunta: sale de los
  * grupos musculares.
  */
-const CAPACITIES: readonly { value: Capacity; label: string }[] = [
-  { value: 'fuerza', label: 'Fuerza' },
-  { value: 'resistencia', label: 'Resistencia' },
-  { value: 'velocidad', label: 'Velocidad' },
-];
+const CAPACITIES = optionsFrom(CAPACITY_LABEL);
 
-const MUSCLE_GROUPS: readonly { value: MuscleGroup; label: string }[] = [
-  { value: 'pectoral', label: 'Pectoral' },
-  { value: 'espalda', label: 'Espalda' },
-  { value: 'hombro', label: 'Hombro' },
-  { value: 'biceps', label: 'Bíceps' },
-  { value: 'triceps', label: 'Tríceps' },
-  { value: 'antebrazo', label: 'Antebrazo' },
-  { value: 'core', label: 'Core' },
-  { value: 'gluteo', label: 'Glúteo' },
-  { value: 'cuadriceps', label: 'Cuádriceps' },
-  { value: 'isquiotibiales', label: 'Isquiotibiales' },
-  { value: 'gemelo', label: 'Gemelo' },
-  { value: 'cuerpo_completo', label: 'Cuerpo completo' },
-];
+const MUSCLE_GROUPS = optionsFrom(MUSCLE_GROUP_LABEL);
 
 /** Nuevo ejercicio (mockup 9): uno del catálogo o uno propio, con su primera marca. */
 export function NewExercisePage({

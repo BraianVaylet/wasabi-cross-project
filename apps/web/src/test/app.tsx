@@ -1,6 +1,7 @@
 import type {
   ExerciseList,
   ExerciseStats,
+  GeneralStats,
   LogRecordResponse,
   ManagedExerciseSummary,
   RecordHistory,
@@ -98,6 +99,13 @@ const ESTADISTICAS_VACIAS: ExerciseStats = {
   summary: null,
 };
 
+const GENERALES_VACIAS: GeneralStats = {
+  period: '12m',
+  byCapacity: [],
+  byMuscleGroup: [],
+  insufficient: { capacities: [], muscleGroups: [] },
+};
+
 const PREFERENCIAS: UserPreferences = {
   theme: 'dark',
   loadPercentages: [65, 75, 80, 85, 90, 95],
@@ -121,6 +129,9 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       logRecord: vi.fn<ApiClient['logRecord']>(() => Promise.resolve(MARCA_OK)),
       exerciseStats: vi.fn<ApiClient['exerciseStats']>((id, period) =>
         Promise.resolve({ ...ESTADISTICAS_VACIAS, id, period }),
+      ),
+      generalStats: vi.fn<ApiClient['generalStats']>((period) =>
+        Promise.resolve({ ...GENERALES_VACIAS, period }),
       ),
       preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
       savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>

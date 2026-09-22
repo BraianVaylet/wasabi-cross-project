@@ -27,16 +27,22 @@ Lo que hay hoy, en una línea cada uno:
 **Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos. Un atleta se
 registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese camino en cada PR.
 
-**Fase 2 — Estadísticas: en curso, 4 de 10 tareas.** 44 puntos en total.
+**Fase 2 — Estadísticas: en curso, 9 de 10 tareas.** 44 puntos en total.
 
 - **F2-01 · Contratos**: cerrada. El período, la serie, el resumen y los agregados, más
   `summarize()` en el paquete compartido.
-- **F2-02 · El ejercicio propio lleva capacidades y grupos musculares**: cerrada. Obligatorias en el
-  alta, el segmento se deriva, y una migración completa los que ya estaban.
-- **F2-03 · El formulario las pregunta**: cerrada. Sale el `CheckboxGroup` de `@wasabi-cross/ui`.
-- **F2-04 · Estadísticas de un ejercicio**: cerrada. `GET /api/v1/stats/exercises/:id` con la serie
-  del período y su resumen; nace el módulo `stats`.
-- Quedan F2-05 a F2-10: los agregados generales, el gráfico y la pantalla del mockup 10.
+- **F2-02 · El ejercicio propio lleva capacidades y grupos musculares** y **F2-03 · El formulario
+  las pregunta**: cerradas juntas. El segmento se deriva de los grupos; sale el `CheckboxGroup`.
+- **F2-04 · Estadísticas de un ejercicio**: cerrada. `GET /api/v1/stats/exercises/:id`; nace el
+  módulo `stats`.
+- **F2-05 · Estadísticas generales**: cerrada. `GET /api/v1/stats/summary` promedia variaciones por
+  capacidad y grupo muscular, nunca valores.
+- **F2-06 · Componente Cross de gráfico**: cerrada. TanStack Charts, con su tabla equivalente para
+  lectores de pantalla.
+- **F2-07 · Pantalla de Estadísticas** y **F2-09 · Los accesos**: cerradas juntas. El acordeón del
+  mockup 10, en el menú y en el detalle.
+- **F2-08 · Sección de estadísticas generales**: en PR (#38). Con el período en la URL.
+- Queda **F2-10** (el E2E de la pantalla), que cierra la fase.
 
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
 - **F1-02 · Migraciones**: cerrada. migrate-mongo
@@ -70,11 +76,9 @@ Nada.
 
 ## Próximo paso
 
-1. Seguir con **F2-05** (las estadísticas generales) o con **F2-06** (el Componente Cross de
-   gráfico), que no depende de la API.
-2. Cargar en Trello las diez tarjetas de la Fase 2 y mover lo cerrado (`/trello-sync`): el MCP de
-   Trello se desconectó en la sesión del 2026-09-22 y quedó todo sin sincronizar, incluida F1-18.
-3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+1. **F2-10**: sumar la pantalla de Estadísticas al E2E, con su axe en los dos temas. Cierra la
+   Fase 2.
+2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 
@@ -125,7 +129,7 @@ pnpm dev                                     # API en :3000, web en :5173
 
 ## Última actualización
 
-2026-09-22 — arrancó la Fase 2: F2-01 (contratos), y F2-02 y F2-03 (el ejercicio propio con sus
-capacidades). Ver [la bitácora de F2-02 y F2-03](./bitacora/2026-09-22-f2-02-f2-03-capacidades.md),
-[la de F2-01](./bitacora/2026-09-22-f2-01-contratos-estadisticas.md) y
-[la de F1-18](./bitacora/2026-09-22-f1-18-e2e.md), que cerró la Fase 1.
+2026-09-22 — Fase 2 casi entera: F2-01 a F2-09, con la pantalla de Estadísticas funcionando de punta
+a punta. Las bitácoras de cada una están en [bitacora](./bitacora); la última es
+[la de F2-08](./bitacora/2026-09-22-f2-08-generales-pantalla.md). El tablero de Trello quedó
+sincronizado.

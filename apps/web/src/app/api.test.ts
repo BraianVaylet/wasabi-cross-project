@@ -111,6 +111,14 @@ describe('cliente de API del front', () => {
     });
   });
 
+  it('el resumen general va a /stats/summary con su período', async () => {
+    const { llamadas, api } = apiEspía();
+
+    await api.generalStats('todo');
+
+    expect(llamadas[0]).toEqual({ path: '/api/v1/stats/summary?period=todo', options: undefined });
+  });
+
   it('las preferencias se leen y se guardan en /me/preferences', async () => {
     const { llamadas, api } = apiEspía();
 
