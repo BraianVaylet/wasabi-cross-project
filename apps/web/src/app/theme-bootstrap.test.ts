@@ -5,23 +5,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // `import.meta.url` no sirve acá: en el entorno jsdom es una URL http, no un file://.
 const INDEX_HTML = resolve(process.cwd(), 'index.html');
+const BOOTSTRAP = resolve(process.cwd(), 'public', 'theme-bootstrap.js');
 
 const html = readFileSync(INDEX_HTML, 'utf8');
+const bootstrap = readFileSync(BOOTSTRAP, 'utf8');
 
-/** El script inline del `<head>`, tal cual está en el HTML. */
-function bootstrapScript(): string {
-  const match = /<script>([\s\S]*?)<\/script>/.exec(html);
-  if (!match?.[1]) {
-    throw new Error('No hay script inline de bootstrap del tema en index.html');
-  }
-
-  return match[1];
-}
-
-/** Ejecuta el script del HTML como lo haría el browser. */
+/** Ejecuta el archivo del bootstrap como lo haría el browser: el real, no una copia. */
 function runInlineScript(): void {
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval -- el punto del test es correr el script real del HTML, no una copia
-  const run = new Function(bootstrapScript()) as () => void;
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval -- el punto del test es correr el script real, no una copia
+  const run = new Function(bootstrap) as () => void;
   run();
 }
 
@@ -46,7 +38,16 @@ describe('bootstrap del tema en index.html', () => {
   });
 
   it('corre antes del bundle de la app, si no el flash ya pasó', () => {
-    expect(html.indexOf('<script>')).toBeLessThan(html.indexOf('/src/main.tsx'));
+    expect(html.indexOf('/theme-bootstrap.js')).toBeGreaterThan(-1);
+    expect(html.indexOf('/theme-bootstrap.js')).toBeLessThan(html.indexOf('/src/main.tsx'));
+  });
+
+  it('se carga como archivo y sin defer ni async: tiene que correr antes de pintar', () => {
+    expect(html).toMatch(/<script src="\/theme-bootstrap\.js"><\/script>/);
+  });
+
+  it('el HTML no tiene scripts inline: la CSP de la API los bloquearía (F3-03)', () => {
+    expect(html).not.toMatch(/<script>/);
   });
 
   it.each([

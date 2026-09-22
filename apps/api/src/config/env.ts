@@ -19,6 +19,12 @@ const envSchema = z.object({
   // "localhost:". Eso terminaría en la config de CORS, así que se exige http/https.
   WEB_ORIGIN: httpUrl,
 
+  /*
+   * Dónde está el front compilado (`apps/web/dist`). Con esto la API lo sirve, en el mismo
+   * origen (F3-03, ADR-0007). Sin esto —desarrollo— el front lo sirve Vite.
+   */
+  WEB_DIST_DIR: z.string().min(1).optional(),
+
   BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET necesita al menos 32 caracteres'),
   BETTER_AUTH_URL: httpUrl,
 });

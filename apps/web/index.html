@@ -9,26 +9,11 @@
   </head>
   <body>
     <!--
-      Aplica el tema antes del primer pintado. Si esperara al bundle de React, el usuario
-      vería un parpadeo claro/oscuro en cada carga. Copiado de THEME_BOOTSTRAP_SCRIPT en
-      @wasabi-cross/ui — un test verifica que sigan siendo el mismo script.
+      Aplica el tema antes del primer pintado, sin esperar al bundle de React. Es un archivo
+      y no un script inline para que la CSP no lo bloquee (F3-03). Clásico y sin `defer`:
+      tiene que correr antes de que se pinte nada.
     -->
-    <script>
-      (function () {
-        try {
-          var s = localStorage.getItem('wasabi-cross:theme');
-          var t =
-            s === 'dark' || s === 'light'
-              ? s
-              : window.matchMedia('(prefers-color-scheme: light)').matches
-                ? 'light'
-                : 'dark';
-          document.documentElement.dataset.theme = t;
-        } catch (e) {
-          document.documentElement.dataset.theme = 'dark';
-        }
-      })();
-    </script>
+    <script src="/theme-bootstrap.js"></script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

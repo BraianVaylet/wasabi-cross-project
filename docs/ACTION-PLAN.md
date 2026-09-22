@@ -1143,7 +1143,7 @@ el smoke contra staging (F3-12), que cierra la fase.
   sigue siendo `WC-SYS-500-001` y no filtra su mensaje: lo probó una prueba inversa que sin ese
   test sobrevivía.
 
-## [ ] F3-03 · El front y la API en el mismo sitio
+## [~] F3-03 · El front y la API en el mismo sitio
 
 - **module:** infra
 - **description:** Decidir y dejar en un ADR cómo se sirven el front y la API. La cookie de sesión
@@ -1163,6 +1163,11 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **test_plan:** la decisión se prueba en F3-12, con el smoke contra staging.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código y ADR-0007 (propuesta) listos: la API sirve el front con `WEB_DIST_DIR`, las
+  navegaciones de la SPA caen en el `index.html` y lo de la API sigue en JSON. Probado a mano con el
+  front compilado servido por la API: registro, sesión y navegación directa a una ruta, sin
+  violaciones de CSP. El bootstrap del tema dejó de ser un script inline, que la CSP bloqueaba.
+  Falta el segundo criterio —la sesión en staging—, que se cierra con F3-07 y F3-12.
 
 ## [ ] F3-04 · El build de producción de la API
 

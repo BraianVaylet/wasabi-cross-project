@@ -12,6 +12,9 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/storybook-static/**',
       '**/*.d.ts',
+      // Se sirven tal cual, sin pasar por el build: JS a mano, fuera de todo tsconfig. Hoy
+      // es sólo el bootstrap del tema, que el test de theme-bootstrap ya ejecuta y compara.
+      'apps/web/public/**',
     ],
   },
 
