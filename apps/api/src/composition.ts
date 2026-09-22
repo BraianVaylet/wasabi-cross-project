@@ -18,6 +18,10 @@ import { logRecord, recordHistory } from './modules/records/application/records.
 import type { OwnedExerciseLookup } from './modules/records/domain/record-ports.ts';
 import { createMongoRecordGateway } from './modules/records/infrastructure/mongo-record.gateway.ts';
 import type { RecordRoutesOptions } from './modules/records/infrastructure/record.routes.ts';
+import { exerciseStats } from './modules/stats/application/exercise-stats.ts';
+import type { OwnedExerciseNameLookup } from './modules/stats/domain/stats-ports.ts';
+import { createMongoStatsSource } from './modules/stats/infrastructure/mongo-stats.source.ts';
+import type { StatsRoutesOptions } from './modules/stats/infrastructure/stats.routes.ts';
 import { withExerciseSlot } from './modules/subscriptions/application/with-exercise-slot.ts';
 import { createMongoUserSerializer } from './modules/subscriptions/infrastructure/mongo-user-serializer.ts';
 import { getPreferences, updatePreferences } from './modules/users/application/preferences.ts';
@@ -85,6 +89,25 @@ export function composeRecords(
       logRecord({ lookup, store }, { userId, managedExerciseId, input }),
     recordHistory: (userId, managedExerciseId, page) =>
       recordHistory({ lookup, store }, { userId, managedExerciseId, ...page }),
+  };
+}
+
+/**
+ * Las estadísticas (F2-04). `stats` no conoce el modelo de nadie: `exercises` le dice de
+ * quién es el ejercicio y cómo se llama, y las marcas se leen como serie.
+ */
+export function composeStats(mongo: MongoConnection): Omit<StatsRoutesOptions, 'requireSession'> {
+  const exercises = createMongoManagedExerciseStore(mongo.db);
+  const records = createMongoStatsSource(mongo.db);
+
+  const lookup: OwnedExerciseNameLookup = {
+    findOwned: (userId, managedExerciseId) =>
+      findOwnedMeasure(exercises, userId, managedExerciseId),
+  };
+
+  return {
+    exerciseStats: (userId, managedExerciseId, period) =>
+      exerciseStats({ lookup, records }, { userId, managedExerciseId, period }),
   };
 }
 

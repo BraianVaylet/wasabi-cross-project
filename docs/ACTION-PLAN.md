@@ -17,7 +17,7 @@
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
-| Fase 2 — Estadísticas       |     10 |           44 |      3 |
+| Fase 2 — Estadísticas       |     10 |           44 |      4 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -899,7 +899,7 @@ F2-10 cierra la fase.
 - **cierre:** salió el `CheckboxGroup` de `@wasabi-cross/ui`, con su story. Va junto con F2-02 en la
   misma PR: separadas, `main` quedaba sin poder crear un ejercicio propio desde la pantalla.
 
-## [ ] F2-04 · Estadísticas de un ejercicio
+## [x] F2-04 · Estadísticas de un ejercicio
 
 - **module:** api
 - **description:** `GET /api/v1/stats/exercises/:id`: la serie de marcas del período y su resumen.
@@ -920,6 +920,9 @@ F2-10 cierra la fase.
 - **error-codes:** `WC-STATS-404-001` (el ejercicio no existe o no es del usuario).
 - **data-model-impact:** ninguno nuevo; si la consulta lo justifica, un índice por
   `(managedExerciseId, performedAt)` — por migración, como todo (ADR-0005).
+- **cierre:** nace el módulo `stats`, que lee la serie por un puerto y pide el nombre y la medición
+  a `exercises`. El índice existente (`managed_history`) ya cubre la consulta, así que no hizo falta
+  uno nuevo. Cuatro pruebas inversas.
 
 ## [ ] F2-05 · Estadísticas generales
 
