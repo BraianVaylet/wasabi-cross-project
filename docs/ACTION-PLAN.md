@@ -18,7 +18,7 @@
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
 | Fase 2 — Estadísticas       |     10 |           44 |     10 |
-| Fase 3 — A producción       |     12 |           37 |      2 |
+| Fase 3 — A producción       |     12 |           37 |      3 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1198,7 +1198,7 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F3-05 · El build de producción del front
+## [x] F3-05 · El build de producción del front
 
 - **module:** infra
 - **description:** El front como lo sirva F3-03: build estático con la URL de la API resuelta en el
@@ -1215,6 +1215,11 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **test_plan:** el E2E corriendo contra el build de producción en vez del servidor de desarrollo.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** `pnpm e2e:prod` corre toda la suite contra el front compilado y servido por la API, y
+  es lo que corre CI. Suma cuatro tests que sólo existen ahí: la ruta de la SPA pedida de cero, la
+  caché (assets con hash un año; `index.html` y service worker, revalidar), el service worker
+  registrándose y la consola sin quejas de la CSP. El service worker, que el navegador embebido no
+  registraba, en Chromium anda.
 
 ## [ ] F3-06 · Headers de seguridad en producción
 

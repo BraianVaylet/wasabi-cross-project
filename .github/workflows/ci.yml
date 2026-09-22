@@ -89,9 +89,10 @@ jobs:
       - name: Instalar Chromium
         run: pnpm --filter @wasabi-cross/web exec playwright install --with-deps chromium
 
-      # Levanta la API contra un Mongo efímero y el front apuntando a ella (F1-18).
+      # Contra el build de producción: la API, sobre un Mongo efímero, sirviendo el front
+      # compilado en el mismo origen, como va a correr en Railway (F3-05, ADR-0007).
       - name: E2E
-        run: pnpm e2e
+        run: pnpm e2e:prod
 
       - name: Reporte de Playwright
         if: failure()
