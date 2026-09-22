@@ -72,9 +72,7 @@ Nada.
 
 1. Seguir con **F2-05** (las estadísticas generales) o con **F2-06** (el Componente Cross de
    gráfico), que no depende de la API.
-2. Cargar en Trello las diez tarjetas de la Fase 2 y mover lo cerrado (`/trello-sync`): el MCP de
-   Trello se desconectó en la sesión del 2026-09-22 y quedó todo sin sincronizar, incluida F1-18.
-3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 
