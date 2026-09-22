@@ -18,7 +18,7 @@
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
 | Fase 2 — Estadísticas       |     10 |           44 |      9 |
-| Fase 3 — A producción       |     12 |           37 |      0 |
+| Fase 3 — A producción       |     12 |           37 |      1 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1095,7 +1095,7 @@ el smoke contra staging (F3-12), que cierra la fase.
   ninguno de los dos.
 - Probar en `prod`. Nunca (CLAUDE.md): el smoke corre contra staging.
 
-## [ ] F3-01 · La API lee su `.env` en desarrollo
+## [x] F3-01 · La API lee su `.env` en desarrollo
 
 - **module:** infra
 - **description:** Hoy nadie carga `apps/api/.env`: el paso documentado (`cp .env.example .env` y
@@ -1115,6 +1115,10 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **test_plan:** probado a mano con y sin `.env`; CLAUDE.md y STATE.md vuelven a decir la verdad.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** `dev`, `migrate` y `seed` usan `--env-file-if-exists=.env` (Node 24, `tsx` lo pasa
+  de largo). `start` y `migrate:dist`, no: en producción las variables las pone la plataforma.
+  `dev:ephemeral` tampoco, porque arma su propio entorno y un `.env` de desarrollo lo pisaría.
+  Probado de punta a punta: `.env` real, `migrate up`, `seed`, `pnpm dev` y `/ready` en verde.
 
 ## [ ] F3-02 · Un error del cliente responde 4xx, no 500
 

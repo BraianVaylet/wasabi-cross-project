@@ -65,10 +65,10 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 | `pnpm --filter @wasabi-cross/api dev:ephemeral`   | La API contra un Mongo que nace y muere con el proceso           |
 | `pnpm --filter @wasabi-cross/ui storybook`        | Storybook en el puerto 6006                                      |
 
-Antes de levantar la API hacen falta sus variables de entorno —las de `apps/api/.env.example`,
-**exportadas en la shell**: hoy nadie lee el `.env` solo— y las migraciones corridas, porque sin
-ellas `/ready` responde no-listo. Para probar sin montar nada, `dev:ephemeral` se ocupa de las dos
-cosas contra un Mongo descartable.
+Antes de levantar la API hace falta un `.env` —copiar de `apps/api/.env.example`; `dev`, `migrate`
+y `seed` lo leen solos— y las migraciones corridas, porque sin ellas `/ready` responde no-listo. En
+producción no hay `.env`: las variables las pone la plataforma. Para probar sin montar nada,
+`dev:ephemeral` se ocupa de todo contra un Mongo descartable.
 
 ## Reglas de arquitectura
 
