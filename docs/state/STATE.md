@@ -24,9 +24,12 @@ Lo que hay hoy, en una línea cada uno:
 
 ## En progreso
 
-**Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos, todas en
-`Completadas`. Un atleta se registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E
-recorre ese camino en cada PR.
+**Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos. Un atleta se
+registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese camino en cada PR.
+
+**Fase 2 — Estadísticas: desglosada, sin empezar.** Ocho tareas, 34 puntos: los contratos, el
+módulo `stats` en la API, el Componente Cross de gráfico y la pantalla del mockup 10. F2-03 arranca
+recién cuando esté contestada la decisión sobre los ejercicios propios.
 
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
 - **F1-02 · Migraciones**: cerrada. migrate-mongo
@@ -60,9 +63,14 @@ Nada.
 
 ## Próximo paso
 
-1. Definir el alcance de la **Fase 2** con el usuario: la spec la tiene planteada, pero el plan de
-   acción todavía no la desglosa en tareas.
-2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+1. Arrancar **F2-01** (contratos de estadísticas): la Fase 2 ya está desglosada en ocho tareas, 34
+   puntos, en [ACTION-PLAN.md](../ACTION-PLAN.md).
+2. Contestar la decisión que bloquea **F2-03**: un ejercicio propio no tiene capacidades ni grupos
+   musculares. O queda fuera de los agregados generales, o el alta pasa a pedírselos (cambio de
+   spec §5.1).
+3. Cargar en Trello las ocho tarjetas de la Fase 2 (`/trello-sync`): el MCP de Trello se desconectó
+   en la sesión del 2026-09-22 y quedaron sin crear. F1-18 tampoco se pudo mover a `Completadas`.
+4. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
 

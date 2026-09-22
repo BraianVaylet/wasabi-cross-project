@@ -17,6 +17,7 @@
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
+| Fase 2 — Estadísticas       |      8 |           34 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -687,6 +688,9 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **test_plan:** tests de componentes del camino feliz, del rollback y del manejo de foco.
 - **error-codes:** consume `WC-RM-422-001`.
 - **data-model-impact:** ninguno
+- **cierre:** el modal cierra al guardar y el error se muestra en la pantalla de atrás; `onSettled`
+  invalida sin `await`, porque React Query recién marca el error cuando termina. Dos tests pasaban
+  con el código roto y se reescribieron. Cerrada: PR #28 mergeada el 2026-09-21.
 
 ## [x] F1-15 · Editar y borrar ejercicio
 
@@ -777,5 +781,201 @@ paralelo. Las pantallas (F1-11 a F1-17) esperan a su endpoint. F1-18 cierra la f
 - **depends_on:** F1-10, F1-11, F1-12, F1-13a, F1-14
 - **risk:** medium
 - **test_plan:** el propio E2E, corriendo en CI contra un Mongo efímero.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+- **cierre:** seis tests de Playwright y `dev:ephemeral` para levantar la API con un Mongo
+  descartable. El axe del navegador encontró tres contrastes por debajo de AA que jsdom no podía
+  ver, arreglados en los tokens. Cerrada: PR #29 mergeada el 2026-09-22.
+
+---
+
+# Fase 2 — Estadísticas
+
+La pantalla del mockup 10 y lo que la alimenta: cómo evolucionó cada ejercicio, y qué dicen esos
+números juntos por capacidad y por grupo muscular (spec §5). Es la primera fase que lee los datos en
+lugar de escribirlos.
+
+**Antes de arrancar:** el módulo `stats` (spec §7) todavía no existe. Nace acá, y como cualquier
+otro módulo no puede importar el modelo de `exercises` ni el de `records`: las lecturas que necesita
+entran por puertos inyectados desde `composition.ts`.
+
+**Decisión pendiente, F2-03 la necesita:** un ejercicio **propio** no tiene capacidades ni grupos
+musculares — hoy sólo los tiene el catálogo. O queda fuera de los agregados generales, o el alta
+pasa a pedírselos (cambio de spec §5.1, con el usuario). Sin esa respuesta, F2-03 no arranca.
+
+**Orden sugerido.** F2-01 primero, que fija los contratos. F2-02 y F2-03 pueden ir en paralelo con
+F2-04: el gráfico es de `@wasabi-cross/ui` y no depende de la API. Las pantallas (F2-05, F2-06)
+esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
+
+**Fuera de la Fase 2**, para que no se cuele:
+
+- Deploy a Railway y Mongo Atlas, backups y monitoreo (spec §12). Fase propia, la que sigue.
+- Comparar con otros usuarios, rankings o promedios de la comunidad — no está en la spec, y §2 dice
+  qué no es Wasabi Cross.
+- Exportar a CSV o PDF. No aparece en los mockups.
+- Predicciones o recomendaciones de entrenamiento. No es un coach (spec §2).
+- Eventos de dominio (`pr.achieved`, spec §7): las agregaciones se calculan al pedirlas. Entran
+  cuando haya algo que invalidar o algo que notificar, no antes.
+- Editar o borrar marcas sueltas. Sigue sin estar en los mockups.
+
+## [ ] F2-01 · Contratos de estadísticas
+
+- **module:** schemas
+- **description:** Los Zod compartidos de la fase: la serie de un ejercicio (punto = fecha + valor),
+  su resumen (mejor, peor, actual y variación en el período) y los agregados generales por capacidad
+  y por grupo muscular. Incluye el período pedido, que es el mismo para todos los endpoints.
+- **acceptance-criteria:**
+  - Dado un período, cuando llega a la API, entonces se valida contra un enum (`3m`, `6m`, `12m`,
+    `todo`) y por defecto es `12m`.
+  - Dada una serie, cuando se serializa, entonces cada punto lleva fecha ISO y valor, y la unidad
+    viaja una sola vez, no repetida en cada punto.
+  - Dado un ejercicio de tiempo, cuando se resume, entonces "mejor" es el mínimo y la variación se
+    lee al revés que en RM: bajar es mejorar.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** tests de schema por cada regla, incluida la de tiempo; un período inválido se
+  rechaza.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F2-02 · Estadísticas de un ejercicio
+
+- **module:** api
+- **description:** `GET /api/v1/stats/exercises/:id`: la serie de marcas del período y su resumen.
+  Nace el módulo `stats`, que lee el historial por un puerto inyectado y no conoce el modelo de
+  `records`.
+- **acceptance-criteria:**
+  - Dado un ejercicio con marcas, cuando se piden sus estadísticas, entonces la serie viene ordenada
+    de la más vieja a la más reciente y el resumen coincide con esas marcas.
+  - Dado un ejercicio sin marcas en el período, cuando se piden, entonces la serie es vacía y el
+    resumen viene en `null`, no en cero.
+  - Dado un ejercicio de otro usuario, cuando se piden sus estadísticas, entonces responde 404.
+- **example:** Back squat, período `6m`: cuatro marcas de 100 a 120 kg, mejor 120, variación +20%.
+- **story-points:** 5
+- **depends_on:** F2-01
+- **risk:** medium
+- **test_plan:** integración con marcas desordenadas; un período que deja marcas afuera; IDOR con
+  dos usuarios; ejercicio de tiempo, donde la mejor es la mínima.
+- **error-codes:** `WC-STATS-404-001` (el ejercicio no existe o no es del usuario).
+- **data-model-impact:** ninguno nuevo; si la consulta lo justifica, un índice por
+  `(managedExerciseId, performedAt)` — por migración, como todo (ADR-0005).
+
+## [ ] F2-03 · Estadísticas generales
+
+- **module:** api
+- **description:** `GET /api/v1/stats/summary`: la evolución agregada por capacidad y por grupo
+  muscular en el período, que es lo que responde "¿el tren inferior progresa más rápido que el
+  superior?" (spec §5). Necesita la decisión sobre los ejercicios propios.
+- **acceptance-criteria:**
+  - Dado un usuario con ejercicios de varias capacidades, cuando pide el resumen, entonces cada
+    capacidad trae su variación en el período y cuántos ejercicios la sostienen.
+  - Dada una capacidad sin marcas suficientes, cuando se arma el resumen, entonces no aparece
+    inventada en cero: se informa que no alcanza.
+  - Dado el resumen, cuando se calcula, entonces nunca mezcla unidades: kg con kg, reps con reps y
+    tiempo con tiempo.
+- **example:** —
+- **story-points:** 8
+- **depends_on:** F2-01, F2-02
+- **risk:** high
+- **test_plan:** unit del cálculo con capacidades mezcladas y unidades distintas; integración con un
+  usuario armado a mano; aislamiento entre usuarios.
+- **error-codes:** ninguno nuevo
+- **data-model-impact:** ninguno
+
+## [ ] F2-04 · Componente Cross de gráfico
+
+- **module:** ui
+- **description:** El gráfico de línea del mockup 10 con TanStack Charts, como Componente Cross: sin
+  lógica de negocio, sólo puntos y ejes. Accesible de verdad — un gráfico que un lector de pantalla
+  no puede leer no cumple WCAG 2.2 AA.
+- **acceptance-criteria:**
+  - Dado un gráfico, cuando lo recorre un lector de pantalla, entonces encuentra los mismos datos en
+    una tabla equivalente, y no un dibujo mudo.
+  - Dado el tema claro y el oscuro, cuando se dibuja, entonces usa los tokens y pasa contraste AA en
+    los dos.
+  - Dada una serie vacía o de un solo punto, cuando se dibuja, entonces no rompe ni miente con una
+    línea inventada.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** —
+- **risk:** medium
+- **test_plan:** tests de componente con serie normal, vacía y de un punto; axe sin violaciones;
+  story en Storybook.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F2-05 · Pantalla de Estadísticas
+
+- **module:** web
+- **description:** `/estadisticas` (mockup 10): el acordeón de ejercicios, con el gráfico y los
+  números del que está abierto. Cuál está abierto vive en la URL, como el porcentaje del detalle.
+- **acceptance-criteria:**
+  - Dada la pantalla, cuando se abre un ejercicio, entonces recién ahí se piden sus estadísticas, y
+    la URL guarda cuál quedó abierto.
+  - Dado un ejercicio sin marcas todavía, cuando se abre, entonces lo dice en lugar de mostrar un
+    gráfico vacío.
+  - Dado el acordeón, cuando se maneja con teclado, entonces se abre y se cierra con Enter y con
+    Espacio, y su estado se anuncia con `aria-expanded`.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F2-02, F2-04
+- **risk:** medium
+- **test_plan:** tests de pantalla con la API simulada: carga diferida, estado vacío, error y
+  teclado; axe sin violaciones.
+- **error-codes:** consume `WC-STATS-404-001`
+- **data-model-impact:** ninguno
+
+## [ ] F2-06 · Sección de estadísticas generales
+
+- **module:** web
+- **description:** La segunda mitad de la pantalla: la comparación por capacidad y por grupo
+  muscular, con el período elegido.
+- **acceptance-criteria:**
+  - Dada la sección, cuando hay datos, entonces se lee qué capacidad progresó más y cuál menos sin
+    tener que interpretar un gráfico.
+  - Dado un cambio de período, cuando se elige, entonces queda en la URL y se vuelven a pedir los
+    dos bloques de la pantalla.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F2-03, F2-05
+- **risk:** low
+- **test_plan:** tests de pantalla con la API simulada, incluido el caso sin datos suficientes; axe.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F2-07 · Los accesos a Estadísticas
+
+- **module:** web
+- **description:** "Estadísticas" en el menú del header (quedó afuera en F1-09) y el acceso desde el
+  detalle de un ejercicio, que la spec §5 pide como acción de esa pantalla.
+- **acceptance-criteria:**
+  - Dado el menú, cuando se abre, entonces "Estadísticas" lleva a `/estadisticas`.
+  - Dado el detalle de un ejercicio, cuando se toca "Estadísticas", entonces abre la pantalla con
+    ese ejercicio ya desplegado.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F2-05
+- **risk:** low
+- **test_plan:** tests de navegación sobre el shell y sobre el detalle; axe.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F2-08 · E2E de Estadísticas
+
+- **module:** infra
+- **description:** El recorrido nuevo sumado al E2E de F1-18: cargar marcas y verlas en la pantalla
+  de Estadísticas, con su auditoría axe. Cierra la fase.
+- **acceptance-criteria:**
+  - Dado un atleta con tres marcas de un ejercicio, cuando abre Estadísticas, entonces ve su
+    evolución y los números que corresponden a esas marcas.
+  - Dada la pantalla nueva, cuando corre axe en los dos temas, entonces no hay violaciones WCAG 2.2
+    AA.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F2-05, F2-06, F2-07
+- **risk:** low
+- **test_plan:** el propio E2E, en el job que ya existe.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
