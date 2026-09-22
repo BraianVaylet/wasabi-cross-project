@@ -17,7 +17,7 @@
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
-| Fase 2 — Estadísticas       |      8 |           34 |      0 |
+| Fase 2 — Estadísticas       |     10 |           44 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -799,13 +799,15 @@ lugar de escribirlos.
 otro módulo no puede importar el modelo de `exercises` ni el de `records`: las lecturas que necesita
 entran por puertos inyectados desde `composition.ts`.
 
-**Decisión pendiente, F2-03 la necesita:** un ejercicio **propio** no tiene capacidades ni grupos
-musculares — hoy sólo los tiene el catálogo. O queda fuera de los agregados generales, o el alta
-pasa a pedírselos (cambio de spec §5.1, con el usuario). Sin esa respuesta, F2-03 no arranca.
+**Decidido el 2026-09-22 (spec §5.1 actualizada):** un ejercicio **propio** también lleva
+capacidades y grupos musculares, y el formulario de alta los pregunta. Sin eso, los propios
+quedarían afuera de las estadísticas generales. El segmento del cuerpo no se pregunta: se deriva de
+los grupos musculares. Eso agrega F2-02 y F2-03, que van antes que las agregaciones.
 
-**Orden sugerido.** F2-01 primero, que fija los contratos. F2-02 y F2-03 pueden ir en paralelo con
-F2-04: el gráfico es de `@wasabi-cross/ui` y no depende de la API. Las pantallas (F2-05, F2-06)
-esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
+**Orden sugerido.** F2-01 fija los contratos y F2-02 el modelo del ejercicio propio; pueden ir en
+paralelo. F2-03 sigue a F2-02, y F2-04 a F2-01. F2-06 (el gráfico) no depende de la API y puede
+hacerse en cualquier momento. Las pantallas (F2-07, F2-08) esperan a su endpoint; F2-09 las enlaza y
+F2-10 cierra la fase.
 
 **Fuera de la Fase 2**, para que no se cuele:
 
@@ -817,6 +819,8 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
 - Eventos de dominio (`pr.achieved`, spec §7): las agregaciones se calculan al pedirlas. Entran
   cuando haya algo que invalidar o algo que notificar, no antes.
 - Editar o borrar marcas sueltas. Sigue sin estar en los mockups.
+- Cambiar capacidades o grupos musculares de un ejercicio propio ya creado. Va con la edición del
+  ejercicio, si aparece la necesidad.
 
 ## [ ] F2-01 · Contratos de estadísticas
 
@@ -840,7 +844,55 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F2-02 · Estadísticas de un ejercicio
+## [ ] F2-02 · El ejercicio propio lleva capacidades y grupos musculares
+
+- **module:** api
+- **description:** Hoy sólo el catálogo los tiene, así que un ejercicio propio no entra en las
+  estadísticas generales (spec §5.1, actualizada el 2026-09-22). El alta de un propio pasa a
+  recibirlos, y el segmento del cuerpo se deriva de los grupos musculares en vez de preguntarse.
+- **acceptance-criteria:**
+  - Dado un alta propia sin capacidades o sin grupos musculares, cuando llega, entonces se rechaza
+    con `WC-SYS-400-002` y no se crea nada.
+  - Dados grupos musculares de más de un segmento, cuando se guarda, entonces el segmento derivado
+    es `cuerpo_completo`; con un solo segmento, el suyo.
+  - Dada un alta del catálogo, cuando manda capacidades o grupos musculares, entonces no pisan las
+    del catálogo.
+  - Dados los ejercicios propios ya cargados, cuando corre la migración, entonces quedan con
+    capacidades y grupos musculares, y `down` los deja como estaban.
+- **example:** Un "Peso muerto rumano" propio con cuádriceps e isquiotibiales queda en tren
+  inferior; si además lleva core, queda en cuerpo completo.
+- **story-points:** 5
+- **depends_on:** —
+- **risk:** medium
+- **test_plan:** unit de la derivación del segmento, con un grupo, con varios del mismo segmento y
+  con mezcla; integración del alta en sus dos formas; migración up, down y up de nuevo.
+- **error-codes:** ninguno nuevo (usa `WC-SYS-400-002`)
+- **data-model-impact:** el ejercicio propio gana `capacities`, `muscleGroups` y `bodySegment`, con
+  su migración versionada y reversible (ADR-0005).
+
+## [ ] F2-03 · El formulario pregunta capacidades y grupos musculares
+
+- **module:** web
+- **description:** En "Nuevo ejercicio" (mockup 9), cuando el nombre no es del catálogo, aparecen
+  los dos selectores múltiples. El segmento del cuerpo no se pregunta: sale de los grupos elegidos.
+  Si hace falta, sale de acá un `CheckboxGroup` en `@wasabi-cross/ui`.
+- **acceptance-criteria:**
+  - Dado un nombre que no está en el catálogo, cuando se completa el formulario, entonces pide
+    capacidades y grupos musculares, y sin ellos no deja guardar.
+  - Dado un nombre del catálogo, cuando se elige, entonces esos campos no aparecen: ya están
+    definidos.
+  - Dados los selectores, cuando se manejan con teclado, entonces se elige y se quita sin mouse, y
+    lo elegido queda anunciado.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F2-02
+- **risk:** low
+- **test_plan:** tests de pantalla con la API simulada en los dos caminos (catálogo y propio),
+  teclado, y axe sin violaciones; story del componente nuevo si aparece.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F2-04 · Estadísticas de un ejercicio
 
 - **module:** api
 - **description:** `GET /api/v1/stats/exercises/:id`: la serie de marcas del período y su resumen.
@@ -862,12 +914,12 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
 - **data-model-impact:** ninguno nuevo; si la consulta lo justifica, un índice por
   `(managedExerciseId, performedAt)` — por migración, como todo (ADR-0005).
 
-## [ ] F2-03 · Estadísticas generales
+## [ ] F2-05 · Estadísticas generales
 
 - **module:** api
 - **description:** `GET /api/v1/stats/summary`: la evolución agregada por capacidad y por grupo
   muscular en el período, que es lo que responde "¿el tren inferior progresa más rápido que el
-  superior?" (spec §5). Necesita la decisión sobre los ejercicios propios.
+  superior?" (spec §5). Con F2-02, los ejercicios propios cuentan igual que los del catálogo.
 - **acceptance-criteria:**
   - Dado un usuario con ejercicios de varias capacidades, cuando pide el resumen, entonces cada
     capacidad trae su variación en el período y cuántos ejercicios la sostienen.
@@ -875,16 +927,17 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
     inventada en cero: se informa que no alcanza.
   - Dado el resumen, cuando se calcula, entonces nunca mezcla unidades: kg con kg, reps con reps y
     tiempo con tiempo.
+  - Dado un ejercicio propio, cuando entra en el resumen, entonces pesa igual que uno del catálogo.
 - **example:** —
 - **story-points:** 8
-- **depends_on:** F2-01, F2-02
+- **depends_on:** F2-01, F2-02, F2-04
 - **risk:** high
 - **test_plan:** unit del cálculo con capacidades mezcladas y unidades distintas; integración con un
-  usuario armado a mano; aislamiento entre usuarios.
+  usuario armado a mano, con propios y de catálogo; aislamiento entre usuarios.
 - **error-codes:** ninguno nuevo
 - **data-model-impact:** ninguno
 
-## [ ] F2-04 · Componente Cross de gráfico
+## [ ] F2-06 · Componente Cross de gráfico
 
 - **module:** ui
 - **description:** El gráfico de línea del mockup 10 con TanStack Charts, como Componente Cross: sin
@@ -906,7 +959,7 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F2-05 · Pantalla de Estadísticas
+## [ ] F2-07 · Pantalla de Estadísticas
 
 - **module:** web
 - **description:** `/estadisticas` (mockup 10): el acordeón de ejercicios, con el gráfico y los
@@ -920,14 +973,14 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
     Espacio, y su estado se anuncia con `aria-expanded`.
 - **example:** —
 - **story-points:** 5
-- **depends_on:** F2-02, F2-04
+- **depends_on:** F2-04, F2-06
 - **risk:** medium
 - **test_plan:** tests de pantalla con la API simulada: carga diferida, estado vacío, error y
   teclado; axe sin violaciones.
 - **error-codes:** consume `WC-STATS-404-001`
 - **data-model-impact:** ninguno
 
-## [ ] F2-06 · Sección de estadísticas generales
+## [ ] F2-08 · Sección de estadísticas generales
 
 - **module:** web
 - **description:** La segunda mitad de la pantalla: la comparación por capacidad y por grupo
@@ -939,13 +992,13 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
     dos bloques de la pantalla.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F2-03, F2-05
+- **depends_on:** F2-05, F2-07
 - **risk:** low
 - **test_plan:** tests de pantalla con la API simulada, incluido el caso sin datos suficientes; axe.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F2-07 · Los accesos a Estadísticas
+## [ ] F2-09 · Los accesos a Estadísticas
 
 - **module:** web
 - **description:** "Estadísticas" en el menú del header (quedó afuera en F1-09) y el acceso desde el
@@ -956,25 +1009,28 @@ esperan a su endpoint; F2-07 las enlaza y F2-08 cierra la fase.
     ese ejercicio ya desplegado.
 - **example:** —
 - **story-points:** 2
-- **depends_on:** F2-05
+- **depends_on:** F2-07
 - **risk:** low
 - **test_plan:** tests de navegación sobre el shell y sobre el detalle; axe.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F2-08 · E2E de Estadísticas
+## [ ] F2-10 · E2E de Estadísticas
 
 - **module:** infra
-- **description:** El recorrido nuevo sumado al E2E de F1-18: cargar marcas y verlas en la pantalla
-  de Estadísticas, con su auditoría axe. Cierra la fase.
+- **description:** El recorrido nuevo sumado al E2E de F1-18: crear un ejercicio propio con sus
+  capacidades, cargarle marcas y verlas en la pantalla de Estadísticas, con su auditoría axe. Cierra
+  la fase.
 - **acceptance-criteria:**
   - Dado un atleta con tres marcas de un ejercicio, cuando abre Estadísticas, entonces ve su
     evolución y los números que corresponden a esas marcas.
+  - Dado un ejercicio propio con sus capacidades, cuando se mira el resumen general, entonces
+    aparece ahí.
   - Dada la pantalla nueva, cuando corre axe en los dos temas, entonces no hay violaciones WCAG 2.2
     AA.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F2-05, F2-06, F2-07
+- **depends_on:** F2-07, F2-08, F2-09
 - **risk:** low
 - **test_plan:** el propio E2E, en el job que ya existe.
 - **error-codes:** ninguno
