@@ -27,10 +27,14 @@ Lo que hay hoy, en una línea cada uno:
 **Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos. Un atleta se
 registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese camino en cada PR.
 
-**Fase 2 — Estadísticas: desglosada, sin empezar.** Diez tareas, 44 puntos: los contratos, el
-módulo `stats` en la API, el Componente Cross de gráfico y la pantalla del mockup 10. Incluye que el
-ejercicio propio pase a llevar capacidades y grupos musculares (F2-02 y F2-03), decidido el
-2026-09-22 y ya reflejado en la spec §5.1.
+**Fase 2 — Estadísticas: en curso, 3 de 10 tareas.** 44 puntos en total.
+
+- **F2-01 · Contratos**: cerrada. El período, la serie, el resumen y los agregados, más
+  `summarize()` en el paquete compartido.
+- **F2-02 · El ejercicio propio lleva capacidades y grupos musculares**: cerrada. Obligatorias en el
+  alta, el segmento se deriva, y una migración completa los que ya estaban.
+- **F2-03 · El formulario las pregunta**: cerrada. Sale el `CheckboxGroup` de `@wasabi-cross/ui`.
+- Quedan F2-04 a F2-10: el módulo `stats` en la API, el gráfico y la pantalla del mockup 10.
 
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
 - **F1-02 · Migraciones**: cerrada. migrate-mongo
@@ -64,11 +68,10 @@ Nada.
 
 ## Próximo paso
 
-1. Arrancar **F2-01** (contratos de estadísticas) o **F2-02** (el ejercicio propio con sus
-   capacidades): no dependen una de la otra. La Fase 2 está desglosada en
-   [ACTION-PLAN.md](../ACTION-PLAN.md).
-2. Cargar en Trello las diez tarjetas de la Fase 2 (`/trello-sync`): el MCP de Trello se desconectó
-   en la sesión del 2026-09-22 y quedaron sin crear. F1-18 tampoco se pudo mover a `Completadas`.
+1. Seguir con **F2-04** (estadísticas de un ejercicio), que ya tiene sus contratos, o con **F2-06**
+   (el Componente Cross de gráfico), que no depende de la API.
+2. Cargar en Trello las diez tarjetas de la Fase 2 y mover lo cerrado (`/trello-sync`): el MCP de
+   Trello se desconectó en la sesión del 2026-09-22 y quedó todo sin sincronizar, incluida F1-18.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -120,6 +123,7 @@ pnpm dev                                     # API en :3000, web en :5173
 
 ## Última actualización
 
-2026-09-22 — F1-18 (E2E del flujo principal y axe en CI): con esto cierra la Fase 1. Ver
-[su bitácora](./bitacora/2026-09-22-f1-18-e2e.md); la anterior es
-[la de F1-14](./bitacora/2026-09-21-f1-14-cargar-marca.md).
+2026-09-22 — arrancó la Fase 2: F2-01 (contratos), y F2-02 y F2-03 (el ejercicio propio con sus
+capacidades). Ver [la bitácora de F2-02 y F2-03](./bitacora/2026-09-22-f2-02-f2-03-capacidades.md),
+[la de F2-01](./bitacora/2026-09-22-f2-01-contratos-estadisticas.md) y
+[la de F1-18](./bitacora/2026-09-22-f1-18-e2e.md), que cerró la Fase 1.

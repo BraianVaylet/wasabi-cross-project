@@ -63,6 +63,8 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
         source: 'custom',
         name,
         category: 'gimnastico',
+        capacities: ['fuerza'],
+        muscleGroups: ['hombro'],
         level: 'principiante',
         firstRecord: { value: 20 },
       }),

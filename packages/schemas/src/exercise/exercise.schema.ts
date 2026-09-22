@@ -82,12 +82,23 @@ export const exerciseDefinitionSchema = z.object({
 export type ExerciseDefinition = z.infer<typeof exerciseDefinitionSchema>;
 
 /**
- * Una entrada del catálogo pre-cargado. Además de nombre y categoría, lleva lo que
- * necesita Estadísticas para comparar por capacidad y por grupo muscular.
+ * Lo que define un ejercicio propio: además de nombre y categoría, las capacidades y los
+ * grupos musculares que elige el usuario en el alta (spec §5.1). Sin ellos ese ejercicio
+ * quedaría afuera de las estadísticas generales.
+ *
+ * El segmento del cuerpo no está: se deriva de los grupos con `bodySegmentFor`.
  */
-export const catalogExerciseDefinitionSchema = exerciseDefinitionSchema.extend({
+export const customExerciseDefinitionSchema = exerciseDefinitionSchema.extend({
   capacities: capacitiesSchema,
   muscleGroups: muscleGroupsSchema,
+});
+export type CustomExerciseDefinition = z.infer<typeof customExerciseDefinitionSchema>;
+
+/**
+ * Una entrada del catálogo pre-cargado. Lo mismo que uno propio, más el segmento del
+ * cuerpo, que en el catálogo viene cargado a mano.
+ */
+export const catalogExerciseDefinitionSchema = customExerciseDefinitionSchema.extend({
   bodySegment: bodySegmentSchema,
 });
 export type CatalogExerciseDefinition = z.infer<typeof catalogExerciseDefinitionSchema>;
@@ -100,10 +111,11 @@ export const exerciseSchema = exerciseDefinitionSchema
      * Con `userId` = ejercicio propio, visible sólo para su dueño.
      */
     ownerId: userIdSchema.nullable(),
-    // Opcionales porque un ejercicio propio no los tiene: el formulario no los pide.
-    capacities: capacitiesSchema.optional(),
-    muscleGroups: muscleGroupsSchema.optional(),
-    bodySegment: bodySegmentSchema.optional(),
+    // Los lleva todo ejercicio, del catálogo o propio: son el eje de Estadísticas
+    // (spec §5.1). En los propios el segmento sale de los grupos musculares.
+    capacities: capacitiesSchema,
+    muscleGroups: muscleGroupsSchema,
+    bodySegment: bodySegmentSchema,
   })
   .extend(timestampsSchema.shape);
 

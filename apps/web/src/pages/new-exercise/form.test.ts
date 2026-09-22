@@ -9,6 +9,9 @@ const catalogo: Exercise[] = [
     ownerId: null,
     name: 'Back squat',
     category: 'fuerza',
+    capacities: ['fuerza'],
+    muscleGroups: ['cuadriceps', 'gluteo'],
+    bodySegment: 'tren_inferior',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -17,6 +20,9 @@ const catalogo: Exercise[] = [
     ownerId: null,
     name: 'Carrera 1 km',
     category: 'running',
+    capacities: ['resistencia'],
+    muscleGroups: ['cuerpo_completo'],
+    bodySegment: 'cuerpo_completo',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   },
@@ -53,6 +59,21 @@ describe('newExerciseSchemaFor — lo que se valida antes de llamar a la API', (
       path: ['category'],
       message: 'Elegí una categoría',
     });
+  });
+
+  it('un ejercicio propio necesita capacidades y grupos musculares (spec §5.1)', () => {
+    const propio = {
+      ...base,
+      name: 'Wall ball',
+      category: 'gimnastico' as const,
+      value: '30',
+      capacities: ['fuerza' as const],
+      muscleGroups: ['hombro' as const],
+    };
+
+    expect(schema.safeParse(propio).success).toBe(true);
+    expect(schema.safeParse({ ...propio, capacities: [] }).success).toBe(false);
+    expect(schema.safeParse({ ...propio, muscleGroups: [] }).success).toBe(false);
   });
 
   it('uno del catálogo no la necesita: ya la tiene', () => {
@@ -109,11 +130,13 @@ describe('toAddExercise — lo que viaja a la API', () => {
     });
   });
 
-  it('uno propio viaja con su nombre y su categoría', () => {
+  it('uno propio viaja con su nombre, su categoría y lo que entrena', () => {
     const input = toAddExercise(catalogo, {
       ...base,
       name: 'Wall ball',
       category: 'gimnastico',
+      capacities: ['fuerza', 'resistencia'],
+      muscleGroups: ['cuadriceps', 'hombro'],
       value: '30',
     });
 
@@ -121,8 +144,36 @@ describe('toAddExercise — lo que viaja a la API', () => {
       source: 'custom',
       name: 'Wall ball',
       category: 'gimnastico',
+      capacities: ['fuerza', 'resistencia'],
+      muscleGroups: ['cuadriceps', 'hombro'],
       firstRecord: { value: 30 },
     });
+  });
+
+  it('uno del catálogo no las manda: las suyas ya están cargadas', () => {
+    const input = toAddExercise(catalogo, {
+      ...base,
+      name: 'Back squat',
+      capacities: ['velocidad'],
+      muscleGroups: ['gemelo'],
+      value: '100',
+    });
+
+    expect(input).not.toHaveProperty('capacities');
+    expect(input).not.toHaveProperty('muscleGroups');
+  });
+
+  it('el segmento del cuerpo no viaja: lo deriva el servidor (spec §5.1)', () => {
+    const input = toAddExercise(catalogo, {
+      ...base,
+      name: 'Wall ball',
+      category: 'gimnastico',
+      capacities: ['fuerza'],
+      muscleGroups: ['hombro'],
+      value: '30',
+    });
+
+    expect(input).not.toHaveProperty('bodySegment');
   });
 
   it('un tiempo se guarda en segundos', () => {

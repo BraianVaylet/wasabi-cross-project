@@ -23,6 +23,8 @@ function configure(): void {
       // esta URL sólo sirve si la librería abriera una por su cuenta.
       url: 'no-se-usa: la conexion la inyecta la API',
     },
+    // Todo archivo de esa carpeta es una migración, tests incluidos: los tests de una
+    // migración viven acá al lado (`*.migration.test.ts`), no dentro de `migrations/`.
     migrationsDir: MIGRATIONS_DIR,
     migrationFileExtension: MIGRATION_EXTENSION,
     changelogCollectionName: CHANGELOG_COLLECTION,

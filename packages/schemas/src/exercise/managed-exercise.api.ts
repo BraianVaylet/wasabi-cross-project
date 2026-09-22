@@ -6,6 +6,7 @@ import { planSchema } from '../user/plan.ts';
 import {
   exerciseCategorySchema,
   exerciseDefinitionSchema,
+  customExerciseDefinitionSchema,
   measureKindSchema,
 } from './exercise.schema.ts';
 import { levelSchema } from './managed-exercise.schema.ts';
@@ -38,7 +39,7 @@ const userFields = {
  */
 export const addExerciseSchema = z.discriminatedUnion('source', [
   z.object({ source: z.literal('catalog'), exerciseId: exerciseIdSchema, ...userFields }),
-  z.object({ source: z.literal('custom'), ...exerciseDefinitionSchema.shape, ...userFields }),
+  z.object({ source: z.literal('custom'), ...customExerciseDefinitionSchema.shape, ...userFields }),
 ]);
 
 export type AddExercise = z.infer<typeof addExerciseSchema>;

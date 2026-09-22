@@ -1,13 +1,25 @@
 import {
+  capacitySchema,
   levelSchema,
+  muscleGroupSchema,
   type AddExercise,
+  type Capacity,
   type Exercise,
   type ExerciseCategory,
   type Level,
+  type MuscleGroup,
 } from '@wasabi-cross/schemas';
 import { useForm } from '@tanstack/react-form';
 import { Link } from '@tanstack/react-router';
-import { Button, Checkbox, RadioGroup, Select, TextArea, TextField } from '@wasabi-cross/ui';
+import {
+  Button,
+  Checkbox,
+  CheckboxGroup,
+  RadioGroup,
+  Select,
+  TextArea,
+  TextField,
+} from '@wasabi-cross/ui';
 import { useId } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { MARK_FIELD, today } from '../../lib/mark-input.ts';
@@ -42,6 +54,32 @@ const LEVELS: readonly { value: Level; label: string }[] = [
 ];
 
 const SIN_CATEGORIA = { label: 'Marca', placeholder: 'Elegí primero la categoría' };
+
+/*
+ * Qué entrena el ejercicio (spec §5.1). Sólo se pregunta en uno propio: el del catálogo ya
+ * lo trae cargado. El segmento del cuerpo no está acá porque no se pregunta: sale de los
+ * grupos musculares.
+ */
+const CAPACITIES: readonly { value: Capacity; label: string }[] = [
+  { value: 'fuerza', label: 'Fuerza' },
+  { value: 'resistencia', label: 'Resistencia' },
+  { value: 'velocidad', label: 'Velocidad' },
+];
+
+const MUSCLE_GROUPS: readonly { value: MuscleGroup; label: string }[] = [
+  { value: 'pectoral', label: 'Pectoral' },
+  { value: 'espalda', label: 'Espalda' },
+  { value: 'hombro', label: 'Hombro' },
+  { value: 'biceps', label: 'Bíceps' },
+  { value: 'triceps', label: 'Tríceps' },
+  { value: 'antebrazo', label: 'Antebrazo' },
+  { value: 'core', label: 'Core' },
+  { value: 'gluteo', label: 'Glúteo' },
+  { value: 'cuadriceps', label: 'Cuádriceps' },
+  { value: 'isquiotibiales', label: 'Isquiotibiales' },
+  { value: 'gemelo', label: 'Gemelo' },
+  { value: 'cuerpo_completo', label: 'Cuerpo completo' },
+];
 
 /** Nuevo ejercicio (mockup 9): uno del catálogo o uno propio, con su primera marca. */
 export function NewExercisePage({
@@ -130,6 +168,49 @@ export function NewExercisePage({
                       />
                     )}
                   </form.Field>
+                )}
+
+                {/* Sólo en uno propio: el del catálogo ya trae lo suyo (spec §5.1). */}
+                {match ? null : (
+                  <>
+                    <form.Field name="capacities">
+                      {(capacitiesField) => (
+                        <CheckboxGroup
+                          legend="Capacidades"
+                          options={CAPACITIES}
+                          values={capacitiesField.state.value}
+                          onChange={(values) => {
+                            capacitiesField.handleChange(
+                              values.filter(
+                                (value): value is Capacity =>
+                                  capacitySchema.safeParse(value).success,
+                              ),
+                            );
+                          }}
+                          error={capacitiesField.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="muscleGroups">
+                      {(groupsField) => (
+                        <CheckboxGroup
+                          legend="Grupos musculares"
+                          options={MUSCLE_GROUPS}
+                          values={groupsField.state.value}
+                          onChange={(values) => {
+                            groupsField.handleChange(
+                              values.filter(
+                                (value): value is MuscleGroup =>
+                                  muscleGroupSchema.safeParse(value).success,
+                              ),
+                            );
+                          }}
+                          error={groupsField.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </form.Field>
+                  </>
                 )}
 
                 <form.Field name="value">

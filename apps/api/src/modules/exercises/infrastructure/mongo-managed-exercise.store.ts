@@ -2,13 +2,16 @@ import {
   exerciseSchema,
   managedExerciseSchema,
   type Exercise,
-  type ExerciseCategory,
   type ManagedExercise,
 } from '@wasabi-cross/schemas';
 import { MongoServerError, type ClientSession, type Db } from 'mongodb';
 import { AppError } from '../../../shared/errors/app-error.ts';
 import { generateId } from '../../../shared/ids.ts';
-import type { ManagedExercisePatch, NewManagedExercise } from '../domain/managed-exercise-ports.ts';
+import type {
+  ManagedExercisePatch,
+  NewCustomExercise,
+  NewManagedExercise,
+} from '../domain/managed-exercise-ports.ts';
 import { EXERCISES_COLLECTION, MANAGED_EXERCISES_COLLECTION } from './mongo-exercise.repository.ts';
 
 interface ExerciseDocument extends Omit<Exercise, 'id'> {
@@ -73,16 +76,16 @@ export function createMongoManagedExerciseStore(db: Db) {
     listManaged: async (userId: string) =>
       (await managed.find({ userId }).toArray()).map(toManaged),
 
-    createCustom: async (
-      session: ClientSession,
-      exercise: { ownerId: string; name: string; category: ExerciseCategory },
-    ) => {
+    createCustom: async (session: ClientSession, exercise: NewCustomExercise) => {
       const now = new Date().toISOString();
       const document: ExerciseDocument = {
         _id: generateId('exo'),
         ownerId: exercise.ownerId,
         name: exercise.name,
         category: exercise.category,
+        capacities: [...exercise.capacities],
+        muscleGroups: [...exercise.muscleGroups],
+        bodySegment: exercise.bodySegment,
         createdAt: now,
         updatedAt: now,
       };

@@ -16,3 +16,4 @@ export * from './record/record.api.ts';
 export * from './calc/percentages.ts';
 export * from './stats/stats.api.ts';
 export * from './stats/evolution.ts';
+export * from './exercise/body-segment.ts';

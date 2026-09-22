@@ -1,0 +1,43 @@
+.wc-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.wc-checkbox-group__legend {
+  padding: 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+  font-weight: 500;
+}
+
+/* En grilla: doce grupos musculares en una columna serían un scroll eterno. */
+.wc-checkbox-group__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--wc-space-1) var(--wc-space-3);
+}
+
+.wc-checkbox-group__option {
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-3);
+  min-height: var(--wc-tap-target);
+  cursor: pointer;
+}
+
+.wc-checkbox-group__input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--wc-accent);
+  cursor: pointer;
+}
+
+.wc-checkbox-group__error {
+  margin: 0;
+  color: var(--wc-danger-text);
+  font-size: var(--wc-font-size-sm);
+}

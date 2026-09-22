@@ -1,7 +1,10 @@
 import type {
+  BodySegment,
+  Capacity,
   Exercise,
   ExerciseCategory,
   Level,
+  MuscleGroup,
   ManagedExercise,
   MeasureKind,
   Plan,
@@ -67,6 +70,16 @@ export interface NewManagedExercise {
   notes?: string;
 }
 
+/** Un ejercicio propio, tal como se guarda: el segmento ya viene derivado (spec §5.1). */
+export interface NewCustomExercise {
+  readonly ownerId: string;
+  readonly name: string;
+  readonly category: ExerciseCategory;
+  readonly capacities: readonly Capacity[];
+  readonly muscleGroups: readonly MuscleGroup[];
+  readonly bodySegment: BodySegment;
+}
+
 export interface ManagedExerciseStore<Tx> {
   findExercise: (id: string) => Promise<Exercise | null>;
   findExercisesByIds: (ids: readonly string[]) => Promise<Exercise[]>;
@@ -80,10 +93,7 @@ export interface ManagedExerciseStore<Tx> {
   findManagedById: (userId: string, id: string) => Promise<ManagedExercise | null>;
   listManaged: (userId: string) => Promise<ManagedExercise[]>;
   /** Tira `WC-EXO-409-003` si el índice único detecta un duplicado (carrera). */
-  createCustom: (
-    tx: Tx,
-    exercise: { ownerId: string; name: string; category: ExerciseCategory },
-  ) => Promise<Exercise>;
+  createCustom: (tx: Tx, exercise: NewCustomExercise) => Promise<Exercise>;
   /** Tira `WC-EXO-409-003` si el índice único detecta un duplicado (carrera). */
   createManaged: (tx: Tx, managed: NewManagedExercise) => Promise<ManagedExercise>;
   updateManaged: (
