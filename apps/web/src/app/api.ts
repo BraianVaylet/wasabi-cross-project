@@ -1,6 +1,7 @@
 import {
   exerciseListSchema,
   exerciseStatsSchema,
+  generalStatsSchema,
   logRecordResponseSchema,
   recordHistorySchema,
   exerciseSchema,
@@ -10,6 +11,7 @@ import {
   type Exercise,
   type ExerciseList,
   type ExerciseStats,
+  type GeneralStats,
   type LogRecordResponse,
   type ManagedExerciseSummary,
   type RecordHistory,
@@ -40,6 +42,8 @@ export interface ApiClient {
   logRecord: (id: string, input: RecordInput) => Promise<LogRecordResponse>;
   /** La evolución de un ejercicio en un período (F2-04). */
   exerciseStats: (id: string, period: StatsPeriod) => Promise<ExerciseStats>;
+  /** El resumen por capacidad y grupo muscular (F2-05). */
+  generalStats: (period: StatsPeriod) => Promise<GeneralStats>;
   preferences: () => Promise<UserPreferences>;
   savePreferences: (change: UpdatePreferences) => Promise<UserPreferences>;
 }
@@ -82,6 +86,8 @@ export function createApiClient(http: HttpClient): ApiClient {
       }),
     exerciseStats: (id, period) =>
       http.request(exerciseStatsSchema, `/api/v1/stats/exercises/${id}?period=${period}`),
+    generalStats: (period) =>
+      http.request(generalStatsSchema, `/api/v1/stats/summary?period=${period}`),
     preferences: () => http.request(userPreferencesSchema, '/api/v1/me/preferences'),
     savePreferences: (change) =>
       http.request(userPreferencesSchema, '/api/v1/me/preferences', {
@@ -166,6 +172,19 @@ export function exerciseStatsQueryOptions(api: ApiClient, id: string, period: St
   return queryOptions({
     queryKey: exerciseStatsQueryKey(id, period),
     queryFn: () => api.exerciseStats(id, period),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function generalStatsQueryKey(period: StatsPeriod): readonly unknown[] {
+  return ['stats', 'summary', period];
+}
+
+/** El resumen general de la pantalla (F2-08). Cambia sólo cuando cambia el período. */
+export function generalStatsQueryOptions(api: ApiClient, period: StatsPeriod) {
+  return queryOptions({
+    queryKey: generalStatsQueryKey(period),
+    queryFn: () => api.generalStats(period),
     staleTime: 5 * 60 * 1000,
   });
 }

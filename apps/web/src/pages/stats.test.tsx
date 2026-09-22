@@ -1,4 +1,9 @@
-import type { ExerciseList, ExerciseStats, ManagedExerciseSummary } from '@wasabi-cross/schemas';
+import type {
+  ExerciseList,
+  ExerciseStats,
+  GeneralStats,
+  ManagedExerciseSummary,
+} from '@wasabi-cross/schemas';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
@@ -39,6 +44,16 @@ const estadisticas: ExerciseStats = {
   summary: { current: 120, best: 120, worst: 100, changePercent: 20, records: 2 },
 };
 
+const generales: GeneralStats = {
+  period: '12m',
+  byCapacity: [
+    { capacity: 'fuerza', changePercent: 20, exercises: 3 },
+    { capacity: 'resistencia', changePercent: -4, exercises: 1 },
+  ],
+  byMuscleGroup: [{ muscleGroup: 'cuadriceps', changePercent: 30, exercises: 2 }],
+  insufficient: { capacities: ['velocidad'], muscleGroups: [] },
+};
+
 function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
   return {
     exercises,
@@ -49,6 +64,7 @@ function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
 function renderStats(path = '/estadisticas', exercises = [backSquat, clean]) {
   const api = fakeApi(lista(exercises));
   api.client.exerciseStats.mockResolvedValue(estadisticas);
+  api.client.generalStats.mockResolvedValue(generales);
   const app = renderApp(path, fakeSession(braian).client, api.client);
   return { api, ...app };
 }
@@ -71,7 +87,9 @@ describe('Estadísticas (F2-07, mockup 10)', () => {
     const { api } = renderStats();
 
     expect(await screen.findByRole('heading', { name: 'Tus estadísticas' })).toBeInTheDocument();
-    const acordeon = within(await screen.findByRole('list')).getAllByRole('button');
+    const acordeon = within(await screen.findByRole('list', { name: 'Ejercicios' })).getAllByRole(
+      'button',
+    );
 
     expect(acordeon.map((boton) => boton.textContent)).toEqual(['Back squat', 'Clean']);
     expect(acordeon.every((boton) => boton.getAttribute('aria-expanded') === 'false')).toBe(true);
@@ -181,6 +199,83 @@ describe('Estadísticas (F2-07, mockup 10)', () => {
 
     expect(await screen.findByText('Todavía no tenés ejercicios')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Agregar el primero' })).toBeInTheDocument();
+  });
+
+  describe('estadísticas generales (F2-08)', () => {
+    it('se leen qué capacidad progresó más y cuál menos, sin interpretar un gráfico', async () => {
+      renderStats();
+
+      const seccion = await screen.findByRole('region', { name: 'En general' });
+      const filas = within(seccion).getAllByRole('listitem');
+
+      expect(filas[0]).toHaveTextContent('Fuerza');
+      expect(filas[0]).toHaveTextContent('+20%');
+      expect(filas[0]).toHaveTextContent('3 ejercicios');
+      expect(filas[1]).toHaveTextContent('Resistencia');
+      expect(filas[1]).toHaveTextContent('-4%');
+      expect(within(seccion).getByText('Cuádriceps')).toBeInTheDocument();
+    });
+
+    it('lo que no tiene marcas suficientes se dice, no se muestra en cero', async () => {
+      renderStats();
+
+      const seccion = await screen.findByRole('region', { name: 'En general' });
+
+      expect(within(seccion).getByText(/Velocidad/)).toBeInTheDocument();
+      expect(within(seccion).getByText(/todavía no hay marcas suficientes/i)).toBeInTheDocument();
+    });
+
+    it('cambiar el período lo deja en la URL y vuelve a pedir los dos bloques', async () => {
+      const { api, router } = renderStats('/estadisticas?abierto=mex_a1b2c3d4');
+      await screen.findByRole('region', { name: 'En general' });
+      const generalesPrevias = api.client.generalStats.mock.calls.length;
+
+      await userEvent.selectOptions(screen.getByLabelText('Período'), '3m');
+
+      await waitFor(() => {
+        expect(router.state.location.search).toMatchObject({ periodo: '3m' });
+      });
+      await waitFor(() => {
+        expect(api.client.generalStats).toHaveBeenCalledWith('3m');
+      });
+      expect(api.client.generalStats.mock.calls.length).toBeGreaterThan(generalesPrevias);
+      await waitFor(() => {
+        expect(api.client.exerciseStats).toHaveBeenCalledWith('mex_a1b2c3d4', '3m');
+      });
+    });
+
+    it('con un período en la URL, arranca con ese', async () => {
+      const { api } = renderStats('/estadisticas?periodo=6m');
+
+      await waitFor(() => {
+        expect(api.client.generalStats).toHaveBeenCalledWith('6m');
+      });
+      expect(screen.getByLabelText('Período')).toHaveValue('6m');
+    });
+
+    it('un período inventado en la URL no rompe la pantalla: vuelve al de siempre', async () => {
+      const { api } = renderStats('/estadisticas?periodo=2m');
+
+      await waitFor(() => {
+        expect(api.client.generalStats).toHaveBeenCalledWith('12m');
+      });
+    });
+
+    it('sin datos todavía, no muestra una sección vacía', async () => {
+      const { api } = renderStats();
+      api.client.generalStats.mockResolvedValue({
+        period: '12m',
+        byCapacity: [],
+        byMuscleGroup: [],
+        insufficient: { capacities: [], muscleGroups: [] },
+      });
+
+      await screen.findByRole('button', { name: 'Back squat' });
+
+      await waitFor(() => {
+        expect(screen.queryByRole('region', { name: 'En general' })).not.toBeInTheDocument();
+      });
+    });
   });
 
   it('sin violaciones de accesibilidad, abierto y cerrado', async () => {

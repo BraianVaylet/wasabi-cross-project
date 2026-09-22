@@ -36,7 +36,12 @@
   --wc-accent-text: #b6e463;
 
   --wc-danger: #ff8a80;
-  --wc-danger-text: #ff8a80;
+  /*
+   * Como texto, el rojo de alerta daba 4.0:1 sobre `--wc-surface-muted` —la variación que
+   * baja en Estadísticas (F2-08)—: alcanzaba sólo sobre el fondo. Un punto más claro llega a
+   * 5:1 ahí y a 7:1 sobre el fondo.
+   */
+  --wc-danger-text: #ffa8a1;
 
   --wc-focus: #ffffff;
 }
