@@ -1,0 +1,42 @@
+/* La curva del mockup 10: el dibujo arriba, y abajo la misma serie en texto. */
+
+.wc-chart {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+}
+
+.wc-chart__caption {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+  font-weight: 500;
+}
+
+.wc-chart__plot {
+  /* Altura fija: el gráfico se mide contra su caja, y sin altura no dibuja nada. */
+  height: 12rem;
+  width: 100%;
+}
+
+.wc-chart__empty {
+  margin: 0;
+  padding: var(--wc-space-4) 0;
+  color: var(--wc-text-muted);
+  text-align: center;
+}
+
+/*
+ * Visualmente oculta pero presente para un lector de pantalla: es la misma curva, legible.
+ * `display: none` la sacaría del árbol de accesibilidad, que es justo lo contrario.
+ */
+.wc-chart__table {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

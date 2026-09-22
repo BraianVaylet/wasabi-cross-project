@@ -944,7 +944,7 @@ F2-10 cierra la fase.
 - **error-codes:** ninguno nuevo
 - **data-model-impact:** ninguno
 
-## [ ] F2-06 · Componente Cross de gráfico
+## [x] F2-06 · Componente Cross de gráfico
 
 - **module:** ui
 - **description:** El gráfico de línea del mockup 10 con TanStack Charts, como Componente Cross: sin
@@ -965,6 +965,9 @@ F2-10 cierra la fase.
   story en Storybook.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** TanStack Charts 0.18 (con `d3-scale`, que ya trae como dependencia). El dibujo queda
+  `aria-hidden` y los datos van en una tabla visualmente oculta: describir una curva con texto
+  alternativo sería peor que dar los números. Tres pruebas inversas; mirado en Storybook.
 
 ## [ ] F2-07 · Pantalla de Estadísticas
 

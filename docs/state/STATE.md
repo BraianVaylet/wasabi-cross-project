@@ -17,7 +17,7 @@ Lo que hay hoy, en una línea cada uno:
 - Auth con Better Auth sobre Mongo: registro, login, sesión persistida, rate limit.
 - `@wasabi-cross/schemas`: `User`, `Exercise`, `ManagedExercise`, `ExerciseRecord` en Zod, fuente
   única de tipos, alineados con la spec §5.1.
-- `@wasabi-cross/ui`: cinco Componentes Cross con tema dark/light y Storybook.
+- `@wasabi-cross/ui`: los Componentes Cross con tema dark/light y Storybook.
 - Catálogo de 34 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
 - CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
   Storybook, audit de dependencias y el E2E de Playwright con su auditoría axe.

@@ -36,6 +36,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
+    "@types/d3-scale": "^4.0.9",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
@@ -47,5 +48,10 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@tanstack/charts": "^0.18.0",
+    "@tanstack/react-charts": "^0.18.0",
+    "d3-scale": "^4.0.2"
   }
 }
