@@ -13,6 +13,9 @@ const customExercise = {
   ownerId: 'usr_a1b2c3d4',
   name: 'Wall ball',
   category: 'gimnastico',
+  capacities: ['fuerza', 'resistencia'],
+  muscleGroups: ['cuadriceps', 'hombro'],
+  bodySegment: 'cuerpo_completo',
   createdAt: '2026-09-17T14:03:11.412Z',
   updatedAt: '2026-09-17T14:03:11.412Z',
 };
@@ -58,9 +61,11 @@ describe('exerciseCategorySchema', () => {
 });
 
 describe('exerciseSchema', () => {
-  it('acepta un ejercicio propio sin capacidades ni grupos musculares', () => {
-    // El formulario de "Nuevo ejercicio" (mockup 9) no los pide.
+  it('un ejercicio propio también lleva capacidades y grupos musculares (spec §5.1)', () => {
     expect(exerciseSchema.safeParse(customExercise).success).toBe(true);
+
+    const { capacities: _capacities, ...sinCapacidades } = customExercise;
+    expect(exerciseSchema.safeParse(sinCapacidades).success).toBe(false);
   });
 
   it('acepta un ejercicio del catálogo con capacidades y grupos musculares', () => {

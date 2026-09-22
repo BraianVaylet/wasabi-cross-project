@@ -81,10 +81,19 @@ describe('migraciones', () => {
     const reverted = await migrateDown(db, client);
 
     expect(reverted).toHaveLength(1);
-    expect(reverted[0]).toMatch(/indice-historial-marcas/);
+    expect(reverted[0]).toMatch(/capacidades-en-propios/);
     expect(await pendingMigrations(db)).toEqual(reverted);
+    // Las anteriores siguen aplicadas.
+    expect(await indexNames(db, 'records')).toContain('managed_history');
+    expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
+  });
+
+  it('el siguiente down se lleva el índice del historial', async () => {
+    const reverted = await migrateDown(db, client);
+
+    expect(reverted).toHaveLength(1);
+    expect(reverted[0]).toMatch(/indice-historial-marcas/);
     expect(await indexNames(db, 'records')).not.toContain('managed_history');
-    // La anterior sigue aplicada.
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
   });
 

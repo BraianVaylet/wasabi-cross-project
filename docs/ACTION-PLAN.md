@@ -17,7 +17,7 @@
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
-| Fase 2 — Estadísticas       |     10 |           44 |      0 |
+| Fase 2 — Estadísticas       |     10 |           44 |      3 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -822,7 +822,7 @@ F2-10 cierra la fase.
 - Cambiar capacidades o grupos musculares de un ejercicio propio ya creado. Va con la edición del
   ejercicio, si aparece la necesidad.
 
-## [ ] F2-01 · Contratos de estadísticas
+## [x] F2-01 · Contratos de estadísticas
 
 - **module:** schemas
 - **description:** Los Zod compartidos de la fase: la serie de un ejercicio (punto = fecha + valor),
@@ -843,8 +843,10 @@ F2-10 cierra la fase.
   rechaza.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** `summarize()` y `periodStartFor()` viven en el paquete compartido, como el cálculo de
+  porcentajes (ADR-0006). Cinco pruebas inversas. Cerrada: PR #32 mergeada el 2026-09-22.
 
-## [ ] F2-02 · El ejercicio propio lleva capacidades y grupos musculares
+## [x] F2-02 · El ejercicio propio lleva capacidades y grupos musculares
 
 - **module:** api
 - **description:** Hoy sólo el catálogo los tiene, así que un ejercicio propio no entra en las
@@ -869,8 +871,11 @@ F2-10 cierra la fase.
 - **error-codes:** ninguno nuevo (usa `WC-SYS-400-002`)
 - **data-model-impact:** el ejercicio propio gana `capacities`, `muscleGroups` y `bodySegment`, con
   su migración versionada y reversible (ADR-0005).
+- **cierre:** los tres campos pasaron a obligatorios en `exerciseSchema`. Trampa encontrada: un
+  archivo `*.test.ts` dentro de `src/migrations/` es una migración más para migrate-mongo y rompe el
+  runner; los tests de migraciones viven al lado del runner. Cerrada junto con F2-03.
 
-## [ ] F2-03 · El formulario pregunta capacidades y grupos musculares
+## [x] F2-03 · El formulario pregunta capacidades y grupos musculares
 
 - **module:** web
 - **description:** En "Nuevo ejercicio" (mockup 9), cuando el nombre no es del catálogo, aparecen
@@ -891,6 +896,8 @@ F2-10 cierra la fase.
   teclado, y axe sin violaciones; story del componente nuevo si aparece.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** salió el `CheckboxGroup` de `@wasabi-cross/ui`, con su story. Va junto con F2-02 en la
+  misma PR: separadas, `main` quedaba sin poder crear un ejercicio propio desde la pantalla.
 
 ## [ ] F2-04 · Estadísticas de un ejercicio
 

@@ -1,14 +1,18 @@
 import {
+  capacitySchema,
   exerciseCategorySchema,
   exerciseDefinitionSchema,
   levelSchema,
   measureKindFor,
+  muscleGroupSchema,
   sameName,
   type AddExercise,
+  type Capacity,
   type Exercise,
   type ExerciseCategory,
   type Level,
   type MeasureKind,
+  type MuscleGroup,
 } from '@wasabi-cross/schemas';
 import { z } from 'zod';
 import { markValueError, parseMarkValue, performedAtFrom } from '../../lib/mark-input.ts';
@@ -22,6 +26,9 @@ export interface NewExerciseValues {
   name: string;
   /** Vacío hasta que haga falta: uno del catálogo ya trae la suya. */
   category: ExerciseCategory | '';
+  /** Sólo para uno propio: del catálogo ya vienen cargadas (spec §5.1). */
+  capacities: Capacity[];
+  muscleGroups: MuscleGroup[];
   /** Como se escribe: "100", "92,5" o "4:32". */
   value: string;
   /** `yyyy-mm-dd` del campo de fecha, o vacío. */
@@ -34,6 +41,8 @@ export interface NewExerciseValues {
 export const EMPTY_VALUES: NewExerciseValues = {
   name: '',
   category: '',
+  capacities: [],
+  muscleGroups: [],
   value: '',
   date: '',
   level: '',
@@ -71,6 +80,8 @@ export function newExerciseSchemaFor(catalog: readonly Exercise[]) {
     .object({
       name: exerciseDefinitionSchema.shape.name,
       category: z.union([exerciseCategorySchema, z.literal('')]),
+      capacities: z.array(capacitySchema),
+      muscleGroups: z.array(muscleGroupSchema),
       value: z.string().min(1, 'Cargá tu marca'),
       date: z.string(),
       level: levelSchema,
@@ -80,9 +91,27 @@ export function newExerciseSchemaFor(catalog: readonly Exercise[]) {
     .superRefine((values, ctx) => {
       const match = catalogMatch(catalog, values.name);
 
-      if (!match && values.category === '') {
-        ctx.addIssue({ code: 'custom', path: ['category'], message: 'Elegí una categoría' });
-        return;
+      if (!match) {
+        if (values.category === '') {
+          ctx.addIssue({ code: 'custom', path: ['category'], message: 'Elegí una categoría' });
+          return;
+        }
+
+        // Sin esto el ejercicio quedaría afuera de las estadísticas generales (spec §5.1).
+        if (values.capacities.length === 0) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['capacities'],
+            message: 'Elegí al menos una capacidad',
+          });
+        }
+        if (values.muscleGroups.length === 0) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['muscleGroups'],
+            message: 'Elegí al menos un grupo muscular',
+          });
+        }
       }
 
       const kind = kindFor(catalog, values.name, values.category);
@@ -122,6 +151,9 @@ export function toAddExercise(
         source: 'custom',
         name: values.name.trim(),
         category: values.category === '' ? 'fuerza' : values.category,
+        // El segmento del cuerpo no va: lo deriva el servidor (spec §5.1).
+        capacities: values.capacities,
+        muscleGroups: values.muscleGroups,
         ...shared,
       };
 }

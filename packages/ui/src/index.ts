@@ -4,6 +4,11 @@ export { Button, type ButtonProps, type ButtonVariant } from './components/butto
 export { Card, type CardProps } from './components/card/Card.tsx';
 export { Checkbox, type CheckboxProps } from './components/checkbox/Checkbox.tsx';
 export {
+  CheckboxGroup,
+  type CheckboxGroupProps,
+  type CheckboxOption,
+} from './components/checkbox-group/CheckboxGroup.tsx';
+export {
   RadioGroup,
   type RadioGroupProps,
   type RadioOption,

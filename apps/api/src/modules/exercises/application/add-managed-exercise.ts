@@ -1,11 +1,14 @@
 import {
+  bodySegmentFor,
   measureKindFor,
   recordValueSchemaFor,
   type AddExercise,
+  type Capacity,
   type Exercise,
   type ExerciseCategory,
   type ManagedExercise,
   type ManagedExerciseSummary,
+  type MuscleGroup,
   type Plan,
 } from '@wasabi-cross/schemas';
 import { AppError } from '../../../shared/errors/app-error.ts';
@@ -100,7 +103,9 @@ export async function addManagedExercise<Tx>(
 
   // Qué se agrega: un ejercicio que ya existe, o uno propio nuevo que se crea en la
   // transacción. Los dos caminos quedan explícitos en el tipo.
-  let target: { existing: Exercise } | { newName: string };
+  let target:
+    | { existing: Exercise }
+    | { newName: string; capacities: Capacity[]; muscleGroups: MuscleGroup[] };
   let category: ExerciseCategory;
 
   if (input.source === 'catalog') {
@@ -109,7 +114,11 @@ export async function addManagedExercise<Tx>(
     category = existing.category;
   } else {
     await assertCustomNameIsFree(store, userId, input.name);
-    target = { newName: input.name };
+    target = {
+      newName: input.name,
+      capacities: input.capacities,
+      muscleGroups: input.muscleGroups,
+    };
     category = input.category;
   }
 
@@ -133,7 +142,15 @@ export async function addManagedExercise<Tx>(
     const exercise =
       'existing' in target
         ? target.existing
-        : await store.createCustom(tx, { ownerId: userId, name: target.newName, category });
+        : await store.createCustom(tx, {
+            ownerId: userId,
+            name: target.newName,
+            category,
+            capacities: target.capacities,
+            muscleGroups: target.muscleGroups,
+            // No se pregunta: sale de los grupos musculares elegidos (spec §5.1).
+            bodySegment: bodySegmentFor(target.muscleGroups),
+          });
 
     const managed = await store.createManaged(tx, {
       userId,

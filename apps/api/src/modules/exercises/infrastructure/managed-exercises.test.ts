@@ -63,9 +63,16 @@ describe('ejercicios gestionados (F1-05)', () => {
       source: 'custom',
       name,
       category,
+      capacities: ['fuerza'],
+      muscleGroups: ['hombro'],
       level: 'principiante',
       firstRecord: { value },
     });
+  }
+
+  /** El ejercicio como quedó guardado: la lista no devuelve capacidades ni grupos. */
+  function guardado(name: string) {
+    return harness.mongo.db.collection('exercises').findOne({ name });
   }
 
   async function list(cookie: string): Promise<ExerciseList> {
@@ -183,6 +190,63 @@ describe('ejercicios gestionados (F1-05)', () => {
 
       expect(response.statusCode).toBe(409);
       expect(response.json()).toMatchObject({ errorCode: 'WC-EXO-409-003' });
+    });
+
+    it('guarda capacidades y grupos musculares, y deriva el segmento (F2-02, spec §5.1)', async () => {
+      const cookie = await newUser();
+
+      const response = await add(cookie, {
+        source: 'custom',
+        name: 'Peso muerto rumano del garage',
+        category: 'fuerza',
+        capacities: ['fuerza'],
+        muscleGroups: ['isquiotibiales', 'gluteo'],
+        level: 'intermedio',
+        firstRecord: { value: 80 },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(await guardado('Peso muerto rumano del garage')).toMatchObject({
+        capacities: ['fuerza'],
+        muscleGroups: ['isquiotibiales', 'gluteo'],
+        bodySegment: 'tren_inferior',
+      });
+    });
+
+    it('con grupos de segmentos distintos, el ejercicio es de cuerpo completo', async () => {
+      const cookie = await newUser();
+
+      await add(cookie, {
+        source: 'custom',
+        name: 'Thruster del garage',
+        category: 'gimnastico',
+        capacities: ['fuerza', 'resistencia'],
+        muscleGroups: ['cuadriceps', 'hombro'],
+        level: 'intermedio',
+        firstRecord: { value: 20 },
+      });
+
+      expect(await guardado('Thruster del garage')).toMatchObject({
+        bodySegment: 'cuerpo_completo',
+      });
+    });
+
+    it('sin capacidades no se crea nada', async () => {
+      const cookie = await newUser();
+
+      const response = await add(cookie, {
+        source: 'custom',
+        name: 'Sin capacidades',
+        category: 'gimnastico',
+        muscleGroups: ['hombro'],
+        level: 'intermedio',
+        firstRecord: { value: 20 },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-400-002' });
+      expect(await guardado('Sin capacidades')).toBeNull();
+      expect((await list(cookie)).exercises).toHaveLength(0);
     });
   });
 

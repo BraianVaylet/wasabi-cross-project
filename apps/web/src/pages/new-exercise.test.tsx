@@ -12,6 +12,9 @@ function delCatalogo(name: string, category: Exercise['category'], id: string): 
     ownerId: null,
     name,
     category,
+    capacities: ['fuerza'],
+    muscleGroups: ['cuadriceps', 'gluteo'],
+    bodySegment: 'tren_inferior',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
@@ -116,7 +119,29 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(router.state.location.pathname).toBe('/');
     });
 
-    it('uno propio viaja con su nombre y la categoría elegida', async () => {
+    it('uno propio viaja con su nombre, su categoría y lo que entrena', async () => {
+      const { api } = renderNuevo();
+
+      await userEvent.type(await screen.findByLabelText('Nombre'), 'Wall ball');
+      await userEvent.click(screen.getByRole('radio', { name: 'Gimnástico (repeticiones)' }));
+      await userEvent.click(screen.getByRole('checkbox', { name: 'Fuerza' }));
+      await userEvent.click(screen.getByRole('checkbox', { name: 'Hombro' }));
+      await userEvent.type(screen.getByLabelText('Repeticiones'), '30');
+      await completarComun();
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
+
+      expect(api.client.addExercise).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'custom',
+          name: 'Wall ball',
+          category: 'gimnastico',
+          capacities: ['fuerza'],
+          muscleGroups: ['hombro'],
+        }),
+      );
+    });
+
+    it('uno propio sin capacidades ni grupos no se guarda (F2-03, spec §5.1)', async () => {
       const { api } = renderNuevo();
 
       await userEvent.type(await screen.findByLabelText('Nombre'), 'Wall ball');
@@ -125,9 +150,18 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       await completarComun();
       await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
 
-      expect(api.client.addExercise).toHaveBeenCalledWith(
-        expect.objectContaining({ source: 'custom', name: 'Wall ball', category: 'gimnastico' }),
-      );
+      expect(await screen.findByText('Elegí al menos una capacidad')).toBeInTheDocument();
+      expect(screen.getByText('Elegí al menos un grupo muscular')).toBeInTheDocument();
+      expect(api.client.addExercise).not.toHaveBeenCalled();
+    });
+
+    it('uno del catálogo no los pregunta: ya los tiene', async () => {
+      renderNuevo();
+
+      await userEvent.type(await screen.findByLabelText('Nombre'), 'Back squat');
+
+      expect(screen.queryByRole('group', { name: 'Capacidades' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('group', { name: 'Grupos musculares' })).not.toBeInTheDocument();
     });
 
     it('un tiempo se escribe mm:ss y se guarda en segundos', async () => {

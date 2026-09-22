@@ -120,7 +120,10 @@ describe('seedCatalog', () => {
   });
 
   it('un documento viejo sin capacidades cuenta como cambio y se completa', async () => {
-    const { capacities: _c, ...sinCapacidades } = storedFrom(backSquat);
+    // Un documento de antes de que las capacidades fueran obligatorias (F2-02): el tipo ya
+    // no lo admite, pero en la base puede estar, y el seed tiene que completarlo.
+    const { capacities: _c, ...resto } = storedFrom(backSquat);
+    const sinCapacidades = resto as Exercise;
     const repository = fakeRepository([sinCapacidades]);
 
     const report = await seedCatalog(repository, [backSquat]);
