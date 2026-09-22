@@ -100,6 +100,17 @@ describe('cliente de API del front', () => {
     });
   });
 
+  it('las estadísticas de un ejercicio van con su período', async () => {
+    const { llamadas, api } = apiEspía();
+
+    await api.exerciseStats('mex_a1b2c3d4', '6m');
+
+    expect(llamadas[0]).toEqual({
+      path: '/api/v1/stats/exercises/mex_a1b2c3d4?period=6m',
+      options: undefined,
+    });
+  });
+
   it('las preferencias se leen y se guardan en /me/preferences', async () => {
     const { llamadas, api } = apiEspía();
 

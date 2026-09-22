@@ -1,5 +1,6 @@
 import {
   exerciseListSchema,
+  exerciseStatsSchema,
   logRecordResponseSchema,
   recordHistorySchema,
   exerciseSchema,
@@ -8,10 +9,12 @@ import {
   type AddExercise,
   type Exercise,
   type ExerciseList,
+  type ExerciseStats,
   type LogRecordResponse,
   type ManagedExerciseSummary,
   type RecordHistory,
   type RecordInput,
+  type StatsPeriod,
   type UpdateManagedExercise,
   type UpdatePreferences,
   type UserPreferences,
@@ -35,6 +38,8 @@ export interface ApiClient {
   history: (id: string, page: { limit: number; cursor?: string }) => Promise<RecordHistory>;
   /** Carga una marca nueva (F1-14). La API decide si el valor vale para esa medición. */
   logRecord: (id: string, input: RecordInput) => Promise<LogRecordResponse>;
+  /** La evolución de un ejercicio en un período (F2-04). */
+  exerciseStats: (id: string, period: StatsPeriod) => Promise<ExerciseStats>;
   preferences: () => Promise<UserPreferences>;
   savePreferences: (change: UpdatePreferences) => Promise<UserPreferences>;
 }
@@ -75,6 +80,8 @@ export function createApiClient(http: HttpClient): ApiClient {
         method: 'POST',
         body: input,
       }),
+    exerciseStats: (id, period) =>
+      http.request(exerciseStatsSchema, `/api/v1/stats/exercises/${id}?period=${period}`),
     preferences: () => http.request(userPreferencesSchema, '/api/v1/me/preferences'),
     savePreferences: (change) =>
       http.request(userPreferencesSchema, '/api/v1/me/preferences', {
@@ -144,5 +151,21 @@ export function historyQueryOptions(api: ApiClient, id: string) {
       }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+}
+
+export function exerciseStatsQueryKey(id: string, period: StatsPeriod): readonly unknown[] {
+  return ['stats', id, period];
+}
+
+/**
+ * La evolución de un ejercicio. Se pide recién cuando el acordeón lo abre (F2-07): en una
+ * lista de diez, nueve de esas consultas no las mira nadie.
+ */
+export function exerciseStatsQueryOptions(api: ApiClient, id: string, period: StatsPeriod) {
+  return queryOptions({
+    queryKey: exerciseStatsQueryKey(id, period),
+    queryFn: () => api.exerciseStats(id, period),
+    staleTime: 5 * 60 * 1000,
   });
 }

@@ -76,6 +76,14 @@ export function AppShell({
             Tus ejercicios
           </Link>
           <Link
+            to="/estadisticas"
+            className="wc-drawer__item"
+            activeProps={{ 'aria-current': 'page' }}
+            onClick={closeMenu}
+          >
+            Estadísticas
+          </Link>
+          <Link
             to="/perfil"
             className="wc-drawer__item"
             activeProps={{ 'aria-current': 'page' }}

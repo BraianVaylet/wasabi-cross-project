@@ -222,3 +222,9 @@
   margin: 0;
   color: var(--wc-text-muted);
 }
+
+/* Las dos acciones del encabezado: estadísticas y editar. */
+.detail__actions {
+  display: flex;
+  gap: var(--wc-space-4);
+}

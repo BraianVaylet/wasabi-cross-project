@@ -18,6 +18,8 @@ export interface ChartProps {
   points: readonly ChartPoint[];
   /** Qué decir cuando no hay nada que dibujar. */
   emptyMessage?: string;
+  /** Alto del dibujo en píxeles. Explícito: si no, se calcula solo y se desborda. */
+  height?: number;
 }
 
 /**
@@ -33,6 +35,7 @@ export function Chart({
   unit,
   points,
   emptyMessage = 'Todavía no hay marcas en este período',
+  height = 192,
 }: ChartProps): React.JSX.Element {
   const id = useId();
 
@@ -84,8 +87,8 @@ export function Chart({
         {label}
       </figcaption>
 
-      <div className="wc-chart__plot" aria-hidden="true">
-        <TanstackChart ariaLabel={label} definition={definition} />
+      <div className="wc-chart__plot" style={{ height }} aria-hidden="true">
+        <TanstackChart ariaLabel={label} definition={definition} height={height} />
       </div>
 
       {/* Visualmente oculta, no oculta: es la versión legible de la misma curva. */}

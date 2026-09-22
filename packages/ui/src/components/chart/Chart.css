@@ -14,9 +14,9 @@
 }
 
 .wc-chart__plot {
-  /* Altura fija: el gráfico se mide contra su caja, y sin altura no dibuja nada. */
-  height: 12rem;
+  /* La altura la pone el componente, en píxeles: el dibujo se mide contra su caja. */
   width: 100%;
+  overflow: hidden;
 }
 
 .wc-chart__empty {

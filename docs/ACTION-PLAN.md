@@ -972,7 +972,7 @@ F2-10 cierra la fase.
   `aria-hidden` y los datos van en una tabla visualmente oculta: describir una curva con texto
   alternativo sería peor que dar los números. Tres pruebas inversas; mirado en Storybook.
 
-## [ ] F2-07 · Pantalla de Estadísticas
+## [x] F2-07 · Pantalla de Estadísticas
 
 - **module:** web
 - **description:** `/estadisticas` (mockup 10): el acordeón de ejercicios, con el gráfico y los
@@ -992,6 +992,9 @@ F2-10 cierra la fase.
   teclado; axe sin violaciones.
 - **error-codes:** consume `WC-STATS-404-001`
 - **data-model-impact:** ninguno
+- **cierre:** va junto con F2-09: sin los accesos, la pantalla no se alcanza desde ningún lado.
+  Encontrado al mirarla de verdad: el gráfico se dibujaba más alto que su caja y se comía los
+  números; ahora la altura va explícita. Cuatro pruebas inversas.
 
 ## [ ] F2-08 · Sección de estadísticas generales
 
@@ -1011,7 +1014,7 @@ F2-10 cierra la fase.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F2-09 · Los accesos a Estadísticas
+## [x] F2-09 · Los accesos a Estadísticas
 
 - **module:** web
 - **description:** "Estadísticas" en el menú del header (quedó afuera en F1-09) y el acceso desde el
@@ -1027,6 +1030,7 @@ F2-10 cierra la fase.
 - **test_plan:** tests de navegación sobre el shell y sobre el detalle; axe.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** cerrada junto con F2-07.
 
 ## [ ] F2-10 · E2E de Estadísticas
 

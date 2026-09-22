@@ -1,0 +1,82 @@
+/* Tus estadísticas (mockup 10): el acordeón de ejercicios. */
+
+.stats__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats__row {
+  border-radius: var(--wc-radius-md);
+  background-color: var(--wc-surface-muted);
+  overflow: hidden;
+}
+
+.stats__row--open {
+  background-color: var(--wc-surface);
+}
+
+.stats__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+  width: 100%;
+  min-height: var(--wc-tap-target);
+  padding: var(--wc-space-3) var(--wc-space-4);
+
+  border: none;
+  background: none;
+  color: var(--wc-text);
+  font: inherit;
+  font-size: var(--wc-font-size-lg);
+  text-align: left;
+  cursor: pointer;
+}
+
+.stats__row--open .stats__name {
+  color: var(--wc-accent-text);
+}
+
+.stats__chevron {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: rotate(90deg);
+  transition: transform 150ms ease;
+}
+
+.stats__row--open .stats__chevron {
+  transform: rotate(-90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats__chevron {
+    transition: none;
+  }
+}
+
+.stats__panel {
+  padding: 0 var(--wc-space-4) var(--wc-space-4);
+}
+
+.stats__numbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: var(--wc-space-3);
+  margin: var(--wc-space-4) 0 0;
+}
+
+.stats__numbers dt {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+}
+
+.stats__numbers dd {
+  margin: 0;
+  font-size: var(--wc-font-size-lg);
+  font-weight: 500;
+}
