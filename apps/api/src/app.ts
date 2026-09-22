@@ -31,6 +31,10 @@ import {
   type PreferencesRoutesOptions,
 } from './modules/users/infrastructure/preferences.routes.ts';
 import { buildLoggerOptions } from './shared/logger.ts';
+import {
+  statsRoutes,
+  type StatsRoutesOptions,
+} from './modules/stats/infrastructure/stats.routes.ts';
 import { registerErrorHandler } from './shared/errors/error-handler.ts';
 
 export const API_PREFIX = '/api/v1';
@@ -47,6 +51,8 @@ export interface BuildAppOptions {
   exercises?: Omit<ExerciseRoutesOptions, 'requireSession'>;
   /** Igual que `exercises`: las marcas son de usuarios con sesión. */
   records?: Omit<RecordRoutesOptions, 'requireSession'>;
+  /** Las estadísticas, también: son de las marcas de un usuario (F2-04). */
+  stats?: Omit<StatsRoutesOptions, 'requireSession'>;
 }
 
 export async function buildApp({
@@ -56,6 +62,7 @@ export async function buildApp({
   users,
   exercises,
   records,
+  stats,
 }: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({
     logger: buildLoggerOptions(env),
@@ -137,6 +144,12 @@ export async function buildApp({
 
     if (records) {
       await app.register(recordRoutes({ ...records, requireSession: requireSession(auth) }), {
+        prefix: API_PREFIX,
+      });
+    }
+
+    if (stats) {
+      await app.register(statsRoutes({ ...stats, requireSession: requireSession(auth) }), {
         prefix: API_PREFIX,
       });
     }

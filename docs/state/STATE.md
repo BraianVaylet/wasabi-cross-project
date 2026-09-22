@@ -27,14 +27,16 @@ Lo que hay hoy, en una línea cada uno:
 **Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos. Un atleta se
 registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese camino en cada PR.
 
-**Fase 2 — Estadísticas: en curso, 3 de 10 tareas.** 44 puntos en total.
+**Fase 2 — Estadísticas: en curso, 4 de 10 tareas.** 44 puntos en total.
 
 - **F2-01 · Contratos**: cerrada. El período, la serie, el resumen y los agregados, más
   `summarize()` en el paquete compartido.
 - **F2-02 · El ejercicio propio lleva capacidades y grupos musculares**: cerrada. Obligatorias en el
   alta, el segmento se deriva, y una migración completa los que ya estaban.
 - **F2-03 · El formulario las pregunta**: cerrada. Sale el `CheckboxGroup` de `@wasabi-cross/ui`.
-- Quedan F2-04 a F2-10: el módulo `stats` en la API, el gráfico y la pantalla del mockup 10.
+- **F2-04 · Estadísticas de un ejercicio**: cerrada. `GET /api/v1/stats/exercises/:id` con la serie
+  del período y su resumen; nace el módulo `stats`.
+- Quedan F2-05 a F2-10: los agregados generales, el gráfico y la pantalla del mockup 10.
 
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
 - **F1-02 · Migraciones**: cerrada. migrate-mongo
@@ -68,8 +70,8 @@ Nada.
 
 ## Próximo paso
 
-1. Seguir con **F2-04** (estadísticas de un ejercicio), que ya tiene sus contratos, o con **F2-06**
-   (el Componente Cross de gráfico), que no depende de la API.
+1. Seguir con **F2-05** (las estadísticas generales) o con **F2-06** (el Componente Cross de
+   gráfico), que no depende de la API.
 2. Cargar en Trello las diez tarjetas de la Fase 2 y mover lo cerrado (`/trello-sync`): el MCP de
    Trello se desconectó en la sesión del 2026-09-22 y quedó todo sin sincronizar, incluida F1-18.
 3. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
