@@ -11,6 +11,27 @@ function unexpectedMessage(): string {
   return ERROR_CATALOG['WC-SYS-500-001'].userMessage.replace('{code}', 'WC-SYS-500-001');
 }
 
+/** El 4xx de un error que ya trae su código (los de Fastify), o `null` si no es del cliente. */
+function clientErrorStatus(error: unknown): number | null {
+  if (typeof error !== 'object' || error === null || !('statusCode' in error)) {
+    return null;
+  }
+  const { statusCode } = error;
+  return typeof statusCode === 'number' && statusCode >= 400 && statusCode < 500
+    ? statusCode
+    : null;
+}
+
+/** El código interno de Fastify (`FST_ERR_CTP_...`), que sirve para el log y nada más. */
+function fastifyCode(error: unknown): string | undefined {
+  return typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof error.code === 'string'
+    ? error.code
+    : undefined;
+}
+
 function send(reply: FastifyReply, status: number, envelope: ErrorEnvelope): void {
   void reply.status(status).send(envelope);
 }
@@ -86,7 +107,24 @@ export function registerErrorHandler(app: FastifyInstance): void {
       return;
     }
 
-    // 5. Cualquier otra cosa es un error no controlado: se loguea entero, se responde genérico.
+    // 5. Errores del cliente que detecta Fastify antes de llegar a la ruta: un JSON roto, un
+    // cuerpo demasiado grande, un tipo de contenido que no entiende. Traen su 4xx, y un 500
+    // acá sería mentir: dispararía alertas por algo que no es nuestro (F3-02).
+    const clientStatus = clientErrorStatus(error);
+    if (clientStatus !== null) {
+      request.log.warn(
+        { errorCode: 'WC-SYS-400-002', status: clientStatus, code: fastifyCode(error) },
+        'Pedido rechazado por el servidor HTTP',
+      );
+      send(reply, clientStatus, {
+        errorCode: 'WC-SYS-400-002',
+        message: ERROR_CATALOG['WC-SYS-400-002'].userMessage,
+        requestId: request.id,
+      });
+      return;
+    }
+
+    // 6. Cualquier otra cosa es un error no controlado: se loguea entero, se responde genérico.
     // Nunca se filtra el stack ni el mensaje interno al cliente.
     request.log.error({ errorCode: 'WC-SYS-500-001', err: error }, 'Error no controlado');
     send(reply, 500, {

@@ -35,6 +35,13 @@ describe('envelope de error', () => {
         throw new Error('referencia nula en el módulo de records');
       });
 
+      typed.get('/test/explota-con-codigo', () => {
+        // Un error de una dependencia que trae su propio 5xx: sigue siendo nuestro problema.
+        throw Object.assign(new Error('el pool de Mongo se quedó sin conexiones'), {
+          statusCode: 503,
+        });
+      });
+
       typed.get(
         '/test/con-rate-limit',
         { config: { rateLimit: { max: 1, timeWindow: '1 minute' } } },
@@ -159,6 +166,53 @@ describe('envelope de error', () => {
       message: 'Demasiados intentos. Esperá un minuto y probá de nuevo.',
     });
     expect(response.json()).toHaveProperty('requestId');
+  });
+
+  describe('errores del cliente que detecta Fastify (F3-02)', () => {
+    it('un JSON mal formado es un 400 del cliente, no un 500 nuestro', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/test/validacion',
+        headers: { 'content-type': 'application/json' },
+        payload: '{"value": ',
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-400-002' });
+    });
+
+    it('un cuerpo demasiado grande responde 413, con el mismo envelope', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/test/validacion',
+        headers: { 'content-type': 'application/json' },
+        payload: JSON.stringify({ value: 1, relleno: 'x'.repeat(2 * 1024 * 1024) }),
+      });
+
+      expect(response.statusCode).toBe(413);
+      expect(errorEnvelopeSchema.safeParse(response.json()).success).toBe(true);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-400-002' });
+    });
+
+    it('un error con un 5xx propio sigue siendo un 500 nuestro, sin filtrar el mensaje', async () => {
+      const response = await app.inject({ method: 'GET', url: '/test/explota-con-codigo' });
+
+      expect(response.statusCode).toBe(500);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-500-001' });
+      expect(response.body).not.toContain('pool de Mongo');
+    });
+
+    it('un tipo de contenido que no se entiende responde 415, no 500', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/test/validacion',
+        headers: { 'content-type': 'application/x-cualquier-cosa' },
+        payload: 'hola',
+      });
+
+      expect(response.statusCode).toBe(415);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-400-002' });
+    });
   });
 
   it('genera un requestId propio si el front no manda ninguno', async () => {
