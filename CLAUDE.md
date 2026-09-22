@@ -56,15 +56,19 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 | `pnpm lint` / `pnpm lint:fix`                     | ESLint sobre todo el monorepo                                    |
 | `pnpm typecheck`                                  | `tsc --noEmit` por workspace                                     |
 | `pnpm test` / `pnpm test:coverage`                | Vitest; el coverage falla por debajo de 90%                      |
+| `pnpm e2e`                                        | Playwright: el flujo principal y la auditoría axe (F1-18)        |
 | `pnpm build`                                      | Compila los cuatro workspaces en orden de dependencia            |
 | `pnpm format` / `pnpm format:check`               | Prettier                                                         |
 | `pnpm --filter @wasabi-cross/api migrate up`      | Aplica las migraciones pendientes (`down`, `status`)             |
 | `pnpm --filter @wasabi-cross/api migrate:dist up` | Lo mismo, compilado: para los ambientes desplegados              |
 | `pnpm --filter @wasabi-cross/api seed`            | Carga el catálogo de ejercicios (idempotente; pide migrar antes) |
+| `pnpm --filter @wasabi-cross/api dev:ephemeral`   | La API contra un Mongo que nace y muere con el proceso           |
 | `pnpm --filter @wasabi-cross/ui storybook`        | Storybook en el puerto 6006                                      |
 
-Antes de levantar la API hace falta un `.env` — copiar de `apps/api/.env.example` — y correr las
-migraciones: sin ellas, `/ready` responde no-listo.
+Antes de levantar la API hacen falta sus variables de entorno —las de `apps/api/.env.example`,
+**exportadas en la shell**: hoy nadie lee el `.env` solo— y las migraciones corridas, porque sin
+ellas `/ready` responde no-listo. Para probar sin montar nada, `dev:ephemeral` se ocupa de las dos
+cosas contra un Mongo descartable.
 
 ## Reglas de arquitectura
 

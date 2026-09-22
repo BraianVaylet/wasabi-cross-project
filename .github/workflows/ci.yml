@@ -56,6 +56,51 @@ jobs:
       - name: Build de Storybook
         run: pnpm --filter @wasabi-cross/ui build-storybook
 
+  e2e:
+    name: E2E + axe (spec §10 y §11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      # El front importa @wasabi-cross/ui y /schemas desde sus `dist`: sin build, el
+      # servidor de desarrollo que levanta Playwright no resuelve nada.
+      - name: Build
+        run: pnpm build
+
+      # El mongod efímero se baja una vez y se reusa entre corridas.
+      - name: Caché del binario de Mongo
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}
+
+      - name: Instalar Chromium
+        run: pnpm --filter @wasabi-cross/web exec playwright install --with-deps chromium
+
+      # Levanta la API contra un Mongo efímero y el front apuntando a ella (F1-18).
+      - name: E2E
+        run: pnpm e2e
+
+      - name: Reporte de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
   audit:
     name: audit de dependencias
     runs-on: ubuntu-latest

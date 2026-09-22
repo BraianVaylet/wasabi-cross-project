@@ -17,13 +17,23 @@
   --wc-border: #6b7a85;
 
   --wc-text: #ffffff;
-  --wc-text-muted: #c4cdd4;
+  /*
+   * El gris apagado del mockup (#c4cdd4) da 4.3:1 sobre `--wc-surface` y no llega a AA:
+   * lo encontró el axe del E2E en la fecha de cada fila de Home. Un punto más claro
+   * queda en 4.8:1 sobre la superficie y 9:1 sobre el fondo, sin perder el contraste
+   * con el texto principal.
+   */
+  --wc-text-muted: #d0d8de;
   --wc-text-on-accent: #1d2a33;
 
   --wc-accent: #a6da4b;
   --wc-accent-hover: #b6e463;
   --wc-accent-subtle: #5f7d21;
-  --wc-accent-text: #a6da4b;
+  /*
+   * El lima de la marca como texto da 4.2:1 sobre `--wc-surface`: alcanza sobre el fondo,
+   * no sobre una tarjeta. Como texto se usa el tono de hover, que llega a 4.7:1.
+   */
+  --wc-accent-text: #b6e463;
 
   --wc-danger: #ff8a80;
   --wc-danger-text: #ff8a80;

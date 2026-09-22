@@ -139,6 +139,11 @@
   font-size: var(--wc-font-size-sm);
 }
 
+/* Sobre el verde del elegido, el gris apagado se queda en 3.3:1: ahí va el texto pleno. */
+.detail__option--selected .detail__option-target {
+  color: var(--wc-text);
+}
+
 .detail__no-table {
   margin: 0;
   color: var(--wc-text-muted);
