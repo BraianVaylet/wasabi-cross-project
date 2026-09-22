@@ -17,13 +17,16 @@
 | --------------------------- | -----: | -----------: | -----: |
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
-| Fase 2 — Estadísticas       |     10 |           44 |      9 |
+| Fase 2 — Estadísticas       |     10 |           44 |     10 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
 
 **Fase 1 cerrada el 2026-09-22** con F1-18: el loop del atleta funciona de punta a punta y el E2E lo
 corre en CI contra un Mongo efímero.
+
+**Fase 2 cerrada el 2026-09-22** con F2-10: la pantalla de Estadísticas del mockup 10, con la evolución
+de cada ejercicio y el resumen por capacidad y grupo muscular, recorrida por el E2E.
 
 ## Etiquetas del tablero
 
@@ -1040,7 +1043,7 @@ F2-10 cierra la fase.
 - **data-model-impact:** ninguno
 - **cierre:** cerrada junto con F2-07.
 
-## [ ] F2-10 · E2E de Estadísticas
+## [x] F2-10 · E2E de Estadísticas
 
 - **module:** infra
 - **description:** El recorrido nuevo sumado al E2E de F1-18: crear un ejercicio propio con sus
@@ -1060,3 +1063,8 @@ F2-10 cierra la fase.
 - **test_plan:** el propio E2E, en el job que ya existe.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** tres tests nuevos: la evolución y el resumen con un propio creado desde el
+  formulario, el período que recorta, y los dos accesos. El axe encontró que el gráfico de TanStack
+  era enfocable adentro de un `aria-hidden` (WCAG 4.1.2): ahora sale del orden de tabulación.
+  Con nueve registros por corrida, el límite de 5 por minuto (spec §13) cortaba el E2E:
+  `AUTH_RATE_LIMIT=off` lo apaga sólo ahí, y en producción el proceso no levanta con eso.

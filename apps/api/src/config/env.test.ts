@@ -53,4 +53,24 @@ describe('parseEnv', () => {
   it('rechaza un NODE_ENV que no existe', () => {
     expect(() => parseEnv({ ...minimal, NODE_ENV: 'staging-ish' })).toThrow(/NODE_ENV/);
   });
+
+  describe('AUTH_RATE_LIMIT — el límite de intentos de login y registro (spec §13)', () => {
+    it('está prendido si nadie dice nada', () => {
+      expect(parseEnv(minimal).AUTH_RATE_LIMIT).toBe('on');
+    });
+
+    it('se puede apagar fuera de producción: el E2E registra más de cinco atletas por minuto', () => {
+      expect(parseEnv({ ...minimal, AUTH_RATE_LIMIT: 'off' }).AUTH_RATE_LIMIT).toBe('off');
+    });
+
+    it('en producción no se apaga: el proceso no levanta', () => {
+      expect(() =>
+        parseEnv({ ...minimal, NODE_ENV: 'production', AUTH_RATE_LIMIT: 'off' }),
+      ).toThrow(/AUTH_RATE_LIMIT/);
+    });
+
+    it('un valor que no es on u off no pasa', () => {
+      expect(() => parseEnv({ ...minimal, AUTH_RATE_LIMIT: 'false' })).toThrow(/AUTH_RATE_LIMIT/);
+    });
+  });
 });
