@@ -8,7 +8,10 @@ import {
   listManagedExercises,
   searchCatalog,
 } from './modules/exercises/application/list-managed-exercises.ts';
-import { findOwnedMeasure } from './modules/exercises/application/owned-exercise.ts';
+import {
+  findOwnedMeasure,
+  listOwnedProfiles,
+} from './modules/exercises/application/owned-exercise.ts';
 import type { ExerciseSlots } from './modules/exercises/domain/managed-exercise-ports.ts';
 import type { ExerciseRoutesOptions } from './modules/exercises/infrastructure/exercise.routes.ts';
 import { createMongoExerciseRepository } from './modules/exercises/infrastructure/mongo-exercise.repository.ts';
@@ -19,7 +22,11 @@ import type { OwnedExerciseLookup } from './modules/records/domain/record-ports.
 import { createMongoRecordGateway } from './modules/records/infrastructure/mongo-record.gateway.ts';
 import type { RecordRoutesOptions } from './modules/records/infrastructure/record.routes.ts';
 import { exerciseStats } from './modules/stats/application/exercise-stats.ts';
-import type { OwnedExerciseNameLookup } from './modules/stats/domain/stats-ports.ts';
+import { generalStats } from './modules/stats/application/general-stats.ts';
+import type {
+  OwnedExerciseNameLookup,
+  OwnedExercisesLookup,
+} from './modules/stats/domain/stats-ports.ts';
 import { createMongoStatsSource } from './modules/stats/infrastructure/mongo-stats.source.ts';
 import type { StatsRoutesOptions } from './modules/stats/infrastructure/stats.routes.ts';
 import { withExerciseSlot } from './modules/subscriptions/application/with-exercise-slot.ts';
@@ -105,9 +112,14 @@ export function composeStats(mongo: MongoConnection): Omit<StatsRoutesOptions, '
       findOwnedMeasure(exercises, userId, managedExerciseId),
   };
 
+  const list: OwnedExercisesLookup = {
+    listOwned: (userId) => listOwnedProfiles(exercises, userId),
+  };
+
   return {
     exerciseStats: (userId, managedExerciseId, period) =>
       exerciseStats({ lookup, records }, { userId, managedExerciseId, period }),
+    generalStats: (userId, period) => generalStats({ lookup: list, records }, { userId, period }),
   };
 }
 

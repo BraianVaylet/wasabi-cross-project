@@ -924,7 +924,7 @@ F2-10 cierra la fase.
   a `exercises`. El índice existente (`managed_history`) ya cubre la consulta, así que no hizo falta
   uno nuevo. Cuatro pruebas inversas.
 
-## [ ] F2-05 · Estadísticas generales
+## [x] F2-05 · Estadísticas generales
 
 - **module:** api
 - **description:** `GET /api/v1/stats/summary`: la evolución agregada por capacidad y por grupo
@@ -946,6 +946,10 @@ F2-10 cierra la fase.
   usuario armado a mano, con propios y de catálogo; aislamiento entre usuarios.
 - **error-codes:** ninguno nuevo
 - **data-model-impact:** ninguno
+- **cierre:** se promedian variaciones y no valores, que es lo que permite comparar un RM en kilos
+  con una carrera en segundos. Regla nueva: una variación necesita dos marcas en el período, porque
+  con una `summarize` devuelve 0% y eso arrastraría el promedio del grupo hacia cero sin haber
+  medido nada. Cinco pruebas inversas.
 
 ## [x] F2-06 · Componente Cross de gráfico
 
