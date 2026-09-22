@@ -78,6 +78,15 @@ describe('newExerciseSchemaFor — lo que se valida antes de llamar a la API', (
       false,
     );
   });
+
+  it('sin nivel, el mensaje está en es-AR y no es el crudo de Zod', () => {
+    const result = schema.safeParse({ ...base, name: 'Back squat', value: '100', level: '' });
+
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ['level'],
+      message: 'Elegí tu nivel',
+    });
+  });
 });
 
 describe('toAddExercise — lo que viaja a la API', () => {
