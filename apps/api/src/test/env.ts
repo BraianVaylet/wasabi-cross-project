@@ -15,6 +15,9 @@ export function testEnv(overrides: Partial<Env> = {}): Env {
     WEB_ORIGIN: 'http://localhost:5173',
     BETTER_AUTH_SECRET: 'test-secret-de-al-menos-32-caracteres-ok',
     BETTER_AUTH_URL: 'http://localhost:3000',
+    // Prendido, como en producción: en test lo apaga `NODE_ENV`, y los tests de rate limit
+    // lo prenden a mano.
+    AUTH_RATE_LIMIT: 'on',
     ...overrides,
   };
 }

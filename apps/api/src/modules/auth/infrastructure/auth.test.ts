@@ -193,6 +193,21 @@ describe('auth', () => {
       expect(auth.options.plugins).toHaveLength(1);
     });
 
+    it('fuera de producción, con AUTH_RATE_LIMIT=off, el límite se apaga (sólo para el E2E)', () => {
+      const auth = createAuth({
+        env: testEnv({
+          NODE_ENV: 'development',
+          AUTH_RATE_LIMIT: 'off',
+          MONGODB_URI: harness.env.MONGODB_URI,
+        }),
+        db: harness.mongo.db,
+        client: harness.mongo.client,
+        transactions: false,
+      });
+
+      expect(auth.options.rateLimit.enabled).toBe(false);
+    });
+
     it('en test el chequeo contra listas filtradas está apagado: no depende de una API externa', () => {
       const auth = createAuth({
         env: harness.env,
