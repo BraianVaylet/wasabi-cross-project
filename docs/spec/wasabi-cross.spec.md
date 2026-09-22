@@ -53,7 +53,7 @@ Mockups en [`../mockup`](../mockup).
 | Home                       | `wasabi (4).png`                                      | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                        |
 | Estadísticas               | `wasabi (10).png`                                     | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. |
 | Ejercicio                  | `wasabi (5).png`, `wasabi (6).png`, `wasabi (11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1.                                                   |
-| Nuevo ejercicio            | `wasabi (9).png`                                      | Nombre (elige del catálogo o crea uno propio si no existe), categoría (sólo si es propio: la de un ejercicio del catálogo ya está definida), primera marca con su fecha, nivel, comentarios y "con dolor".                                                                                      |
+| Nuevo ejercicio            | `wasabi (9).png`                                      | Nombre (elige del catálogo o crea uno propio si no existe), categoría (sólo si es propio: la de un ejercicio del catálogo ya está definida), **capacidades y grupos musculares, también sólo si es propio**, primera marca con su fecha, nivel, comentarios y "con dolor".                      |
 
 Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
@@ -76,9 +76,11 @@ El peso se registra sólo en kg.
 
 **Tres conceptos distintos:**
 
-- **Ejercicio**: la definición — nombre y categoría, y en los del catálogo, además capacidades y grupos musculares para Estadísticas. Es del catálogo (sin dueño, lo ven todos) o propio (lo creó un usuario y sólo lo ve él).
+- **Ejercicio**: la definición — nombre, categoría, capacidades y grupos musculares. Es del catálogo (sin dueño, lo ven todos) o propio (lo creó un usuario y sólo lo ve él). En los del catálogo vienen cargados; en los propios los elige el usuario al crearlo, porque sin ellos ese ejercicio queda afuera de las estadísticas generales.
 - **Ejercicio gestionado**: la entrada de un ejercicio en la lista de un usuario. Lleva lo que es del usuario y no del ejercicio: nivel, "con dolor" y comentarios. Un ejercicio aparece una sola vez en la lista de cada usuario.
 - **Marca**: un valor con su fecha de realización y un comentario opcional, sobre un ejercicio gestionado.
+
+**Capacidades y grupos musculares.** Los dos son obligatorios y admiten más de uno: son el eje de las estadísticas generales (§5, mockup 10). El **segmento del cuerpo** —tren superior, tren inferior, core o cuerpo completo— no se pregunta: se deriva de los grupos musculares elegidos, y es cuerpo completo cuando hay grupos de más de un segmento. Un dato que se puede calcular no se le pide al usuario.
 
 **La fecha de realización no puede ser futura**: una marca de mañana pasaría a ser el valor actual antes de existir. Se tolera un margen de 5 minutos por la diferencia de reloj entre el dispositivo y el servidor. Vale también para la primera marca, al agregar un ejercicio.
 
