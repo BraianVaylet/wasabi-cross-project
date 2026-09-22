@@ -156,6 +156,17 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(api.client.addExercise).not.toHaveBeenCalled();
     });
 
+    it('sin nivel, el error lo dice en es-AR y no lo escupe Zod en inglés', async () => {
+      const { api } = renderNuevo();
+
+      await userEvent.type(await screen.findByLabelText('Nombre'), 'Back squat');
+      await userEvent.type(screen.getByLabelText('RM (kg)'), '100');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Elegí tu nivel');
+      expect(api.client.addExercise).not.toHaveBeenCalled();
+    });
+
     it('después de guardar, Home ya muestra el ejercicio nuevo', async () => {
       // El recorrido real: Home vacío, agregar, y volver. Home tiene la lista en caché,
       // así que si el alta no la invalida, el ejercicio nuevo no aparecería.

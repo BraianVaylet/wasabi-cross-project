@@ -19,6 +19,13 @@ describe('levelSchema', () => {
   it('rechaza un nivel que no existe', () => {
     expect(levelSchema.safeParse('experto').success).toBe(false);
   });
+
+  it('el mensaje es el de la app y no el crudo de Zod en inglés', () => {
+    // El formulario de "Nuevo ejercicio" muestra este mensaje tal cual (spec §11: todo en es-AR).
+    for (const invalido of ['', 'experto', undefined]) {
+      expect(levelSchema.safeParse(invalido).error?.issues[0]?.message).toBe('Elegí tu nivel');
+    }
+  });
 });
 
 describe('managedExerciseSchema', () => {

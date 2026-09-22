@@ -3,8 +3,15 @@ import { timestampsSchema } from '../common/datetime.ts';
 import { exerciseIdSchema, managedExerciseIdSchema, userIdSchema } from '../common/ids.ts';
 import { plainText } from '../common/text.ts';
 
-/** Nivel del usuario en un ejercicio. Los cuatro de la leyenda del mockup 12. */
-export const levelSchema = z.enum(['principiante', 'intermedio', 'avanzado', 'elite']);
+/**
+ * Nivel del usuario en un ejercicio. Los cuatro de la leyenda del mockup 12.
+ *
+ * Mensaje propio: el crudo de Zod nombra las cuatro opciones en inglés, y el formulario
+ * de "Nuevo ejercicio" lo muestra tal cual al usuario (spec §11, todo en es-AR).
+ */
+export const levelSchema = z.enum(['principiante', 'intermedio', 'avanzado', 'elite'], {
+  error: 'Elegí tu nivel',
+});
 export type Level = z.infer<typeof levelSchema>;
 
 /**
