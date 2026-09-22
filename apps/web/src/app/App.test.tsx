@@ -205,6 +205,16 @@ describe('shell de la app (F1-09)', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
+    it('lleva a Estadísticas, que es la otra pantalla del menú (F2-09)', async () => {
+      const { router } = renderApp('/', fakeSession(braian).client);
+      await userEvent.click(await screen.findByRole('button', { name: 'Abrir menú' }));
+
+      await userEvent.click(screen.getByRole('link', { name: 'Estadísticas' }));
+
+      expect(await screen.findByRole('heading', { name: 'Tus estadísticas' })).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe('/estadisticas');
+    });
+
     it('cerrar sesión la invalida y lleva a login', async () => {
       const session = fakeSession(braian);
       const { router } = renderApp('/', session.client);

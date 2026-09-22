@@ -25,10 +25,12 @@ import { NewExercisePage } from '../pages/new-exercise/NewExercisePage.tsx';
 import { EditExercisePage } from '../pages/edit-exercise/EditExercisePage.tsx';
 import { ExerciseDetailPage } from '../pages/exercise-detail/ExerciseDetailPage.tsx';
 import { ProfilePage } from '../pages/profile/ProfilePage.tsx';
+import { StatsPage } from '../pages/stats/StatsPage.tsx';
 import { refreshSession } from './create-app.ts';
 import {
   catalogQueryOptions,
   exerciseListQueryOptions,
+  exerciseStatsQueryOptions,
   historyQueryKey,
   historyQueryOptions,
   preferencesQueryOptions,
@@ -384,6 +386,46 @@ const profileRoute = createRoute({
   },
 });
 
+/*
+ * Cuál está abierto vive en la URL (mockup 10): un link a `?abierto=mex_...` abre esa
+ * evolución, y es lo que usa el botón del detalle. Un ID inventado no rompe la pantalla:
+ * simplemente no coincide con ninguna fila.
+ */
+const statsSearch = z.object({ abierto: z.string().optional().catch(undefined) });
+
+const statsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/estadisticas',
+  validateSearch: (search) => statsSearch.parse(search),
+  component: function StatsRoute() {
+    const { api } = appRoute.useRouteContext();
+    const { abierto } = statsRoute.useSearch();
+    const navigate = useNavigate();
+    const exercises = useQuery(exerciseListQueryOptions(api));
+
+    // Sólo la del que está abierto: en una lista de diez, nueve consultas no las mira nadie.
+    const stats = useQuery({
+      ...exerciseStatsQueryOptions(api, abierto ?? '', '12m'),
+      enabled: abierto !== undefined,
+    });
+
+    return (
+      <StatsPage
+        exercises={exercises}
+        open={abierto}
+        stats={abierto === undefined ? null : stats}
+        onToggle={(id) => {
+          void navigate({
+            to: '.',
+            search: id === abierto ? {} : { abierto: id },
+            replace: true,
+          });
+        }}
+      />
+    );
+  },
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   registerRoute,
@@ -392,6 +434,7 @@ const routeTree = rootRoute.addChildren([
     newExerciseRoute,
     exerciseDetailRoute,
     editExerciseRoute,
+    statsRoute,
     profileRoute,
   ]),
 ]);

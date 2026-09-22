@@ -132,10 +132,15 @@ function Detail({
     <>
       <div className="detail__head">
         <h1 className="page__title">{exercise.name}</h1>
-        {/* El lápiz del mockup 5. Las estadísticas son de la próxima fase. */}
-        <Link to="/ejercicios/$id/editar" params={{ id: exercise.id }} className="detail__edit">
-          Editar
-        </Link>
+        {/* Las dos acciones del mockup 5: el lápiz y la evolución. */}
+        <div className="detail__actions">
+          <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__edit">
+            Estadísticas
+          </Link>
+          <Link to="/ejercicios/$id/editar" params={{ id: exercise.id }} className="detail__edit">
+            Editar
+          </Link>
+        </div>
       </div>
 
       <div className="detail__current">

@@ -1,5 +1,6 @@
 import type {
   ExerciseList,
+  ExerciseStats,
   LogRecordResponse,
   ManagedExerciseSummary,
   RecordHistory,
@@ -87,6 +88,16 @@ const MARCA_OK: LogRecordResponse = {
   best: { value: 1, unit: 'kg', performedAt: '2026-01-01T12:00:00.000Z' },
 };
 
+const ESTADISTICAS_VACIAS: ExerciseStats = {
+  id: 'mex_00000000',
+  name: 'Ejercicio',
+  kind: 'rm',
+  unit: 'kg',
+  period: '12m',
+  series: [],
+  summary: null,
+};
+
 const PREFERENCIAS: UserPreferences = {
   theme: 'dark',
   loadPercentages: [65, 75, 80, 85, 90, 95],
@@ -108,6 +119,9 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       deleteExercise: vi.fn<ApiClient['deleteExercise']>(() => Promise.resolve()),
       history: vi.fn<ApiClient['history']>(() => Promise.resolve(HISTORIAL_VACIO)),
       logRecord: vi.fn<ApiClient['logRecord']>(() => Promise.resolve(MARCA_OK)),
+      exerciseStats: vi.fn<ApiClient['exerciseStats']>((id, period) =>
+        Promise.resolve({ ...ESTADISTICAS_VACIAS, id, period }),
+      ),
       preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
       savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>
         Promise.resolve({
