@@ -7,6 +7,8 @@
 - [ADRs](./adr) — decisiones de arquitectura, una por archivo.
 - [Estado del proyecto](./state/STATE.md) — foto del presente, leer al empezar cada sesión.
 - [Bitácora](./state/bitacora) — historial de sesiones de trabajo.
+- [Prácticas de Claude Code](./claude-code-practices.md) — qué adoptar del harness (permisos,
+  hooks, skills, subagentes) y qué no, con su evidencia. Propuesta, pendiente de aprobación.
 - [Mockups](./mockup) — diseño de referencia.
 
 ## Cómo correr el proyecto
