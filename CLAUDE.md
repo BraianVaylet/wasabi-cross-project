@@ -63,6 +63,7 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 | `pnpm --filter @wasabi-cross/api migrate up`      | Aplica las migraciones pendientes (`down`, `status`)             |
 | `pnpm --filter @wasabi-cross/api migrate:dist up` | Lo mismo, compilado: para los ambientes desplegados              |
 | `pnpm --filter @wasabi-cross/api seed`            | Carga el catálogo de ejercicios (idempotente; pide migrar antes) |
+| `pnpm --filter @wasabi-cross/api seed:admin`      | Usuario admin fijo con plan Max (idempotente); ver STATE.md      |
 | `pnpm --filter @wasabi-cross/api dev:ephemeral`   | La API contra un Mongo que nace y muere con el proceso           |
 | `pnpm --filter @wasabi-cross/ui storybook`        | Storybook en el puerto 6006                                      |
 
