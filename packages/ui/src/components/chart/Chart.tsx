@@ -88,7 +88,13 @@ export function Chart({
       </figcaption>
 
       <div className="wc-chart__plot" style={{ height }} aria-hidden="true">
-        <TanstackChart ariaLabel={label} definition={definition} height={height} />
+        {/*
+          TanStack Charts es enfocable por defecto: navega los puntos con el teclado. Acá
+          adentro de un aria-hidden eso sería un foco que el lector de pantalla no anuncia
+          (WCAG 4.1.2), así que sale del orden de tabulación. La tabla de abajo es la
+          versión navegable. Lo encontró el axe del E2E (F2-10), no jsdom.
+        */}
+        <TanstackChart ariaLabel={label} definition={definition} height={height} tabIndex={-1} />
       </div>
 
       {/* Visualmente oculta, no oculta: es la versión legible de la misma curva. */}
