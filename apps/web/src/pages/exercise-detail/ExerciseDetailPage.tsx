@@ -9,7 +9,7 @@ import {
   type RecordInput,
 } from '@wasabi-cross/schemas';
 import { Link } from '@tanstack/react-router';
-import { Button, Skeleton, Tag, TextField } from '@wasabi-cross/ui';
+import { Button, Skeleton, Tag, TextField, type TagVariant } from '@wasabi-cross/ui';
 import { useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark } from '../../lib/format.ts';
@@ -57,6 +57,13 @@ const BAND_LABEL: Record<LoadBand, string> = {
   liviana: 'Carga liviana',
   media: 'Carga media',
   pesada: 'Carga pesada',
+};
+
+/** Verde para liviana, ámbar para media, rojo para pesada — semáforo de carga (spec §5.1). */
+const BAND_VARIANT: Record<LoadBand, TagVariant> = {
+  liviana: 'success',
+  media: 'warning',
+  pesada: 'danger',
 };
 
 /** Cómo se llama el valor actual según lo que mide el ejercicio (spec §5.1). */
@@ -220,6 +227,7 @@ function Percentages({
   // La carga se calcula acá mismo: cambiar de porcentaje no le pregunta nada a la API.
   const shown = selected ?? rows[0]?.percentage ?? 0;
   const target = percentageTable(kind, currentValue, [shown])?.[0];
+  const band = loadBandFor(shown);
 
   return (
     <>
@@ -235,11 +243,14 @@ function Percentages({
         aria-valuemin={1}
         aria-valuemax={100}
       >
-        <span className="detail__bar-fill" style={{ width: `${String(shown)}%` }} />
+        <span
+          className={`detail__bar-fill detail__bar-fill--${band}`}
+          style={{ width: `${String(shown)}%` }}
+        />
       </div>
 
       <p className="detail__band">
-        <Tag>{BAND_LABEL[loadBandFor(shown)]}</Tag>
+        <Tag variant={BAND_VARIANT[band]}>{BAND_LABEL[band]}</Tag>
       </p>
 
       <fieldset className="detail__grid">

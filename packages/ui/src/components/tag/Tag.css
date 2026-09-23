@@ -34,3 +34,15 @@
   border-color: var(--wc-danger);
   color: var(--wc-danger-text);
 }
+
+.wc-tag--success {
+  background-color: transparent;
+  border-color: var(--wc-accent);
+  color: var(--wc-accent-text);
+}
+
+.wc-tag--warning {
+  background-color: transparent;
+  border-color: var(--wc-warning);
+  color: var(--wc-warning-text);
+}

@@ -43,6 +43,10 @@
    */
   --wc-danger-text: #ffa8a1;
 
+  /* Banda de carga media: ni el verde de liviana ni el rojo de pesada (spec §5.1). */
+  --wc-warning: #ffb74d;
+  --wc-warning-text: #ffc773;
+
   --wc-focus: #ffffff;
 }
 
@@ -70,6 +74,9 @@
 
   --wc-danger: #c62828;
   --wc-danger-text: #b3261e;
+
+  --wc-warning: #e65100;
+  --wc-warning-text: #b34700;
 
   --wc-focus: #1d2a33;
 }
