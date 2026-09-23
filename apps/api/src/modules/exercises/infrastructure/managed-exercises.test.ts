@@ -128,6 +128,49 @@ describe('ejercicios gestionados (F1-05)', () => {
       expect(response.statusCode).toBe(422);
     });
 
+    it('running va en tiempo con su desnivel', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Carrera 1 km', 300, { elevationGainM: 120 });
+
+      expect(response.json<ManagedExerciseSummary>()).toMatchObject({
+        kind: 'time',
+        current: { value: 300, unit: 's', elevationGainM: 120 },
+      });
+    });
+
+    it('running sin desnivel no es una marca válida', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Carrera 1 km', 300);
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('un peso negativo responde con el motivo, no un mensaje genérico', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Butterfly', 12, { weightKg: -5 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        details: [{ path: 'firstRecord.weightKg', message: 'El peso tiene que ser mayor a cero' }],
+      });
+    });
+
+    it('un desnivel negativo responde con el motivo, no un mensaje genérico', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Carrera 1 km', 300, { elevationGainM: -1 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        details: [
+          { path: 'firstRecord.elevationGainM', message: 'El desnivel no puede ser negativo' },
+        ],
+      });
+    });
+
     it('si la marca no trae fecha, asume ahora', async () => {
       const cookie = await newUser();
       const antes = Date.now();

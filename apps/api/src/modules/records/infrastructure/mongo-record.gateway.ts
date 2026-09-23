@@ -1,6 +1,8 @@
 import {
+  elevationGainMSchema,
   UNIT_BY_KIND,
   recordValueSchemaFor,
+  weightKgSchema,
   type Mark,
   type MeasureKind,
   type RecordEntry,
@@ -40,6 +42,17 @@ function toDocument(record: NewRecordEntry): RecordDocument {
   const value = recordValueSchemaFor(record.kind).safeParse(record.value);
   if (!value.success) {
     throw new AppError('WC-RM-422-001', { meta: { kind: record.kind, value: record.value } });
+  }
+
+  // Misma segunda red para el peso (hipertrofia) y el desnivel (running): no existe el
+  // estado inválido de una marca de esa medición sin su campo extra.
+  if (record.kind === 'weighted_reps' && !weightKgSchema.safeParse(record.weightKg).success) {
+    throw new AppError('WC-RM-422-001', { meta: { kind: record.kind, weightKg: record.weightKg } });
+  }
+  if (record.kind === 'time' && !elevationGainMSchema.safeParse(record.elevationGainM).success) {
+    throw new AppError('WC-RM-422-001', {
+      meta: { kind: record.kind, elevationGainM: record.elevationGainM },
+    });
   }
 
   const now = new Date().toISOString();

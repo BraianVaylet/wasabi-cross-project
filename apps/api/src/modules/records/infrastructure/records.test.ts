@@ -148,6 +148,24 @@ describe('marcas: cargar e historial (F1-07)', () => {
       expect((await history(cookie, pullups.id)).json<RecordHistory>().records).toHaveLength(1);
     });
 
+    it('hipertrofia manda las repeticiones y el peso', async () => {
+      const cookie = await newUser();
+      const butterfly = await addFromCatalog(cookie, 'Butterfly', 12, '2026-06-01T10:00:00.000Z', {
+        weightKg: 30,
+      });
+
+      const response = await log(cookie, butterfly.id, {
+        value: 14,
+        weightKg: 35,
+        performedAt: '2026-06-10T10:00:00.000Z',
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = response.json<LogRecordResponse>();
+      expect(body.record).toMatchObject({ value: 14, unit: 'reps', weightKg: 35 });
+      expect(body.current).toMatchObject({ value: 14, weightKg: 35 });
+    });
+
     it('hipertrofia sin peso responde WC-RM-422-001 y no guarda nada', async () => {
       const cookie = await newUser();
       const butterfly = await addFromCatalog(cookie, 'Butterfly', 12, '2026-06-01T10:00:00.000Z', {

@@ -71,7 +71,12 @@ function extraFieldFor(
       return {
         ok: false,
         path: 'firstRecord.weightKg',
-        message: parsed.error.issues[0]?.message ?? 'Peso inválido',
+        // Ausente vs. inválido son casos distintos: sin esto, el campo faltante mostraba
+        // el mensaje en inglés de Zod en una app en español.
+        message:
+          firstRecord.weightKg === undefined
+            ? 'Cargá el peso'
+            : (parsed.error.issues[0]?.message ?? 'Peso inválido'),
       };
     }
     return { ok: true, data: { weightKg: parsed.data } };
@@ -82,7 +87,10 @@ function extraFieldFor(
       return {
         ok: false,
         path: 'firstRecord.elevationGainM',
-        message: parsed.error.issues[0]?.message ?? 'Desnivel inválido',
+        message:
+          firstRecord.elevationGainM === undefined
+            ? 'Cargá el desnivel'
+            : (parsed.error.issues[0]?.message ?? 'Desnivel inválido'),
       };
     }
     return { ok: true, data: { elevationGainM: parsed.data } };
