@@ -80,6 +80,28 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
       expect(await screen.findByText('No encontramos ese ejercicio.')).toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'Volver a tus ejercicios' })).toBeInTheDocument();
     });
+
+    it('en hipertrofia, el valor actual suma el peso a las repeticiones', async () => {
+      const butterfly: ManagedExerciseSummary = {
+        ...backSquat,
+        id: 'mex_h1p2e3r4',
+        name: 'Butterfly',
+        category: 'hipertrofia',
+        kind: 'weighted_reps',
+        current: { value: 12, unit: 'reps', weightKg: 30, performedAt: '2026-06-23T12:00:00.000Z' },
+      };
+      renderDetalle('/ejercicios/mex_h1p2e3r4', [butterfly]);
+
+      expect(await screen.findByText('12 reps · 30 kg')).toBeInTheDocument();
+    });
+
+    it('en running, el valor actual suma el desnivel al tiempo', async () => {
+      renderDetalle('/ejercicios/mex_z9y8x7w6', [
+        { ...carrera, current: { ...carrera.current, elevationGainM: 150 } },
+      ]);
+
+      expect(await screen.findByText('4:32 · 150 m')).toBeInTheDocument();
+    });
   });
 
   describe('tabla de porcentajes (spec §5.1)', () => {

@@ -49,12 +49,17 @@ describe('ejercicios gestionados (F1-05)', () => {
     });
   }
 
-  async function addFromCatalog(cookie: string, name: string, value = 100) {
+  async function addFromCatalog(
+    cookie: string,
+    name: string,
+    value = 100,
+    firstRecordExtra: Record<string, unknown> = {},
+  ) {
     return add(cookie, {
       source: 'catalog',
       exerciseId: await catalogId(name),
       level: 'intermedio',
-      firstRecord: { value, performedAt: '2026-06-23T10:00:00.000Z' },
+      firstRecord: { value, performedAt: '2026-06-23T10:00:00.000Z', ...firstRecordExtra },
     });
   }
 
@@ -104,14 +109,65 @@ describe('ejercicios gestionados (F1-05)', () => {
       expect((await list(cookie)).exercises.map((e) => e.name)).toEqual(['Back squat']);
     });
 
-    it('la medición sale de la categoría: la hipertrofia va en repeticiones', async () => {
+    it('la medición sale de la categoría: la hipertrofia va en repeticiones con peso', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Butterfly', 12, { weightKg: 30 });
+
+      expect(response.json<ManagedExerciseSummary>()).toMatchObject({
+        kind: 'weighted_reps',
+        current: { value: 12, unit: 'reps', weightKg: 30 },
+      });
+    });
+
+    it('hipertrofia sin peso no es una marca válida', async () => {
       const cookie = await newUser();
 
       const response = await addFromCatalog(cookie, 'Butterfly', 12);
 
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('running va en tiempo con su desnivel', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Carrera 1 km', 300, { elevationGainM: 120 });
+
       expect(response.json<ManagedExerciseSummary>()).toMatchObject({
-        kind: 'reps',
-        current: { value: 12, unit: 'reps' },
+        kind: 'time',
+        current: { value: 300, unit: 's', elevationGainM: 120 },
+      });
+    });
+
+    it('running sin desnivel no es una marca válida', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Carrera 1 km', 300);
+
+      expect(response.statusCode).toBe(422);
+    });
+
+    it('un peso negativo responde con el motivo, no un mensaje genérico', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Butterfly', 12, { weightKg: -5 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        details: [{ path: 'firstRecord.weightKg', message: 'El peso tiene que ser mayor a cero' }],
+      });
+    });
+
+    it('un desnivel negativo responde con el motivo, no un mensaje genérico', async () => {
+      const cookie = await newUser();
+
+      const response = await addFromCatalog(cookie, 'Carrera 1 km', 300, { elevationGainM: -1 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        details: [
+          { path: 'firstRecord.elevationGainM', message: 'El desnivel no puede ser negativo' },
+        ],
       });
     });
 

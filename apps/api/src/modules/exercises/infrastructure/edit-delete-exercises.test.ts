@@ -38,7 +38,11 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
     return exercise.id;
   }
 
-  async function addFromCatalog(cookie: string, name: string): Promise<ManagedExerciseSummary> {
+  async function addFromCatalog(
+    cookie: string,
+    name: string,
+    firstRecordExtra: Record<string, unknown> = {},
+  ): Promise<ManagedExerciseSummary> {
     const response = await harness.app.inject({
       method: 'POST',
       url: '/api/v1/exercises',
@@ -47,7 +51,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
         source: 'catalog',
         exerciseId: await catalogId(name),
         level: 'intermedio',
-        firstRecord: { value: 100 },
+        firstRecord: { value: 100, ...firstRecordExtra },
       }),
     });
     expect(response.statusCode, name).toBe(201);
@@ -325,7 +329,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
 
     it('sin sesión, ni edita ni borra', async () => {
       const cookie = await newUser();
-      const added = await addFromCatalog(cookie, 'Butterfly');
+      const added = await addFromCatalog(cookie, 'Butterfly', { weightKg: 30 });
 
       const sinSesionPatch = await harness.app.inject({
         method: 'PATCH',

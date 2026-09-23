@@ -33,14 +33,14 @@ const catalogExercise = {
 describe('measureKindFor', () => {
   it('la categoría define qué se mide (spec §5.1)', () => {
     expect(measureKindFor('fuerza')).toBe('rm');
-    expect(measureKindFor('hipertrofia')).toBe('reps');
+    expect(measureKindFor('hipertrofia')).toBe('weighted_reps');
     expect(measureKindFor('gimnastico')).toBe('reps');
     expect(measureKindFor('running')).toBe('time');
   });
 
   it('tiene respuesta para toda categoría, sin excepción', () => {
     for (const category of exerciseCategorySchema.options) {
-      expect(['rm', 'reps', 'time']).toContain(measureKindFor(category));
+      expect(['rm', 'reps', 'weighted_reps', 'time']).toContain(measureKindFor(category));
     }
   });
 });

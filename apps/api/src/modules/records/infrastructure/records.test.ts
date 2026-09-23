@@ -42,6 +42,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
     name: string,
     value: number,
     performedAt: string,
+    firstRecordExtra: Record<string, unknown> = {},
   ): Promise<ManagedExerciseSummary> {
     const exercise = await createMongoExerciseRepository(harness.mongo.db).findCatalogByName(name);
     const response = await harness.app.inject({
@@ -52,7 +53,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
         source: 'catalog',
         exerciseId: exercise?.id,
         level: 'intermedio',
-        firstRecord: { value, performedAt },
+        firstRecord: { value, performedAt, ...firstRecordExtra },
       }),
     });
     expect(response.statusCode, name).toBe(201);
@@ -68,8 +69,14 @@ describe('marcas: cargar e historial (F1-07)', () => {
     });
   }
 
-  async function logOk(cookie: string, id: string, value: number, performedAt: string) {
-    const response = await log(cookie, id, { value, performedAt });
+  async function logOk(
+    cookie: string,
+    id: string,
+    value: number,
+    performedAt: string,
+    extra: Record<string, unknown> = {},
+  ) {
+    const response = await log(cookie, id, { value, performedAt, ...extra });
     expect(response.statusCode, `${String(value)} @ ${performedAt}`).toBe(201);
     return response.json<LogRecordResponse>();
   }
@@ -139,6 +146,62 @@ describe('marcas: cargar e historial (F1-07)', () => {
         details: [{ path: 'value', message: 'Las repeticiones son un número entero' }],
       });
       expect((await history(cookie, pullups.id)).json<RecordHistory>().records).toHaveLength(1);
+    });
+
+    it('hipertrofia manda las repeticiones y el peso', async () => {
+      const cookie = await newUser();
+      const butterfly = await addFromCatalog(cookie, 'Butterfly', 12, '2026-06-01T10:00:00.000Z', {
+        weightKg: 30,
+      });
+
+      const response = await log(cookie, butterfly.id, {
+        value: 14,
+        weightKg: 35,
+        performedAt: '2026-06-10T10:00:00.000Z',
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = response.json<LogRecordResponse>();
+      expect(body.record).toMatchObject({ value: 14, unit: 'reps', weightKg: 35 });
+      expect(body.current).toMatchObject({ value: 14, weightKg: 35 });
+    });
+
+    it('hipertrofia sin peso responde WC-RM-422-001 y no guarda nada', async () => {
+      const cookie = await newUser();
+      const butterfly = await addFromCatalog(cookie, 'Butterfly', 12, '2026-06-01T10:00:00.000Z', {
+        weightKg: 30,
+      });
+
+      const response = await log(cookie, butterfly.id, { value: 14 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        errorCode: 'WC-RM-422-001',
+        details: [{ path: 'weightKg' }],
+      });
+      expect((await history(cookie, butterfly.id)).json<RecordHistory>().records).toHaveLength(1);
+    });
+
+    it('running sin desnivel responde WC-RM-422-001 y no guarda nada', async () => {
+      const cookie = await newUser();
+      const carrera = await addFromCatalog(
+        cookie,
+        'Carrera 1 km',
+        300,
+        '2026-06-01T10:00:00.000Z',
+        {
+          elevationGainM: 0,
+        },
+      );
+
+      const response = await log(cookie, carrera.id, { value: 280 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        errorCode: 'WC-RM-422-001',
+        details: [{ path: 'elevationGainM' }],
+      });
+      expect((await history(cookie, carrera.id)).json<RecordHistory>().records).toHaveLength(1);
     });
   });
 
@@ -213,10 +276,14 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('en tiempo, la menor: menos es mejor', async () => {
       const cookie = await newUser();
-      const km = await addFromCatalog(cookie, 'Carrera 1 km', 300, '2026-06-01T10:00:00.000Z');
+      const km = await addFromCatalog(cookie, 'Carrera 1 km', 300, '2026-06-01T10:00:00.000Z', {
+        elevationGainM: 0,
+      });
 
-      await logOk(cookie, km.id, 280, '2026-06-10T10:00:00.000Z');
-      const despues = await logOk(cookie, km.id, 310, '2026-06-20T10:00:00.000Z');
+      await logOk(cookie, km.id, 280, '2026-06-10T10:00:00.000Z', { elevationGainM: 0 });
+      const despues = await logOk(cookie, km.id, 310, '2026-06-20T10:00:00.000Z', {
+        elevationGainM: 0,
+      });
 
       expect(despues.best).toMatchObject({ value: 280, unit: 's' });
       expect(despues.current.value).toBe(310);

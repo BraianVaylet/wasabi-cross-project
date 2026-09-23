@@ -32,6 +32,15 @@ const carrera: ManagedExerciseSummary = {
   current: { value: 272, unit: 's', performedAt: '2026-07-01T12:00:00.000Z' },
 };
 
+const butterfly: ManagedExerciseSummary = {
+  ...backSquat,
+  id: 'mex_h1p2e3r4',
+  name: 'Butterfly',
+  category: 'hipertrofia',
+  kind: 'weighted_reps',
+  current: { value: 12, unit: 'reps', weightKg: 30, performedAt: '2026-07-01T12:00:00.000Z' },
+};
+
 const historial: RecordHistory = {
   records: [{ id: 'rec_1', value: 100, unit: 'kg', performedAt: '2026-06-23T12:00:00.000Z' }],
   current: { value: 100, unit: 'kg', performedAt: '2026-06-23T12:00:00.000Z' },
@@ -62,7 +71,7 @@ interface Opciones {
 
 function renderDetalle(
   id = 'mex_a1b2c3d4',
-  exercises = [backSquat, carrera],
+  exercises = [backSquat, carrera, butterfly],
   { historialCongelado = false }: Opciones = {},
 ) {
   const api = fakeApi(lista(exercises));
@@ -137,6 +146,30 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       await abrirModal('Nueva marca');
 
       expect(screen.getByLabelText('Tiempo (mm:ss)')).toBeInTheDocument();
+    });
+
+    it('en hipertrofia pide además el peso', async () => {
+      renderDetalle('mex_h1p2e3r4');
+      await abrirModal('Nueva marca');
+
+      expect(screen.getByLabelText('Repeticiones')).toBeInTheDocument();
+      expect(screen.getByLabelText('Peso (kg)')).toBeInTheDocument();
+    });
+
+    it('en running pide además el desnivel', async () => {
+      renderDetalle('mex_z9y8x7w6');
+      await abrirModal('Nueva marca');
+
+      expect(screen.getByLabelText('Tiempo (mm:ss)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Desnivel (m)')).toBeInTheDocument();
+    });
+
+    it('en fuerza no hay un segundo campo', async () => {
+      renderDetalle();
+      await abrirModal();
+
+      expect(screen.queryByLabelText('Peso (kg)')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Desnivel (m)')).not.toBeInTheDocument();
     });
   });
 
@@ -242,7 +275,9 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       const { api } = renderDetalle('mex_z9y8x7w6');
       await abrirModal('Nueva marca');
 
-      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '4:72');
+      // El input inserta los ":" solo cada dos cifras: tipeando "0299" queda "02:99", y 99
+      // segundos no es un tiempo válido.
+      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '0299');
       await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
 
       expect(await screen.findByText('Escribilo como mm:ss, por ejemplo 4:32')).toBeInTheDocument();
@@ -256,6 +291,64 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
 
       await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
 
+      expect(api.client.logRecord).not.toHaveBeenCalled();
+    });
+
+    it('hipertrofia manda las repeticiones y el peso', async () => {
+      const { api } = renderDetalle('mex_h1p2e3r4');
+      api.client.logRecord.mockReturnValue(new Promise(() => undefined));
+      await abrirModal('Nueva marca');
+
+      await userEvent.type(screen.getByLabelText('Repeticiones'), '10');
+      await userEvent.type(screen.getByLabelText('Peso (kg)'), '85');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+      await waitFor(() => {
+        expect(api.client.logRecord).toHaveBeenCalledTimes(1);
+      });
+      const [, input] = api.client.logRecord.mock.calls[0] ?? [];
+      expect(input?.value).toBe(10);
+      expect(input?.weightKg).toBe(85);
+    });
+
+    it('hipertrofia sin peso no se guarda', async () => {
+      const { api } = renderDetalle('mex_h1p2e3r4');
+      await abrirModal('Nueva marca');
+
+      await userEvent.type(screen.getByLabelText('Repeticiones'), '10');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+      expect(await screen.findByText('Cargá el peso, como 80')).toBeInTheDocument();
+      expect(api.client.logRecord).not.toHaveBeenCalled();
+    });
+
+    it('running manda el tiempo y el desnivel — 0 vale, es una carrera plana', async () => {
+      const { api } = renderDetalle('mex_z9y8x7w6');
+      api.client.logRecord.mockReturnValue(new Promise(() => undefined));
+      await abrirModal('Nueva marca');
+
+      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '0432');
+      await userEvent.type(screen.getByLabelText('Desnivel (m)'), '0');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+      await waitFor(() => {
+        expect(api.client.logRecord).toHaveBeenCalledTimes(1);
+      });
+      const [, input] = api.client.logRecord.mock.calls[0] ?? [];
+      expect(input?.value).toBe(272);
+      expect(input?.elevationGainM).toBe(0);
+    });
+
+    it('running sin desnivel no se guarda', async () => {
+      const { api } = renderDetalle('mex_z9y8x7w6');
+      await abrirModal('Nueva marca');
+
+      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '0432');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+      expect(
+        await screen.findByText('Cargá el desnivel, como 150 (0 si es plano)'),
+      ).toBeInTheDocument();
       expect(api.client.logRecord).not.toHaveBeenCalled();
     });
   });

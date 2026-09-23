@@ -1,6 +1,8 @@
 import {
+  elevationGainMSchema,
   UNIT_BY_KIND,
   recordValueSchemaFor,
+  weightKgSchema,
   type Mark,
   type MeasureKind,
   type RecordEntry,
@@ -23,6 +25,8 @@ interface RecordDocument {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  weightKg?: number;
+  elevationGainM?: number;
 }
 
 /*
@@ -40,6 +44,17 @@ function toDocument(record: NewRecordEntry): RecordDocument {
     throw new AppError('WC-RM-422-001', { meta: { kind: record.kind, value: record.value } });
   }
 
+  // Misma segunda red para el peso (hipertrofia) y el desnivel (running): no existe el
+  // estado inválido de una marca de esa medición sin su campo extra.
+  if (record.kind === 'weighted_reps' && !weightKgSchema.safeParse(record.weightKg).success) {
+    throw new AppError('WC-RM-422-001', { meta: { kind: record.kind, weightKg: record.weightKg } });
+  }
+  if (record.kind === 'time' && !elevationGainMSchema.safeParse(record.elevationGainM).success) {
+    throw new AppError('WC-RM-422-001', {
+      meta: { kind: record.kind, elevationGainM: record.elevationGainM },
+    });
+  }
+
   const now = new Date().toISOString();
   return {
     _id: generateId('rec'),
@@ -54,11 +69,19 @@ function toDocument(record: NewRecordEntry): RecordDocument {
     createdAt: now,
     updatedAt: now,
     ...(record.notes === undefined ? {} : { notes: record.notes }),
+    ...(record.weightKg === undefined ? {} : { weightKg: record.weightKg }),
+    ...(record.elevationGainM === undefined ? {} : { elevationGainM: record.elevationGainM }),
   };
 }
 
 function toMark(document: RecordDocument): Mark {
-  return { value: document.value, unit: document.unit, performedAt: document.performedAt };
+  return {
+    value: document.value,
+    unit: document.unit,
+    performedAt: document.performedAt,
+    ...(document.weightKg === undefined ? {} : { weightKg: document.weightKg }),
+    ...(document.elevationGainM === undefined ? {} : { elevationGainM: document.elevationGainM }),
+  };
 }
 
 function toEntry(document: RecordDocument): RecordEntry {
@@ -157,6 +180,8 @@ export function createMongoRecordGateway(db: Db) {
               value: { $first: '$value' },
               unit: { $first: '$unit' },
               performedAt: { $first: '$performedAt' },
+              weightKg: { $first: '$weightKg' },
+              elevationGainM: { $first: '$elevationGainM' },
             },
           },
         ])
@@ -165,7 +190,16 @@ export function createMongoRecordGateway(db: Db) {
       return new Map(
         rows.map((row) => [
           row._id,
-          { value: row.value, unit: row.unit, performedAt: row.performedAt },
+          {
+            value: row.value,
+            unit: row.unit,
+            performedAt: row.performedAt,
+            // `$first` de un campo ausente en el grupo da `null`, no `undefined`: sin este
+            // chequeo laxo, una marca sin peso/desnivel llegaba con `weightKg: null` y
+            // rompía la respuesta contra `markSchema`, que sólo acepta número u omitido.
+            ...(row.weightKg == null ? {} : { weightKg: row.weightKg }),
+            ...(row.elevationGainM == null ? {} : { elevationGainM: row.elevationGainM }),
+          },
         ]),
       );
     },

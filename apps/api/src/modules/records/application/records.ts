@@ -1,12 +1,59 @@
 import {
+  elevationGainMSchema,
   recordValueSchemaFor,
+  weightKgSchema,
   type LogRecordResponse,
   type Mark,
+  type MeasureKind,
   type RecordHistory,
   type RecordInput,
 } from '@wasabi-cross/schemas';
 import { AppError } from '../../../shared/errors/app-error.ts';
 import type { HistoryCursor, OwnedExerciseLookup, RecordStore } from '../domain/record-ports.ts';
+
+/**
+ * El peso (hipertrofia) o el desnivel (running) que le corresponde a esta medición, si
+ * alguno: no existe el estado inválido de una marca de hipertrofia sin peso (spec §5.1).
+ */
+function extraFieldFor(
+  kind: MeasureKind,
+  input: RecordInput,
+):
+  | { ok: true; data: { weightKg?: number; elevationGainM?: number } }
+  | { ok: false; path: 'weightKg' | 'elevationGainM'; message: string } {
+  if (kind === 'weighted_reps') {
+    const parsed = weightKgSchema.safeParse(input.weightKg);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        path: 'weightKg',
+        // Ausente vs. inválido son casos distintos: sin esto, el campo faltante mostraba
+        // el mensaje en inglés de Zod ("Invalid input: expected number, received
+        // undefined") en una app en español.
+        message:
+          input.weightKg === undefined
+            ? 'Cargá el peso'
+            : (parsed.error.issues[0]?.message ?? 'Peso inválido'),
+      };
+    }
+    return { ok: true, data: { weightKg: parsed.data } };
+  }
+  if (kind === 'time') {
+    const parsed = elevationGainMSchema.safeParse(input.elevationGainM);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        path: 'elevationGainM',
+        message:
+          input.elevationGainM === undefined
+            ? 'Cargá el desnivel'
+            : (parsed.error.issues[0]?.message ?? 'Desnivel inválido'),
+      };
+    }
+    return { ok: true, data: { elevationGainM: parsed.data } };
+  }
+  return { ok: true, data: {} };
+}
 
 export interface RecordsDeps {
   lookup: OwnedExerciseLookup;
@@ -58,6 +105,14 @@ export async function logRecord(
     });
   }
 
+  const extra = extraFieldFor(owned.kind, input);
+  if (!extra.ok) {
+    throw new AppError('WC-RM-422-001', {
+      details: [{ path: extra.path, message: extra.message }],
+      meta: { userId, managedExerciseId, kind: owned.kind },
+    });
+  }
+
   const record = await deps.store.append({
     userId,
     managedExerciseId: owned.managedExerciseId,
@@ -65,6 +120,7 @@ export async function logRecord(
     value: value.data,
     performedAt: input.performedAt ?? new Date().toISOString(),
     ...(input.notes === undefined ? {} : { notes: input.notes }),
+    ...extra.data,
   });
 
   return { record, ...(await currentAndBest(deps.store, owned.managedExerciseId, owned.kind)) };

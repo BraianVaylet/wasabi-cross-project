@@ -65,20 +65,21 @@ Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
 **La categoría define qué se mide.** No se elige por separado:
 
-| Categoría   | Se mide en   | Porcentajes                                   |
-| ----------- | ------------ | --------------------------------------------- |
-| Fuerza      | RM, en kg    | Sí: carga = RM × %                            |
-| Hipertrofia | Repeticiones | Sí: repeticiones = máximo × %                 |
-| Gimnástico  | Repeticiones | Sí                                            |
-| Running     | Tiempo       | No: se muestran la mejor marca y el historial |
+| Categoría   | Se mide en                     | Porcentajes                                   |
+| ----------- | ------------------------------ | --------------------------------------------- |
+| Fuerza      | RM, en kg                      | Sí: carga = RM × %                            |
+| Hipertrofia | Repeticiones, con su peso (kg) | Sí: repeticiones = máximo × %                 |
+| Gimnástico  | Repeticiones                   | Sí                                            |
+| Running     | Tiempo, con su desnivel (m)    | No: se muestran la mejor marca y el historial |
 
-El peso se registra sólo en kg.
+El peso se registra sólo en kg. El desnivel es siempre en metros y siempre se carga: una carrera
+plana es 0, no un campo vacío.
 
 **Tres conceptos distintos:**
 
 - **Ejercicio**: la definición — nombre, categoría, capacidades y grupos musculares. Es del catálogo (sin dueño, lo ven todos) o propio (lo creó un usuario y sólo lo ve él). En los del catálogo vienen cargados; en los propios los elige el usuario al crearlo, porque sin ellos ese ejercicio queda afuera de las estadísticas generales.
 - **Ejercicio gestionado**: la entrada de un ejercicio en la lista de un usuario. Lleva lo que es del usuario y no del ejercicio: nivel, "con dolor" y comentarios. Un ejercicio aparece una sola vez en la lista de cada usuario.
-- **Marca**: un valor con su fecha de realización y un comentario opcional, sobre un ejercicio gestionado.
+- **Marca**: un valor con su fecha de realización y un comentario opcional, sobre un ejercicio gestionado. En hipertrofia lleva además el peso; en running, el desnivel. Los porcentajes y la mejor marca siguen calculándose sobre el valor principal (repeticiones o tiempo), no sobre el peso ni el desnivel, que viajan como dato informativo de la marca.
 
 **Capacidades y grupos musculares.** Los dos son obligatorios y admiten más de uno: son el eje de las estadísticas generales (§5, mockup 10). El **segmento del cuerpo** —tren superior, tren inferior, core o cuerpo completo— no se pregunta: se deriva de los grupos musculares elegidos, y es cuerpo completo cuando hay grupos de más de un segmento. Un dato que se puede calcular no se le pide al usuario.
 
@@ -89,7 +90,7 @@ El peso se registra sólo en kg.
 - **Categoría**: Fuerza, Hipertrofia, Gimnástico, Running.
 - **Nivel**: Principiante, Intermedio, Avanzado, Elite. Del usuario sobre ese ejercicio.
 - **Con dolor**: sí o no. Del usuario. Etiqueta de UX, no registro clínico (§2).
-- **Carga**: liviana, media o pesada. **Se calcula, no se guarda**: menos de 70% es liviana, de 70% a 84% media, desde 85% pesada.
+- **Carga**: liviana, media o pesada. **Se calcula, no se guarda**: menos de 70% es liviana, de 70% a 84% media, desde 85% pesada. Cada banda tiene su color — verde liviana, ámbar media, rojo pesada —, en el tag y en la barra de progreso.
 
 **Valor actual y mejor marca:**
 
@@ -198,6 +199,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - Formato fecha/hora/moneda es-AR; semana empieza lunes
 - Tipografía fluida, mínimo 16px en inputs (evita zoom automático de iOS)
 - Optimistic UI
+- El campo de tiempo (mm:ss) inserta los ":" solo, cada dos cifras tipeadas: no hace falta que el usuario los escriba.
 
 ## 12. Infra
 

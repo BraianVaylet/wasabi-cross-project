@@ -6,6 +6,10 @@ import { plainText } from '../common/text.ts';
 /*
  * Contratos HTTP de las marcas (F1-07). El valor se valida recién en el servidor, con la
  * regla de su medición: el cliente no manda el tipo, lo sabe el servidor por la categoría.
+ *
+ * `weightKg` (hipertrofia) y `elevationGainM` (running) viajan opcionales acá —el wire es
+ * el mismo para toda medición, como `value`— y el servidor exige el que corresponda según
+ * `createRecordSchemaFor(kind)` (spec §5.1).
  */
 
 export const recordUnitSchema = z.enum(['kg', 'reps', 's']);
@@ -15,6 +19,8 @@ export const recordInputSchema = z.object({
   value: z.number(),
   performedAt: notFutureDateTimeSchema.optional(),
   notes: plainText(300).optional(),
+  weightKg: z.number().optional(),
+  elevationGainM: z.number().optional(),
 });
 
 export type RecordInput = z.infer<typeof recordInputSchema>;
@@ -24,6 +30,8 @@ export const markSchema = z.object({
   value: z.number(),
   unit: recordUnitSchema,
   performedAt: isoDateTimeSchema,
+  weightKg: z.number().optional(),
+  elevationGainM: z.number().optional(),
 });
 
 export type Mark = z.infer<typeof markSchema>;

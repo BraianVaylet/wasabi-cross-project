@@ -70,10 +70,10 @@ describe('catálogo de ejercicios', () => {
       }
     });
 
-    it('la hipertrofia se mide en repeticiones, como en el Home del mockup 4', () => {
+    it('la hipertrofia se mide en repeticiones con su peso, como en el Home del mockup 4', () => {
       const butterfly = EXERCISE_CATALOG.find((exercise) => exercise.name === 'Butterfly');
 
-      expect(butterfly && measureKindFor(butterfly.category)).toBe('reps');
+      expect(butterfly && measureKindFor(butterfly.category)).toBe('weighted_reps');
     });
 
     it('no incluye la plancha: ninguna categoría la mide en tiempo', () => {
@@ -95,10 +95,10 @@ describe('catálogo de ejercicios', () => {
       expect(categories).toContain('running');
     });
 
-    it('cubre las tres formas de medir', () => {
+    it('cubre las cuatro formas de medir', () => {
       const kinds = new Set(EXERCISE_CATALOG.map((exercise) => measureKindFor(exercise.category)));
 
-      expect(kinds).toEqual(new Set(['rm', 'time', 'reps']));
+      expect(kinds).toEqual(new Set(['rm', 'time', 'reps', 'weighted_reps']));
     });
   });
 

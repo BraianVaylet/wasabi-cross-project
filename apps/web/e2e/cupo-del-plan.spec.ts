@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
+import { measureKindFor, type ExerciseCategory } from '@wasabi-cross/schemas';
 import { auditar, registrarse } from './app.ts';
 
 /*
@@ -22,18 +23,43 @@ const propio = (numero: number) => ({
   firstRecord: { value: 50 + numero },
 });
 
-async function catalogo(request: APIRequestContext, cuantos: number): Promise<string[]> {
+async function catalogo(
+  request: APIRequestContext,
+  cuantos: number,
+): Promise<{ id: string; category: ExerciseCategory }[]> {
   const response = await request.get(`${API}/api/v1/exercises/catalog`);
-  const { exercises } = (await response.json()) as { exercises: { id: string }[] };
+  const { exercises } = (await response.json()) as {
+    exercises: { id: string; category: ExerciseCategory }[];
+  };
 
   expect(exercises.length).toBeGreaterThanOrEqual(cuantos);
-  return exercises.slice(0, cuantos).map((exercise) => exercise.id);
+  return exercises.slice(0, cuantos).map((exercise) => ({
+    id: exercise.id,
+    category: exercise.category,
+  }));
+}
+
+/** Hipertrofia pide peso y running pide desnivel, junto al valor (spec §5.1). */
+function firstRecordExtraFor(category: ExerciseCategory): Record<string, number> {
+  const kind = measureKindFor(category);
+  if (kind === 'weighted_reps') {
+    return { weightKg: 40 };
+  }
+  if (kind === 'time') {
+    return { elevationGainM: 0 };
+  }
+  return {};
 }
 
 async function llenarPlan(request: APIRequestContext, cuantos: number): Promise<void> {
-  for (const exerciseId of await catalogo(request, cuantos)) {
+  for (const { id: exerciseId, category } of await catalogo(request, cuantos)) {
     const response = await request.post(`${API}/api/v1/exercises`, {
-      data: { source: 'catalog', exerciseId, level: 'intermedio', firstRecord: { value: 60 } },
+      data: {
+        source: 'catalog',
+        exerciseId,
+        level: 'intermedio',
+        firstRecord: { value: 60, ...firstRecordExtraFor(category) },
+      },
     });
 
     expect(response.status(), `alta de ${exerciseId}`).toBe(201);

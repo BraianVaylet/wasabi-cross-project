@@ -22,8 +22,15 @@ import {
 } from '@wasabi-cross/ui';
 import { useId } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
+import { autoColon } from '../../lib/format.ts';
 import { CAPACITY_LABEL, MUSCLE_GROUP_LABEL, optionsFrom } from '../../lib/labels.ts';
-import { MARK_FIELD, today } from '../../lib/mark-input.ts';
+import {
+  ELEVATION_FIELD,
+  extraFieldKindFor,
+  MARK_FIELD,
+  today,
+  WEIGHT_FIELD,
+} from '../../lib/mark-input.ts';
 import {
   catalogMatch,
   kindFor,
@@ -42,7 +49,7 @@ export interface NewExercisePageProps {
 
 const CATEGORIES: readonly { value: ExerciseCategory; label: string }[] = [
   { value: 'fuerza', label: 'Fuerza (RM en kg)' },
-  { value: 'hipertrofia', label: 'Hipertrofia (repeticiones)' },
+  { value: 'hipertrofia', label: 'Hipertrofia (repeticiones y peso)' },
   { value: 'gimnastico', label: 'Gimnástico (repeticiones)' },
   { value: 'running', label: 'Running (tiempo)' },
 ];
@@ -127,6 +134,8 @@ export function NewExercisePage({
             const match = catalogMatch(catalog, name);
             const kind = kindFor(catalog, name, category);
             const field = kind ? MARK_FIELD[kind] : SIN_CATEGORIA;
+            const extraKind = kind ? extraFieldKindFor(kind) : null;
+            const extraFieldMeta = extraKind === 'weightKg' ? WEIGHT_FIELD : ELEVATION_FIELD;
 
             return (
               <>
@@ -205,13 +214,33 @@ export function NewExercisePage({
                       inputMode={kind === 'time' ? 'text' : 'decimal'}
                       value={valueField.state.value}
                       onChange={(event) => {
-                        valueField.handleChange(event.target.value);
+                        valueField.handleChange(
+                          kind === 'time' ? autoColon(event.target.value) : event.target.value,
+                        );
                       }}
                       onBlur={valueField.handleBlur}
                       error={valueField.state.meta.errors[0]?.message}
                     />
                   )}
                 </form.Field>
+
+                {extraKind === null ? null : (
+                  <form.Field name="extra">
+                    {(extraFormField) => (
+                      <TextField
+                        label={extraFieldMeta.label}
+                        placeholder={extraFieldMeta.placeholder}
+                        inputMode="decimal"
+                        value={extraFormField.state.value}
+                        onChange={(event) => {
+                          extraFormField.handleChange(event.target.value);
+                        }}
+                        onBlur={extraFormField.handleBlur}
+                        error={extraFormField.state.meta.errors[0]?.message}
+                      />
+                    )}
+                  </form.Field>
+                )}
               </>
             );
           }}

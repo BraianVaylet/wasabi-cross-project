@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { isoDateTimeSchema } from '../common/datetime.ts';
 import { exerciseIdSchema, managedExerciseIdSchema } from '../common/ids.ts';
 import { plainText } from '../common/text.ts';
 import { planSchema } from '../user/plan.ts';
@@ -10,7 +9,7 @@ import {
   measureKindSchema,
 } from './exercise.schema.ts';
 import { levelSchema } from './managed-exercise.schema.ts';
-import { recordInputSchema, recordUnitSchema } from '../record/record.api.ts';
+import { markSchema, recordInputSchema } from '../record/record.api.ts';
 
 /*
  * Contratos HTTP de los ejercicios gestionados (F1-05). Viven acá para que el front y el
@@ -56,11 +55,7 @@ export const managedExerciseSummarySchema = z.object({
   withPain: z.boolean(),
   notes: z.string().optional(),
   /** La marca de fecha de realización más reciente (spec §5.1). */
-  current: z.object({
-    value: z.number(),
-    unit: recordUnitSchema,
-    performedAt: isoDateTimeSchema,
-  }),
+  current: markSchema,
 });
 
 export type ManagedExerciseSummary = z.infer<typeof managedExerciseSummarySchema>;

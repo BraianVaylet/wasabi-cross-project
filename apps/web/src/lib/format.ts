@@ -39,11 +39,34 @@ function formatSeconds(seconds: number): string {
 export interface FormattableMark {
   value: number;
   unit: 'kg' | 'reps' | 's';
+  weightKg?: number | undefined;
+  elevationGainM?: number | undefined;
 }
 
-/** El valor de una marca con su unidad: "100 kg", "10 reps", "4:32". */
-export function formatMark({ value, unit }: FormattableMark): string {
-  return unit === 's' ? formatSeconds(value) : `${NUMBER.format(value)} ${unit}`;
+/**
+ * El valor de una marca con su unidad: "100 kg", "10 reps", "4:32". En hipertrofia suma el
+ * peso ("12 reps · 80 kg") y en running el desnivel ("4:32 · 150 m") — spec §5.1.
+ */
+export function formatMark({ value, unit, weightKg, elevationGainM }: FormattableMark): string {
+  const base = unit === 's' ? formatSeconds(value) : `${NUMBER.format(value)} ${unit}`;
+
+  if (weightKg !== undefined) {
+    return `${base} · ${NUMBER.format(weightKg)} kg`;
+  }
+  if (elevationGainM !== undefined) {
+    return `${base} · ${NUMBER.format(elevationGainM)} m`;
+  }
+  return base;
+}
+
+/**
+ * Lo que se escribe se agrupa de a dos, de izquierda a derecha, sin que el usuario tenga
+ * que tipear los dos puntos: 0,1,3,0 se lee "01", "01:3", "01:30". Tope en 6 cifras —
+ * hh:mm:ss— porque un tiempo no pasa las 24 horas (spec §5.1).
+ */
+export function autoColon(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 6);
+  return digits.replace(/(\d{2})(?=\d)/g, '$1:');
 }
 
 const DURATION = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{1,2})$/;
