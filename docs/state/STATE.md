@@ -18,7 +18,7 @@ Lo que hay hoy, en una línea cada uno:
 - `@wasabi-cross/schemas`: `User`, `Exercise`, `ManagedExercise`, `ExerciseRecord` en Zod, fuente
   única de tipos, alineados con la spec §5.1.
 - `@wasabi-cross/ui`: los Componentes Cross con tema dark/light y Storybook.
-- Catálogo de 34 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
+- Catálogo de 33 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
 - CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
   Storybook, audit de dependencias y el E2E de Playwright con su auditoría axe.
 
@@ -121,8 +121,8 @@ pnpm e2e                                 # Playwright: flujo principal + axe (le
 # Para desarrollar contra datos que se tiran al cerrar: migra y siembra solo.
 pnpm --filter @wasabi-cross/api dev:ephemeral   # API en :3100, Mongo efímero
 
-# Contra un Mongo propio: las variables de apps/api/.env.example van EXPORTADAS en la shell
-# (nadie lee el .env), MONGODB_URI tiene que ser un replica set, y antes de levantar:
+# Contra un Mongo propio: copiar apps/api/.env.example a apps/api/.env (dev, migrate y seed
+# lo leen solos), MONGODB_URI tiene que ser un replica set, y antes de levantar:
 pnpm --filter @wasabi-cross/api migrate up   # sin esto, /ready responde no-listo
 pnpm --filter @wasabi-cross/api seed         # catálogo de ejercicios
 pnpm dev                                     # API en :3000, web en :5173
