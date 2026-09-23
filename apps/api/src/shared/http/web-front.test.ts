@@ -23,6 +23,7 @@ describe('la API sirve el front (F3-03)', () => {
     writeFileSync(join(dist, 'index.html'), '<!doctype html><title>Wasabi Cross</title>');
     mkdirSync(join(dist, 'assets'));
     writeFileSync(join(dist, 'assets', 'index-abc123.js'), 'console.log("front")');
+    writeFileSync(join(dist, 'sw.js'), 'self.addEventListener("install", () => {})');
 
     app = await buildApp({ env: testEnv({ WEB_DIST_DIR: dist }) });
     await app.ready();
@@ -83,6 +84,29 @@ describe('la API sirve el front (F3-03)', () => {
 
     expect(response.statusCode).toBe(404);
     expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-404-003' });
+  });
+
+  describe('caché (F3-05)', () => {
+    it('un asset con hash en el nombre se cachea un año: si cambia, cambia el nombre', async () => {
+      const response = await app.inject({ method: 'GET', url: '/assets/index-abc123.js' });
+
+      expect(response.headers['cache-control']).toBe('public, max-age=31536000, immutable');
+    });
+
+    it('el index.html no se cachea: es el que dice qué assets usar', async () => {
+      const raiz = await app.inject({ method: 'GET', url: '/', headers: HTML });
+      const ruta = await app.inject({ method: 'GET', url: '/estadisticas', headers: HTML });
+
+      expect(raiz.headers['cache-control']).toBe('no-cache');
+      expect(ruta.headers['cache-control']).toBe('no-cache');
+    });
+
+    it('el service worker tampoco: una versión vieja cacheada no dejaría actualizar la app', async () => {
+      const response = await app.inject({ method: 'GET', url: '/sw.js' });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['cache-control']).toBe('no-cache');
+    });
   });
 
   it('los chequeos de salud no se tapan con el front', async () => {
