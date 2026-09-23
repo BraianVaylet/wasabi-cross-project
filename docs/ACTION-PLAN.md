@@ -1227,7 +1227,7 @@ el smoke contra staging (F3-12), que cierra la fase.
   registrándose y la consola sin quejas de la CSP. El service worker, que el navegador embebido no
   registraba, en Chromium anda.
 
-## [ ] F3-06 · Headers de seguridad en producción
+## [x] F3-06 · Headers de seguridad en producción
 
 - **module:** infra
 - **description:** Los de spec §13 —CSP, HSTS, X-Content-Type-Options, Referrer-Policy— también en
@@ -1243,6 +1243,12 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **test_plan:** test de los headers en la API; el E2E con la CSP de producción puesta.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** los cuatro headers ya los pone helmet (registrado antes de las rutas, aplica a todo
+  vía `onSend`); lo que faltaba era probarlo, en una respuesta de la API y en una del front que
+  sirve la API (F3-03). El E2E de producción (F3-05) ya confirmaba que el navegador no se quejaba;
+  esta tarea suma el test explícito de los cuatro headers y de que `script-src` no admite
+  `unsafe-inline`. `style-src` sí lo permite —default de helmet, cubre un `style={{}}` inline de
+  React—: el criterio pedía sin `unsafe-inline` en scripts, no en estilos. Cuatro pruebas inversas.
 
 ## [ ] F3-07 · Ambientes staging y prod en Railway — 🔑 necesita al usuario
 
