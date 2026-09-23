@@ -24,5 +24,11 @@ describe('Tag', () => {
 
     rerender(<Tag variant="danger">Con dolor</Tag>);
     expect(screen.getByText('Con dolor')).toHaveClass('wc-tag--danger');
+
+    rerender(<Tag variant="success">Carga liviana</Tag>);
+    expect(screen.getByText('Carga liviana')).toHaveClass('wc-tag--success');
+
+    rerender(<Tag variant="warning">Carga media</Tag>);
+    expect(screen.getByText('Carga media')).toHaveClass('wc-tag--warning');
   });
 });

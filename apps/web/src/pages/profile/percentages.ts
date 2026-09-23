@@ -44,8 +44,9 @@ export function validatePercentages(values: readonly string[]): PercentagesResul
     return { ok: false, fields };
   }
 
-  // Lo que es del conjunto —cuántos hay— lo dice el schema compartido.
-  const percentages = [...seen.keys()];
+  // Lo que es del conjunto —cuántos hay— lo dice el schema compartido. De menor a mayor,
+  // no en el orden en que se cargaron: agregar un 50% no lo manda al final de la tabla.
+  const percentages = [...seen.keys()].sort((a, b) => a - b);
   const group = loadPercentagesSchema.safeParse(percentages);
   if (!group.success) {
     return { ok: false, fields, group: group.error.issues[0]?.message ?? 'Lista inválida' };

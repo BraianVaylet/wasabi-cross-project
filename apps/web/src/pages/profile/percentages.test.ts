@@ -49,4 +49,11 @@ describe('validatePercentages — los porcentajes del perfil', () => {
       group: 'Tiene que haber al menos un porcentaje',
     });
   });
+
+  it('se devuelven de menor a mayor, sin importar el orden en que se cargaron', () => {
+    expect(validatePercentages(['90', '65', '80'])).toEqual({
+      ok: true,
+      percentages: [65, 80, 90],
+    });
+  });
 });

@@ -150,7 +150,13 @@ pnpm dev                                     # API en :3000, web en :5173
 
 ## Última actualización
 
-2026-09-23 — Fase 3 arrancada: F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas; F3-03 parcial (falta
-verificar en staging). El resto de la fase queda en cadena detrás de F3-07/F3-08, que necesitan al
-usuario. Bitácoras en [bitacora](./bitacora); la última es
-[la de F3-06](./bitacora/2026-09-23-f3-06-headers-seguridad.md).
+2026-09-23 — Fase 3 sin cambios (sigue igual que la entrada anterior: F3-01, F3-02, F3-04, F3-05
+y F3-06 cerradas, F3-03 parcial, el resto en cadena detrás de F3-07/F3-08). Aparte de la fase, a
+pedido directo del usuario, cuatro cambios de producto sobre ejercicios y marcas, en cuatro PRs:
+[#48](https://github.com/BraianVaylet/wasabi-cross-project/pull/48) los porcentajes del perfil
+ordenados de menor a mayor, [#49](https://github.com/BraianVaylet/wasabi-cross-project/pull/49)
+color por banda de carga (verde/ámbar/rojo), y
+[#50](https://github.com/BraianVaylet/wasabi-cross-project/pull/50) hipertrofia con peso (nuevo
+`MeasureKind: 'weighted_reps'`), running con desnivel, y el input de tiempo autoformateando los
+":" al tipear. Bitácoras en [bitacora](./bitacora); la última es
+[la de esta sesión](./bitacora/2026-09-23-hipertrofia-running-carga-y-porcentajes.md).

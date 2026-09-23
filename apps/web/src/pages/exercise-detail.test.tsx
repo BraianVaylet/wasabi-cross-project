@@ -116,29 +116,32 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
       expect(within(tabla).getByRole('radio', { name: '95% · 95 kg' })).toBeInTheDocument();
     });
 
-    it('arranca en el primero y muestra la carga y la banda', async () => {
+    it('arranca en el primero y muestra la carga y la banda, en verde', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4');
 
       expect(await screen.findByTestId('carga')).toHaveTextContent('65 kg');
-      expect(screen.getByText('Carga liviana')).toBeInTheDocument();
+      expect(screen.getByText('Carga liviana')).toHaveClass('wc-tag--success');
+      expect(document.querySelector('.detail__bar-fill')).toHaveClass('detail__bar-fill--liviana');
     });
 
-    it('elegir otro cambia la carga y la banda, y queda en la URL', async () => {
+    it('elegir otro cambia la carga y la banda, y queda en la URL — pesada, en rojo', async () => {
       const { router } = renderDetalle('/ejercicios/mex_a1b2c3d4');
       await screen.findByTestId('carga');
 
       await userEvent.click(screen.getByRole('radio', { name: '85% · 85 kg' }));
 
       expect(screen.getByTestId('carga')).toHaveTextContent('85 kg');
-      expect(screen.getByText('Carga pesada')).toBeInTheDocument();
+      expect(screen.getByText('Carga pesada')).toHaveClass('wc-tag--danger');
+      expect(document.querySelector('.detail__bar-fill')).toHaveClass('detail__bar-fill--pesada');
       expect(router.state.location.search).toEqual({ pct: 85 });
     });
 
-    it('un link con ?pct=80 arranca con ese porcentaje elegido', async () => {
+    it('un link con ?pct=80 arranca con ese porcentaje elegido — media, en ámbar', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4?pct=80');
 
       expect(await screen.findByTestId('carga')).toHaveTextContent('80 kg');
-      expect(screen.getByText('Carga media')).toBeInTheDocument();
+      expect(screen.getByText('Carga media')).toHaveClass('wc-tag--warning');
+      expect(document.querySelector('.detail__bar-fill')).toHaveClass('detail__bar-fill--media');
       expect(screen.getByRole('radio', { name: '80% · 80 kg' })).toBeChecked();
     });
 
