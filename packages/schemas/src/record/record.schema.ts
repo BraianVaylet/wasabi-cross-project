@@ -9,10 +9,12 @@ import { plainText } from '../common/text.ts';
 import type { MeasureKind } from '../exercise/exercise.schema.ts';
 
 /** Cada medición tiene una sola unidad. El peso es sólo en kg (spec §5.1). */
-export const UNIT_BY_KIND = { rm: 'kg', reps: 'reps', time: 's' } as const satisfies Record<
-  MeasureKind,
-  string
->;
+export const UNIT_BY_KIND = {
+  rm: 'kg',
+  reps: 'reps',
+  weighted_reps: 'reps',
+  time: 's',
+} as const satisfies Record<MeasureKind, string>;
 
 const rmValueSchema = z
   .number()
@@ -34,6 +36,7 @@ const timeValueSchema = z
 const VALUE_BY_KIND = {
   rm: rmValueSchema,
   reps: repsValueSchema,
+  weighted_reps: repsValueSchema,
   time: timeValueSchema,
 } as const satisfies Record<MeasureKind, z.ZodNumber>;
 
@@ -41,6 +44,18 @@ const VALUE_BY_KIND = {
 export function recordValueSchemaFor(kind: MeasureKind): z.ZodNumber {
   return VALUE_BY_KIND[kind];
 }
+
+/** El peso de una marca de hipertrofia, siempre junto a las repeticiones (spec §5.1). */
+export const weightKgSchema = z
+  .number()
+  .positive('El peso tiene que ser mayor a cero')
+  .max(1000, 'Ese peso no es realista');
+
+/** El desnivel de una marca de running, junto al tiempo. Una carrera plana es 0, no vacío. */
+export const elevationGainMSchema = z
+  .number()
+  .nonnegative('El desnivel no puede ser negativo')
+  .max(10_000, 'Ese desnivel no es realista');
 
 /**
  * La marca referencia al **ejercicio gestionado**, no al ejercicio compartido: es una
@@ -79,9 +94,18 @@ export const recordSchema = z.discriminatedUnion('kind', [
     .extend(timestampsSchema.shape),
   identity
     .extend({
+      kind: z.literal('weighted_reps'),
+      value: repsValueSchema,
+      unit: z.literal(UNIT_BY_KIND.weighted_reps),
+      weightKg: weightKgSchema,
+    })
+    .extend(timestampsSchema.shape),
+  identity
+    .extend({
       kind: z.literal('time'),
       value: timeValueSchema,
       unit: z.literal(UNIT_BY_KIND.time),
+      elevationGainM: elevationGainMSchema,
     })
     .extend(timestampsSchema.shape),
 ]);
@@ -89,16 +113,24 @@ export const recordSchema = z.discriminatedUnion('kind', [
 export type ExerciseRecord = z.infer<typeof recordSchema>;
 
 /**
- * Lo que manda el cliente al cargar una marca: valor, fecha y comentario. El tipo de
- * medición no viaja del cliente — lo sabe el servidor por la categoría del ejercicio —,
- * así que el schema se arma para ese tipo.
+ * Lo que manda el cliente al cargar una marca: valor, fecha y comentario, más el peso en
+ * hipertrofia o el desnivel en running. El tipo de medición no viaja del cliente — lo sabe
+ * el servidor por la categoría del ejercicio —, así que el schema se arma para ese tipo.
  */
 export function createRecordSchemaFor(kind: MeasureKind) {
-  return z.object({
+  const base = {
     value: recordValueSchemaFor(kind),
     performedAt: notFutureDateTimeSchema.optional(),
     notes: plainText(300).optional(),
-  });
+  };
+
+  if (kind === 'weighted_reps') {
+    return z.object({ ...base, weightKg: weightKgSchema });
+  }
+  if (kind === 'time') {
+    return z.object({ ...base, elevationGainM: elevationGainMSchema });
+  }
+  return z.object(base);
 }
 
 export type CreateRecord = z.infer<ReturnType<typeof createRecordSchemaFor>>;

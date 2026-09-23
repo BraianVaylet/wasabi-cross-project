@@ -1,12 +1,19 @@
 import type { MeasureKind, RecordInput } from '@wasabi-cross/schemas';
 import { Button, Drawer, TextArea, TextField } from '@wasabi-cross/ui';
 import { useState } from 'react';
+import { autoColon } from '../../lib/format.ts';
 import {
+  ELEVATION_FIELD,
+  elevationError,
+  extraFieldKindFor,
   MARK_FIELD,
   markValueError,
   parseMarkValue,
+  parsePlainNumber,
   performedAtFrom,
   today,
+  WEIGHT_FIELD,
+  weightError,
 } from '../../lib/mark-input.ts';
 import './new-mark.css';
 
@@ -28,17 +35,23 @@ export function newMarkLabel(kind: MeasureKind): string {
  */
 export function NewMark({ kind, open, onClose, onSave }: NewMarkProps): React.JSX.Element {
   const [value, setValue] = useState('');
+  const [extra, setExtra] = useState('');
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
   const [valueError, setValueError] = useState<string | null>(null);
+  const [extraError, setExtraError] = useState<string | null>(null);
 
   const field = MARK_FIELD[kind];
+  const extraKind = extraFieldKindFor(kind);
+  const extraField = extraKind === 'weightKg' ? WEIGHT_FIELD : ELEVATION_FIELD;
 
   const close = () => {
     setValue('');
+    setExtra('');
     setDate('');
     setNotes('');
     setValueError(null);
+    setExtraError(null);
     onClose();
   };
 
@@ -49,12 +62,19 @@ export function NewMark({ kind, open, onClose, onSave }: NewMarkProps): React.JS
       return;
     }
 
+    const extraParsed = extraKind === null ? null : parsePlainNumber(extra);
+    if (extraKind !== null && extraParsed === null) {
+      setExtraError(extraKind === 'weightKg' ? weightError : elevationError);
+      return;
+    }
+
     const performedAt = performedAtFrom(date);
     const comment = notes.trim();
     onSave({
       value: parsed,
       ...(performedAt === undefined ? {} : { performedAt }),
       ...(comment === '' ? {} : { notes: comment }),
+      ...(extraKind === null || extraParsed === null ? {} : { [extraKind]: extraParsed }),
     });
     close();
   };
@@ -84,10 +104,24 @@ export function NewMark({ kind, open, onClose, onSave }: NewMarkProps): React.JS
           value={value}
           error={valueError ?? undefined}
           onChange={(event) => {
-            setValue(event.target.value);
+            setValue(kind === 'time' ? autoColon(event.target.value) : event.target.value);
             setValueError(null);
           }}
         />
+
+        {extraKind === null ? null : (
+          <TextField
+            label={extraField.label}
+            placeholder={extraField.placeholder}
+            inputMode="decimal"
+            value={extra}
+            error={extraError ?? undefined}
+            onChange={(event) => {
+              setExtra(event.target.value);
+              setExtraError(null);
+            }}
+          />
+        )}
 
         <TextField
           label="Fecha"

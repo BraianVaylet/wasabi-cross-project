@@ -60,7 +60,12 @@ const BAND_LABEL: Record<LoadBand, string> = {
 };
 
 /** Cómo se llama el valor actual según lo que mide el ejercicio (spec §5.1). */
-const VALUE_LABEL: Record<MeasureKind, string> = { rm: 'RM', reps: 'Reps', time: 'Tiempo' };
+const VALUE_LABEL: Record<MeasureKind, string> = {
+  rm: 'RM',
+  reps: 'Reps',
+  weighted_reps: 'Reps',
+  time: 'Tiempo',
+};
 
 function targetText(kind: MeasureKind, target: number): string {
   return kind === 'rm' ? `${String(target)} kg` : `${String(target)} reps`;

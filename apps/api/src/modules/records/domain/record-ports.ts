@@ -30,6 +30,10 @@ export interface NewRecordEntry {
   value: number;
   performedAt: string;
   notes?: string;
+  /** Sólo en hipertrofia (`kind: 'weighted_reps'`), junto a las repeticiones. */
+  weightKg?: number;
+  /** Sólo en running (`kind: 'time'`), junto al tiempo. Plano es 0, no ausente. */
+  elevationGainM?: number;
 }
 
 export interface RecordStore {

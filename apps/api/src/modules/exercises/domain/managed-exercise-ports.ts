@@ -30,6 +30,8 @@ export interface CurrentValue {
   readonly value: number;
   readonly unit: 'kg' | 'reps' | 's';
   readonly performedAt: string;
+  readonly weightKg?: number | undefined;
+  readonly elevationGainM?: number | undefined;
 }
 
 export interface NewRecord {
@@ -39,6 +41,8 @@ export interface NewRecord {
   value: number;
   performedAt: string;
   notes?: string;
+  weightKg?: number;
+  elevationGainM?: number;
 }
 
 export interface RecordsGateway<Tx> {

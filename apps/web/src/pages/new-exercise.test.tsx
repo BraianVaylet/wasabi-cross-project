@@ -168,24 +168,43 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       const { api } = renderNuevo();
 
       await userEvent.type(await screen.findByLabelText('Nombre'), 'Carrera 1 km');
-      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '4:32');
+      // El input inserta los ":" solo, cada dos cifras: "0432" queda "04:32".
+      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '0432');
+      await userEvent.type(screen.getByLabelText('Desnivel (m)'), '150');
       await completarComun();
       await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
 
       const [input] = api.client.addExercise.mock.calls[0] ?? [];
       expect(input?.firstRecord.value).toBe(272);
+      expect(input?.firstRecord.elevationGainM).toBe(150);
     });
 
     it('un tiempo mal escrito se frena en el formulario', async () => {
       const { api } = renderNuevo();
 
       await userEvent.type(await screen.findByLabelText('Nombre'), 'Carrera 1 km');
-      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '4:72');
+      // "0299" queda "02:99": 99 segundos no es un tiempo válido.
+      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '0299');
+      await userEvent.type(screen.getByLabelText('Desnivel (m)'), '150');
       await completarComun();
       await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
 
       expect(await screen.findByRole('alert')).toHaveTextContent(
         'Escribilo como mm:ss, por ejemplo 4:32',
+      );
+      expect(api.client.addExercise).not.toHaveBeenCalled();
+    });
+
+    it('running sin desnivel se frena en el formulario', async () => {
+      const { api } = renderNuevo();
+
+      await userEvent.type(await screen.findByLabelText('Nombre'), 'Carrera 1 km');
+      await userEvent.type(screen.getByLabelText('Tiempo (mm:ss)'), '0432');
+      await completarComun();
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Cargá el desnivel, como 150 (0 si es plano)',
       );
       expect(api.client.addExercise).not.toHaveBeenCalled();
     });

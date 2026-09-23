@@ -42,6 +42,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
     name: string,
     value: number,
     performedAt: string,
+    firstRecordExtra: Record<string, unknown> = {},
   ): Promise<ManagedExerciseSummary> {
     const exercise = await createMongoExerciseRepository(harness.mongo.db).findCatalogByName(name);
     const response = await harness.app.inject({
@@ -52,19 +53,25 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
         source: 'catalog',
         exerciseId: exercise?.id,
         level: 'intermedio',
-        firstRecord: { value, performedAt },
+        firstRecord: { value, performedAt, ...firstRecordExtra },
       }),
     });
     expect(response.statusCode, name).toBe(201);
     return response.json<ManagedExerciseSummary>();
   }
 
-  async function log(cookie: string, id: string, value: number, performedAt: string) {
+  async function log(
+    cookie: string,
+    id: string,
+    value: number,
+    performedAt: string,
+    extra: Record<string, unknown> = {},
+  ) {
     const response = await harness.app.inject({
       method: 'POST',
       url: `/api/v1/exercises/${id}/records`,
       headers: { cookie, 'content-type': 'application/json' },
-      payload: JSON.stringify({ value, performedAt }),
+      payload: JSON.stringify({ value, performedAt, ...extra }),
     });
     expect(response.statusCode, `${String(value)} @ ${performedAt}`).toBe(201);
   }
@@ -130,8 +137,10 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
 
   it('en tiempo, la mejor marca es la más baja', async () => {
     const cookie = await newUser();
-    const carrera = await addFromCatalog(cookie, 'Carrera 1 km', 300, hace(4));
-    await log(cookie, carrera.id, 270, hace(1));
+    const carrera = await addFromCatalog(cookie, 'Carrera 1 km', 300, hace(4), {
+      elevationGainM: 0,
+    });
+    await log(cookie, carrera.id, 270, hace(1), { elevationGainM: 0 });
 
     const body = (await stats(cookie, carrera.id)).json<ExerciseStats>();
 
@@ -178,6 +187,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
       muscleGroups: string[],
       value: number,
       performedAt: string,
+      firstRecordExtra: Record<string, unknown> = {},
     ): Promise<ManagedExerciseSummary> {
       const response = await harness.app.inject({
         method: 'POST',
@@ -190,7 +200,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
           capacities,
           muscleGroups,
           level: 'intermedio',
-          firstRecord: { value, performedAt },
+          firstRecord: { value, performedAt, ...firstRecordExtra },
         }),
       });
 
@@ -236,8 +246,9 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
         ['gemelo'],
         300,
         hace(6),
+        { elevationGainM: 0 },
       );
-      await log(cookie, corriendo.id, 285, hace(1));
+      await log(cookie, corriendo.id, 285, hace(1), { elevationGainM: 0 });
 
       const body = (await summary(cookie)).json<GeneralStats>();
 
@@ -267,7 +278,9 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
       );
       await log(cookie, medible.id, 60, hace(1));
       // Una sola marca: no hay variación que mostrar.
-      await addCustom(cookie, 'Sprint propio', 'running', ['velocidad'], ['gemelo'], 12, hace(2));
+      await addCustom(cookie, 'Sprint propio', 'running', ['velocidad'], ['gemelo'], 12, hace(2), {
+        elevationGainM: 0,
+      });
 
       const body = (await summary(cookie)).json<GeneralStats>();
 

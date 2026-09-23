@@ -15,7 +15,15 @@ import {
   type MuscleGroup,
 } from '@wasabi-cross/schemas';
 import { z } from 'zod';
-import { markValueError, parseMarkValue, performedAtFrom } from '../../lib/mark-input.ts';
+import {
+  elevationError,
+  extraFieldKindFor,
+  markValueError,
+  parseMarkValue,
+  parsePlainNumber,
+  performedAtFrom,
+  weightError,
+} from '../../lib/mark-input.ts';
 
 /*
  * El formulario de "Nuevo ejercicio" (mockup 9), aparte de la pantalla: qué se valida y
@@ -31,6 +39,8 @@ export interface NewExerciseValues {
   muscleGroups: MuscleGroup[];
   /** Como se escribe: "100", "92,5" o "4:32". */
   value: string;
+  /** El peso (hipertrofia) o el desnivel (running) de la primera marca, si corresponde. */
+  extra: string;
   /** `yyyy-mm-dd` del campo de fecha, o vacío. */
   date: string;
   level: Level | '';
@@ -44,6 +54,7 @@ export const EMPTY_VALUES: NewExerciseValues = {
   capacities: [],
   muscleGroups: [],
   value: '',
+  extra: '',
   date: '',
   level: '',
   notes: '',
@@ -83,6 +94,7 @@ export function newExerciseSchemaFor(catalog: readonly Exercise[]) {
       capacities: z.array(capacitySchema),
       muscleGroups: z.array(muscleGroupSchema),
       value: z.string().min(1, 'Cargá tu marca'),
+      extra: z.string(),
       date: z.string(),
       level: levelSchema,
       notes: z.string(),
@@ -122,6 +134,15 @@ export function newExerciseSchemaFor(catalog: readonly Exercise[]) {
           message: markValueError(kind ?? 'rm'),
         });
       }
+
+      const extraKind = extraFieldKindFor(kind);
+      if (extraKind !== null && parsePlainNumber(values.extra) === null) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['extra'],
+          message: extraKind === 'weightKg' ? weightError : elevationError,
+        });
+      }
     });
 }
 
@@ -134,6 +155,8 @@ export function toAddExercise(
   const kind = kindFor(catalog, values.name, values.category);
   const performedAt = performedAtFrom(values.date);
   const notes = values.notes.trim();
+  const extraKind = extraFieldKindFor(kind);
+  const extraValue = extraKind === null ? null : parsePlainNumber(values.extra);
 
   const shared = {
     level: values.level === '' ? 'principiante' : values.level,
@@ -142,6 +165,7 @@ export function toAddExercise(
     firstRecord: {
       value: parseMarkValue(kind, values.value) ?? 0,
       ...(performedAt === undefined ? {} : { performedAt }),
+      ...(extraKind === null || extraValue === null ? {} : { [extraKind]: extraValue }),
     },
   };
 

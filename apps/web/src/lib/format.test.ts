@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate, formatMark, parseDuration } from './format.ts';
+import { autoColon, formatDate, formatMark, parseDuration } from './format.ts';
 
 describe('formatDate — es-AR (spec §11)', () => {
   it('día/mes/año, como en los mockups', () => {
@@ -33,6 +33,39 @@ describe('formatMark — el valor con su unidad', () => {
   it('menos de un minuto se dice en segundos', () => {
     expect(formatMark({ value: 45, unit: 's' })).toBe('45 s');
     expect(formatMark({ value: 12.4, unit: 's' })).toBe('12,4 s');
+  });
+
+  it('hipertrofia suma el peso a las repeticiones', () => {
+    expect(formatMark({ value: 12, unit: 'reps', weightKg: 80 })).toBe('12 reps · 80 kg');
+  });
+
+  it('running suma el desnivel al tiempo', () => {
+    expect(formatMark({ value: 272, unit: 's', elevationGainM: 150 })).toBe('4:32 · 150 m');
+  });
+
+  it('un desnivel de 0 (carrera plana) se muestra, no se omite', () => {
+    expect(formatMark({ value: 272, unit: 's', elevationGainM: 0 })).toBe('4:32 · 0 m');
+  });
+});
+
+describe('autoColon — el tiempo se separa solo cada dos cifras', () => {
+  it.each([
+    ['0', '0'],
+    ['01', '01'],
+    ['013', '01:3'],
+    ['0130', '01:30'],
+    ['013012', '01:30:12'],
+  ])('%s → %s', (digitos, esperado) => {
+    expect(autoColon(digitos)).toBe(esperado);
+  });
+
+  it('lo que no es un dígito se ignora, aunque el usuario haya tipeado ":"', () => {
+    expect(autoColon('01:30')).toBe('01:30');
+    expect(autoColon('ab1c2')).toBe('12');
+  });
+
+  it('no sigue agrupando más allá de hh:mm:ss (6 cifras)', () => {
+    expect(autoColon('0130123')).toBe('01:30:12');
   });
 });
 

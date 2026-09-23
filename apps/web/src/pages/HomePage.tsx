@@ -22,6 +22,7 @@ export interface HomePageProps {
 const VALUE_LABEL: Record<MeasureKind, string> = {
   rm: 'RM',
   reps: 'Reps',
+  weighted_reps: 'Reps',
   time: 'Tiempo',
 };
 

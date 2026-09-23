@@ -17,13 +17,39 @@ const identity = {
 
 const rmRecord = { ...identity, kind: 'rm', value: 100, unit: 'kg' };
 const repsRecord = { ...identity, kind: 'reps', value: 15, unit: 'reps' };
-const timeRecord = { ...identity, kind: 'time', value: 222, unit: 's' };
+const weightedRepsRecord = {
+  ...identity,
+  kind: 'weighted_reps',
+  value: 12,
+  unit: 'reps',
+  weightKg: 80,
+};
+const timeRecord = {
+  ...identity,
+  kind: 'time',
+  value: 222,
+  unit: 's',
+  elevationGainM: 150,
+};
 
 describe('recordSchema', () => {
   it('acepta una marca de cada tipo', () => {
     expect(recordSchema.safeParse(rmRecord).success).toBe(true);
     expect(recordSchema.safeParse(repsRecord).success).toBe(true);
+    expect(recordSchema.safeParse(weightedRepsRecord).success).toBe(true);
     expect(recordSchema.safeParse(timeRecord).success).toBe(true);
+  });
+
+  it('hipertrofia sin peso no es una marca válida: no existe ese estado', () => {
+    const { weightKg: _w, ...sinPeso } = weightedRepsRecord;
+
+    expect(recordSchema.safeParse(sinPeso).success).toBe(false);
+  });
+
+  it('running sin desnivel no es una marca válida: plano es 0, no ausente', () => {
+    const { elevationGainM: _e, ...sinDesnivel } = timeRecord;
+
+    expect(recordSchema.safeParse(sinDesnivel).success).toBe(false);
   });
 
   it('el peso es sólo en kg: una marca en lb se rechaza', () => {
@@ -106,10 +132,24 @@ describe('createRecordSchemaFor', () => {
     expect(createRecordSchemaFor('reps').safeParse({ value: 12.5 }).success).toBe(false);
     expect(createRecordSchemaFor('rm').safeParse({ value: 12.5 }).success).toBe(true);
   });
+
+  it('hipertrofia exige el peso, junto a las repeticiones', () => {
+    expect(createRecordSchemaFor('weighted_reps').safeParse({ value: 12 }).success).toBe(false);
+    expect(
+      createRecordSchemaFor('weighted_reps').safeParse({ value: 12, weightKg: 80 }).success,
+    ).toBe(true);
+  });
+
+  it('running exige el desnivel, junto al tiempo — 0 vale, es una carrera plana', () => {
+    expect(createRecordSchemaFor('time').safeParse({ value: 222 }).success).toBe(false);
+    expect(createRecordSchemaFor('time').safeParse({ value: 222, elevationGainM: 0 }).success).toBe(
+      true,
+    );
+  });
 });
 
 describe('UNIT_BY_KIND', () => {
   it('cada medición tiene una sola unidad', () => {
-    expect(UNIT_BY_KIND).toEqual({ rm: 'kg', reps: 'reps', time: 's' });
+    expect(UNIT_BY_KIND).toEqual({ rm: 'kg', reps: 'reps', weighted_reps: 'reps', time: 's' });
   });
 });
