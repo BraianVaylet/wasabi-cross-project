@@ -36,6 +36,7 @@ import {
   type StatsRoutesOptions,
 } from './modules/stats/infrastructure/stats.routes.ts';
 import { registerErrorHandler } from './shared/errors/error-handler.ts';
+import { registerWebFront } from './shared/http/web-front.ts';
 
 export const API_PREFIX = '/api/v1';
 
@@ -119,7 +120,9 @@ export async function buildApp({
 
   await app.register(swaggerUi, { routePrefix: '/docs' });
 
-  registerErrorHandler(app);
+  // En los ambientes desplegados la API sirve también el front (F3-03, ADR-0007).
+  const spaFallback = env.WEB_DIST_DIR ? await registerWebFront(app, env.WEB_DIST_DIR) : undefined;
+  registerErrorHandler(app, spaFallback ? { spaFallback } : {});
 
   // Liveness y readiness van fuera de /api/v1: los consume el orquestador, no el front.
   await app.register(healthRoutes(probes));

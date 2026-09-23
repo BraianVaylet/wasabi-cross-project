@@ -5,6 +5,7 @@ import {
   isResponseSerializationError,
 } from 'fastify-type-provider-zod';
 import { AppError, isAppError } from './app-error.ts';
+import type { SpaFallback } from '../http/web-front.ts';
 
 /** El mensaje del catálogo con su `{code}` ya reemplazado. */
 function unexpectedMessage(): string {
@@ -36,8 +37,20 @@ function send(reply: FastifyReply, status: number, envelope: ErrorEnvelope): voi
   void reply.status(status).send(envelope);
 }
 
-export function registerErrorHandler(app: FastifyInstance): void {
+export interface ErrorHandlerOptions {
+  /** Si la API sirve el front, las navegaciones de la SPA caen en su `index.html`. */
+  spaFallback?: SpaFallback;
+}
+
+export function registerErrorHandler(
+  app: FastifyInstance,
+  options: ErrorHandlerOptions = {},
+): void {
   app.setNotFoundHandler((request, reply) => {
+    if (options.spaFallback?.(request, reply)) {
+      return;
+    }
+
     const error = new AppError('WC-SYS-404-003', { meta: { url: request.url } });
     request.log.info({ errorCode: error.errorCode, ...error.meta }, error.message);
     send(reply, error.statusCode, {
