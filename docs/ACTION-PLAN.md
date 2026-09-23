@@ -18,6 +18,7 @@
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
 | Fase 2 — Estadísticas       |     10 |           44 |     10 |
+| Fase 3 — A producción       |     12 |           37 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1068,3 +1069,261 @@ F2-10 cierra la fase.
   era enfocable adentro de un `aria-hidden` (WCAG 4.1.2): ahora sale del orden de tabulación.
   Con nueve registros por corrida, el límite de 5 por minuto (spec §13) cortaba el E2E:
   `AUTH_RATE_LIMIT=off` lo apaga sólo ahí, y en producción el proceso no levanta con eso.
+
+---
+
+# Fase 3 — A producción
+
+Todo lo que hace falta para que Wasabi Cross exista fuera de una máquina de desarrollo (spec §12):
+Railway, Mongo Atlas con backups que se sabe restaurar, secrets fuera del repo, deploy desde CI y
+alguien que avise cuando se cae. Al final de la fase, un atleta de verdad puede usarlo.
+
+**Antes de arrancar — qué hace la IA y qué no (4D, _Delegation_).** Las tareas marcadas **🔑 necesita
+al usuario** tocan cuentas, dominios, secrets o plata: crear el proyecto en Railway, el cluster de
+Atlas, el monitor de uptime. Esas las ejecuta el usuario, o la IA con su confirmación explícita en
+el momento; nunca solas. Lo que sí hace la IA sin esperar: el código, la configuración versionada,
+los runbooks y los workflows de CI que no deployan hasta que existan los secrets.
+
+**Decisión pendiente, F3-03 la necesita:** cómo comparten sitio el front y la API. La cookie de
+sesión es `SameSite=Lax`, así que tienen que ser el mismo sitio. Dos caminos, con la recomendación
+en la tarea.
+
+**Orden sugerido.** F3-01 y F3-02 son arreglos chicos que no esperan a nada. F3-03 decide la
+topología; con eso salen F3-04 y F3-05 (las imágenes) y F3-06 (los headers). Después las de
+cuentas —F3-07 y F3-08—, el deploy desde CI (F3-09), el monitoreo (F3-10), los runbooks (F3-11) y
+el smoke contra staging (F3-12), que cierra la fase.
+
+**Fuera de la Fase 3**, para que no se cuele:
+
+- Backblaze B2 y media de ejercicios (spec §12): todavía no hay nada que subir. Entra con la primera
+  funcionalidad que lo necesite.
+- La suscripción Max y el cobro: bloqueado por el proveedor de pago.
+- Recupero de contraseña: bloqueado por el proveedor de email.
+- Migrar a VPS o Coolify: el disparador es costo o límite de recursos (spec §12), y todavía no hay
+  ninguno de los dos.
+- Probar en `prod`. Nunca (CLAUDE.md): el smoke corre contra staging.
+
+## [ ] F3-01 · La API lee su `.env` en desarrollo
+
+- **module:** infra
+- **description:** Hoy nadie carga `apps/api/.env`: el paso documentado (`cp .env.example .env` y
+  `pnpm dev`) falla hasta exportar las variables a mano. Node 24 trae `--env-file-if-exists`: los
+  scripts de desarrollo lo usan, y en Railway las variables siguen viniendo de la plataforma.
+- **acceptance-criteria:**
+  - Dado un `.env` en `apps/api`, cuando se corre `pnpm dev`, `migrate` o `seed`, entonces las
+    variables se leen de ahí sin exportarlas.
+  - Dado que no hay `.env`, cuando se corren, entonces fallan con el mensaje de `parseEnv` que dice
+    qué falta, igual que hoy.
+  - Dado el build de producción, cuando arranca, entonces no lee ningún `.env`: en producción las
+    variables las pone la plataforma.
+- **example:** —
+- **story-points:** 1
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** probado a mano con y sin `.env`; CLAUDE.md y STATE.md vuelven a decir la verdad.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-02 · Un error del cliente responde 4xx, no 500
+
+- **module:** api
+- **description:** El manejador de errores convierte en 500 los errores de Fastify que ya traen un
+  código 4xx: un cuerpo que no coincide con su `Content-Length`, uno demasiado grande. Es culpa del
+  cliente, no del servidor, y un 500 dispara alertas que no corresponden.
+- **acceptance-criteria:**
+  - Dado un error de Fastify con `statusCode` 4xx, cuando llega al manejador, entonces responde ese
+    código con `WC-SYS-400-002` y se loguea como aviso, no como error.
+  - Dado un error sin `statusCode` o con uno 5xx, cuando llega, entonces sigue siendo
+    `WC-SYS-500-001`.
+- **example:** Un `POST` con `Content-Length` mentiroso hoy responde 500; después, 400.
+- **story-points:** 2
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** test del manejador con un error 400 y uno 413 de Fastify, y con uno sin código.
+- **error-codes:** ninguno nuevo (usa `WC-SYS-400-002`)
+- **data-model-impact:** ninguno
+
+## [ ] F3-03 · El front y la API en el mismo sitio
+
+- **module:** infra
+- **description:** Decidir y dejar en un ADR cómo se sirven el front y la API. La cookie de sesión
+  es `SameSite=Lax`: si viven en sitios distintos, el navegador no la manda. Dos caminos:
+  - **Recomendado — la API sirve el front.** Un solo servicio en Railway, un solo dominio, el mismo
+    origen: sin CORS en producción, sin dudas con la cookie, un deploy en vez de dos.
+  - Dos servicios en subdominios del mismo dominio (`app.` y `api.`). Mismo sitio, pero dos deploys
+    y CORS entre ellos.
+- **acceptance-criteria:**
+  - Dado el ADR, cuando se lee, entonces dice qué se eligió, por qué y qué costó la alternativa.
+  - Dada la decisión, cuando se aplica, entonces una sesión iniciada en el front viaja a la API en
+    el ambiente de staging.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** —
+- **risk:** medium
+- **test_plan:** la decisión se prueba en F3-12, con el smoke contra staging.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-04 · El build de producción de la API
+
+- **module:** infra
+- **description:** Lo que Railway corre: la API compilada (`node dist/server.js`), con las
+  migraciones como paso previo al arranque (`migrate:dist up`, ADR-0005) y `/ready` como chequeo de
+  salud. Configuración versionada en el repo, no clickeada en un panel.
+- **acceptance-criteria:**
+  - Dado el build, cuando se construye en limpio, entonces arranca sin dependencias de desarrollo
+    (ni `tsx`, ni `mongodb-memory-server`).
+  - Dado un deploy con migraciones pendientes, cuando arranca, entonces las aplica antes de recibir
+    tráfico, y si fallan, la versión nueva no recibe tráfico.
+  - Dada la instancia, cuando le pega el chequeo de salud, entonces usa `/ready`, no `/health`.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F3-03
+- **risk:** medium
+- **test_plan:** build y arranque de la imagen en local contra el Mongo efímero; `/ready` responde
+  listo sólo después de migrar.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-05 · El build de producción del front
+
+- **module:** infra
+- **description:** El front como lo sirva F3-03: build estático con la URL de la API resuelta en el
+  build, el service worker de la PWA en su lugar y caché larga para los assets con hash.
+- **acceptance-criteria:**
+  - Dado el build, cuando se sirve, entonces las rutas del front (`/ejercicios/...`) caen en el
+    `index.html` y no en un 404.
+  - Dados los assets con hash, cuando se piden, entonces van con caché larga; el `index.html` y el
+    service worker, sin caché.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F3-03
+- **risk:** low
+- **test_plan:** el E2E corriendo contra el build de producción en vez del servidor de desarrollo.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-06 · Headers de seguridad en producción
+
+- **module:** infra
+- **description:** Los de spec §13 —CSP, HSTS, X-Content-Type-Options, Referrer-Policy— también en
+  lo que sirve el front, no sólo en la API. La CSP tiene que dejar andar a la PWA y a nada más.
+- **acceptance-criteria:**
+  - Dada cualquier respuesta de producción, cuando se inspecciona, entonces trae los cuatro headers.
+  - Dada la CSP, cuando corre la app entera, entonces no bloquea nada propio y no permite
+    `unsafe-inline` en scripts.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F3-03, F3-05
+- **risk:** medium
+- **test_plan:** test de los headers en la API; el E2E con la CSP de producción puesta.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-07 · Ambientes staging y prod en Railway — 🔑 necesita al usuario
+
+- **module:** infra
+- **description:** Los dos ambientes de spec §12, con sus variables y secrets en el gestor de
+  Railway, nunca en el repo. La IA prepara la configuración y el runbook; crear el proyecto, elegir
+  el plan y cargar los secrets lo hace el usuario.
+- **acceptance-criteria:**
+  - Dados los dos ambientes, cuando se listan sus variables, entonces ninguna está en el repo y
+    cada una está documentada en el runbook con su propósito.
+  - Dado staging, cuando se carga, entonces tiene datos sintéticos: nunca una copia de prod.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F3-04, F3-05
+- **risk:** high
+- **test_plan:** `/ready` en verde en los dos ambientes; revisión humana del runbook.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-08 · Mongo Atlas con backups que se sabe restaurar — 🔑 necesita al usuario
+
+- **module:** infra
+- **description:** Replica set, backups con PITR y alertas de conexión y de almacenamiento (spec
+  §12). RPO ≤ 24 h y RTO ≤ 4 h, con una restauración probada de verdad y cronometrada.
+- **acceptance-criteria:**
+  - Dado el cluster de prod, cuando se revisa, entonces tiene PITR y las dos alertas prendidas.
+  - Dada una restauración de prueba en otro cluster, cuando se hace, entonces termina en menos de
+    4 h y los datos pasan `/ready` con las migraciones al día.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F3-07
+- **risk:** high
+- **test_plan:** el simulacro de restauración, con su tiempo anotado en la bitácora.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-09 · Deploy desde CI
+
+- **module:** infra
+- **description:** Cada merge a `main` deploya a staging; prod sale a mano, desde un tag o un
+  `workflow_dispatch`, y sólo si staging está sano. Las migraciones corren antes de mover el
+  tráfico. Sin los secrets cargados, el workflow no hace nada y lo dice.
+- **acceptance-criteria:**
+  - Dado un merge a `main`, cuando termina CI, entonces staging queda con esa versión.
+  - Dado un deploy a prod, cuando se pide, entonces exige una aprobación y que staging esté en
+    verde.
+  - Dada una migración que falla, cuando corre en el deploy, entonces la versión anterior sigue
+    atendiendo.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F3-04, F3-07
+- **risk:** high
+- **test_plan:** un deploy de punta a punta a staging; un deploy con una migración rota a
+  propósito, que no llega a recibir tráfico.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-10 · Monitoreo de uptime con alerta — 🔑 necesita al usuario
+
+- **module:** infra
+- **description:** Un monitor externo contra `/health` y `/ready` de prod, con alerta a Telegram o
+  WhatsApp (spec §12). La cuenta del monitor y el canal de aviso son del usuario.
+- **acceptance-criteria:**
+  - Dada una caída de prod, cuando pasan dos chequeos seguidos fallando, entonces llega la alerta.
+  - Dado `/ready` en rojo con `/health` en verde, cuando pasa, entonces la alerta dice cuál de los
+    dos: no es lo mismo un Mongo caído que un proceso caído.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F3-07
+- **risk:** medium
+- **test_plan:** un simulacro: apagar staging y ver llegar la alerta.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-11 · Runbooks: secrets, restauración y deploy
+
+- **module:** infra
+- **description:** Lo que spec §12 pide documentado: cómo rotar cada secret, cómo restaurar un
+  backup, y cómo se deploya y se vuelve atrás. Escrito para alguien que no estuvo en esta sesión.
+- **acceptance-criteria:**
+  - Dado cada secret de producción, cuando se busca en el runbook, entonces dice dónde vive, quién
+    lo puede rotar y qué se rompe mientras tanto.
+  - Dado un deploy malo, cuando se sigue el runbook, entonces se vuelve a la versión anterior sin
+    improvisar.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F3-08, F3-09
+- **risk:** low
+- **test_plan:** revisión humana; la rotación de `BETTER_AUTH_SECRET` probada en staging.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F3-12 · Smoke contra staging
+
+- **module:** infra
+- **description:** El E2E corriendo contra staging después de cada deploy: la primera vez que la app
+  se prueba en un ambiente que no es el de desarrollo. Cierra la fase. Contra prod, nunca.
+- **acceptance-criteria:**
+  - Dado un deploy a staging, cuando termina, entonces corre el flujo principal y el de
+    Estadísticas contra esa URL, con sus datos sintéticos.
+  - Dado un smoke en rojo, cuando pasa, entonces bloquea el deploy a prod.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F3-03, F3-09
+- **risk:** medium
+- **test_plan:** el propio smoke, en el workflow de deploy.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
