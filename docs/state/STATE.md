@@ -27,7 +27,7 @@ Lo que hay hoy, en una línea cada uno:
 **Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos. Un atleta se
 registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese camino en cada PR.
 
-**Fase 2 — Estadísticas: en curso, 9 de 10 tareas.** 44 puntos en total.
+**Fase 2 — Estadísticas: cerrada el 2026-09-22.** 10 tareas, 44 puntos.
 
 - **F2-01 · Contratos**: cerrada. El período, la serie, el resumen y los agregados, más
   `summarize()` en el paquete compartido.
@@ -41,8 +41,8 @@ registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese
   lectores de pantalla.
 - **F2-07 · Pantalla de Estadísticas** y **F2-09 · Los accesos**: cerradas juntas. El acordeón del
   mockup 10, en el menú y en el detalle.
-- **F2-08 · Sección de estadísticas generales**: en PR (#38). Con el período en la URL.
-- Queda **F2-10** (el E2E de la pantalla), que cierra la fase.
+- **F2-08 · Sección de estadísticas generales**: cerrada. Con el período en la URL.
+- **F2-10 · E2E de Estadísticas**: cerrada. El recorrido nuevo, con su axe en los dos temas.
 
 - **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
 - **F1-02 · Migraciones**: cerrada. migrate-mongo
@@ -76,8 +76,9 @@ Nada.
 
 ## Próximo paso
 
-1. **F2-10**: sumar la pantalla de Estadísticas al E2E, con su axe en los dos temas. Cierra la
-   Fase 2.
+1. Desglosar la **Fase 3 — A producción** (spec §12): el propio plan de acción la marca como la que
+   sigue a Estadísticas. Queda como PR para revisar antes de codear nada que toque cuentas o
+   secretos.
 2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -129,7 +130,7 @@ pnpm dev                                     # API en :3000, web en :5173
 
 ## Última actualización
 
-2026-09-22 — Fase 2 casi entera: F2-01 a F2-09, con la pantalla de Estadísticas funcionando de punta
-a punta. Las bitácoras de cada una están en [bitacora](./bitacora); la última es
-[la de F2-08](./bitacora/2026-09-22-f2-08-generales-pantalla.md). El tablero de Trello quedó
+2026-09-22 — Fase 2 cerrada: F2-01 a F2-10, con la pantalla de Estadísticas funcionando de punta a
+punta y en el E2E. Las bitácoras de cada una están en [bitacora](./bitacora); la última es
+[la de F2-10](./bitacora/2026-09-22-f2-10-e2e-estadisticas.md). El tablero de Trello quedó
 sincronizado.

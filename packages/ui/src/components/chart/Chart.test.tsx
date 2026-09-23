@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { Chart } from './Chart.tsx';
 
@@ -40,6 +41,18 @@ describe('Chart', () => {
     const { container } = render(<Chart label="Evolución" unit="kg" points={SERIE} />);
 
     expect(container.querySelector('.wc-chart__plot')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('el dibujo no se puede enfocar: un foco escondido del lector de pantalla no sirve', async () => {
+    const { container } = render(<Chart label="Evolución" unit="kg" points={SERIE} />);
+
+    await userEvent.tab();
+
+    const plot = container.querySelector('.wc-chart__plot');
+    expect(plot?.contains(document.activeElement)).toBe(false);
+    for (const element of plot?.querySelectorAll('[tabindex]') ?? []) {
+      expect(element.getAttribute('tabindex')).toBe('-1');
+    }
   });
 
   it('sin marcas lo dice, en vez de dibujar una línea inventada', () => {

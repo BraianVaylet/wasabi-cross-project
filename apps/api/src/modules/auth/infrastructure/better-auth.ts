@@ -67,7 +67,9 @@ export function createAuth({ env, db, client, transactions = true }: CreateAuthO
     },
 
     rateLimit: {
-      enabled: !isTest,
+      // Apagado en los tests de la API y, si se pide, en el E2E (nunca en producción: lo
+      // impide `parseEnv`).
+      enabled: !isTest && env.AUTH_RATE_LIMIT === 'on',
       // En Mongo y no en memoria: sobrevive a un reinicio y sirve con más de
       // una instancia, que es justo cuando un límite en memoria deja de servir.
       storage: 'database',
