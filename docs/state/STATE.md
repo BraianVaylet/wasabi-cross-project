@@ -4,9 +4,9 @@
 
 ## Fase actual
 
-**Fases 0 y 1: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde) y la 1 el 2026-09-22, con F1-18. El
-monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y `packages/ui`. La Fase 2 todavía no
-está desglosada en tareas.
+**Fases 0, 1 y 2: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde), la 1 el 2026-09-22 con F1-18, y
+la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y
+`packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo.
 
 Queda abierta sólo F0-08 (el tablero): las seis etiquetas de Trello siguen sin nombre, y el MCP no
 puede nombrarlas. Es el único pendiente de la fase y no bloquea nada.
@@ -70,15 +70,35 @@ registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese
 - **F1-18 · E2E y axe en CI**: cerrada. Playwright contra la app entera con un Mongo efímero,
   auditando cada pantalla de la fase en los dos temas. **Con esto la Fase 1 queda cerrada.**
 
+**Fase 3 — A producción: en curso, 5 de 12 tareas.** 37 puntos en total (spec §12).
+
+- **F3-01 · La API lee su `.env` en desarrollo**: cerrada. `dev`, `migrate` y `seed` con
+  `--env-file-if-exists`.
+- **F3-02 · Un error del cliente responde 4xx, no 500**: cerrada. Un JSON roto o un cuerpo enorme
+  ya no disparan alertas de servidor.
+- **F3-03 · El front y la API en el mismo sitio**: parcial (`[~]`). ADR-0007 en estado propuesta: la
+  API sirve el front compilado, mismo origen. Falta confirmarlo en staging (F3-07, F3-12).
+- **F3-04 · El build de producción de la API**: cerrada. `.railway/railway.ts` (Infrastructure as
+  Code): build, `preDeploy` con las migraciones, `healthcheck: /ready`. Simulado a mano de punta a
+  punta.
+- **F3-05 · El build de producción del front**: cerrada. Caché de assets con hash un año, resto sin
+  caché. `pnpm e2e:prod` corre la suite contra ese build; es lo que corre CI.
+- **F3-06 · Headers de seguridad en producción**: cerrada. Los cuatro headers de spec §13,
+  confirmados también en lo que sirve el front.
+- Quedan **F3-07 a F3-12**, todas encadenadas a F3-07 y F3-08 (🔑 necesitan al usuario: crear los
+  ambientes en Railway y el cluster de Atlas). Ninguna arranca sin eso — no es que falte código,
+  es que la regla de dependencias del propio plan lo impide.
+
 ## Bloqueado
 
-Nada.
+**F3-07 a F3-12**, en cadena, hasta que el usuario cree los ambientes de Railway (F3-07) y el
+cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el resto depende de ellas.
 
 ## Próximo paso
 
-1. Desglosar la **Fase 3 — A producción** (spec §12): el propio plan de acción la marca como la que
-   sigue a Estadísticas. Queda como PR para revisar antes de codear nada que toque cuentas o
-   secretos.
+1. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
+   prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
+   toca la cuenta real antes de ejecutarlo.
 2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
 
 ## Decisiones abiertas
@@ -130,7 +150,7 @@ pnpm dev                                     # API en :3000, web en :5173
 
 ## Última actualización
 
-2026-09-22 — Fase 2 cerrada: F2-01 a F2-10, con la pantalla de Estadísticas funcionando de punta a
-punta y en el E2E. Las bitácoras de cada una están en [bitacora](./bitacora); la última es
-[la de F2-10](./bitacora/2026-09-22-f2-10-e2e-estadisticas.md). El tablero de Trello quedó
-sincronizado.
+2026-09-23 — Fase 3 arrancada: F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas; F3-03 parcial (falta
+verificar en staging). El resto de la fase queda en cadena detrás de F3-07/F3-08, que necesitan al
+usuario. Bitácoras en [bitacora](./bitacora); la última es
+[la de F3-06](./bitacora/2026-09-23-f3-06-headers-seguridad.md).
