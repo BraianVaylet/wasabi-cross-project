@@ -18,7 +18,7 @@
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
 | Fase 2 — Estadísticas       |     10 |           44 |     10 |
-| Fase 3 — A producción       |     12 |           37 |      3 |
+| Fase 3 — A producción       |     12 |           37 |      4 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1177,7 +1177,7 @@ el smoke contra staging (F3-12), que cierra la fase.
   violaciones de CSP. El bootstrap del tema dejó de ser un script inline, que la CSP bloqueaba.
   Falta el segundo criterio —la sesión en staging—, que se cierra con F3-07 y F3-12.
 
-## [ ] F3-04 · El build de producción de la API
+## [x] F3-04 · El build de producción de la API
 
 - **module:** infra
 - **description:** Lo que Railway corre: la API compilada (`node dist/server.js`), con las
@@ -1197,6 +1197,12 @@ el smoke contra staging (F3-12), que cierra la fase.
   listo sólo después de migrar.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **cierre:** `.railway/railway.ts` (Infrastructure as Code, no el `railway.json` deprecado): un
+  servicio, build de los cuatro workspaces, `start` compilado, `preDeploy` con las migraciones y
+  `healthcheck: /ready`. Quince tests que cuidan las invariantes (rama, comando, healthcheck,
+  secretos con `preserve()`, base por ambiente) y siete pruebas inversas. Simulado a mano de punta a
+  punta: build → migrar → arrancar contra un Mongo efímero, con `NODE_ENV=production`; `/ready` en
+  503 sin migrar y en verde después. `railway config plan`/`apply` los corre el usuario (🔑, F3-07).
 
 ## [x] F3-05 · El build de producción del front
 
