@@ -27,12 +27,27 @@ const envSchema = z.object({
 
   BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET necesita al menos 32 caracteres'),
   BETTER_AUTH_URL: httpUrl,
+
+  /*
+   * El límite de intentos de login y registro (spec §13: 5 por minuto por IP). Sólo se apaga
+   * para el E2E, que registra un atleta por test desde la misma IP. En producción, no: el
+   * refine de abajo no deja levantar el proceso.
+   */
+  AUTH_RATE_LIMIT: z.enum(['on', 'off']).default('on'),
 });
+
+const guardedEnvSchema = envSchema.refine(
+  (env) => !(env.NODE_ENV === 'production' && env.AUTH_RATE_LIMIT === 'off'),
+  {
+    path: ['AUTH_RATE_LIMIT'],
+    message: 'En producción el límite de intentos no se apaga (spec §13)',
+  },
+);
 
 export type Env = z.infer<typeof envSchema>;
 
 export function parseEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const result = envSchema.safeParse(source);
+  const result = guardedEnvSchema.safeParse(source);
 
   if (!result.success) {
     const detail = result.error.issues

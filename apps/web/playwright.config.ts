@@ -43,7 +43,15 @@ export default defineConfig({
       reuseExistingServer: false,
       stdout: 'pipe',
       stderr: 'pipe',
-      env: { PORT: String(API_PORT), HOST: '127.0.0.1', WEB_ORIGIN: WEB_URL },
+      // Un atleta nuevo por test, todos desde 127.0.0.1: con el límite de 5 registros por
+      // minuto (spec §13) el sexto test ya no entra. Sólo acá se apaga; en producción no se
+      // puede (ver parseEnv).
+      env: {
+        PORT: String(API_PORT),
+        HOST: '127.0.0.1',
+        WEB_ORIGIN: WEB_URL,
+        AUTH_RATE_LIMIT: 'off',
+      },
     },
     {
       // `--host 127.0.0.1` explícito: por defecto vite escucha en "localhost", que en
