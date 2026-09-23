@@ -18,7 +18,7 @@
 | Fase 0 — Fundaciones        |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
 | Fase 2 — Estadísticas       |     10 |           44 |     10 |
-| Fase 3 — A producción       |     12 |           37 |      1 |
+| Fase 3 — A producción       |     12 |           37 |      2 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1128,7 +1128,7 @@ el smoke contra staging (F3-12), que cierra la fase.
   `dev:ephemeral` tampoco, porque arma su propio entorno y un `.env` de desarrollo lo pisaría.
   Probado de punta a punta: `.env` real, `migrate up`, `seed`, `pnpm dev` y `/ready` en verde.
 
-## [ ] F3-02 · Un error del cliente responde 4xx, no 500
+## [x] F3-02 · Un error del cliente responde 4xx, no 500
 
 - **module:** api
 - **description:** El manejador de errores convierte en 500 los errores de Fastify que ya traen un
@@ -1146,6 +1146,10 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **test_plan:** test del manejador con un error 400 y uno 413 de Fastify, y con uno sin código.
 - **error-codes:** ninguno nuevo (usa `WC-SYS-400-002`)
 - **data-model-impact:** ninguno
+- **cierre:** el manejador respeta el 4xx que ya trae el error (JSON roto → 400, cuerpo grande →
+  413, tipo de contenido desconocido → 415), con `WC-SYS-400-002` y log de aviso. Un 5xx propio
+  sigue siendo `WC-SYS-500-001` y no filtra su mensaje: lo probó una prueba inversa que sin ese
+  test sobrevivía.
 
 ## [ ] F3-03 · El front y la API en el mismo sitio
 
