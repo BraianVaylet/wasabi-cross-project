@@ -71,7 +71,19 @@
 .detail__bar-fill {
   display: block;
   height: 100%;
+}
+
+/* Semáforo de carga: verde liviana, ámbar media, rojo pesada (spec §5.1). */
+.detail__bar-fill--liviana {
   background-color: var(--wc-accent);
+}
+
+.detail__bar-fill--media {
+  background-color: var(--wc-warning);
+}
+
+.detail__bar-fill--pesada {
+  background-color: var(--wc-danger);
 }
 
 .detail__band {
