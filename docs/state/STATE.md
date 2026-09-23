@@ -100,6 +100,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.
 2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+3. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
+   (IA-01 a IA-09) entran al plan. No dependen de Railway ni de Atlas: pueden avanzar mientras la
+   Fase 3 espera.
 
 ## Decisiones abiertas
 
@@ -111,6 +114,10 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
   build, typecheck y tests pasan; el lint muere). `.github/dependabot.yml` ignora
   `typescript >=6.1.0` con el mismo rango. Revisar cuando typescript-eslint lo soporte
   (typescript-eslint/typescript-eslint#10940, apunta a TS ≥7.1).
+- **Prácticas de Claude Code.** [El análisis](../claude-code-practices.md) propone diez (permisos y
+  `deny` versionados, `/entregar`, un `spec-reviewer`, verificación en navegador, guardas de git
+  por hook, entre otras) y nueve tareas, 20 puntos. Falta elegir cuáles entran y sumar a la spec §9
+  que el harness de `.claude/` se versiona como el resto del código.
 
 Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 
@@ -150,13 +157,11 @@ pnpm dev                                     # API en :3000, web en :5173
 
 ## Última actualización
 
-2026-09-23 — Fase 3 sin cambios (sigue igual que la entrada anterior: F3-01, F3-02, F3-04, F3-05
-y F3-06 cerradas, F3-03 parcial, el resto en cadena detrás de F3-07/F3-08). Aparte de la fase, a
-pedido directo del usuario, cuatro cambios de producto sobre ejercicios y marcas, en cuatro PRs:
-[#48](https://github.com/BraianVaylet/wasabi-cross-project/pull/48) los porcentajes del perfil
-ordenados de menor a mayor, [#49](https://github.com/BraianVaylet/wasabi-cross-project/pull/49)
-color por banda de carga (verde/ámbar/rojo), y
-[#50](https://github.com/BraianVaylet/wasabi-cross-project/pull/50) hipertrofia con peso (nuevo
-`MeasureKind: 'weighted_reps'`), running con desnivel, y el input de tiempo autoformateando los
-":" al tipear. Bitácoras en [bitacora](./bitacora); la última es
-[la de esta sesión](./bitacora/2026-09-23-hipertrofia-running-carga-y-porcentajes.md).
+2026-09-23 — Fase 3 sin cambios (F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas, F3-03 parcial, el
+resto en cadena detrás de F3-07/F3-08). Más temprano ese día se mergearon #48, #49 y #50 (peso en
+hipertrofia, desnivel en running, color por banda de carga, porcentajes ordenados). Después, a
+pedido del usuario, se analizó el repo
+[claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) contra cómo
+se trabaja acá: el resultado está en [prácticas de Claude Code](../claude-code-practices.md), como
+propuesta — no se aplicó nada ni se tocó el plan. Bitácoras en [bitacora](./bitacora); la última es
+[la de esta sesión](./bitacora/2026-09-23-practicas-claude-code.md).
