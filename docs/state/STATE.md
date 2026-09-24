@@ -145,15 +145,22 @@ pnpm install
 pnpm verify                              # build + formato + lint + typecheck + test
 pnpm e2e                                 # Playwright: flujo principal + axe (levanta todo solo)
 
-# Para desarrollar contra datos que se tiran al cerrar: migra y siembra solo.
+# Para desarrollar contra datos que se tiran al cerrar: migra, siembra y crea el admin solo.
 pnpm --filter @wasabi-cross/api dev:ephemeral   # API en :3100, Mongo efímero
 
 # Contra un Mongo propio: copiar apps/api/.env.example a apps/api/.env (dev, migrate y seed
 # lo leen solos), MONGODB_URI tiene que ser un replica set, y antes de levantar:
-pnpm --filter @wasabi-cross/api migrate up   # sin esto, /ready responde no-listo
-pnpm --filter @wasabi-cross/api seed         # catálogo de ejercicios
-pnpm dev                                     # API en :3000, web en :5173
+pnpm --filter @wasabi-cross/api migrate up      # sin esto, /ready responde no-listo
+pnpm --filter @wasabi-cross/api seed            # catálogo de ejercicios
+pnpm --filter @wasabi-cross/api seed:admin      # usuario admin con plan Max
+pnpm dev                                        # API en :3000, web en :5173
 ```
+
+**Usuario admin de desarrollo** (`seed:admin`, y de nuevo en cada arranque de `dev:ephemeral`):
+`admin@wasabicross.dev` / `wasabi-cross-admin-dev`, plan Max fijo — no hay proveedor de pago
+todavía (ver "Decisiones abiertas"), así que es la única forma de probar sin el límite del plan
+Free. Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME`. Sólo de
+desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
 
@@ -163,5 +170,8 @@ hipertrofia, desnivel en running, color por banda de carga, porcentajes ordenado
 pedido del usuario, se analizó el repo
 [claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) contra cómo
 se trabaja acá: el resultado está en [prácticas de Claude Code](../claude-code-practices.md), como
-propuesta — no se aplicó nada ni se tocó el plan. Bitácoras en [bitacora](./bitacora); la última es
-[la de esta sesión](./bitacora/2026-09-23-practicas-claude-code.md).
+propuesta — no se aplicó nada ni se tocó el plan. Y, a pedido del usuario, un usuario admin fijo
+con plan Max para desarrollo (`seed:admin`, sin proveedor de pago todavía no hay otra forma de
+probar sin el límite del plan Free) — ver "Cómo correrlo" más arriba. Bitácoras en
+[bitacora](./bitacora); la última es
+[la de esta sesión](./bitacora/2026-09-23-seed-admin-plan-max.md).
