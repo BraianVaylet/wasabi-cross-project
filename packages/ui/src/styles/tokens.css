@@ -149,6 +149,11 @@
   /* Target táctil mínimo de WCAG 2.2 AA. */
   --wc-tap-target: 44px;
 
+  /* La columna del diseño (spec §11): 430px como máximo, centrada en pantallas más anchas. */
+  --wc-column-max: 430px;
+  /* Los márgenes laterales de esa columna, 20px como en el diseño. */
+  --wc-column-gutter: 1.25rem;
+
   --wc-transition: 150ms ease;
 }
 
@@ -189,6 +194,22 @@
 
 :where(.wc-root) :where(h1) {
   letter-spacing: var(--wc-tracking-title);
+}
+
+/*
+ * Fuera de la vista, dentro del árbol de accesibilidad: para lo que un lector de pantalla
+ * necesita y la pantalla ya dice de otra forma. `display: none` lo sacaría de los dos.
+ */
+.wc-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Etiqueta chica en mayúsculas con tracking amplio: el "MOVIMIENTO / FUERZA" o el "RM ACTUAL" del diseño. */
