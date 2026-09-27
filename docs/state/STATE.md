@@ -92,21 +92,29 @@ registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese
   ambientes en Railway y el cluster de Atlas). Ninguna arranca sin eso — no es que falte código,
   es que la regla de dependencias del propio plan lo impide.
 
-**Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 11 tareas cerradas** (código de F4-01 y F4-02
-hecho, a la espera de que el usuario cumpla el Definition of Done y las marque). 52 puntos en total.
-No depende de Railway/Atlas, puede avanzar en paralelo a lo que quede bloqueado de la Fase 3.
+**Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (código de F4-01 y F4-02
+hecho y mergeado, a la espera de que el usuario cumpla el Definition of Done y las marque). 75
+puntos en total. No depende de Railway/Atlas, puede avanzar en paralelo a lo que quede bloqueado de
+la Fase 3.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
 - **F4-01 · Fundaciones del tema**: código hecho, PR #56 mergeada. `tokens.css` con la paleta
   única, tipografía Share Tech Mono + Staatliches vía Fontsource, radios a 0 y la utilidad
   `.wc-plate-cut`.
-- **F4-02 · Se retira la preferencia de tema**: código hecho, PR abierta (#57), CI verde, a la
-  espera de revisión. `theme` sale de schemas/API/Mongo (migración versionada), y de
-  `packages/ui` (`theme.ts`, `ThemeToggle`). De paso arregló un bug real que esto destapó:
-  `ExerciseDetailPage` podía renderizar la tabla de porcentajes antes de que las preferencias
-  llegaran, y `percentageTable` tiraba con un porcentaje 0.
-- Quedan **F4-03 a F4-11**: F4-03/F4-04 (componentes Cross) no dependen de F4-02; las pantallas
-  (F4-05 a F4-10) dependen de ésos; F4-11 cierra la fase.
+- **F4-02 · Se retira la preferencia de tema**: código hecho, PR #57 mergeada. `theme` sale de
+  schemas/API/Mongo (migración versionada), y de `packages/ui` (`theme.ts`, `ThemeToggle`). De
+  paso arregló un bug real que esto destapó: `ExerciseDetailPage` podía renderizar la tabla de
+  porcentajes antes de que las preferencias llegaran, y `percentageTable` tiraba con un porcentaje 0.
+- **Replanificada el 2026-09-27.** Con la app corriendo al lado del diseño, la app tenía la paleta
+  nueva y la estructura vieja: ningún componente usa `--wc-font-family-display` (Staatliches no se
+  ve en ninguna pantalla), `.wc-plate-cut` no tiene usos, no hay mayúsculas ni tracking, y el
+  detalle sigue los mockups 5 y 6. Las decisiones del usuario sobre lo que el diseño contradice o no
+  cubre quedaron en spec §5, §5.1, §5.2 (nueva) y §11. F4-03, F4-04 y F4-05 se partieron
+  (F4-03a/b/c, F4-04a/b, F4-05a/b/c/d) y entró **F4-12** (la spec). Todo en la PR de
+  `docs/fase-4-gap-diseno`.
+- Quedan **F4-12, F4-03a a F4-11**. Camino más corto a un detalle igual al diseño: F4-12 → F4-03a
+  → F4-03b, F4-03c y F4-04b → F4-05a → F4-05b y F4-05c → F4-05d. El resto de las pantallas
+  (F4-06 a F4-10) cuelga de los componentes; F4-11 cierra la fase.
 
 ## Bloqueado
 
@@ -115,8 +123,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear PR #57 (F4-02, se retira la preferencia de tema).
-2. Seguir con F4-03/F4-04 (componentes Cross: botones, inputs, navegación y el gráfico).
+1. Revisar y mergear la PR de `docs/fase-4-gap-diseno` (spec §5.2 y Fase 4 replanificada). Con eso
+   F4-12 queda hecha.
+2. Seguir con F4-03a (tipografía, botones y tarjetas): es la base de todo lo demás.
 3. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.

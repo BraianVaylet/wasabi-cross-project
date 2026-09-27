@@ -44,16 +44,16 @@ Los límites de plan son un **entitlement por usuario**, se validan en el módul
 
 Mockups en [`../mockup`](../mockup).
 
-| Página                     | Mockup                                                | Descripción                                                                                                                                                                                                                                                                                     |
-| -------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presentación               | `wasabi (1).png`                                      | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                       |
-| Login                      | `wasabi (2).png`                                      | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                           |
-| Registro                   | `wasabi (3).png`                                      | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                              |
-| Header (componente global) | `wasabi (4a).png`                                     | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único).                                                                                            |
-| Home                       | `wasabi (4).png`                                      | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                        |
-| Estadísticas               | `wasabi (10).png`                                     | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. |
-| Ejercicio                  | `wasabi (5).png`, `wasabi (6).png`, `wasabi (11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1.                                                   |
-| Nuevo ejercicio            | `wasabi (9).png`                                      | Nombre (elige del catálogo o crea uno propio si no existe), categoría (sólo si es propio: la de un ejercicio del catálogo ya está definida), **capacidades y grupos musculares, también sólo si es propio**, primera marca con su fecha, nivel, comentarios y "con dolor".                      |
+| Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                          |
+| -------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                            |
+| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                |
+| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                   |
+| Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2). |
+| Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                             |
+| Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior.      |
+| Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                          |
+| Nuevo ejercicio            | `wasabi (9).png`                                    | Nombre (elige del catálogo o crea uno propio si no existe), categoría (sólo si es propio: la de un ejercicio del catálogo ya está definida), **capacidades y grupos musculares, también sólo si es propio**, primera marca con su fecha, nivel, comentarios y "con dolor".                           |
 
 Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
@@ -90,7 +90,7 @@ plana es 0, no un campo vacío.
 - **Categoría**: Fuerza, Hipertrofia, Gimnástico, Running.
 - **Nivel**: Principiante, Intermedio, Avanzado, Elite. Del usuario sobre ese ejercicio.
 - **Con dolor**: sí o no. Del usuario. Etiqueta de UX, no registro clínico (§2).
-- **Carga**: liviana, media o pesada. **Se calcula, no se guarda**: menos de 70% es liviana, de 70% a 84% media, desde 85% pesada. Cada banda tiene su color — verde liviana, ámbar media, rojo pesada —, en el tag y en la barra de progreso.
+- **Carga**: liviana, media o pesada. **Se calcula, no se guarda**: menos de 70% es liviana, de 70% a 84% media, desde 85% pesada. Cada banda tiene su color — verde liviana, ámbar media, rojo pesada — en su tag, que va en la barra fija del detalle, al lado de la carga calculada (§5.2). No hay barra de progreso: el diseño de `../design` no la tiene, y el porcentaje ya se lee en la grilla.
 
 **Valor actual y mejor marca:**
 
@@ -103,6 +103,41 @@ plana es 0, no un campo vacío.
 - Repeticiones: hacia abajo, con mínimo 1. Nunca por encima de la intensidad pedida.
 
 **Porcentajes por defecto**: 65, 75, 80, 85, 90 y 95%, configurables por usuario en su perfil.
+
+### 5.2 Detalle de ejercicio: la estructura del diseño
+
+Es la única pantalla con diseño real (`../design`, ADR-0008); el resto de la app extrapola su
+lenguaje. De arriba abajo:
+
+1. **Header** global (§5): el logo del diseño (una "W" con una barra), "WASABI // CROSS" con su
+   subtítulo y una línea abajo. El botón de menú va a la derecha, cuadrado y con borde: el diseño no
+   lo muestra, pero sin él no hay navegación.
+2. **Cabecera del ejercicio**:
+   - Arriba, en chico: "‹ EJERCICIOS / {CATEGORÍA}". "‹ EJERCICIOS" es un link a Home con target
+     táctil de 44px. Reemplaza el "MOVIMIENTO" del diseño: una PWA instalada en iOS no tiene botón
+     atrás.
+   - El nombre, en mayúsculas, tal cual el del catálogo o el del ejercicio propio. No hay nombre
+     traducido ni abreviatura (el "BACK SQ" del diseño): eso sería un cambio de datos aparte.
+   - Debajo: "{NIVEL} // {RM | MARCA} VIGENTE", y "CON DOLOR" en magenta si corresponde. Los tags de
+     categoría, nivel y dolor (§5.1) se leen en estas dos líneas, no como pastillas sueltas.
+   - Editar: un ícono de lápiz a la derecha del nombre.
+   - La fila del valor actual: "RM ACTUAL", "REGISTRADO EL dd/mm/aaaa" y el valor grande con su
+     unidad.
+3. **Elegí tu carga** (sólo si el ejercicio tiene porcentajes, §5.1): grilla de tres columnas con
+   los porcentajes del perfil, el elegido resaltado; debajo, el porcentaje personalizado en una sola
+   fila. En los ejercicios de repeticiones los textos hablan de repeticiones, no de RM.
+4. **Progreso**: la evolución de todo el historial, con el valor de cada punto y su fecha, y al lado
+   del título el aumento — el valor actual menos la primera marca; en tiempo, la mejora es hacia
+   abajo. Debajo del gráfico, "Ver estadísticas ›", que abre Estadísticas con este ejercicio
+   desplegado.
+5. **Historial**, con la cantidad de registros al lado del título. La marca actual va resaltada y
+   con "RM ACTUAL" ("MARCA ACTUAL" si no es RM); las anteriores, más sobrias. "Ver más" si hay más
+   páginas.
+6. **Barra fija abajo**: "{porcentaje}% DE {valor actual}", la carga calculada en grande, el tag de
+   su banda de carga (§5.1) y el botón "Registrar nuevo RM" ("Registrar nueva marca" si no es RM),
+   que abre el modal de siempre. En los ejercicios de tiempo, sin porcentajes, la barra muestra la
+   mejor marca en lugar de la carga calculada. El contenido deja lugar abajo para que la barra no
+   tape el final del historial.
 
 ## 6. Stack
 
@@ -189,9 +224,11 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - Referencia: [uiguideline.com](https://www.uiguideline.com/)
 - Imagen de marca propia: "Toxic Cyberpunk" (ver [docs/design](../design) y [ADR-0008](../adr/0008-tema-unico-toxic-cyberpunk.md)) — fondo casi negro violáceo, acento lima tóxico, magenta y violeta como bordes/superficies, tipografía monoespaciada + condensada de afiche en mayúsculas, recorte de esquina en diagonal ("plate-cut") como firma visual
 - Mismos componentes y paleta en toda la app
-- Mobile first
+- Mobile first. Una sola columna de **430px como máximo**, la del diseño, centrada en pantallas más anchas
 - **Tema único**, sin selector dark/light (ADR-0008): el lenguaje visual es neón-sobre-oscuro por diseño, no una variante de un tema claro
 - Accesibilidad **WCAG 2.2 AA**: contraste ≥ 4.5:1, foco visible, teclado completo, labels/`aria-*` correctos, `prefers-reduced-motion` respetado, targets táctiles ≥ 44×44px. Auditoría con axe en CI.
+- El diseño no pasa AA en dos lugares, y ahí se aparta de él: el botón magenta con texto blanco (4.19:1) usa un magenta apenas más oscuro, `#DD1964` (4.78:1), y el "RM ACTUAL" magenta sobre el fondo oliva del historial (3.08:1) usa un rosa más claro, `#F576A7` (4.95:1)
+- Ningún texto por debajo de 10px, y el que lleva información (fechas, estados, valores) desde 11px: el diseño usa 9px en varias etiquetas, que se suben
 - DnD accesible
 - Estados vacíos con acción ("Todavía no tenés ejercicios → Agregar el primero")
 - Skeletons, no spinners, en listas
