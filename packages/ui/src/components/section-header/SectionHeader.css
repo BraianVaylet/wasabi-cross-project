@@ -1,0 +1,35 @@
+.wc-section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+}
+
+.wc-section-header--divider {
+  padding-bottom: var(--wc-space-2);
+  border-bottom: 1px solid var(--wc-border);
+}
+
+.wc-section-header__main {
+  min-width: 0;
+}
+
+.wc-section-header__kicker {
+  margin: 0 0 var(--wc-space-1);
+}
+
+/* La familia, las mayúsculas y el tracking ya los pone la regla global de titulares. */
+.wc-section-header__title {
+  margin: 0;
+  font-size: var(--wc-font-size-heading);
+}
+
+.wc-section-header__meta {
+  flex-shrink: 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-2xs);
+  line-height: 1.4;
+  letter-spacing: var(--wc-tracking-wide);
+  text-align: right;
+  text-transform: uppercase;
+}

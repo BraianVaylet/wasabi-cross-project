@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Measure } from '../components/measure/Measure.tsx';
 
 /*
  * La tipografía del diseño (docs/design) con los tokens de `tokens.css`: la cabecera del
@@ -52,12 +53,8 @@ export const ExerciseHeader: Story = {
       >
         Elegí tu carga
       </h2>
-      <p
-        className="wc-display"
-        style={{ margin: '1.5rem 0 0', fontSize: 'var(--wc-font-size-hero)' }}
-      >
-        <span style={{ color: 'var(--wc-accent-text)' }}>65</span>{' '}
-        <span style={{ fontSize: '1.375rem' }}>kg</span>
+      <p style={{ margin: '1.5rem 0 0' }}>
+        <Measure value={65} unit="kg" size="hero" tone="accent" />
       </p>
       <p className="wc-kicker" style={{ margin: 0 }}>
         Carga calculada

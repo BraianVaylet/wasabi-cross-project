@@ -1,0 +1,37 @@
+/* Lo que ocupa la barra, reservado al final del contenido. El alto real lo pone el componente. */
+.wc-bottom-bar__spacer {
+  flex-shrink: 0;
+  height: 7.5rem;
+}
+
+/*
+ * De borde a borde de la ventana, como en el diseño, con el contenido en la columna de 430px.
+ * El fondo es del propio elemento (no de un pseudo-elemento): así axe mide el contraste de lo
+ * que va adentro.
+ */
+.wc-bottom-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+
+  background-color: var(--wc-bg-raised);
+  border-top: 2px solid var(--wc-accent);
+  /* La segunda línea del diseño, violeta, pegada arriba del borde lima. */
+  box-shadow: 0 -4px 0 var(--wc-border);
+}
+
+.wc-bottom-bar__content {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+
+  width: 100%;
+  max-width: var(--wc-column-max);
+  margin: 0 auto;
+  padding: var(--wc-space-3) var(--wc-column-gutter)
+    max(var(--wc-space-4), env(safe-area-inset-bottom));
+}
