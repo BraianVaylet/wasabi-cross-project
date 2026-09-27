@@ -13,13 +13,13 @@
 
 ## Estado
 
-| Fase                        | Tareas | Story points | Hechas |
-| --------------------------- | -----: | -----------: | -----: |
-| Fase 0 — Fundaciones        |      8 |           27 |      7 |
-| Fase 1 — El loop del atleta |     19 |           71 |     19 |
-| Fase 2 — Estadísticas       |     10 |           44 |     10 |
-| Fase 3 — A producción       |     12 |           37 |      5 |
-| Fase 4 — Rediseño Toxic Cyberpunk |    11 |           52 |      0 |
+| Fase                              | Tareas | Story points | Hechas |
+| --------------------------------- | -----: | -----------: | -----: |
+| Fase 0 — Fundaciones              |      8 |           27 |      7 |
+| Fase 1 — El loop del atleta       |     19 |           71 |     19 |
+| Fase 2 — Estadísticas             |     10 |           44 |     10 |
+| Fase 3 — A producción             |     12 |           37 |      5 |
+| Fase 4 — Rediseño Toxic Cyberpunk |     11 |           52 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1397,10 +1397,10 @@ paralelo a lo que quede bloqueado de la Fase 3.
 ## [ ] F4-02 · Se retira la preferencia de tema
 
 - **module:** users
-- **description:** `User.preferences` deja de tener `theme` (schemas); `PATCH
-  /api/v1/me/preferences` deja de aceptarlo; migración versionada y reversible que saca el campo de
-  los documentos existentes. `packages/ui/src/theme`, `use-theme` y `ThemeToggle` se retiran; el
-  bootstrap de tema que ADR-0007 movió a un archivo aparte para la CSP se retira.
+- **description:** `User.preferences` deja de tener `theme` (schemas); el endpoint de preferencias
+  deja de aceptarlo; migración versionada y reversible que saca el campo de los documentos
+  existentes. `packages/ui/src/theme`, `use-theme` y `ThemeToggle` se retiran; el bootstrap de tema
+  que ADR-0007 movió a un archivo aparte para la CSP se retira.
 - **acceptance-criteria:**
   - Dado el schema de preferencias, cuando se valida un payload con `theme`, entonces lo rechaza
     por campo desconocido.

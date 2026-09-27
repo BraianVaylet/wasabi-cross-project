@@ -4,3 +4,4 @@ pnpm-lock.yaml
 storybook-static
 .pnpm-store
 docs/mockup
+docs/design
