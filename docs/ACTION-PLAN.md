@@ -19,6 +19,7 @@
 | Fase 1 — El loop del atleta |     19 |           71 |     19 |
 | Fase 2 — Estadísticas       |     10 |           44 |     10 |
 | Fase 3 — A producción       |     12 |           37 |      5 |
+| Fase 4 — Rediseño Toxic Cyberpunk |    11 |           52 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1355,5 +1356,219 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **depends_on:** F3-03, F3-09
 - **risk:** medium
 - **test_plan:** el propio smoke, en el workflow de deploy.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+---
+
+# Fase 4 — Rediseño Toxic Cyberpunk
+
+Llegó un mockup nuevo con un lenguaje visual completo ([ADR-0008](./adr/0008-tema-unico-toxic-cyberpunk.md),
+spec §11): tema único, sin selector dark/light. Sólo la pantalla de detalle de ejercicio tiene mockup
+real (`docs/design`); el resto se extrapola de los mismos tokens y componentes Cross, pantalla por
+pantalla, para poder revisar cada una por separado. No depende de Railway/Atlas — puede avanzar en
+paralelo a lo que quede bloqueado de la Fase 3.
+
+## [ ] F4-01 · Fundaciones del tema: tokens y tipografía
+
+- **module:** ui
+- **description:** `tokens.css` reescrito con la paleta única del mockup (fondo `#0F041C`,
+  superficies `#230D38`/`#160824`, bordes `#411467`/`#32989A`, texto `#D7EFEF`/`#6CB5B4`, acentos
+  lima `#A7DD4F`, magenta `#EE1B6C` y naranja `#FF871F`). Tipografía: `@fontsource/share-tech-mono`
+  (cuerpo) y `@fontsource/staatliches` (titulares), reemplazando Space Grotesk. Los radios se
+  retiran a favor del recorte de esquina en diagonal ("plate-cut", clip-path) como utilidad
+  compartida.
+- **acceptance-criteria:**
+  - Dado cualquier texto sobre su fondo o superficie, cuando se mide el contraste, entonces da
+    ≥4.5:1 (≥3:1 si es texto grande) y queda documentado igual que hoy en `tokens.css`.
+  - Dado un botón o tarjeta, cuando se le aplica la utilidad `plate-cut`, entonces el recorte de
+    esquina se ve como en el mockup.
+  - Dado el bundle de fuentes, cuando se audita, entonces no carga nada desde un CDN de fuentes:
+    sólo los paquetes de Fontsource (spec §6).
+- **example:** —
+- **story-points:** 8
+- **depends_on:** —
+- **risk:** medium
+- **test_plan:** Storybook visual de los tokens; contraste de cada combinación documentado en
+  comentarios como en la versión actual del archivo.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-02 · Se retira la preferencia de tema
+
+- **module:** users
+- **description:** `User.preferences` deja de tener `theme` (schemas); `PATCH
+  /api/v1/me/preferences` deja de aceptarlo; migración versionada y reversible que saca el campo de
+  los documentos existentes. `packages/ui/src/theme`, `use-theme` y `ThemeToggle` se retiran; el
+  bootstrap de tema que ADR-0007 movió a un archivo aparte para la CSP se retira.
+- **acceptance-criteria:**
+  - Dado el schema de preferencias, cuando se valida un payload con `theme`, entonces lo rechaza
+    por campo desconocido.
+  - Dada la migración, cuando corre sobre usuarios con `preferences.theme`, entonces el campo
+    desaparece y el resto de `preferences` queda intacto; el `down` lo repone en `dark`.
+  - Dado el Perfil, cuando se abre, entonces no hay sección "Color".
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-01
+- **risk:** medium
+- **test_plan:** test de schema (rechaza `theme`), test de la migración up/down contra
+  `mongodb-memory-server`, test de componente del Perfil sin la sección.
+- **error-codes:** ninguno
+- **data-model-impact:** quita `theme` de `User.preferences`.
+
+## [ ] F4-03 · Componentes Cross: botones, inputs y estados
+
+- **module:** ui
+- **description:** Reskin de `Button`, `IconButton`, `TextField`, `TextArea`, `Select`, `Checkbox`,
+  `CheckboxGroup`, `RadioGroup`, `Tag` y `Skeleton` al lenguaje del mockup: mayúsculas con tracking
+  amplio, `plate-cut`, foco visible con el mismo contraste que hoy.
+- **acceptance-criteria:**
+  - Dado cada componente, cuando se lo mira en Storybook, entonces usa sólo tokens de
+    `tokens.css`, nada de color o tamaño hardcodeado.
+  - Dado el foco por teclado, cuando se navega con Tab, entonces el outline es visible en
+    cualquiera de estos componentes (spec §11).
+- **example:** —
+- **story-points:** 8
+- **depends_on:** F4-01
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; Storybook visual.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-04 · Componentes Cross: navegación y datos
+
+- **module:** ui
+- **description:** `AppHeader`, `Drawer` (menú), `Logo`, íconos y `Chart` al mismo lenguaje: el
+  gráfico de línea con puntos y unidad, como "PROGRESO DEL RM" en el mockup.
+- **acceptance-criteria:**
+  - Dado el menú, cuando se abre, entonces ya no ofrece "Color" (ADR-0008).
+  - Dado el gráfico, cuando tiene uno, dos o varios puntos, entonces se ve legible con la paleta
+    nueva y su tabla equivalente para lectores de pantalla sigue accesible.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-01, F4-02
+- **risk:** low
+- **test_plan:** tests de componente existentes; axe de Storybook.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-05 · Pantalla: Detalle de ejercicio, historial y cargar marca
+
+- **module:** web
+- **description:** La única pantalla con mockup real (`docs/design`). Cabecera del ejercicio, RM
+  vigente, grilla de porcentajes con tile personalizado, progreso, historial y la barra fija
+  inferior con la carga calculada; el modal de cargar marca sigue el mismo lenguaje aunque no esté
+  en el mockup.
+- **acceptance-criteria:**
+  - Dado el detalle de un ejercicio, cuando se lo compara con el mockup, entonces coincide en
+    estructura, tipografía y paleta.
+  - Dado el axe de esta pantalla, cuando corre, entonces sigue sin violaciones.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-03, F4-04
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; E2E/axe de esta pantalla.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-06 · Pantalla: Login y Registro
+
+- **module:** web
+- **description:** Extrapola el lenguaje del mockup a `AuthScreen`, `LoginPage` y `RegisterPage`
+  (mockups 2 y 3, sin lo que está fuera de la Fase 1: username y Google).
+- **acceptance-criteria:**
+  - Dadas las dos pantallas, cuando se comparan entre sí, entonces comparten los mismos
+    componentes Cross y la misma paleta.
+  - Dado un error de validación, cuando aparece, entonces mantiene el contraste AA sobre el fondo
+    nuevo.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F4-03, F4-04
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; axe de las dos pantallas.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-07 · Pantalla: Home y shell (splash, header, menú)
+
+- **module:** web
+- **description:** `HomePage`, `Splash` y `AppShell` al nuevo lenguaje: lista de ejercicios
+  gestionados, estados vacíos y skeletons con la paleta nueva.
+- **acceptance-criteria:**
+  - Dado el estado vacío de Home, cuando se muestra, entonces conserva su acción ("Todavía no
+    tenés ejercicios → Agregar el primero", spec §11) con el estilo nuevo.
+  - Dada la lista con datos, cuando carga, entonces el skeleton previo usa la paleta nueva, no la
+    vieja.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-04
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; E2E del flujo principal contra el
+  tema nuevo.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-08 · Pantalla: Nuevo y editar ejercicio
+
+- **module:** web
+- **description:** `NewExercisePage` y `EditExercisePage` (mockup 9) con los componentes Cross ya
+  reskinados: nombre, categoría, capacidades y grupos musculares, primera marca.
+- **acceptance-criteria:**
+  - Dado el formulario, cuando se lo compara con Home y Detalle, entonces usa los mismos
+    componentes y la misma paleta.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F4-03
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; axe de las dos pantallas.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-09 · Pantalla: Perfil
+
+- **module:** web
+- **description:** `ProfilePage` sin la sección "Color" (F4-02) y con los porcentajes por defecto
+  en el lenguaje nuevo.
+- **acceptance-criteria:**
+  - Dado el Perfil, cuando se abre, entonces no queda ningún rastro del selector de tema.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F4-02, F4-03
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; axe de la pantalla.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-10 · Pantalla: Estadísticas (general y por ejercicio)
+
+- **module:** web
+- **description:** `StatsPage` y `GeneralStats` (mockup 10) con `Chart` ya reskinado (F4-04) y el
+  acordeón del mockup en el lenguaje nuevo.
+- **acceptance-criteria:**
+  - Dados los gráficos de esta pantalla, cuando se comparan con el de Detalle, entonces se ven
+    consistentes.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-04
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; E2E de Estadísticas contra el tema
+  nuevo.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-11 · E2E y axe de punta a punta con el tema único
+
+- **module:** infra
+- **description:** Cierra la fase: el E2E de F1-18/F2-10 sin ningún paso que dependiera de dos
+  temas (cambio de tema), auditado con axe en cada pantalla contra el tema único.
+- **acceptance-criteria:**
+  - Dado el E2E completo, cuando corre, entonces no queda ninguna referencia a `data-theme` ni al
+    `ThemeToggle`.
+  - Dado cada pantalla, cuando pasa el axe, entonces no hay violaciones.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F4-05, F4-06, F4-07, F4-08, F4-09, F4-10
+- **risk:** low
+- **test_plan:** `pnpm e2e` completo en CI.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
