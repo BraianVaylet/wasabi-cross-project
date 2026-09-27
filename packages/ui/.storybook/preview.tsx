@@ -1,4 +1,6 @@
 import type { Decorator, Preview } from '@storybook/react-vite';
+import '@fontsource/share-tech-mono';
+import '@fontsource/staatliches';
 import '../src/styles/tokens.css';
 
 /** Cada story se ve en el tema que elija la toolbar, con el fondo real de la app. */
