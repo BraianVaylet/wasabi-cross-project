@@ -7,6 +7,7 @@ import type {
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { Chart, ChevronIcon, Select, Skeleton } from '@wasabi-cross/ui';
+import { useCallback } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark } from '../../lib/format.ts';
 import { formatChange } from './change.ts';
@@ -157,10 +158,19 @@ function Evolution({ stats }: { stats: ExerciseStats }): React.JSX.Element {
     label: formatDate(point.performedAt),
     value: point.value,
   }));
+  // El gráfico escribe cada valor: como en el resto de la app, un tiempo en mm:ss y los
+  // decimales con coma. Estable, así el dibujo no se arma de nuevo en cada render.
+  const { unit } = stats;
+  const formatValue = useCallback((value: number) => formatMark({ value, unit }), [unit]);
 
   return (
     <>
-      <Chart label={`Evolución de ${stats.name}`} unit={stats.unit} points={points} />
+      <Chart
+        label={`Evolución de ${stats.name}`}
+        unit={unit}
+        points={points}
+        formatValue={formatValue}
+      />
 
       {stats.summary ? (
         <dl className="stats__numbers" data-testid="numeros">

@@ -1574,6 +1574,13 @@ F4-05b y F4-05c → F4-05d.
   alrededor de 90px de alto. Hoy es la curva sola, sin ejes ni etiquetas, de 192px. La tabla
   equivalente para lectores de pantalla se queda. Si TanStack Charts no llega a las etiquetas por
   punto, se consulta con el usuario antes de salirse del stack (spec §6).
+
+  > Ajustada al implementarla (2026-09-27): TanStack Charts llega (marcas `text`, grilla y ticks
+  > configurables), no hizo falta salirse. Con más de cinco marcas sólo la última lleva su valor
+  > (la del primero quedaba encima de la curva); la tabla tiene todos. Las fechas del eje van a
+  > opacidad 1: la librería las apaga al 68% por default. axe no mide contraste de texto adentro
+  > de un SVG: lo garantizan los tokens, documentado en el componente.
+
 - **acceptance-criteria:**
   - Dado un gráfico con uno, dos o muchos puntos, cuando se dibuja, entonces las etiquetas no se
     pisan ni se salen de la caja.

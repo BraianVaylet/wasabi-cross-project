@@ -108,6 +108,27 @@ describe('Estadísticas (F2-07, mockup 10)', () => {
     expect(api.client.exerciseStats).toHaveBeenCalledTimes(1);
   });
 
+  it('un tiempo se lee en mm:ss en el gráfico, como en el resto de la app', async () => {
+    const { api } = renderStats();
+    api.client.exerciseStats.mockResolvedValue({
+      ...estadisticas,
+      name: 'Carrera 1 km',
+      kind: 'time',
+      unit: 's',
+      series: [
+        { performedAt: '2026-01-10T12:00:00.000Z', value: 280 },
+        { performedAt: '2026-06-23T12:00:00.000Z', value: 272 },
+      ],
+      summary: { current: 272, best: 272, worst: 280, changePercent: -2.9, records: 2 },
+    });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Back squat' }));
+
+    const tabla = await screen.findByRole('table', { name: /Carrera 1 km/ });
+    expect(within(tabla).getByText('4:32')).toBeInTheDocument();
+    expect(within(tabla).queryByText('272 s')).not.toBeInTheDocument();
+  });
+
   it('cuál quedó abierto vive en la URL', async () => {
     const { router } = renderStats();
 
