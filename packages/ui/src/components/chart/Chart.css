@@ -1,22 +1,43 @@
-/* La curva del mockup 10: el dibujo arriba, y abajo la misma serie en texto. */
-
+/*
+ * La caja del "PROGRESO DEL RM" del diseño: recortada, con borde violeta y el encabezado
+ * chico arriba. No recibe foco (el dibujo sale del orden de tabulación): el recorte en el
+ * propio elemento no tapa nada.
+ */
 .wc-chart {
-  margin: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-2);
+  gap: var(--wc-space-1);
+  margin: 0;
+  padding: var(--wc-space-2) var(--wc-space-2) var(--wc-space-3);
+
+  background-color: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
 }
 
 .wc-chart__caption {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+  padding: 0 var(--wc-space-1);
+
   color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-  font-weight: 500;
+  font-size: var(--wc-font-size-2xs);
+  line-height: 1.4;
+  letter-spacing: var(--wc-tracking-wide);
+  text-transform: uppercase;
 }
 
 .wc-chart__plot {
   /* La altura la pone el componente, en píxeles: el dibujo se mide contra su caja. */
   width: 100%;
   overflow: hidden;
+}
+
+/* Los textos del dibujo, en la mono del cuerpo como en el diseño: el CSS le gana al atributo. */
+.wc-chart__plot text {
+  font-family: var(--wc-font-family);
 }
 
 .wc-chart__empty {
@@ -39,4 +60,10 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .wc-chart {
+    clip-path: none;
+  }
 }

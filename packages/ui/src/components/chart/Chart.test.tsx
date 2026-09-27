@@ -72,9 +72,56 @@ describe('Chart', () => {
     expect(filas).toHaveLength(1);
   });
 
+  it('el encabezado dice la unidad, como el "UNIDAD: KG" del diseño', () => {
+    render(<Chart label="RM registrado" unit="kg" points={SERIE} />);
+
+    expect(screen.getByText('Unidad: kg')).toBeInTheDocument();
+    // El nombre del gráfico sigue siendo sólo su título, sin la unidad pegada.
+    expect(screen.getByRole('figure', { name: 'RM registrado' })).toBeInTheDocument();
+  });
+
+  it('cada valor se escribe como diga la pantalla: un tiempo va en mm:ss', () => {
+    render(
+      <Chart
+        label="Tiempo"
+        unit="s"
+        points={[{ label: '01/06/2026', value: 272 }]}
+        formatValue={(value) => `${String(Math.floor(value / 60))}:${String(value % 60)}`}
+      />,
+    );
+
+    const tabla = screen.getByRole('table', { name: 'Tiempo' });
+    expect(within(tabla).getByText('4:32')).toBeInTheDocument();
+  });
+
+  it('con pocas marcas, cada punto lleva su valor escrito en el dibujo', () => {
+    const { container } = render(<Chart label="RM registrado" unit="kg" points={SERIE} />);
+
+    const dibujo = container.querySelector('.wc-chart__plot');
+    expect(dibujo).toHaveTextContent('100 kg');
+    expect(dibujo).toHaveTextContent('95 kg');
+    expect(dibujo).toHaveTextContent('120 kg');
+  });
+
+  it('con muchas, sólo la última: doce etiquetas en un teléfono se pisan', () => {
+    const anio = Array.from({ length: 12 }, (_, index) => ({
+      label: `${String(index + 1).padStart(2, '0')}/01/2026`,
+      value: 80 + index,
+    }));
+    const { container } = render(<Chart label="RM registrado" unit="kg" points={anio} />);
+
+    const dibujo = container.querySelector('.wc-chart__plot');
+    expect(dibujo).toHaveTextContent('91 kg');
+    expect(dibujo).not.toHaveTextContent('80 kg');
+    // La tabla, en cambio, las tiene todas.
+    const tabla = screen.getByRole('table', { name: 'RM registrado' });
+    expect(within(tabla).getAllByRole('row').slice(1)).toHaveLength(12);
+  });
+
   it('la unidad viaja una vez por punto, no en el encabezado repetido', () => {
     render(<Chart label="Tiempo" unit="s" points={[{ label: '01/06/2026', value: 272 }]} />);
 
-    expect(screen.getByText('272 s')).toBeInTheDocument();
+    const tabla = screen.getByRole('table', { name: 'Tiempo' });
+    expect(within(tabla).getByText('272 s')).toBeInTheDocument();
   });
 });
