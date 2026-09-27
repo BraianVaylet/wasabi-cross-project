@@ -19,7 +19,7 @@
 | Fase 1 — El loop del atleta       |     19 |           71 |     19 |
 | Fase 2 — Estadísticas             |     10 |           44 |     10 |
 | Fase 3 — A producción             |     12 |           37 |      5 |
-| Fase 4 — Rediseño Toxic Cyberpunk |     11 |           52 |      0 |
+| Fase 4 — Rediseño Toxic Cyberpunk |     18 |           75 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1369,6 +1369,15 @@ real (`docs/design`); el resto se extrapola de los mismos tokens y componentes C
 pantalla, para poder revisar cada una por separado. No depende de Railway/Atlas — puede avanzar en
 paralelo a lo que quede bloqueado de la Fase 3.
 
+**Replanificada el 2026-09-27**, con F4-01 y F4-02 ya mergeadas: comparada la app corriendo contra el
+diseño, tenía la paleta nueva con la estructura vieja — ningún componente usaba la tipografía de
+titulares ni el recorte de esquina, y el detalle seguía los mockups 5 y 6. Las diferencias y lo que
+decidió el usuario están en spec §5.2. F4-03, F4-04 y F4-05 se partieron, y entró F4-12 (la spec,
+primero): 18 tareas y 75 puntos en lugar de 11 y 52.
+
+Camino más corto a un detalle igual al diseño: F4-12 → F4-03a → F4-03b, F4-03c y F4-04b → F4-05a →
+F4-05b y F4-05c → F4-05d.
+
 ## [ ] F4-01 · Fundaciones del tema: tokens y tipografía
 
 - **module:** ui
@@ -1416,66 +1425,261 @@ paralelo a lo que quede bloqueado de la Fase 3.
 - **error-codes:** ninguno
 - **data-model-impact:** quita `theme` de `User.preferences`.
 
-## [ ] F4-03 · Componentes Cross: botones, inputs y estados
+## [ ] F4-12 · Spec: el detalle según el diseño
 
-- **module:** ui
-- **description:** Reskin de `Button`, `IconButton`, `TextField`, `TextArea`, `Select`, `Checkbox`,
-  `CheckboxGroup`, `RadioGroup`, `Tag` y `Skeleton` al lenguaje del mockup: mayúsculas con tracking
-  amplio, `plate-cut`, foco visible con el mismo contraste que hoy.
+> Nueva, del 2026-09-27: sale del análisis de diferencias entre el diseño y la app después de
+> F4-01 y F4-02. Va antes que las pantallas porque la spec manda: el diseño contradice §5.1 (la
+> barra de carga) y no muestra cosas que la spec exige (menú, editar, estadísticas).
+
+- **module:** spec
+- **description:** Lo que el diseño de `docs/design` cambia o no cubre, decidido con el usuario y
+  volcado en spec §5, §5.1, §5.2 (nueva) y §11: la banda de carga va como tag en la barra fija y
+  sale la barra de progreso; editar con un lápiz al lado del nombre y "Ver estadísticas ›" debajo
+  del progreso; "‹ EJERCICIOS / {CATEGORÍA}" como vuelta atrás (una PWA instalada en iOS no tiene
+  botón atrás); el botón de menú se mantiene aunque el diseño no lo muestre; el nombre del catálogo
+  en mayúsculas, sin abreviatura; dos colores que se apartan del diseño para pasar AA y un piso de
+  tamaño de texto; una columna de 430px como máximo.
 - **acceptance-criteria:**
-  - Dado cada componente, cuando se lo mira en Storybook, entonces usa sólo tokens de
-    `tokens.css`, nada de color o tamaño hardcodeado.
-  - Dado el foco por teclado, cuando se navega con Tab, entonces el outline es visible en
-    cualquiera de estos componentes (spec §11).
+  - Dada la spec, cuando se lee §5.2, entonces cada zona del diseño tiene su regla, y cada cosa
+    que el diseño no muestra (menú, editar, estadísticas, volver, banda de carga, tiempo) tiene
+    dónde va.
+  - Dada §5.1, cuando se lee la banda de carga, entonces ya no pide barra de progreso.
 - **example:** —
-- **story-points:** 8
-- **depends_on:** F4-01
+- **story-points:** 2
+- **depends_on:** —
 - **risk:** low
-- **test_plan:** tests de componente existentes actualizados; Storybook visual.
+- **test_plan:** revisión humana de la PR.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F4-04 · Componentes Cross: navegación y datos
+## [ ] F4-03a · Componentes Cross: tipografía, botones y tarjetas
+
+> F4-03 se partió en tres el 2026-09-27 (F4-03a/b/c): con la lista real de lo que falta, eran más
+> de 8 puntos.
 
 - **module:** ui
-- **description:** `AppHeader`, `Drawer` (menú), `Logo`, íconos y `Chart` al mismo lenguaje: el
-  gráfico de línea con puntos y unidad, como "PROGRESO DEL RM" en el mockup.
+- **description:** Lo que F4-01 dejó definido y nadie usa: ningún componente consume
+  `--wc-font-family-display` (Staatliches no se ve en ninguna pantalla), `.wc-plate-cut` no tiene
+  ni un uso, y no hay mayúsculas ni tracking en ningún lado. Por eso la app tiene la paleta nueva
+  con la estructura vieja. Esta tarea agrega las utilidades de texto (`.wc-display` para
+  titulares, `.wc-kicker` para las etiquetas chicas en mayúsculas con tracking amplio), la escala
+  de tamaños del diseño como tokens con el piso de spec §11, y los colores que faltan: `#9ACBC8`
+  (fechas y labels secundarios), `#8CB2B2` (placeholder), `#7B123D` (sombra del botón magenta), el
+  verde azulado de los bordes al 40%, `#DD1964` (fondo de la CTA) y `#F576A7` (magenta sobre el
+  oliva del historial). `Button` en Staatliches, mayúsculas y `plate-cut`, con una variante `cta`
+  (magenta, texto blanco, sombra dura `4px 4px 0`); `IconButton` cuadrado y con borde; `Tag` en
+  mayúsculas chicas; `Card` con las dos variantes del historial: la actual (oliva, borde lima de
+  2px) y la anterior (superficie, borde violeta a la izquierda).
 - **acceptance-criteria:**
-  - Dado el menú, cuando se abre, entonces ya no ofrece "Color" (ADR-0008).
-  - Dado el gráfico, cuando tiene uno, dos o varios puntos, entonces se ve legible con la paleta
-    nueva y su tabla equivalente para lectores de pantalla sigue accesible.
+  - Dado cualquier titular de la app, cuando se mide su `font-family` computada, entonces es
+    Staatliches.
+  - Dado cada color nuevo, cuando se mide contra el fondo donde se usa, entonces pasa AA y el valor
+    queda documentado en `tokens.css`, como el resto.
+  - Dado el botón `cta`, cuando se lo pone en Storybook al lado del HTML del diseño, entonces
+    coincide en forma, color y sombra, con el magenta de spec §11.
 - **example:** —
 - **story-points:** 5
-- **depends_on:** F4-01, F4-02
+- **depends_on:** F4-01
+- **risk:** low
+- **test_plan:** tests de componente actualizados; Storybook contra el HTML de `docs/design`; axe
+  de Storybook.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-03b · Componentes Cross: formularios y estados
+
+- **module:** ui
+- **description:** `TextField` con el label como etiqueta chica en mayúsculas y una variante
+  subrayada (borde inferior y sufijo en naranja, placeholder "—") para el porcentaje personalizado;
+  `TextArea` y `Select` al mismo lenguaje; `Checkbox` y `RadioGroup` dibujados, porque hoy se ven
+  los controles nativos grises del navegador; `CheckboxGroup` y `RadioGroup` también en forma de
+  casilleros en grilla; `Skeleton` en violeta. Los labels de un mismo formulario, iguales entre
+  sí: hoy "Nombre" sale en negrita y "Categoría" no.
+- **acceptance-criteria:**
+  - Dado cada componente, cuando se lo mira en Storybook, entonces usa sólo tokens de
+    `tokens.css`, nada de color o tamaño hardcodeado.
+  - Dado el foco por teclado, cuando se navega con Tab, entonces el outline es visible en todos
+    (spec §11).
+  - Dado un checkbox o un radio, cuando se lo mira, entonces no queda nada del control nativo gris,
+    y sigue siendo un `input` real para el lector de pantalla.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-03a
+- **risk:** low
+- **test_plan:** tests de componente existentes actualizados; Storybook visual; axe de Storybook.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-03c · Componentes Cross nuevos del diseño
+
+- **module:** ui
+- **description:** Las piezas del diseño que no existen como componente: `SectionHeader` (título
+  en Staatliches, meta chica a la derecha y una línea abajo: "ELEGÍ TU CARGA / PORCENTAJE DEL RM",
+  "HISTORIAL DE RM / 03 REGISTROS"), `Measure` (el número grande con su unidad chica: "100 KG"),
+  `PercentTiles` (casilleros de un solo elegido, con radios reales; el elegido en lima con texto
+  oscuro) y `BottomBar` (barra fija abajo, del ancho de la columna, que respeta
+  `safe-area-inset-bottom`). Son presentacionales: no saben qué es un RM ni qué banda es cuál.
+- **acceptance-criteria:**
+  - Dado `PercentTiles`, cuando se navega con las flechas, entonces cambia el elegido como en
+    cualquier grupo de radios, y el lector de pantalla anuncia el porcentaje y la carga juntos.
+  - Dada una página más larga que la pantalla con `BottomBar`, cuando se scrollea hasta el final,
+    entonces el último contenido queda visible por encima de la barra.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-03a
+- **risk:** low
+- **test_plan:** tests de componente nuevos; Storybook; axe de Storybook.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-04a · Componentes Cross: header, logo y menú
+
+> F4-04 se partió en dos el 2026-09-27: el gráfico solo ya es una tarea de 5.
+
+- **module:** ui
+- **description:** `Logo` con el SVG del diseño (la "W" con una barra) en lugar del marcador de
+  imagen, en sus dos tamaños. `AppHeader` sin fondo, con "WASABI // CROSS" en Staatliches (las
+  barras en lima), el subtítulo "FUERZA · REGISTRO DE RM" y una línea verde azulada abajo; el
+  botón de menú, cuadrado y con borde (spec §5.2). `Drawer`: el lateral en `#10051D` con borde
+  violeta y las opciones en Staatliches, la activa en lima; la hoja de abajo sin esquinas
+  redondeadas y con borde superior lima.
+- **acceptance-criteria:**
+  - Dado el header, cuando se lo compara con el diseño, entonces coincide, salvo el botón de menú
+    que el diseño no tiene.
+  - Dado el menú abierto, cuando se lo recorre con el teclado, entonces el foco queda adentro y
+    Escape lo cierra, como hoy.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F4-02, F4-03a
 - **risk:** low
 - **test_plan:** tests de componente existentes; axe de Storybook.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F4-05 · Pantalla: Detalle de ejercicio, historial y cargar marca
+## [ ] F4-04b · Componente Cross: el gráfico de progreso
 
-- **module:** web
-- **description:** La única pantalla con mockup real (`docs/design`). Cabecera del ejercicio, RM
-  vigente, grilla de porcentajes con tile personalizado, progreso, historial y la barra fija
-  inferior con la carga calculada; el modal de cargar marca sigue el mismo lenguaje aunque no esté
-  en el mockup.
+- **module:** ui
+- **description:** `Chart` como el "PROGRESO DEL RM" del diseño: caja con `plate-cut` y su
+  encabezado ("RM REGISTRADO" / "UNIDAD: KG"), grilla horizontal punteada, eje vertical, el valor
+  arriba de cada punto y la fecha abajo, los puntos huecos salvo el último, que va relleno, y
+  alrededor de 90px de alto. Hoy es la curva sola, sin ejes ni etiquetas, de 192px. La tabla
+  equivalente para lectores de pantalla se queda. Si TanStack Charts no llega a las etiquetas por
+  punto, se consulta con el usuario antes de salirse del stack (spec §6).
 - **acceptance-criteria:**
-  - Dado el detalle de un ejercicio, cuando se lo compara con el mockup, entonces coincide en
-    estructura, tipografía y paleta.
-  - Dado el axe de esta pantalla, cuando corre, entonces sigue sin violaciones.
+  - Dado un gráfico con uno, dos o muchos puntos, cuando se dibuja, entonces las etiquetas no se
+    pisan ni se salen de la caja.
+  - Dada la tabla accesible, cuando la lee un lector de pantalla, entonces tiene los mismos
+    valores y fechas que el dibujo.
 - **example:** —
 - **story-points:** 5
-- **depends_on:** F4-03, F4-04
+- **depends_on:** F4-03a
+- **risk:** medium
+- **test_plan:** tests de componente existentes actualizados; Storybook con 1, 2 y 12 puntos; axe
+  de Storybook.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-05a · Pantalla: Detalle, cabecera y carga
+
+> F4-05 se partió en cuatro el 2026-09-27 (F4-05a/b/c/d): el diseño no es un reskin del detalle
+> actual, cambia su estructura — agrega el progreso y la barra fija, y saca el número grande y la
+> barra de carga.
+
+- **module:** web
+- **description:** Spec §5.2, zonas 2 y 3. La cabecera: "‹ EJERCICIOS / {CATEGORÍA}", el nombre,
+  "{NIVEL} // RM VIGENTE" con "CON DOLOR" si corresponde, el lápiz de editar y la fila del valor
+  actual con su borde magenta. "ELEGÍ TU CARGA" con `PercentTiles` y el porcentaje personalizado
+  subrayado. Salen el "65 kg" grande, la barra de progreso, las pastillas de categoría y nivel, y
+  los links de texto "Estadísticas" y "Editar".
+- **acceptance-criteria:**
+  - Dado el detalle de un RM de 100 kg a 390px, cuando se lo compara con el diseño, entonces la
+    cabecera y la grilla coinciden en estructura, tipografía y paleta, salvo lo que spec §5.2
+    cambia a propósito.
+  - Dado un porcentaje personalizado que no está en la grilla, cuando se tipea, entonces ningún
+    casillero queda elegido, como en el diseño.
+  - Dado un ejercicio de tiempo, cuando se abre, entonces no hay grilla (spec §5.1).
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F4-12, F4-03b, F4-03c
 - **risk:** low
-- **test_plan:** tests de componente existentes actualizados; E2E/axe de esta pantalla.
+- **test_plan:** tests de componente actualizados (`exercise-detail.test.tsx`); axe de la
+  pantalla.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-05b · Pantalla: Detalle, la barra fija
+
+- **module:** web
+- **description:** Spec §5.2, zona 6. `BottomBar` con "{porcentaje}% DE {valor actual}", la carga
+  calculada con `Measure`, el tag de su banda (spec §5.1) y el botón `cta` "Registrar nuevo RM"
+  ("Registrar nueva marca" si no es RM), que abre el `NewMark` de siempre. En tiempo, la mejor
+  marca en lugar de la carga. El `data-testid="carga"` y el botón de nueva marca que usa el E2E
+  pasan a la barra: se actualizan los selectores de `flujo-principal.spec.ts`.
+- **acceptance-criteria:**
+  - Dado 65% de un RM de 100 kg, cuando se mira la barra, entonces dice "65% DE 100 KG", "65 KG" y
+    "CARGA LIVIANA".
+  - Dado el final del historial, cuando se scrollea hasta abajo, entonces la barra no lo tapa.
+  - Dado un ejercicio de tiempo, cuando se abre, entonces la barra muestra la mejor marca y el
+    botón.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F4-05a
+- **risk:** low
+- **test_plan:** tests de componente; E2E del flujo principal con los selectores nuevos.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-05c · Pantalla: Detalle, el progreso
+
+- **module:** web
+- **description:** Spec §5.2, zona 4. El detalle pide `GET /api/v1/stats/exercises/:id?period=todo`
+  (ya existe, F2-04) y lo dibuja con el `Chart` de F4-04b. El aumento se calcula en una función de
+  `@wasabi-cross/schemas`, junto a `summarize()`, no en el componente: nada de lógica de negocio
+  en React. "Ver estadísticas ›" debajo del gráfico. Con una sola marca no hay aumento que mostrar.
+- **acceptance-criteria:**
+  - Dadas marcas de 60, 80 y 100 kg, cuando se abre el detalle, entonces el gráfico muestra las
+    tres con su fecha y el aumento dice "+40 KG".
+  - Dado un ejercicio de tiempo que bajó de 4:40 a 4:32, cuando se abre, entonces el aumento
+    muestra una mejora de 8 segundos, hacia abajo.
+  - Dado "Ver estadísticas ›", cuando se lo sigue, entonces Estadísticas abre con este ejercicio
+    desplegado.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F4-04b, F4-05a
+- **risk:** low
+- **test_plan:** test unitario de la función del aumento en schemas; test de componente; E2E.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F4-05d · Pantalla: Detalle, historial y cargar marca
+
+- **module:** web
+- **description:** Spec §5.2, zona 5. `SectionHeader` "HISTORIAL DE RM" con la cantidad de
+  registros, que sale de `summary.records` de la misma respuesta de F4-05c: la API no cambia. La
+  marca actual con la variante resaltada de `Card` y "RM ACTUAL" en `#F576A7`; las anteriores con
+  la variante sobria; los valores con `Measure`. "Ver más" con el botón nuevo. La hoja de nueva
+  marca (`NewMark`) con los componentes de F4-03b.
+- **acceptance-criteria:**
+  - Dadas tres marcas, cuando se abre el detalle, entonces el título dice "03 REGISTROS" y la más
+    reciente va resaltada con "RM ACTUAL".
+  - Dada la hoja de nueva marca, cuando se abre, entonces usa los mismos campos y botones que el
+    resto de la app.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F4-05c
+- **risk:** low
+- **test_plan:** tests de componente actualizados (`exercise-history.test.tsx`,
+  `new-mark.test.tsx`); axe.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
 ## [ ] F4-06 · Pantalla: Login y Registro
 
 - **module:** web
-- **description:** Extrapola el lenguaje del mockup a `AuthScreen`, `LoginPage` y `RegisterPage`
-  (mockups 2 y 3, sin lo que está fuera de la Fase 1: username y Google).
+- **description:** `AuthScreen`, `LoginPage` y `RegisterPage` (mockups 2 y 3, sin lo que está
+  fuera de la Fase 1: username y Google) con el lenguaje del diseño: el logo y "WASABI // CROSS"
+  del header, el saludo como etiqueta chica, el título en Staatliches, los campos de F4-03b y el
+  botón primario.
 - **acceptance-criteria:**
   - Dadas las dos pantallas, cuando se comparan entre sí, entonces comparten los mismos
     componentes Cross y la misma paleta.
@@ -1483,7 +1687,7 @@ paralelo a lo que quede bloqueado de la Fase 3.
     nuevo.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F4-03, F4-04
+- **depends_on:** F4-03b, F4-04a
 - **risk:** low
 - **test_plan:** tests de componente existentes actualizados; axe de las dos pantallas.
 - **error-codes:** ninguno
@@ -1492,16 +1696,23 @@ paralelo a lo que quede bloqueado de la Fase 3.
 ## [ ] F4-07 · Pantalla: Home y shell (splash, header, menú)
 
 - **module:** web
-- **description:** `HomePage`, `Splash` y `AppShell` al nuevo lenguaje: lista de ejercicios
-  gestionados, estados vacíos y skeletons con la paleta nueva.
+- **description:** `AppShell` a la columna de 430px con márgenes de 20px (spec §11). `HomePage`: el
+  saludo como etiqueta chica, "TUS EJERCICIOS" con `SectionHeader` y el cupo del plan como meta
+  ("03 / 10", si el plan tiene tope), y cada fila como las del historial: nombre en Staatliches,
+  fecha chica, valor con `Measure` y el chevron. Estado vacío y plan lleno con el estilo nuevo.
+  `Splash`, `NotFoundPage` y el aviso de versión de la PWA con el logo nuevo. El manifest de la PWA
+  (`vite.config.ts`) sigue con `theme_color` y `background_color` en `#24333d`, del tema viejo:
+  pasan a `#0F041C`, como ya lo hizo `index.html` en F4-02.
 - **acceptance-criteria:**
   - Dado el estado vacío de Home, cuando se muestra, entonces conserva su acción ("Todavía no
     tenés ejercicios → Agregar el primero", spec §11) con el estilo nuevo.
   - Dada la lista con datos, cuando carga, entonces el skeleton previo usa la paleta nueva, no la
     vieja.
+  - Dada la PWA instalada, cuando arranca, entonces la barra del sistema y el fondo de arranque son
+    `#0F041C`.
 - **example:** —
 - **story-points:** 5
-- **depends_on:** F4-04
+- **depends_on:** F4-03c, F4-04a
 - **risk:** low
 - **test_plan:** tests de componente existentes actualizados; E2E del flujo principal contra el
   tema nuevo.
@@ -1511,14 +1722,19 @@ paralelo a lo que quede bloqueado de la Fase 3.
 ## [ ] F4-08 · Pantalla: Nuevo y editar ejercicio
 
 - **module:** web
-- **description:** `NewExercisePage` y `EditExercisePage` (mockup 9) con los componentes Cross ya
-  reskinados: nombre, categoría, capacidades y grupos musculares, primera marca.
+- **description:** `NewExercisePage` y `EditExercisePage` (mockup 9) con los componentes de F4-03b:
+  la categoría en cuatro casilleros de 2×2 en lugar de radios nativos, capacidades y grupos
+  musculares como casilleros, la fecha con el selector del tema oscuro, "Con dolor", y la zona de
+  borrado confirmado de la edición. Sube de 3 a 5 puntos (2026-09-27): los casilleros no estaban
+  en la cuenta.
 - **acceptance-criteria:**
   - Dado el formulario, cuando se lo compara con Home y Detalle, entonces usa los mismos
     componentes y la misma paleta.
+  - Dado el formulario recorrido con el teclado, cuando se eligen categoría, capacidades y grupos,
+    entonces todo se puede elegir sin mouse, como hoy.
 - **example:** —
-- **story-points:** 3
-- **depends_on:** F4-03
+- **story-points:** 5
+- **depends_on:** F4-03b
 - **risk:** low
 - **test_plan:** tests de componente existentes actualizados; axe de las dos pantallas.
 - **error-codes:** ninguno
@@ -1527,13 +1743,15 @@ paralelo a lo que quede bloqueado de la Fase 3.
 ## [ ] F4-09 · Pantalla: Perfil
 
 - **module:** web
-- **description:** `ProfilePage` sin la sección "Color" (F4-02) y con los porcentajes por defecto
-  en el lenguaje nuevo.
+- **description:** `ProfilePage`: F4-02 ya sacó la sección de tema. Queda "PORCENTAJES POR
+  DEFECTO" con `SectionHeader`, cada porcentaje como una fila con su botón de quitar, y los
+  botones nuevos.
 - **acceptance-criteria:**
-  - Dado el Perfil, cuando se abre, entonces no queda ningún rastro del selector de tema.
+  - Dado el Perfil, cuando se abre, entonces no queda ningún rastro del selector de tema, y usa los
+    mismos campos y botones que Nuevo ejercicio.
 - **example:** —
 - **story-points:** 2
-- **depends_on:** F4-02, F4-03
+- **depends_on:** F4-02, F4-03b
 - **risk:** low
 - **test_plan:** tests de componente existentes actualizados; axe de la pantalla.
 - **error-codes:** ninguno
@@ -1542,14 +1760,18 @@ paralelo a lo que quede bloqueado de la Fase 3.
 ## [ ] F4-10 · Pantalla: Estadísticas (general y por ejercicio)
 
 - **module:** web
-- **description:** `StatsPage` y `GeneralStats` (mockup 10) con `Chart` ya reskinado (F4-04) y el
-  acordeón del mockup en el lenguaje nuevo.
+- **description:** `StatsPage` y `GeneralStats` (mockup 10): el período como casilleros (3M, 6M,
+  12M, TODO) en lugar del desplegable, los encabezados del acordeón en Staatliches, el mismo
+  `Chart` que el detalle (F4-04b), los números (actual, mejor, peor, variación) con `Measure`, y
+  las filas por capacidad y grupo muscular con el estilo del historial.
 - **acceptance-criteria:**
-  - Dados los gráficos de esta pantalla, cuando se comparan con el de Detalle, entonces se ven
-    consistentes.
+  - Dados los gráficos de esta pantalla, cuando se comparan con el del Detalle, entonces son el
+    mismo componente y se ven igual.
+  - Dado un período elegido, cuando se recarga la página, entonces sigue elegido: vive en la URL,
+    como hoy.
 - **example:** —
 - **story-points:** 5
-- **depends_on:** F4-04
+- **depends_on:** F4-03c, F4-04b
 - **risk:** low
 - **test_plan:** tests de componente existentes actualizados; E2E de Estadísticas contra el tema
   nuevo.
@@ -1559,16 +1781,21 @@ paralelo a lo que quede bloqueado de la Fase 3.
 ## [ ] F4-11 · E2E y axe de punta a punta con el tema único
 
 - **module:** infra
-- **description:** Cierra la fase: el E2E de F1-18/F2-10 sin ningún paso que dependiera de dos
-  temas (cambio de tema), auditado con axe en cada pantalla contra el tema único.
+- **description:** Cierra la fase. F4-02 ya sacó los pasos del E2E que cambiaban de tema. Queda el
+  E2E del flujo principal y de Estadísticas contra la estructura nueva (la carga y el botón de
+  nueva marca viven en la barra fija), axe en cada pantalla, y una captura de referencia del
+  detalle a 390px con `toHaveScreenshot`, generada en CI (Linux) para no depender de cómo pinta
+  las fuentes cada sistema: es lo que avisa si una tarea futura aleja el detalle del diseño.
 - **acceptance-criteria:**
   - Dado el E2E completo, cuando corre, entonces no queda ninguna referencia a `data-theme` ni al
     `ThemeToggle`.
   - Dado cada pantalla, cuando pasa el axe, entonces no hay violaciones.
+  - Dado un cambio que mueve algo del detalle, cuando corre CI, entonces la comparación de la
+    captura falla y muestra la diferencia.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F4-05, F4-06, F4-07, F4-08, F4-09, F4-10
-- **risk:** low
+- **depends_on:** F4-05a, F4-05b, F4-05c, F4-05d, F4-06, F4-07, F4-08, F4-09, F4-10
+- **risk:** medium
 - **test_plan:** `pnpm e2e` completo en CI.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
