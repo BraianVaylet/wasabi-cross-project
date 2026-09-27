@@ -19,7 +19,7 @@
     "@fontsource/share-tech-mono": "^5.3.0",
     "@fontsource/staatliches": "^5.3.0",
     "@tanstack/react-form": "^1.33.5",
-    "@tanstack/react-query": "^5.103.1",
+    "@tanstack/react-query": "^5.103.2",
     "@tanstack/react-router": "^1.170.38",
     "@wasabi-cross/schemas": "workspace:*",
     "@wasabi-cross/ui": "workspace:*",
