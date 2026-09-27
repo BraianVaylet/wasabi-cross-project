@@ -27,6 +27,13 @@ actual. El usuario pidió adaptarlo y aplicarlo a toda la app, aunque sólo hay 
   fuentes correctas, axe sin violaciones.
 - Se agregó `.claude/launch.json` (Storybook y `pnpm dev`) para poder verificar en el navegador de
   Claude Code, como pide CLAUDE.md para cambios de frontend.
+- El usuario mergeó PR #55 y PR #56 durante la sesión. Se siguió con **F4-02**
+  (`feat/f4-02-retirar-tema`, **PR #57**): `theme` sale de `userPreferencesSchema` (schemas), del
+  endpoint de preferencias y de Mongo (migración `20260927120000-retirar-tema.ts`, reversible);
+  `packages/ui/src/theme` y `ThemeToggle` se retiran; el header y el Perfil pierden el toggle;
+  `index.html` pierde `theme-bootstrap.js` (ya no hace falta resolver el tema antes de pintar).
+  E2E actualizado (tres specs ejercitaban el toggle) y verificado de punta a punta: `pnpm e2e` y
+  `pnpm e2e:prod` en verde, coverage de los cuatro workspaces por encima de 90%.
 
 ## Decisiones tomadas
 
@@ -40,14 +47,27 @@ actual. El usuario pidió adaptarlo y aplicarlo a toda la app, aunque sólo hay 
   anterior del archivo.
 - **`--wc-accent-hover` es un valor derivado, no del mockup** (que es HTML estático sin estado
   hover) — a revisar si aparece un mockup con estados.
+- **El bug de `ExerciseDetailPage` se arregla en el mismo PR de F4-02, no aparte**: F4-02 lo
+  destapó (al sacar `useSyncedTheme` del shell, se perdió el prefetch accidental de preferencias
+  que lo tapaba), y queda dentro del "arreglar lo que se rompe al tocar el archivo" en vez de una
+  tarea nueva — es una línea, en el archivo que la propia tarea ya toca.
+- **No se mezcla el arreglo del lint pre-existente (`no-unsafe-*` en varios `onChange`, y el
+  worktree viejo que ensucia `eslint .`) en esta PR**: ninguno de los dos lo causó F4-02
+  (confirmado con `git stash` contra `main`), y mezclarlo hubiera inflado el diff con algo sin
+  relación. Quedaron como tareas aparte (chips de sesión).
 
 ## Bloqueos / lo que no funcionó
 
-Nada. Los dos PRs están abiertos, sin mergear todavía — a la espera de revisión del usuario.
+Nada de código. Sí una sorpresa de entorno: `pnpm lint` local falla por dos motivos ajenos a esta
+tarea — un worktree viejo de Claude Code (`.claude/worktrees/interesting-merkle-fb4716`) que
+`eslint.config.js` no ignora, y ~70 errores `no-unsafe-*` pre-existentes en `apps/web` que `tsc` no
+reproduce. Confirmado con `git stash` que los dos existen igual en `main`, sin tocar nada de esta
+sesión. La CI de GitHub Actions corre limpia (PR #57 en verde), así que es algo del entorno local,
+no del código — quedó como tarea aparte para entender la diferencia.
 
 ## Próximo paso
 
-1. Usuario revisa y mergea PR #55 y PR #56.
-2. Seguir con **F4-02** (se retira la preferencia de tema: schemas, API, migración, `ThemeToggle`),
-   depende de F4-01.
+1. Usuario revisa y mergea PR #57 (F4-02).
+2. Seguir con **F4-03/F4-04** (componentes Cross: botones, inputs, navegación, el gráfico), no
+   dependen de F4-02.
 3. Fase 3 sigue igual, bloqueada en F3-07/F3-08 (sin relación con esto, puede avanzar en paralelo).
