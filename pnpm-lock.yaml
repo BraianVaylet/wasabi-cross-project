@@ -168,7 +168,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@fontsource-variable/space-grotesk':
+      '@fontsource/share-tech-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/staatliches':
         specifier: ^5.3.0
         version: 5.3.0
       '@tanstack/react-form':
@@ -276,7 +279,10 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2
     devDependencies:
-      '@fontsource-variable/space-grotesk':
+      '@fontsource/share-tech-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/staatliches':
         specifier: ^5.3.0
         version: 5.3.0
       '@storybook/addon-a11y':
@@ -1264,8 +1270,11 @@ packages:
   '@fastify/swagger@9.8.2':
     resolution: {integrity: sha512-9JAPVF4gP8OpKWQiNHSLpuodZk7Az/d6M61P7mV/39f5Rnnr03hEToJs3Ma3QvpBz9l1Zmrj53ZRLt7jngBcUw==}
 
-  '@fontsource-variable/space-grotesk@5.3.0':
-    resolution: {integrity: sha512-2IxmvfB08i9vnGB3Ym/AXvhRE+8XOjWMXIyDum03c+tPwH0FUoMNQfGpU8NXPxjbws0Vvss3AH0Zqt4oJBBAdw==}
+  '@fontsource/share-tech-mono@5.3.0':
+    resolution: {integrity: sha512-hVEzVCzEid/fBfhggMyvkfDzn9ODrMihxC0EiOeQK3BuQNvdjmith2ERnoDNUkbW8zhufbKNuCgaSoT8LUNpuQ==}
+
+  '@fontsource/staatliches@5.3.0':
+    resolution: {integrity: sha512-vYQgZ76FapaXZeiZQLUqy49+XmpyPLNgOsmqqqyX8pMFvb+rdODYDtc/vIgO/g5oTsESnSoD85DQozd8D6mUEA==}
 
   '@graphql-typed-document-node/core@3.2.0':
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
@@ -5798,7 +5807,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@fontsource-variable/space-grotesk@5.3.0': {}
+  '@fontsource/share-tech-mono@5.3.0': {}
+
+  '@fontsource/staatliches@5.3.0': {}
 
   '@graphql-typed-document-node/core@3.2.0(graphql@16.14.2)':
     dependencies:

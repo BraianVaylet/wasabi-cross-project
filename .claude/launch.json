@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ui-storybook",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@wasabi-cross/ui", "storybook"],
+      "port": 6006
+    },
+    {
+      "name": "web-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev"],
+      "port": 5173
+    }
+  ]
+}

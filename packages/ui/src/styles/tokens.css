@@ -1,90 +1,70 @@
 /*
- * Tokens de Wasabi Cross, tomados de los mockups (docs/mockup): fondo pizarra oscuro,
- * superficies un escalón más claras y un acento verde lima.
+ * Tokens de Wasabi Cross — tema único "Toxic Cyberpunk" (ADR-0008, spec §11), tomados del
+ * mockup real en docs/design: fondo casi negro violáceo, acento lima tóxico, magenta y
+ * violeta como bordes y superficies.
  *
- * Dark first (spec §11): el tema oscuro es el default del `:root`, y el claro se aplica
- * con `[data-theme='light']`. Nada de media query sola: el usuario puede elegir, y su
- * elección tiene que ganarle a la preferencia del sistema.
+ * Tema único: no hay variante por `data-theme`. El selector dark/light se retiró (ADR-0008);
+ * lo que quede de esa mecánica en JS/TS (theme.ts, ThemeToggle, la preferencia en la API) se
+ * retira en F4-02, tarea aparte.
  */
 
-:root,
-:root[data-theme='dark'] {
+:root {
   color-scheme: dark;
 
-  --wc-bg: #24333d;
-  --wc-surface: #4b5c68;
-  --wc-surface-muted: #3a4a55;
-  --wc-border: #6b7a85;
+  --wc-bg: #0f041c;
+  --wc-bg-raised: #10051d;
+  --wc-surface: #160824;
+  --wc-surface-muted: #230d38;
+  --wc-border: #411467;
+  --wc-border-muted: #32989a;
 
-  --wc-text: #ffffff;
+  --wc-text: #d7efef;
+  /* Mismo tono para labels, fechas y placeholders del mockup: todos pasan AA sobre fondo y superficie (ver abajo). */
+  --wc-text-muted: #6cb5b4;
+  --wc-text-on-accent: #0f041c;
+
+  --wc-accent: #a7dd4f;
   /*
-   * El gris apagado del mockup (#c4cdd4) da 4.3:1 sobre `--wc-surface` y no llega a AA:
-   * lo encontró el axe del E2E en la fecha de cada fila de Home. Un punto más claro
-   * queda en 4.8:1 sobre la superficie y 9:1 sobre el fondo, sin perder el contraste
-   * con el texto principal.
+   * El mockup no muestra un estado hover (es un HTML estático); se deriva un tono más claro,
+   * mismo criterio que el resto de la paleta con el acento. A revisar contra Figma si aparece.
    */
-  --wc-text-muted: #d0d8de;
-  --wc-text-on-accent: #1d2a33;
-
-  --wc-accent: #a6da4b;
-  --wc-accent-hover: #b6e463;
-  --wc-accent-subtle: #5f7d21;
+  --wc-accent-hover: #bce96b;
   /*
-   * El lima de la marca como texto da 4.2:1 sobre `--wc-surface`: alcanza sobre el fondo,
-   * no sobre una tarjeta. Como texto se usa el tono de hover, que llega a 4.7:1.
+   * El verde oliva del "RM actual" en el historial (fondo del ítem activo): el acento mezclado
+   * sobre la superficie oscura, tal cual el mockup — no un cálculo, un valor real del diseño.
    */
-  --wc-accent-text: #b6e463;
+  --wc-accent-subtle: #263619;
+  /* Lima sobre `--wc-bg` da 12.4:1 y sobre `--wc-surface` da 12:1: no hace falta una variante para texto. */
+  --wc-accent-text: #a7dd4f;
 
-  --wc-danger: #ff8a80;
+  /* Magenta del mockup, exacto: como borde o relleno decorativo (no-texto, ≥3:1) siempre alcanza. */
+  --wc-danger: #ee1b6c;
   /*
-   * Como texto, el rojo de alerta daba 4.0:1 sobre `--wc-surface-muted` —la variación que
-   * baja en Estadísticas (F2-08)—: alcanzaba sólo sobre el fondo. Un punto más claro llega a
-   * 5:1 ahí y a 7:1 sobre el fondo.
+   * Como texto pequeño, el magenta del mockup da 4.6:1 sobre `--wc-bg` y 4.58:1 sobre
+   * `--wc-surface`: pasa AA pero raspando. Un tono más claro dejó margen real (5.4:1 / 5.2:1)
+   * sin notarse distinto a simple vista.
    */
-  --wc-danger-text: #ffa8a1;
+  --wc-danger-text: #f23a80;
 
-  /* Banda de carga media: ni el verde de liviana ni el rojo de pesada (spec §5.1). */
-  --wc-warning: #ffb74d;
-  --wc-warning-text: #ffc773;
+  /* Banda de carga media (spec §5.1): el naranja del "porcentaje personalizado" del mockup. */
+  --wc-warning: #ff871f;
+  --wc-warning-text: #ff871f;
 
-  --wc-focus: #ffffff;
-}
-
-:root[data-theme='light'] {
-  color-scheme: light;
-
-  --wc-bg: #f2f5f3;
-  --wc-surface: #ffffff;
-  --wc-surface-muted: #e4eae6;
-  --wc-border: #b7c2bb;
-
-  --wc-text: #1d2a33;
-  --wc-text-muted: #4d5c66;
-  --wc-text-on-accent: #1d2a33;
-
-  /*
-   * El lima de la marca sobre blanco da 1.8:1 y no llega a AA. Como color de relleno
-   * sirve (el texto encima es oscuro), pero como color de texto se usa una versión
-   * oscurecida que sí pasa 4.5:1.
-   */
-  --wc-accent: #a6da4b;
-  --wc-accent-hover: #93c73c;
-  --wc-accent-subtle: #d9edb4;
-  --wc-accent-text: #3f6212;
-
-  --wc-danger: #c62828;
-  --wc-danger-text: #b3261e;
-
-  --wc-warning: #e65100;
-  --wc-warning-text: #b34700;
-
-  --wc-focus: #1d2a33;
+  /* El foco del botón "Registrar" en el mockup usa el acento; mismo criterio en toda la app. */
+  --wc-focus: #a7dd4f;
 }
 
 :root {
-  --wc-radius-sm: 4px;
-  --wc-radius-md: 6px;
-  --wc-radius-pill: 999px;
+  /*
+   * Sin esquinas redondeadas: el mockup no tiene ninguna. El recorte diagonal (`--wc-plate-cut`,
+   * más abajo) es la única firma decorativa de esquina en este tema.
+   */
+  --wc-radius-sm: 0;
+  --wc-radius-md: 0;
+  --wc-radius-pill: 0;
+
+  /* Tamaño del recorte de esquina "plate-cut" del mockup (10px en el original a 430px de ancho). */
+  --wc-plate-cut: 10px;
 
   --wc-space-1: 0.25rem;
   --wc-space-2: 0.5rem;
@@ -93,7 +73,9 @@
   --wc-space-5: 1.5rem;
   --wc-space-6: 2rem;
 
-  --wc-font-family: 'Space Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Cuerpo: monoespaciada, como el mockup. Titulares: condensada de afiche, sólo en mayúsculas. */
+  --wc-font-family: 'Share Tech Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --wc-font-family-display: 'Staatliches', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Tipografía fluida (spec §11). Nunca por debajo de 16px en inputs: iOS hace zoom solo. */
   --wc-font-size-sm: clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem);
@@ -124,9 +106,25 @@
   line-height: var(--wc-line-height);
 }
 
-/* Foco visible siempre, en cualquier tema (spec §11). */
+/* Foco visible siempre (spec §11). */
 .wc-focusable:focus-visible,
 .wc-root :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--wc-focus);
   outline-offset: 2px;
+}
+
+/*
+ * Recorte de esquina en diagonal: la firma visual del mockup en tarjetas, tiles y botones.
+ * `clip-path` no admite `border-radius`, así que un elemento con borde tiene que dibujarlo con
+ * `border` normal (el recorte igual se nota en la esquina).
+ */
+.wc-plate-cut {
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--wc-plate-cut)) 0,
+    100% var(--wc-plate-cut),
+    100% 100%,
+    var(--wc-plate-cut) 100%,
+    0 calc(100% - var(--wc-plate-cut))
+  );
 }
