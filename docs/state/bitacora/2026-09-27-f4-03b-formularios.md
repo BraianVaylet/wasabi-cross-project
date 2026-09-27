@@ -39,8 +39,9 @@ mostraba radios y casillas nativas grises y etiquetas distintas entre sí. Y hac
   lector de pantalla lo anuncia como radio igual.
 - **En alto contraste vuelven los controles nativos** (`appearance: auto`): el sistema pisa los
   colores de la marca dibujada y la casilla marcada no se distinguiría de la vacía.
-- **El casillero elegido se pinta con `:has(:checked)`**: sin `:has` (navegadores de antes de 2023) el casillero no se resalta, pero la casilla o el radio de adentro sí: el estado se sigue
-  viendo.
+- **El casillero elegido se pinta con `:has(:checked)`**: en un navegador sin `:has` (anteriores
+  a fines de 2023) el casillero no se resalta, pero la casilla o el radio de adentro sí: el estado
+  se sigue viendo.
 - **Nada que cambiar en las pantallas**: los componentes mantienen su API (sólo se suma
   `variant` a `TextField`), así que "Nuevo ejercicio", el perfil y el login ya se ven con los
   campos nuevos. Su ajuste fino queda en F4-06, F4-08 y F4-09.
