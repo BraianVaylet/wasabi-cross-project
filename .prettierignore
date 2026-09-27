@@ -5,3 +5,5 @@ storybook-static
 .pnpm-store
 docs/mockup
 docs/design
+# Worktrees de Claude Code: checkouts anidados, no pertenecen al proyecto raíz.
+.claude/worktrees
