@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeSession, renderApp } from '../test/app.tsx';
 
@@ -19,19 +19,6 @@ async function completar(campo: string | RegExp, valor: string): Promise<void> {
 }
 
 describe('login y registro (F1-10)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   describe('login (mockup 2)', () => {
     it('entra con email y contraseña, y vuelve a donde iba', async () => {
       const session = fakeSession(null);

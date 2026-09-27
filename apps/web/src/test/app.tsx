@@ -107,7 +107,6 @@ const GENERALES_VACIAS: GeneralStats = {
 };
 
 const PREFERENCIAS: UserPreferences = {
-  theme: 'dark',
   loadPercentages: [65, 75, 80, 85, 90, 95],
 };
 
@@ -136,7 +135,6 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
       savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>
         Promise.resolve({
-          theme: change.theme ?? PREFERENCIAS.theme,
           loadPercentages: change.loadPercentages ?? PREFERENCIAS.loadPercentages,
         }),
       ),

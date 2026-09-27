@@ -105,7 +105,11 @@ export function ExerciseDetailPage({
         </div>
       ) : null}
 
-      {exercise ? (
+      {/*
+       * No antes de que `loading` se apague: `percentages` puede llegar vacío mientras las
+       * preferencias todavía están en camino, y la tabla no sabe mostrar "todavía no sé".
+       */}
+      {!loading && exercise ? (
         <Detail
           exercise={exercise}
           percentages={percentages}

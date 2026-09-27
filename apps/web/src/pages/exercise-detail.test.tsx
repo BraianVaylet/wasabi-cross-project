@@ -2,7 +2,7 @@ import type { ExerciseList, ManagedExerciseSummary } from '@wasabi-cross/schemas
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { braian, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
 
 const backSquat: ManagedExerciseSummary = {
@@ -42,19 +42,6 @@ function renderDetalle(url: string, exercises = [backSquat, carrera]) {
 }
 
 describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   describe('lo que se ve del ejercicio', () => {
     it('nombre, valor actual con su fecha y tags', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4');

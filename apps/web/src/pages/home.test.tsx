@@ -2,7 +2,7 @@ import type { ExerciseList } from '@wasabi-cross/schemas';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeApi, fakeSession, fila, renderApp, type FakeApi } from '../test/app.tsx';
 
@@ -47,19 +47,6 @@ function renderHome(api: FakeApi) {
 }
 
 describe('Home: lista de ejercicios (F1-11, mockup 4)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   describe('con ejercicios', () => {
     it('cada uno con su nombre, la fecha del valor actual y el valor con su unidad', async () => {
       renderHome(fakeApi(lista([backSquat, carrera])));

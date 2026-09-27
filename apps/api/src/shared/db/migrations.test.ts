@@ -81,8 +81,16 @@ describe('migraciones', () => {
     const reverted = await migrateDown(db, client);
 
     expect(reverted).toHaveLength(1);
+    expect(reverted[0]).toMatch(/retirar-tema/);
+  });
+
+  it('el siguiente down se lleva la anterior', async () => {
+    const reverted = await migrateDown(db, client);
+
+    expect(reverted).toHaveLength(1);
     expect(reverted[0]).toMatch(/capacidades-en-propios/);
-    expect(await pendingMigrations(db)).toEqual(reverted);
+    // Pendientes: ésta y la que ya se había revertido en el test anterior.
+    expect(await pendingMigrations(db)).toHaveLength(2);
     // Las anteriores siguen aplicadas.
     expect(await indexNames(db, 'records')).toContain('managed_history');
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');

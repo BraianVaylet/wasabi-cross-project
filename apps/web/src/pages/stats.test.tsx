@@ -7,7 +7,7 @@ import type {
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
 
@@ -70,19 +70,6 @@ function renderStats(path = '/estadisticas', exercises = [backSquat, clean]) {
 }
 
 describe('Estadísticas (F2-07, mockup 10)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   it('lista los ejercicios, cerrados y sin pedir estadísticas de ninguno', async () => {
     const { api } = renderStats();
 

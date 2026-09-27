@@ -2,7 +2,7 @@ import type { ExerciseList, ManagedExerciseSummary, RecordHistory } from '@wasab
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeApi, fakeSession, fila, renderApp } from '../test/app.tsx';
 
@@ -59,19 +59,6 @@ function renderDetalle(id = 'mex_a1b2c3d4', exercises = [backSquat, carrera]) {
 }
 
 describe('Historial del detalle (F1-13b, mockups 5 y 6)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   it('muestra las marcas con su fecha y valor, la más reciente marcada como actual', async () => {
     const { api } = renderDetalle();
     api.client.history.mockResolvedValue(primeraPagina);

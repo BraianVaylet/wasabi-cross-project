@@ -1,24 +1,11 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeSession, renderApp } from '../test/app.tsx';
 import { refreshSession } from './create-app.ts';
 
 describe('shell de la app (F1-09)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   describe('al abrir la app', () => {
     it('muestra el splash mientras averigua si hay sesión (mockup 1)', () => {
       const session = fakeSession(null);
@@ -149,25 +136,16 @@ describe('shell de la app (F1-09)', () => {
   });
 
   describe('header (mockup 4a)', () => {
-    it('logo y nombre a la izquierda; tema y menú a la derecha', async () => {
+    it('logo y nombre a la izquierda; menú a la derecha', async () => {
       renderApp('/', fakeSession(braian).client);
 
       const banner = await screen.findByRole('banner');
       expect(banner).toHaveTextContent('Wasabi Cross');
       expect(screen.getByRole('link', { name: 'Wasabi Cross' })).toHaveAttribute('href', '/');
-      expect(screen.getByRole('button', { name: 'Cambiar a tema claro' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Abrir menú' })).toHaveAttribute(
         'aria-expanded',
         'false',
       );
-    });
-
-    it('arranca en oscuro y el toggle cambia el tema de toda la app', async () => {
-      renderApp('/', fakeSession(braian).client);
-
-      await userEvent.click(await screen.findByRole('button', { name: 'Cambiar a tema claro' }));
-
-      expect(document.documentElement.dataset.theme).toBe('light');
     });
   });
 

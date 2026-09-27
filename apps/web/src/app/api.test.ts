@@ -123,11 +123,14 @@ describe('cliente de API del front', () => {
     const { llamadas, api } = apiEspía();
 
     await api.preferences();
-    await api.savePreferences({ theme: 'light' });
+    await api.savePreferences({ loadPercentages: [70, 80] });
 
     expect(llamadas).toEqual([
       { path: '/api/v1/me/preferences', options: undefined },
-      { path: '/api/v1/me/preferences', options: { method: 'PATCH', body: { theme: 'light' } } },
+      {
+        path: '/api/v1/me/preferences',
+        options: { method: 'PATCH', body: { loadPercentages: [70, 80] } },
+      },
     ]);
   });
 });

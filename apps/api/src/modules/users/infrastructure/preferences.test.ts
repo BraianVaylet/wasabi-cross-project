@@ -45,13 +45,13 @@ describe('preferencias del usuario (F1-08)', () => {
     });
   }
 
-  it('un usuario nuevo tiene tema oscuro y los porcentajes por defecto', async () => {
+  it('un usuario nuevo tiene los porcentajes por defecto', async () => {
     const { cookie } = await newUser();
 
     const response = await read(cookie);
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ theme: 'dark', loadPercentages: [65, 75, 80, 85, 90, 95] });
+    expect(response.json()).toEqual({ loadPercentages: [65, 75, 80, 85, 90, 95] });
   });
 
   it('guarda los porcentajes y los devuelve', async () => {
@@ -60,22 +60,13 @@ describe('preferencias del usuario (F1-08)', () => {
     const response = await update(cookie, { loadPercentages: [60, 70, 80, 90] });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ theme: 'dark', loadPercentages: [60, 70, 80, 90] });
+    expect(response.json()).toEqual({ loadPercentages: [60, 70, 80, 90] });
     expect((await read(cookie)).json<UserPreferences>().loadPercentages).toEqual([60, 70, 80, 90]);
   });
 
-  it('cambiar una preferencia no pisa la otra', async () => {
-    const { cookie } = await newUser();
-    await update(cookie, { loadPercentages: [50, 60] });
-
-    const response = await update(cookie, { theme: 'light' });
-
-    expect(response.json()).toEqual({ theme: 'light', loadPercentages: [50, 60] });
-  });
-
-  it('el tema guardado lo recupera el próximo login, en otro dispositivo', async () => {
+  it('los porcentajes guardados los recupera el próximo login, en otro dispositivo', async () => {
     const { cookie, email } = await newUser();
-    await update(cookie, { theme: 'light' });
+    await update(cookie, { loadPercentages: [55, 65] });
 
     const login = await harness.app.inject({
       method: 'POST',
@@ -86,17 +77,16 @@ describe('preferencias del usuario (F1-08)', () => {
     const otroDispositivo = cookiesFrom(login.headers);
 
     expect(otroDispositivo).not.toBe(cookie);
-    expect((await read(otroDispositivo)).json<UserPreferences>().theme).toBe('light');
+    expect((await read(otroDispositivo)).json<UserPreferences>().loadPercentages).toEqual([55, 65]);
   });
 
   it('las preferencias son de cada usuario', async () => {
     const braian = await newUser();
     const amigo = await newUser();
 
-    await update(braian.cookie, { theme: 'light', loadPercentages: [70] });
+    await update(braian.cookie, { loadPercentages: [70] });
 
     expect((await read(amigo.cookie)).json()).toEqual({
-      theme: 'dark',
       loadPercentages: [65, 75, 80, 85, 90, 95],
     });
   });
@@ -143,21 +133,20 @@ describe('preferencias del usuario (F1-08)', () => {
       });
     });
 
-    it('un tema que no existe, un campo ajeno o un cambio vacío', async () => {
+    it('un campo que ya no existe (ADR-0008: theme), un campo ajeno o un cambio vacío', async () => {
       const { cookie } = await newUser();
 
-      expect((await update(cookie, { theme: 'sepia' })).statusCode).toBe(400);
-      expect((await update(cookie, { theme: 'light', plan: 'max' })).statusCode).toBe(400);
+      expect((await update(cookie, { theme: 'dark' })).statusCode).toBe(400);
+      expect((await update(cookie, { loadPercentages: [70], plan: 'max' })).statusCode).toBe(400);
       expect((await update(cookie, {})).statusCode).toBe(400);
     });
 
     it('un cambio rechazado no guarda nada', async () => {
       const { cookie } = await newUser();
 
-      await update(cookie, { theme: 'light', loadPercentages: [70, 70] });
+      await update(cookie, { loadPercentages: [70, 70] });
 
       expect((await read(cookie)).json()).toEqual({
-        theme: 'dark',
         loadPercentages: [65, 75, 80, 85, 90, 95],
       });
     });
@@ -168,7 +157,7 @@ describe('preferencias del usuario (F1-08)', () => {
     const patch = await harness.app.inject({
       method: 'PATCH',
       url: '/api/v1/me/preferences',
-      payload: { theme: 'light' },
+      payload: { loadPercentages: [70] },
     });
 
     expect(get.statusCode).toBe(401);

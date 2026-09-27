@@ -1,13 +1,12 @@
 import type { UserPreferences } from '@wasabi-cross/schemas';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeApi, fakeSession, renderApp, type FakeApi } from '../test/app.tsx';
 
 const DEFAULT: UserPreferences = {
-  theme: 'dark',
   loadPercentages: [65, 75, 80, 85, 90, 95],
 };
 
@@ -16,7 +15,6 @@ function renderPerfil(preferences: UserPreferences = DEFAULT): FakeApi & { api: 
   api.client.preferences.mockResolvedValue(preferences);
   api.client.savePreferences.mockImplementation((patch) =>
     Promise.resolve({
-      theme: patch.theme ?? preferences.theme,
       loadPercentages: patch.loadPercentages ?? preferences.loadPercentages,
     }),
   );
@@ -32,20 +30,7 @@ function campoAsync(indice: number): Promise<HTMLElement> {
   return screen.findByLabelText(`Porcentaje ${String(indice + 1)}`);
 }
 
-describe('Perfil: porcentajes y tema (F1-16)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
+describe('Perfil: porcentajes por defecto (F1-16)', () => {
   describe('porcentajes por defecto', () => {
     it('muestra los guardados, uno por campo', async () => {
       renderPerfil();
@@ -69,7 +54,7 @@ describe('Perfil: porcentajes y tema (F1-16)', () => {
     });
 
     it('se agregan, se quitan y se guardan', async () => {
-      const { api } = renderPerfil({ theme: 'dark', loadPercentages: [70, 80] });
+      const { api } = renderPerfil({ loadPercentages: [70, 80] });
       await screen.findByLabelText('Porcentaje 1');
 
       await userEvent.click(screen.getByRole('button', { name: 'Agregar porcentaje' }));
@@ -95,46 +80,6 @@ describe('Perfil: porcentajes y tema (F1-16)', () => {
       const alert = await screen.findByRole('alert');
       expect(alert).toHaveTextContent('Revisá los datos enviados.');
       expect(alert).toHaveTextContent('WC-SYS-400-002');
-    });
-  });
-
-  describe('tema', () => {
-    it('cambiarlo se ve al instante y se guarda en la API', async () => {
-      const { api } = renderPerfil();
-      await screen.findByLabelText('Porcentaje 1');
-
-      await userEvent.click(
-        within(screen.getByRole('main')).getByRole('button', { name: 'Cambiar a tema claro' }),
-      );
-
-      expect(document.documentElement.dataset.theme).toBe('light');
-      await waitFor(() => {
-        expect(api.client.savePreferences).toHaveBeenCalledWith({ theme: 'light' });
-      });
-    });
-
-    it('el toggle del header también lo guarda: si no, al recargar volvería atrás', async () => {
-      const { api } = renderPerfil();
-      await screen.findByLabelText('Porcentaje 1');
-
-      await userEvent.click(
-        within(screen.getByRole('banner')).getByRole('button', { name: 'Cambiar a tema claro' }),
-      );
-
-      expect(document.documentElement.dataset.theme).toBe('light');
-      await waitFor(() => {
-        expect(api.client.savePreferences).toHaveBeenCalledWith({ theme: 'light' });
-      });
-    });
-
-    it('con sesión, el tema de la API le gana al guardado en el dispositivo', async () => {
-      localStorage.setItem('wasabi-cross:theme', 'dark');
-
-      renderPerfil({ ...DEFAULT, theme: 'light' });
-
-      await waitFor(() => {
-        expect(document.documentElement.dataset.theme).toBe('light');
-      });
     });
   });
 

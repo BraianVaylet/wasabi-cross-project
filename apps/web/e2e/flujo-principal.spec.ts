@@ -18,12 +18,6 @@ test('de cero a los porcentajes del detalle', async ({ page }) => {
   await expect(page.getByText('100 kg')).toBeVisible();
   await auditar(page, 'Home con ejercicios');
 
-  // El tema claro es la otra mitad de la paleta: su contraste se mira igual (spec §11).
-  await page.getByRole('button', { name: 'Cambiar a tema claro' }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await auditar(page, 'Home con ejercicios, tema claro');
-  await page.getByRole('button', { name: 'Cambiar a tema oscuro' }).click();
-
   await page.getByRole('link', { name: /Back squat/ }).click();
   await expect(page.getByRole('heading', { name: 'Back squat' })).toBeVisible();
 

@@ -1,4 +1,3 @@
-import type { Theme } from '@wasabi-cross/schemas';
 import type { Db } from 'mongodb';
 import type { PreferencesStore, StoredPreferences } from '../domain/preferences.ts';
 
@@ -10,7 +9,6 @@ export const PREFERENCES_COLLECTION = 'user_preferences';
  */
 interface PreferencesDocument {
   _id: string;
-  theme?: Theme;
   loadPercentages?: number[];
   createdAt: string;
   updatedAt: string;
@@ -18,7 +16,6 @@ interface PreferencesDocument {
 
 function toStored(document: PreferencesDocument): StoredPreferences {
   return {
-    ...(document.theme === undefined ? {} : { theme: document.theme }),
     ...(document.loadPercentages === undefined
       ? {}
       : { loadPercentages: document.loadPercentages }),
@@ -43,7 +40,6 @@ export function createMongoPreferencesStore(db: Db): PreferencesStore {
         { _id: userId },
         {
           $set: {
-            ...(change.theme === undefined ? {} : { theme: change.theme }),
             ...(change.loadPercentages === undefined
               ? {}
               : { loadPercentages: change.loadPercentages }),

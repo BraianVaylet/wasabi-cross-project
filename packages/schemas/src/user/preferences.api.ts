@@ -11,11 +11,9 @@ import {
  */
 
 /**
- * Lo que tiene un usuario que nunca cambió nada: tema oscuro ("dark first", spec §11) y
- * los porcentajes de la spec §5.
+ * Lo que tiene un usuario que nunca cambió nada: los porcentajes de la spec §5.
  */
 export const DEFAULT_PREFERENCES: Readonly<UserPreferences> = Object.freeze({
-  theme: 'dark',
   loadPercentages: [...DEFAULT_LOAD_PERCENTAGES],
 });
 

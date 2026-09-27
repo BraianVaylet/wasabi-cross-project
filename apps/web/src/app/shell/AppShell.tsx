@@ -1,29 +1,18 @@
 import { Link } from '@tanstack/react-router';
-import type { Theme } from '@wasabi-cross/schemas';
-import { AppHeader, Drawer, IconButton, Logo, MenuIcon, ThemeToggle } from '@wasabi-cross/ui';
+import { AppHeader, Drawer, IconButton, Logo, MenuIcon } from '@wasabi-cross/ui';
 import { useState, type ReactNode } from 'react';
 import { ErrorNotice } from '../ErrorNotice.tsx';
 
 export interface AppShellProps {
   children: ReactNode;
-  /** El tema llega de afuera: con sesión lo guarda la API, no el dispositivo (F1-16). */
-  theme: Theme;
-  onThemeChange: (theme: Theme) => void;
   onSignOut: () => void;
   signingOut: boolean;
   signOutError: unknown;
 }
 
-/*
- * Del menú del mockup 4a quedan afuera, por ahora, "Estadísticas" (es de la próxima fase) y
- * "Color" (llega con el perfil, F1-16). Un link que no lleva a nada es peor que no tenerlo.
- */
-
 /** Header y menú, presentes en todas las páginas con sesión (spec §5). */
 export function AppShell({
   children,
-  theme,
-  onThemeChange,
   onSignOut,
   signingOut,
   signOutError,
@@ -44,12 +33,6 @@ export function AppShell({
         }
         actions={
           <>
-            <ThemeToggle
-              theme={theme}
-              onToggle={() => {
-                onThemeChange(theme === 'dark' ? 'light' : 'dark');
-              }}
-            />
             <IconButton
               label="Abrir menú"
               aria-haspopup="dialog"

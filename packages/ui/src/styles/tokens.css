@@ -3,9 +3,8 @@
  * mockup real en docs/design: fondo casi negro violáceo, acento lima tóxico, magenta y
  * violeta como bordes y superficies.
  *
- * Tema único: no hay variante por `data-theme`. El selector dark/light se retiró (ADR-0008);
- * lo que quede de esa mecánica en JS/TS (theme.ts, ThemeToggle, la preferencia en la API) se
- * retira en F4-02, tarea aparte.
+ * Tema único: no hay variante por `data-theme`. El selector dark/light se retiró (ADR-0008),
+ * junto con `theme.ts`, `ThemeToggle` y la preferencia persistida (F4-02).
  */
 
 :root {
