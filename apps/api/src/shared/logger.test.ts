@@ -1,6 +1,6 @@
 import { PassThrough } from 'node:stream';
 import { pino } from 'pino';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { testEnv } from '../test/env.ts';
 import { buildLoggerOptions } from './logger.ts';
 
@@ -62,13 +62,25 @@ describe('logger', () => {
     expect(line).not.toContain('s3cr3t');
   });
 
-  it('nunca loguea datos de tarjeta', () => {
-    const { log, lines } = captureLogs();
-    log.info({ card: '4111111111111111', cvv: '123' }, 'pago');
+  describe('nunca loguea datos de tarjeta', () => {
+    // Reloj congelado: el ts (ISO 8601) no puede coincidir con el cvv por azar (ver bitácora).
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+    });
 
-    const line = JSON.stringify(lines()[0]);
-    expect(line).not.toContain('4111111111111111');
-    expect(line).not.toContain('123');
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('redacta card y cvv', () => {
+      const { log, lines } = captureLogs();
+      log.info({ card: '4111111111111111', cvv: '123' }, 'pago');
+
+      const line = JSON.stringify(lines()[0]);
+      expect(line).not.toContain('4111111111111111');
+      expect(line).not.toContain('123');
+    });
   });
 
   it('nunca loguea el header de autorización ni la cookie', () => {
