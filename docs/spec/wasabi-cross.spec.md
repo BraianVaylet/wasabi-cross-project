@@ -49,7 +49,7 @@ Mockups en [`../mockup`](../mockup).
 | Presentación               | `wasabi (1).png`                                      | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                       |
 | Login                      | `wasabi (2).png`                                      | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                           |
 | Registro                   | `wasabi (3).png`                                      | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                              |
-| Header (componente global) | `wasabi (4a).png`                                     | Logo + nombre a la izquierda; toggle de tema y menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Color, Cerrar sesión. Presente en todas las páginas.                                                                                                                              |
+| Header (componente global) | `wasabi (4a).png`                                     | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único).                                                                                            |
 | Home                       | `wasabi (4).png`                                      | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                        |
 | Estadísticas               | `wasabi (10).png`                                     | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. |
 | Ejercicio                  | `wasabi (5).png`, `wasabi (6).png`, `wasabi (11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1.                                                   |
@@ -137,7 +137,7 @@ Un solo deployable de backend, módulos aislados (`domain / application / infras
 | Módulo          | Responsabilidad                                                                                                  |
 | --------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `auth`          | Login, registro, sesión (Better Auth)                                                                            |
-| `users`         | Perfil, configuración (tema, porcentajes de carga default)                                                       |
+| `users`         | Perfil, configuración (porcentajes de carga default)                                                             |
 | `exercises`     | Catálogo pre-cargado, ejercicios propios y la lista de ejercicios gestionados de cada usuario (nivel, con dolor) |
 | `records`       | Carga y evolución de RM / tiempos / repeticiones, cálculo de porcentajes                                         |
 | `stats`         | Agregaciones y análisis (por ejercicio y generales)                                                              |
@@ -187,10 +187,10 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 ## 11. UX/UI
 
 - Referencia: [uiguideline.com](https://www.uiguideline.com/)
-- Imagen de marca propia (ver mockups: dark theme, acento verde lima)
+- Imagen de marca propia: "Toxic Cyberpunk" (ver [docs/design](../design) y [ADR-0008](../adr/0008-tema-unico-toxic-cyberpunk.md)) — fondo casi negro violáceo, acento lima tóxico, magenta y violeta como bordes/superficies, tipografía monoespaciada + condensada de afiche en mayúsculas, recorte de esquina en diagonal ("plate-cut") como firma visual
 - Mismos componentes y paleta en toda la app
 - Mobile first
-- Tema dark/light, **dark first**
+- **Tema único**, sin selector dark/light (ADR-0008): el lenguaje visual es neón-sobre-oscuro por diseño, no una variante de un tema claro
 - Accesibilidad **WCAG 2.2 AA**: contraste ≥ 4.5:1, foco visible, teclado completo, labels/`aria-*` correctos, `prefers-reduced-motion` respetado, targets táctiles ≥ 44×44px. Auditoría con axe en CI.
 - DnD accesible
 - Estados vacíos con acción ("Todavía no tenés ejercicios → Agregar el primero")

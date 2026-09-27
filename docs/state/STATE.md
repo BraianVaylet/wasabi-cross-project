@@ -6,7 +6,8 @@
 
 **Fases 0, 1 y 2: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde), la 1 el 2026-09-22 con F1-18, y
 la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y
-`packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo.
+`packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk,
+arrancó el 2026-09-27**: tema único, se retira el selector dark/light ([ADR-0008](../adr/0008-tema-unico-toxic-cyberpunk.md)).
 
 Queda abierta sólo F0-08 (el tablero): las seis etiquetas de Trello siguen sin nombre, y el MCP no
 puede nombrarlas. Es el único pendiente de la fase y no bloquea nada.
@@ -89,6 +90,17 @@ registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese
   ambientes en Railway y el cluster de Atlas). Ninguna arranca sin eso — no es que falte código,
   es que la regla de dependencias del propio plan lo impide.
 
+**Fase 4 — Rediseño Toxic Cyberpunk: arrancó, 0 de 11 tareas cerradas.** 52 puntos en total. No
+depende de Railway/Atlas, puede avanzar en paralelo a lo que quede bloqueado de la Fase 3.
+
+- **F4-01 · Fundaciones del tema**: código hecho, PR abierta (#56), a la espera de revisión.
+  `tokens.css` con la paleta única, tipografía Share Tech Mono + Staatliches vía Fontsource, radios
+  a 0 y la utilidad `.wc-plate-cut`.
+- El plan completo de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11) está en PR #55, también
+  a la espera de revisión.
+- Quedan **F4-02 a F4-11**: F4-02 (retirar la preferencia de tema) depende de F4-01; las pantallas
+  (F4-05 a F4-10) dependen de los componentes Cross (F4-03/F4-04); F4-11 cierra la fase.
+
 ## Bloqueado
 
 **F3-07 a F3-12**, en cadena, hasta que el usuario cree los ambientes de Railway (F3-07) y el
@@ -96,11 +108,14 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
+1. Revisar y mergear PR #55 (plan de la Fase 4: ADR-0008, spec, ACTION-PLAN) y PR #56 (F4-01,
+   fundaciones del tema).
+2. Seguir con F4-02 (se retira la preferencia de tema: schemas, API, migración, `ThemeToggle`).
+3. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.
-2. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
-3. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
+4. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+5. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
    (IA-01 a IA-09) entran al plan. No dependen de Railway ni de Atlas: pueden avanzar mientras la
    Fase 3 espera.
 
@@ -164,14 +179,11 @@ desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
 
-2026-09-23 — Fase 3 sin cambios (F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas, F3-03 parcial, el
-resto en cadena detrás de F3-07/F3-08). Más temprano ese día se mergearon #48, #49 y #50 (peso en
-hipertrofia, desnivel en running, color por banda de carga, porcentajes ordenados). Después, a
-pedido del usuario, se analizó el repo
-[claude-code-best-practice](https://github.com/shanraisshan/claude-code-best-practice) contra cómo
-se trabaja acá: el resultado está en [prácticas de Claude Code](../claude-code-practices.md), como
-propuesta — no se aplicó nada ni se tocó el plan. Y, a pedido del usuario, un usuario admin fijo
-con plan Max para desarrollo (`seed:admin`, sin proveedor de pago todavía no hay otra forma de
-probar sin el límite del plan Free) — ver "Cómo correrlo" más arriba. Bitácoras en
-[bitacora](./bitacora); la última es
-[la de esta sesión](./bitacora/2026-09-23-seed-admin-plan-max.md).
+2026-09-27 — Arranca la Fase 4: llegó un mockup nuevo con un lenguaje visual completo
+("Toxic Cyberpunk", `docs/design/`), y el usuario pidió aplicarlo a toda la app aunque sólo esa
+pantalla (detalle de ejercicio) está diseñada. Dos PRs abiertas, ninguna mergeada todavía: PR #55
+(ADR-0008 — tema único, se retira dark/light — spec §11 y el backlog de la fase) y PR #56 (F4-01,
+los tokens y la tipografía). Fase 3 sin cambios (F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas, F3-03
+parcial, el resto en cadena detrás de F3-07/F3-08); no depende de la Fase 4, avanzan en paralelo.
+Bitácoras en [bitacora](./bitacora); la última es
+[la de esta sesión](./bitacora/2026-09-27-fase-4-toxic-cyberpunk-inicio.md).
