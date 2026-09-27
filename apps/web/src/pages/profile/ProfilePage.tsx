@@ -1,6 +1,6 @@
-import type { Theme, UserPreferences } from '@wasabi-cross/schemas';
+import type { UserPreferences } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { Button, Skeleton, TextField, ThemeToggle } from '@wasabi-cross/ui';
+import { Button, Skeleton, TextField } from '@wasabi-cross/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { validatePercentages } from './percentages.ts';
@@ -8,19 +8,15 @@ import './profile.css';
 
 export interface ProfilePageProps {
   preferences: UseQueryResult<UserPreferences>;
-  theme: Theme;
-  onThemeChange: (theme: Theme) => void;
   onSave: (percentages: number[]) => void;
   saving: boolean;
   saved: boolean;
   saveError: unknown;
 }
 
-/** Perfil (F1-16): el tema y los porcentajes de carga que el usuario ve por defecto. */
+/** Perfil (F1-16): los porcentajes de carga que el usuario ve por defecto. */
 export function ProfilePage({
   preferences,
-  theme,
-  onThemeChange,
   onSave,
   saving,
   saved,
@@ -29,21 +25,6 @@ export function ProfilePage({
   return (
     <>
       <h1 className="page__title">Perfil</h1>
-
-      <section className="profile__section" aria-labelledby="profile-tema">
-        <h2 id="profile-tema" className="profile__heading">
-          Tema
-        </h2>
-        <div className="profile__theme">
-          <span>{theme === 'dark' ? 'Oscuro' : 'Claro'}</span>
-          <ThemeToggle
-            theme={theme}
-            onToggle={() => {
-              onThemeChange(theme === 'dark' ? 'light' : 'dark');
-            }}
-          />
-        </div>
-      </section>
 
       <section className="profile__section" aria-labelledby="profile-porcentajes">
         <h2 id="profile-porcentajes" className="profile__heading">

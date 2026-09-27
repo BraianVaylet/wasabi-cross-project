@@ -18,7 +18,6 @@ export interface PreferencesStore {
 
 export function withDefaults(stored: StoredPreferences | null): UserPreferences {
   return {
-    theme: stored?.theme ?? DEFAULT_PREFERENCES.theme,
     loadPercentages: [...(stored?.loadPercentages ?? DEFAULT_PREFERENCES.loadPercentages)],
   };
 }

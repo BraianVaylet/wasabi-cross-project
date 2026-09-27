@@ -57,8 +57,6 @@ test('ni la CSP ni el navegador se quejan al cargar la app', async ({ page }) =>
 
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
-  // El tema lo aplicó el bootstrap antes de React: no hubo parpadeo.
-  await expect(page.locator('html')).toHaveAttribute('data-theme', /dark|light/);
 
   expect(errores).toEqual([]);
 });

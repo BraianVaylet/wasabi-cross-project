@@ -1,4 +1,4 @@
-/* Perfil (F1-16): tema y porcentajes por defecto. */
+/* Perfil (F1-16): porcentajes por defecto. */
 
 .profile__section {
   display: flex;
@@ -17,16 +17,6 @@
   margin: 0;
   color: var(--wc-text-muted);
   font-size: var(--wc-font-size-sm);
-}
-
-.profile__theme {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--wc-space-3);
-  padding: var(--wc-space-3) var(--wc-space-4);
-  background-color: var(--wc-surface);
-  border-radius: var(--wc-radius-sm);
 }
 
 .profile__form {

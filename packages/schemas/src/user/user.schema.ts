@@ -3,9 +3,6 @@ import { timestampsSchema } from '../common/datetime.ts';
 import { userIdSchema } from '../common/ids.ts';
 import { planSchema } from './plan.ts';
 
-export const themeSchema = z.enum(['dark', 'light']);
-export type Theme = z.infer<typeof themeSchema>;
-
 /**
  * Porcentajes de carga que el usuario ve por default en un ejercicio de fuerza.
  * El default de la spec §5 es 65/75/80/85/90/95, configurable.
@@ -28,7 +25,6 @@ export const loadPercentagesSchema = z
   );
 
 export const userPreferencesSchema = z.object({
-  theme: themeSchema,
   loadPercentages: loadPercentagesSchema,
 });
 

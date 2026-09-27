@@ -81,10 +81,6 @@ test('la evolución de un ejercicio y el resumen general, con lo que se cargó',
   );
 
   await auditar(page, 'Estadísticas, abierto');
-
-  await page.getByRole('button', { name: 'Cambiar a tema claro' }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await auditar(page, 'Estadísticas, abierto, tema claro');
 });
 
 test('el período recorta: en tres meses queda una sola marca y no hay con qué comparar', async ({

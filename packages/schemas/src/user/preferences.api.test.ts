@@ -2,17 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_PREFERENCES, updatePreferencesSchema } from './preferences.api.ts';
 
 describe('DEFAULT_PREFERENCES', () => {
-  it('es tema oscuro con los porcentajes de la spec §5', () => {
+  it('son los porcentajes de la spec §5', () => {
     expect(DEFAULT_PREFERENCES).toEqual({
-      theme: 'dark',
       loadPercentages: [65, 75, 80, 85, 90, 95],
     });
   });
 });
 
 describe('updatePreferencesSchema', () => {
-  it('acepta cambiar sólo el tema o sólo los porcentajes', () => {
-    expect(updatePreferencesSchema.parse({ theme: 'light' })).toEqual({ theme: 'light' });
+  it('acepta cambiar los porcentajes', () => {
     expect(updatePreferencesSchema.parse({ loadPercentages: [70, 80] })).toEqual({
       loadPercentages: [70, 80],
     });
@@ -25,7 +23,7 @@ describe('updatePreferencesSchema', () => {
     expect(result.error?.issues[0]?.message).toBe('No hay nada para actualizar');
   });
 
-  it('rechaza un campo que no es una preferencia, en vez de descartarlo', () => {
+  it('rechaza un campo que no es una preferencia, en vez de descartarlo (ADR-0008: theme ya no existe)', () => {
     expect(updatePreferencesSchema.safeParse({ theme: 'light', plan: 'max' }).success).toBe(false);
   });
 

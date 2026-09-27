@@ -1,24 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { braian, fakeSession, renderApp } from '../test/app.tsx';
 import { serviceWorkerStub } from '../test/pwa-register-stub.ts';
 import { PwaUpdate } from './PwaUpdate.tsx';
 
 describe('aviso de nueva versión (F1-17, spec §5)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   afterEach(() => {
     serviceWorkerStub.reset();
   });

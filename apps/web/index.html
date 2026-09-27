@@ -1,19 +1,13 @@
 <!doctype html>
-<html lang="es-AR" data-theme="dark">
+<html lang="es-AR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#24333d" />
+    <meta name="theme-color" content="#0f041c" />
     <meta name="description" content="Gestioná tus ejercicios, RMs y tu evolución en el tiempo." />
     <title>Wasabi Cross</title>
   </head>
   <body>
-    <!--
-      Aplica el tema antes del primer pintado, sin esperar al bundle de React. Es un archivo
-      y no un script inline para que la CSP no lo bloquee (F3-03). Clásico y sin `defer`:
-      tiene que correr antes de que se pinte nada.
-    -->
-    <script src="/theme-bootstrap.js"></script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

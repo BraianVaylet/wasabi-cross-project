@@ -18,7 +18,7 @@ Lo que hay hoy, en una línea cada uno:
 - Auth con Better Auth sobre Mongo: registro, login, sesión persistida, rate limit.
 - `@wasabi-cross/schemas`: `User`, `Exercise`, `ManagedExercise`, `ExerciseRecord` en Zod, fuente
   única de tipos, alineados con la spec §5.1.
-- `@wasabi-cross/ui`: los Componentes Cross con tema dark/light y Storybook.
+- `@wasabi-cross/ui`: los Componentes Cross, tema único "Toxic Cyberpunk" (ADR-0008) y Storybook.
 - Catálogo de 33 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
 - CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
   Storybook, audit de dependencias y el E2E de Playwright con su auditoría axe.
@@ -66,10 +66,12 @@ registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese
   antes de que responda la API y rollback si la rechaza.
 - **F1-15 · Editar y borrar**: cerrada. Desde el lápiz del detalle, con borrado confirmado
   escribiendo el nombre.
-- **F1-16 · Perfil**: cerrada. Porcentajes por defecto y tema, guardados en la API.
+- **F1-16 · Perfil**: cerrada. Porcentajes por defecto, guardados en la API (el tema que tenía se
+  retiró en F4-02, ADR-0008).
 - **F1-17 · Aviso de nueva versión**: cerrada. El popup de la PWA.
 - **F1-18 · E2E y axe en CI**: cerrada. Playwright contra la app entera con un Mongo efímero,
-  auditando cada pantalla de la fase en los dos temas. **Con esto la Fase 1 queda cerrada.**
+  auditando cada pantalla de la fase (en su momento, en los dos temas; desde F4-02 el E2E ya no
+  ejercita el toggle, que se retiró). **Con esto la Fase 1 queda cerrada.**
 
 **Fase 3 — A producción: en curso, 5 de 12 tareas.** 37 puntos en total (spec §12).
 
@@ -90,16 +92,21 @@ registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese
   ambientes en Railway y el cluster de Atlas). Ninguna arranca sin eso — no es que falte código,
   es que la regla de dependencias del propio plan lo impide.
 
-**Fase 4 — Rediseño Toxic Cyberpunk: arrancó, 0 de 11 tareas cerradas.** 52 puntos en total. No
-depende de Railway/Atlas, puede avanzar en paralelo a lo que quede bloqueado de la Fase 3.
+**Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 11 tareas cerradas** (código de F4-01 y F4-02
+hecho, a la espera de que el usuario cumpla el Definition of Done y las marque). 52 puntos en total.
+No depende de Railway/Atlas, puede avanzar en paralelo a lo que quede bloqueado de la Fase 3.
 
-- **F4-01 · Fundaciones del tema**: código hecho, PR abierta (#56), a la espera de revisión.
-  `tokens.css` con la paleta única, tipografía Share Tech Mono + Staatliches vía Fontsource, radios
-  a 0 y la utilidad `.wc-plate-cut`.
-- El plan completo de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11) está en PR #55, también
-  a la espera de revisión.
-- Quedan **F4-02 a F4-11**: F4-02 (retirar la preferencia de tema) depende de F4-01; las pantallas
-  (F4-05 a F4-10) dependen de los componentes Cross (F4-03/F4-04); F4-11 cierra la fase.
+- El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
+- **F4-01 · Fundaciones del tema**: código hecho, PR #56 mergeada. `tokens.css` con la paleta
+  única, tipografía Share Tech Mono + Staatliches vía Fontsource, radios a 0 y la utilidad
+  `.wc-plate-cut`.
+- **F4-02 · Se retira la preferencia de tema**: código hecho, PR abierta (#57), CI verde, a la
+  espera de revisión. `theme` sale de schemas/API/Mongo (migración versionada), y de
+  `packages/ui` (`theme.ts`, `ThemeToggle`). De paso arregló un bug real que esto destapó:
+  `ExerciseDetailPage` podía renderizar la tabla de porcentajes antes de que las preferencias
+  llegaran, y `percentageTable` tiraba con un porcentaje 0.
+- Quedan **F4-03 a F4-11**: F4-03/F4-04 (componentes Cross) no dependen de F4-02; las pantallas
+  (F4-05 a F4-10) dependen de ésos; F4-11 cierra la fase.
 
 ## Bloqueado
 
@@ -108,9 +115,8 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear PR #55 (plan de la Fase 4: ADR-0008, spec, ACTION-PLAN) y PR #56 (F4-01,
-   fundaciones del tema).
-2. Seguir con F4-02 (se retira la preferencia de tema: schemas, API, migración, `ThemeToggle`).
+1. Revisar y mergear PR #57 (F4-02, se retira la preferencia de tema).
+2. Seguir con F4-03/F4-04 (componentes Cross: botones, inputs, navegación y el gráfico).
 3. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.
@@ -181,9 +187,10 @@ desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 2026-09-27 — Arranca la Fase 4: llegó un mockup nuevo con un lenguaje visual completo
 ("Toxic Cyberpunk", `docs/design/`), y el usuario pidió aplicarlo a toda la app aunque sólo esa
-pantalla (detalle de ejercicio) está diseñada. Dos PRs abiertas, ninguna mergeada todavía: PR #55
-(ADR-0008 — tema único, se retira dark/light — spec §11 y el backlog de la fase) y PR #56 (F4-01,
-los tokens y la tipografía). Fase 3 sin cambios (F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas, F3-03
-parcial, el resto en cadena detrás de F3-07/F3-08); no depende de la Fase 4, avanzan en paralelo.
-Bitácoras en [bitacora](./bitacora); la última es
-[la de esta sesión](./bitacora/2026-09-27-fase-4-toxic-cyberpunk-inicio.md).
+pantalla (detalle de ejercicio) está diseñada. PR #55 (plan: ADR-0008, spec, ACTION-PLAN) y PR #56
+(F4-01, tokens y tipografía) mergeadas. PR #57 (F4-02, se retira la preferencia de tema) abierta,
+CI verde — de paso corrigió un bug real en `ExerciseDetailPage` que la propia refactorización
+destapó (el detalle podía renderizar antes de que las preferencias llegaran). Fase 3 sin cambios
+(F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas, F3-03 parcial, el resto en cadena detrás de
+F3-07/F3-08); no depende de la Fase 4, avanzan en paralelo. Bitácoras en [bitacora](./bitacora); la
+última es [la de esta sesión](./bitacora/2026-09-27-fase-4-toxic-cyberpunk-inicio.md).

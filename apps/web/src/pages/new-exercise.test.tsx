@@ -2,7 +2,7 @@ import type { Exercise, ManagedExerciseSummary } from '@wasabi-cross/schemas';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeApi, fakeSession, renderApp, type FakeApi } from '../test/app.tsx';
 
@@ -48,19 +48,6 @@ async function completarComun(): Promise<void> {
 }
 
 describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   describe('el nombre busca en el catálogo', () => {
     it('se busca con el teclado: el campo ofrece las opciones del catálogo', async () => {
       renderNuevo();

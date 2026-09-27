@@ -11,7 +11,7 @@ const validUser = {
   email: 'braian@example.com',
   name: 'Braian',
   plan: 'free',
-  preferences: { theme: 'dark', loadPercentages: [...DEFAULT_LOAD_PERCENTAGES] },
+  preferences: { loadPercentages: [...DEFAULT_LOAD_PERCENTAGES] },
   createdAt: '2026-09-17T14:03:11.412Z',
   updatedAt: '2026-09-17T14:03:11.412Z',
 };
@@ -41,15 +41,6 @@ describe('userSchema', () => {
 
   it('rechaza un plan que no existe', () => {
     expect(userSchema.safeParse({ ...validUser, plan: 'premium' }).success).toBe(false);
-  });
-
-  it('rechaza un tema que no existe', () => {
-    expect(
-      userSchema.safeParse({
-        ...validUser,
-        preferences: { ...validUser.preferences, theme: 'sepia' },
-      }).success,
-    ).toBe(false);
   });
 });
 
@@ -87,9 +78,9 @@ describe('loadPercentagesSchema', () => {
 describe('updateUserProfileSchema', () => {
   it('acepta un cambio parcial', () => {
     expect(updateUserProfileSchema.safeParse({ name: 'Bra' }).success).toBe(true);
-    expect(updateUserProfileSchema.safeParse({ preferences: { theme: 'light' } }).success).toBe(
-      true,
-    );
+    expect(
+      updateUserProfileSchema.safeParse({ preferences: { loadPercentages: [70, 80] } }).success,
+    ).toBe(true);
   });
 
   it('rechaza un update vacío', () => {

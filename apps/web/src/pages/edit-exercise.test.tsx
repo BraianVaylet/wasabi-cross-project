@@ -2,7 +2,7 @@ import type { ExerciseList, ManagedExerciseSummary } from '@wasabi-cross/schemas
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
 
@@ -44,19 +44,6 @@ function renderEdicion(id: string, exercises = [delCatalogo, propio]) {
 }
 
 describe('Editar y borrar un ejercicio (F1-15)', () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.documentElement.removeAttribute('data-theme');
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn().mockReturnValue({
-        matches: false,
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      }),
-    );
-  });
-
   describe('editar', () => {
     it('se llega desde el lápiz del detalle', async () => {
       const api = fakeApi(lista([delCatalogo]));

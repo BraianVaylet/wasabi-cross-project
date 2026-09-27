@@ -45,7 +45,6 @@ import { optimisticId, prependRecord, type HistoryPages } from './optimistic-his
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
 import { AppShell } from './shell/AppShell.tsx';
-import { useSyncedTheme } from './use-synced-theme.ts';
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -152,9 +151,8 @@ const appRoute = createRoute({
     return { user };
   },
   component: function ShellRoute() {
-    const { queryClient, session, api } = appRoute.useRouteContext();
+    const { queryClient, session } = appRoute.useRouteContext();
     const navigate = useNavigate();
-    const { theme, change } = useSyncedTheme(api);
     const signOut = useMutation({
       mutationFn: () => session.signOut(),
       onSuccess: async () => {
@@ -165,8 +163,6 @@ const appRoute = createRoute({
 
     return (
       <AppShell
-        theme={theme}
-        onThemeChange={change}
         onSignOut={() => {
           signOut.mutate();
         }}
@@ -364,7 +360,6 @@ const profileRoute = createRoute({
   component: function ProfileRoute() {
     const { api, queryClient } = appRoute.useRouteContext();
     const preferences = useQuery(preferencesQueryOptions(api));
-    const { theme, change } = useSyncedTheme(api);
     const savePercentages = useMutation({
       mutationFn: (loadPercentages: number[]) => api.savePreferences({ loadPercentages }),
       onSuccess: (saved) => {
@@ -375,8 +370,6 @@ const profileRoute = createRoute({
     return (
       <ProfilePage
         preferences={preferences}
-        theme={theme}
-        onThemeChange={change}
         saving={savePercentages.isPending}
         saved={savePercentages.isSuccess}
         saveError={savePercentages.error}
