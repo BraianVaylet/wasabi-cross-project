@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import '../../styles/forms.css';
 import './RadioGroup.css';
 
 export interface RadioOption<TValue extends string> {
@@ -38,26 +39,28 @@ export function RadioGroup<TValue extends string>({
       aria-describedby={error ? errorId : undefined}
       disabled={disabled}
     >
-      <legend className="wc-radio-group__legend">{legend}</legend>
+      <legend className="wc-field-label wc-radio-group__legend">{legend}</legend>
 
-      {options.map((option) => (
-        <label key={option.value} className="wc-radio-group__option">
-          <input
-            type="radio"
-            className="wc-radio-group__input"
-            name={name}
-            value={option.value}
-            checked={value === option.value}
-            onChange={() => {
-              onChange(option.value);
-            }}
-          />
-          <span>{option.label}</span>
-        </label>
-      ))}
+      <div className="wc-radio-group__options">
+        {options.map((option) => (
+          <label key={option.value} className="wc-choice-tile">
+            <input
+              type="radio"
+              className="wc-choice"
+              name={name}
+              value={option.value}
+              checked={value === option.value}
+              onChange={() => {
+                onChange(option.value);
+              }}
+            />
+            <span>{option.label}</span>
+          </label>
+        ))}
+      </div>
 
       {error ? (
-        <p id={errorId} className="wc-radio-group__error" role="alert">
+        <p id={errorId} className="wc-field-error" role="alert">
           {error}
         </p>
       ) : null}

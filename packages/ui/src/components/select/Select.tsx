@@ -1,4 +1,5 @@
 import { useId, type ReactNode, type SelectHTMLAttributes } from 'react';
+import '../../styles/forms.css';
 import './Select.css';
 
 export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> {
@@ -25,13 +26,13 @@ export function Select({
         .filter(Boolean)
         .join(' ')}
     >
-      <label className="wc-select__label" htmlFor={id}>
+      <label className="wc-field-label" htmlFor={id}>
         {label}
       </label>
 
       <select
         id={id}
-        className="wc-select__input"
+        className="wc-field-box wc-select__input"
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         {...rest}
@@ -40,7 +41,7 @@ export function Select({
       </select>
 
       {error ? (
-        <p id={errorId} className="wc-select__error" role="alert">
+        <p id={errorId} className="wc-field-error" role="alert">
           {error}
         </p>
       ) : null}

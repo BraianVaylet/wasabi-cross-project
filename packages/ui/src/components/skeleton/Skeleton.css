@@ -1,13 +1,15 @@
 .wc-skeleton {
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-3);
+  gap: var(--wc-space-2);
 }
 
+/* Con la forma y el violeta de las tarjetas del diseño: el hueco se parece a lo que viene. */
 .wc-skeleton__piece {
   height: 4.5rem;
-  border-radius: var(--wc-radius-sm);
-  background-color: var(--wc-surface);
+  background-color: var(--wc-surface-muted);
+  border-left: 2px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
   animation: wc-skeleton-pulse 1.4s ease-in-out infinite;
 }
 

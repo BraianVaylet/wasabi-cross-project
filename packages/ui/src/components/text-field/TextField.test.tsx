@@ -56,6 +56,34 @@ describe('TextField', () => {
     expect(screen.getByText('%')).toBeInTheDocument();
   });
 
+  it('por default va apilado: el label arriba del campo', () => {
+    const { container } = render(<TextField label="Email" />);
+
+    expect(container.firstChild).not.toHaveClass('wc-text-field--inline');
+  });
+
+  it('en línea, como el porcentaje personalizado del diseño, sigue asociando su label', async () => {
+    const { container } = render(
+      <TextField label="Porcentaje personalizado" variant="inline" suffix="%" placeholder="—" />,
+    );
+
+    expect(container.firstChild).toHaveClass('wc-text-field--inline');
+    await userEvent.type(screen.getByLabelText('Porcentaje personalizado'), '98');
+    expect(screen.getByLabelText('Porcentaje personalizado')).toHaveValue('98');
+  });
+
+  it('en línea, el error va afuera de la caja del campo, y se anuncia igual', () => {
+    const { container } = render(
+      <TextField label="Porcentaje personalizado" variant="inline" error="Entre 1 y 100." />,
+    );
+
+    const box = container.querySelector('.wc-text-field__field');
+    expect(box).not.toContainElement(screen.getByRole('alert'));
+    expect(screen.getByLabelText('Porcentaje personalizado')).toHaveAccessibleDescription(
+      'Entre 1 y 100.',
+    );
+  });
+
   it('deja pasar los atributos del input', async () => {
     render(<TextField label="Peso" placeholder="Ej: 98" inputMode="numeric" disabled />);
 

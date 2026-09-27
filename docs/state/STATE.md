@@ -92,9 +92,9 @@ registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese
   ambientes en Railway y el cluster de Atlas). Ninguna arranca sin eso — no es que falte código,
   es que la regla de dependencias del propio plan lo impide.
 
-**Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12 y
-F4-03a mergeadas, F4-03c en PR; todas a la espera de que el usuario cumpla el Definition of Done y
-las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar en paralelo a lo que
+**Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
+F4-03a y F4-03c mergeadas, F4-03b en PR; todas a la espera de que el usuario cumpla el Definition of
+Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar en paralelo a lo que
 quede bloqueado de la Fase 3.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
@@ -111,19 +111,22 @@ quede bloqueado de la Fase 3.
   detalle sigue los mockups 5 y 6. Las decisiones del usuario sobre lo que el diseño contradice o no
   cubre quedaron en spec §5, §5.1, §5.2 (nueva) y §11. F4-03, F4-04 y F4-05 se partieron
   (F4-03a/b/c, F4-04a/b, F4-05a/b/c/d) y entró **F4-12** (la spec): PR #60, mergeada.
-- **F4-03a · Tipografía, botones y tarjetas**: código hecho, PR #61 mergeada. Titulares de toda la app en Staatliches, escala y tracking
-  del diseño como tokens, los colores nuevos con su contraste, `Button` con recorte y variante
+- **F4-03a · Tipografía, botones y tarjetas**: código hecho, PR #61 mergeada. Titulares de toda la
+  app en Staatliches, escala y tracking del diseño como tokens, los colores nuevos con su contraste, `Button` con recorte y variante
   `cta`, `IconButton` cuadrado, `Tag` en mayúsculas, `Card` con las variantes del historial. Dos
   hallazgos: el recorte tiene que ir en el propio elemento (con el fondo en un `::before`, axe deja
   el contraste sin verificar), así que el foco pasa a ser un anillo interior; y la sombra de la CTA
   no existe en el diseño real (su propio recorte la tapa).
-- **F4-03c · Componentes nuevos del diseño**: código hecho, PR abierta
-  (`feat/f4-03c-componentes-diseno`). `SectionHeader`, `Measure`, `PercentTiles` (radios reales,
+- **F4-03c · Componentes nuevos del diseño**: código hecho, PR #63 mergeada. `SectionHeader`, `Measure`, `PercentTiles` (radios reales,
   flechas del teclado) y `BottomBar` (fija, con un espacio reservado del alto medido para no tapar
   el final de la página). Más la story "Fundaciones/Detalle del diseño", que arma el detalle con
   estas piezas para compararlo con el PNG.
-- Quedan **F4-03b, F4-04a/b, F4-05a a F4-11**. Camino más corto a un detalle igual al diseño:
-  F4-03b y F4-04b → F4-05a → F4-05b y F4-05c → F4-05d. El resto de las pantallas (F4-06 a F4-10)
+- **F4-03b · Formularios y estados**: código hecho, PR abierta (`feat/f4-03b-formularios`).
+  Etiquetas iguales en todos los campos, cajas con el fondo del diseño, casilla y radio dibujados
+  (el control nativo se veía gris), `CheckboxGroup` y `RadioGroup` en casilleros, `Skeleton`
+  violeta, y `TextField variant="inline"`: el "PORCENTAJE PERSONALIZADO" del diseño.
+- Quedan **F4-04a/b, F4-05a a F4-11**. Con F4-03b mergeada, F4-05a (el detalle, cabecera y carga)
+  queda destrabada; F4-05c espera el gráfico (F4-04b). El resto de las pantallas (F4-06 a F4-10)
   cuelga de los componentes; F4-11 cierra la fase.
 
 ## Bloqueado
@@ -133,9 +136,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F4-03c (`feat/f4-03c-componentes-diseno`).
-2. Seguir con F4-03b (formularios: el porcentaje personalizado del detalle) y F4-04b (el gráfico
-   de progreso): con esas dos y F4-03c, el detalle (F4-05a) queda destrabado.
+1. Revisar y mergear la PR de F4-03b (`feat/f4-03b-formularios`).
+2. Seguir con F4-05a (el detalle: cabecera y carga, la primera pantalla con el diseño real) y
+   F4-04b (el gráfico de progreso, que destraba F4-05c).
 3. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.

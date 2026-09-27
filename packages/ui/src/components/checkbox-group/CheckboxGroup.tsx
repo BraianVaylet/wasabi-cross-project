@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import '../../styles/forms.css';
 import './CheckboxGroup.css';
 
 export interface CheckboxOption<TValue extends string> {
@@ -51,14 +52,14 @@ export function CheckboxGroup<TValue extends string>({
       aria-describedby={error ? errorId : undefined}
       disabled={disabled}
     >
-      <legend className="wc-checkbox-group__legend">{legend}</legend>
+      <legend className="wc-field-label wc-checkbox-group__legend">{legend}</legend>
 
       <div className="wc-checkbox-group__options">
         {options.map((option) => (
-          <label key={option.value} className="wc-checkbox-group__option">
+          <label key={option.value} className="wc-choice-tile">
             <input
               type="checkbox"
-              className="wc-checkbox-group__input"
+              className="wc-choice"
               value={option.value}
               checked={values.includes(option.value)}
               onChange={() => {
@@ -71,7 +72,7 @@ export function CheckboxGroup<TValue extends string>({
       </div>
 
       {error ? (
-        <p id={errorId} className="wc-checkbox-group__error" role="alert">
+        <p id={errorId} className="wc-field-error" role="alert">
           {error}
         </p>
       ) : null}

@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes } from 'react';
+import '../../styles/forms.css';
 import './Checkbox.css';
 
 export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -12,7 +13,7 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 export function Checkbox({ label, className, ...rest }: CheckboxProps): React.JSX.Element {
   return (
     <label className={['wc-checkbox', className].filter(Boolean).join(' ')}>
-      <input type="checkbox" className="wc-checkbox__input" {...rest} />
+      <input type="checkbox" className="wc-choice" {...rest} />
       <span>{label}</span>
     </label>
   );
