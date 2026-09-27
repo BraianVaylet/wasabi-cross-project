@@ -63,6 +63,9 @@ describe('Button', () => {
 
     rerender(<Button variant="ghost">x</Button>);
     expect(screen.getByRole('button')).toHaveClass('wc-button--ghost');
+
+    rerender(<Button variant="cta">x</Button>);
+    expect(screen.getByRole('button')).toHaveClass('wc-button--cta');
   });
 
   it('block ocupa todo el ancho', () => {

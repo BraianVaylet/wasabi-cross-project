@@ -1,9 +1,13 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import './Button.css';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'cta';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  /**
+   * `primary` es el lima de siempre. `cta` es la acción principal de una pantalla, en magenta:
+   * el "Registrar nuevo RM" del diseño. Una por pantalla, como mucho.
+   */
   variant?: ButtonVariant;
   /** Ocupa todo el ancho disponible, como el "New Exercice" de los mockups. */
   block?: boolean;

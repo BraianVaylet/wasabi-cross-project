@@ -20,6 +20,11 @@ test('de cero a los porcentajes del detalle', async ({ page }) => {
 
   await page.getByRole('link', { name: /Back squat/ }).click();
   await expect(page.getByRole('heading', { name: 'Back squat' })).toBeVisible();
+  // Los titulares van en la condensada del diseño (F4-03a): jsdom no carga CSS, esto sí.
+  await expect(page.getByRole('heading', { name: 'Back squat' })).toHaveCSS(
+    'font-family',
+    /Staatliches/,
+  );
 
   // 65% de 100 kg, redondeado al medio kilo de arriba (spec §5.2).
   await expect(page.getByTestId('carga')).toHaveText('65 kg');

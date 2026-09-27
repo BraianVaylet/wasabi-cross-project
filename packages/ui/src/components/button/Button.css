@@ -1,8 +1,15 @@
 /*
  * La clase también se usa en un `<a>` que se ve como botón (el "Nuevo ejercicio" de Home):
- * por eso van acá el `box-sizing` y el `text-decoration`, que un `<button>` ya trae.
+ * por eso van acá el `box-sizing`, el `text-decoration` y el recorte, que no dependen de
+ * que el elemento sea un `<button>`.
+ *
+ * El recorte de esquina (`--wc-plate-shape`) va en el propio elemento, con su fondo real:
+ * así axe puede medir el contraste del texto (con el fondo en un `::before` lo deja sin
+ * verificar). El recorte se come el outline, así que el foco es un anillo interior.
  */
 .wc-button {
+  --wc-button-focus-ring: inset 0 0 0 2px var(--wc-focus);
+
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -12,21 +19,28 @@
   min-height: var(--wc-tap-target);
   padding: var(--wc-space-3) var(--wc-space-5);
 
+  background-color: transparent;
   border: 1px solid transparent;
-  border-radius: var(--wc-radius-sm);
+  clip-path: var(--wc-plate-shape);
 
-  font-family: inherit;
-  font-size: var(--wc-font-size-base);
-  font-weight: 500;
-  line-height: 1.2;
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-button);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: var(--wc-tracking-button);
   text-align: center;
   text-decoration: none;
+  text-transform: uppercase;
 
   cursor: pointer;
   transition:
     background-color var(--wc-transition),
     border-color var(--wc-transition),
     color var(--wc-transition);
+}
+
+.wc-button:focus-visible {
+  box-shadow: var(--wc-button-focus-ring);
 }
 
 .wc-button--block {
@@ -38,7 +52,11 @@
   cursor: not-allowed;
 }
 
+/* Sobre el lima, un anillo lima no se ve: va uno oscuro, 3px hacia adentro del borde. */
 .wc-button--primary {
+  --wc-button-focus-ring:
+    inset 0 0 0 3px var(--wc-accent), inset 0 0 0 5px var(--wc-text-on-accent);
+
   background-color: var(--wc-accent);
   color: var(--wc-text-on-accent);
 }
@@ -48,7 +66,6 @@
 }
 
 .wc-button--secondary {
-  background-color: transparent;
   border-color: var(--wc-accent);
   color: var(--wc-accent-text);
 }
@@ -58,17 +75,42 @@
   color: var(--wc-text);
 }
 
+/* El mismo par de colores que los porcentajes no elegidos del diseño. */
 .wc-button--ghost {
-  background-color: var(--wc-surface);
+  background-color: var(--wc-surface-muted);
+  border-color: var(--wc-border);
   color: var(--wc-text);
 }
 
 .wc-button--ghost:hover:not(:disabled) {
-  background-color: var(--wc-surface-muted);
+  border-color: var(--wc-border-muted);
 }
 
 .wc-button--danger {
-  background-color: transparent;
   border-color: var(--wc-danger);
   color: var(--wc-danger-text);
+}
+
+/* Un anillo lima sobre el magenta da 2.98:1, por debajo del 3:1 de WCAG 1.4.11: va blanco (4.78:1). */
+.wc-button--cta {
+  --wc-button-focus-ring: inset 0 0 0 2px var(--wc-text-on-cta);
+
+  background-color: var(--wc-cta);
+  border-color: var(--wc-cta);
+  color: var(--wc-text-on-cta);
+}
+
+.wc-button--cta:hover:not(:disabled) {
+  background-color: var(--wc-cta-hover);
+  border-color: var(--wc-cta-hover);
+}
+
+/*
+ * En alto contraste de Windows el sistema saca las sombras (el anillo del foco) y pone sus
+ * colores: sin recorte, el borde y el outline del sistema quedan enteros.
+ */
+@media (forced-colors: active) {
+  .wc-button {
+    clip-path: none;
+  }
 }

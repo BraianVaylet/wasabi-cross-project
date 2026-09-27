@@ -3,13 +3,16 @@
   align-items: center;
   gap: var(--wc-space-1);
 
-  padding: var(--wc-space-1) var(--wc-space-3);
+  padding: 0.125rem var(--wc-space-2);
 
   border: 1px solid var(--wc-accent);
-  border-radius: var(--wc-radius-pill);
+  border-radius: var(--wc-radius-sm);
 
-  font-size: var(--wc-font-size-sm);
+  /* Como las etiquetas chicas del diseño: mayúsculas con tracking amplio, en 11px (spec §11). */
+  font-size: var(--wc-font-size-xs);
   line-height: 1.4;
+  letter-spacing: var(--wc-tracking-wide);
+  text-transform: uppercase;
   white-space: nowrap;
 }
 

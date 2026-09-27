@@ -1,11 +1,17 @@
+/*
+ * Como en Button: el recorte va en el propio elemento, con su fondo real, para que axe pueda
+ * medir el contraste. La tarjeta puede ser un `<button>`: su foco es un anillo interior,
+ * porque el recorte se come el outline.
+ */
 .wc-card {
+  box-sizing: border-box;
   display: block;
   width: 100%;
-  padding: var(--wc-space-4);
+  padding: var(--wc-space-3) var(--wc-space-4);
 
   background-color: var(--wc-surface);
-  border: 1px solid transparent;
-  border-radius: var(--wc-radius-sm);
+  border: 0 solid transparent;
+  clip-path: var(--wc-plate-shape);
   color: var(--wc-text);
 
   text-align: inherit;
@@ -13,9 +19,17 @@
   font-size: inherit;
 }
 
-.wc-card--highlighted {
+/* La marca actual del historial: el oliva del diseño con borde lima de 2px. */
+.wc-card--current {
   background-color: var(--wc-accent-subtle);
+  border-width: 2px;
   border-color: var(--wc-accent);
+}
+
+/* Las marcas anteriores: la superficie con un filo violeta a la izquierda. */
+.wc-card--past {
+  border-left-width: 2px;
+  border-left-color: var(--wc-border);
 }
 
 .wc-card--interactive {
@@ -23,6 +37,21 @@
   transition: background-color var(--wc-transition);
 }
 
-.wc-card--interactive:hover {
+.wc-card--interactive:hover:not(.wc-card--current) {
   background-color: var(--wc-surface-muted);
+}
+
+.wc-card--interactive:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--wc-focus);
+}
+
+/* Pegado al borde lima, un anillo lima sólo engorda el borde: va claro, 10.8:1 sobre el oliva. */
+.wc-card--current.wc-card--interactive:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--wc-text);
+}
+
+@media (forced-colors: active) {
+  .wc-card {
+    clip-path: none;
+  }
 }

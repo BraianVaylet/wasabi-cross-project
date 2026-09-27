@@ -1,9 +1,15 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
 import './Card.css';
 
+/**
+ * `plain` es la superficie de siempre. `current` y `past` son las dos del historial del diseño:
+ * la marca actual (oliva, borde lima) y las anteriores (sobrias, con un filo violeta a la
+ * izquierda).
+ */
+export type CardVariant = 'plain' | 'current' | 'past';
+
 interface CommonCardProps {
-  /** Resalta la tarjeta, como el RM vigente en el historial del mockup. */
-  highlighted?: boolean;
+  variant?: CardVariant;
   children: ReactNode;
   className?: string;
 }
@@ -24,14 +30,14 @@ export type CardProps = StaticCardProps | InteractiveCardProps;
  * como lo que es (spec §11, WCAG 2.2 AA).
  */
 export function Card({
-  highlighted = false,
+  variant = 'plain',
   className,
   children,
   ...rest
 }: CardProps): React.JSX.Element {
   const classes = [
     'wc-card',
-    highlighted ? 'wc-card--highlighted' : '',
+    `wc-card--${variant}`,
     rest.onClick ? 'wc-card--interactive' : '',
     className,
   ]

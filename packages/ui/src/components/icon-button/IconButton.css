@@ -1,23 +1,33 @@
+/*
+ * Cuadrado y con borde, como la caja del logo del diseño (spec §5.2). Sin recorte de esquina:
+ * es chico, y el corte en diagonal a 44px ya no se lee como forma.
+ */
 .wc-icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
+  box-sizing: border-box;
   width: var(--wc-tap-target);
   height: var(--wc-tap-target);
   padding: 0;
 
-  background-color: var(--wc-bg);
-  border: none;
-  border-radius: var(--wc-radius-pill);
+  background-color: transparent;
+  border: 1px solid var(--wc-border-muted);
+  border-radius: var(--wc-radius-sm);
   color: var(--wc-text);
 
   cursor: pointer;
-  transition: background-color var(--wc-transition);
+  transition:
+    background-color var(--wc-transition),
+    border-color var(--wc-transition),
+    color var(--wc-transition);
 }
 
 .wc-icon-button:hover {
   background-color: var(--wc-surface-muted);
+  border-color: var(--wc-accent);
+  color: var(--wc-accent-text);
 }
 
 .wc-icon-button__icon {

@@ -16,10 +16,19 @@
   --wc-surface-muted: #230d38;
   --wc-border: #411467;
   --wc-border-muted: #32989a;
+  /* La línea bajo el header y entre secciones: el verde azulado al 40%. Decorativa, sin requisito de contraste. */
+  --wc-divider: rgb(50 152 154 / 40%);
 
   --wc-text: #d7efef;
-  /* Mismo tono para labels, fechas y placeholders del mockup: todos pasan AA sobre fondo y superficie (ver abajo). */
+  /* Labels y etiquetas chicas: 8.5:1 sobre `--wc-bg`, 8.1:1 sobre `--wc-surface`, 5.5:1 sobre el oliva. */
   --wc-text-muted: #6cb5b4;
+  /*
+   * Fechas del historial, ejes del gráfico y textos secundarios del diseño: un tono entre el
+   * texto y el muted. 11.1:1 sobre `--wc-bg`, 10.7:1 sobre `--wc-surface`, 7.2:1 sobre el oliva.
+   */
+  --wc-text-soft: #9acbc8;
+  /* El placeholder del diseño: 8.7:1 sobre `--wc-bg`, 8.3:1 sobre `--wc-surface`. */
+  --wc-text-placeholder: #8cb2b2;
   --wc-text-on-accent: #0f041c;
 
   --wc-accent: #a7dd4f;
@@ -44,6 +53,22 @@
    * sin notarse distinto a simple vista.
    */
   --wc-danger-text: #f23a80;
+  /*
+   * El "RM ACTUAL" del historial va magenta sobre el oliva de `--wc-accent-subtle`: ahí el
+   * magenta del diseño da 3.08:1 y `--wc-danger-text`, 3.5:1. Este rosa da 4.95:1 (spec §11).
+   */
+  --wc-danger-on-subtle: #f576a7;
+
+  /*
+   * El botón "Registrar nuevo RM" (variante `cta` de Button). Con texto blanco, el magenta del
+   * diseño da 4.19:1: no pasa AA para un texto de 17px. Uno apenas más oscuro da 4.78:1
+   * (spec §11), y como forma sigue en 4.17:1 contra el fondo. El hover oscurece (5.6:1) en vez
+   * de aclarar, para no perder contraste. El HTML del diseño le declara una sombra dura, pero
+   * su propio recorte la tapa: en el PNG no se ve, y acá tampoco está.
+   */
+  --wc-cta: #dd1964;
+  --wc-cta-hover: #c9165b;
+  --wc-text-on-cta: #ffffff;
 
   /* Banda de carga media (spec §5.1): el naranja del "porcentaje personalizado" del mockup. */
   --wc-warning: #ff871f;
@@ -64,6 +89,15 @@
 
   /* Tamaño del recorte de esquina "plate-cut" del mockup (10px en el original a 430px de ancho). */
   --wc-plate-cut: 10px;
+  /* La forma del recorte, para `clip-path`: dos esquinas opuestas cortadas en diagonal. */
+  --wc-plate-shape: polygon(
+    0 0,
+    calc(100% - var(--wc-plate-cut)) 0,
+    100% var(--wc-plate-cut),
+    100% 100%,
+    var(--wc-plate-cut) 100%,
+    0 calc(100% - var(--wc-plate-cut))
+  );
 
   --wc-space-1: 0.25rem;
   --wc-space-2: 0.5rem;
@@ -76,12 +110,39 @@
   --wc-font-family: 'Share Tech Mono', ui-monospace, 'SFMono-Regular', monospace;
   --wc-font-family-display: 'Staatliches', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
+  /*
+   * La escala chica del diseño, fija: son etiquetas y datos de apoyo, no texto corrido. El
+   * diseño baja hasta 9px; spec §11 pone el piso en 10px para las etiquetas y en 11px para lo
+   * que lleva información (fechas, estados, valores).
+   */
+  --wc-font-size-2xs: 0.625rem;
+  --wc-font-size-xs: 0.6875rem;
+  --wc-font-size-caption: 0.75rem;
+
   /* Tipografía fluida (spec §11). Nunca por debajo de 16px en inputs: iOS hace zoom solo. */
   --wc-font-size-sm: clamp(0.875rem, 0.85rem + 0.15vw, 0.95rem);
   --wc-font-size-base: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
   --wc-font-size-lg: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
   --wc-font-size-xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
   --wc-font-size-display: clamp(2.5rem, 1.8rem + 3.5vw, 4rem);
+
+  /*
+   * Titulares en Staatliches, que es condensada: a igual tamaño ocupa bastante menos que la
+   * mono. Los mínimos son los del diseño a 390px de ancho: 24px los títulos de sección, 38px el
+   * nombre del ejercicio, 58px la carga calculada.
+   */
+  --wc-font-size-heading: clamp(1.5rem, 1.4rem + 0.4vw, 1.75rem);
+  --wc-font-size-title: clamp(2.375rem, 2.2rem + 0.5vw, 2.75rem);
+  --wc-font-size-hero: clamp(3.625rem, 3.4rem + 0.5vw, 4.25rem);
+  /* Los botones: 17px, como el "Registrar nuevo RM" del diseño. */
+  --wc-font-size-button: 1.0625rem;
+
+  /* Tracking del diseño: apretado en los titulares grandes, amplio en lo chico en mayúsculas. */
+  --wc-tracking-title: 0.035em;
+  --wc-tracking-button: 0.04em;
+  --wc-tracking-heading: 0.08em;
+  --wc-tracking-wide: 0.12em;
+  --wc-tracking-kicker: 0.2em;
 
   --wc-line-height: 1.5;
 
@@ -113,17 +174,40 @@
 }
 
 /*
+ * Titulares: la condensada de afiche del diseño, siempre en mayúsculas. Los `:where` dejan la
+ * especificidad en cero, así cualquier pantalla cambia tamaño o espaciado sin pelearse con
+ * esto. Staatliches tiene un solo peso: nada de negrita sintética.
+ */
+:where(.wc-root) :where(h1, h2, h3),
+.wc-display {
+  font-family: var(--wc-font-family-display);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: var(--wc-tracking-heading);
+  text-transform: uppercase;
+}
+
+:where(.wc-root) :where(h1) {
+  letter-spacing: var(--wc-tracking-title);
+}
+
+/* Etiqueta chica en mayúsculas con tracking amplio: el "MOVIMIENTO / FUERZA" o el "RM ACTUAL" del diseño. */
+.wc-kicker {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-2xs);
+  line-height: 1.4;
+  letter-spacing: var(--wc-tracking-kicker);
+  text-transform: uppercase;
+}
+
+/*
  * Recorte de esquina en diagonal: la firma visual del mockup en tarjetas, tiles y botones.
- * `clip-path` no admite `border-radius`, así que un elemento con borde tiene que dibujarlo con
- * `border` normal (el recorte igual se nota en la esquina).
+ *
+ * Recorta el elemento entero, outline del foco incluido: en un control, el foco va como anillo
+ * interior (`box-shadow: inset`, ver Button.css). El fondo tiene que ser del propio elemento y
+ * no de un `::before`: sobre un pseudo-elemento axe no puede medir el contraste y lo deja sin
+ * verificar, y el axe del E2E es la red de spec §11.
  */
 .wc-plate-cut {
-  clip-path: polygon(
-    0 0,
-    calc(100% - var(--wc-plate-cut)) 0,
-    100% var(--wc-plate-cut),
-    100% 100%,
-    var(--wc-plate-cut) 100%,
-    0 calc(100% - var(--wc-plate-cut))
-  );
+  clip-path: var(--wc-plate-shape);
 }
