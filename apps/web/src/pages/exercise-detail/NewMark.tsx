@@ -29,6 +29,11 @@ export function newMarkLabel(kind: MeasureKind): string {
   return kind === 'rm' ? 'Nuevo RM' : 'Nueva marca';
 }
 
+/** El botón de la barra fija que abre el modal: "Registrar nuevo RM" (spec §5.2, zona 6). */
+export function newMarkAction(kind: MeasureKind): string {
+  return kind === 'rm' ? 'Registrar nuevo RM' : 'Registrar nueva marca';
+}
+
 /**
  * El modal del mockup 11: valor, fecha y comentarios. Lo que la API pueda rechazar se
  * muestra en la pantalla de atrás: acá el guardado cierra la hoja y sigue de largo.

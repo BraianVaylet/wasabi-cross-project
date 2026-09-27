@@ -208,6 +208,34 @@ describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
     });
   });
 
+  describe('la barra fija (spec §5.2, zona 6)', () => {
+    it('dice de qué sale la carga, la carga en grande, su banda y cómo registrar', async () => {
+      renderDetalle('/ejercicios/mex_a1b2c3d4');
+
+      const barra = await screen.findByRole('region', { name: 'Carga seleccionada' });
+      expect(within(barra).getByText('65% de 100 kg')).toBeInTheDocument();
+      expect(within(barra).getByTestId('carga')).toHaveTextContent('65 kg');
+      expect(within(barra).getByText('Carga liviana')).toBeInTheDocument();
+      expect(within(barra).getByRole('button', { name: 'Registrar nuevo RM' })).toBeEnabled();
+    });
+
+    it('el botón abre el modal de siempre', async () => {
+      renderDetalle('/ejercicios/mex_a1b2c3d4');
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Registrar nuevo RM' }));
+
+      expect(await screen.findByRole('dialog', { name: 'Nuevo RM' })).toBeInTheDocument();
+    });
+
+    it('en tiempo no hay carga que calcular: muestra la mejor marca', async () => {
+      renderDetalle('/ejercicios/mex_z9y8x7w6');
+
+      const barra = await screen.findByRole('region', { name: 'Mejor marca' });
+      expect(within(barra).getByRole('button', { name: 'Registrar nueva marca' })).toBeEnabled();
+      expect(screen.queryByTestId('carga')).not.toBeInTheDocument();
+    });
+  });
+
   it('sin violaciones de accesibilidad', async () => {
     renderDetalle('/ejercicios/mex_a1b2c3d4');
     await screen.findByTestId('carga');

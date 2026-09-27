@@ -106,19 +106,6 @@
   margin-top: var(--wc-space-4);
 }
 
-.detail__target {
-  margin: 0;
-  font-family: var(--wc-font-family-display);
-  font-size: var(--wc-font-size-hero);
-  line-height: 1;
-  text-align: center;
-}
-
-.detail__band {
-  margin: 0;
-  text-align: center;
-}
-
 .detail__no-table {
   margin: var(--wc-space-4) 0 0;
   color: var(--wc-text-muted);
@@ -128,6 +115,37 @@
 .detail__stats {
   align-self: flex-start;
   color: var(--wc-accent-text);
+}
+
+/* Zona 6: la barra fija. La barra en sí es de @wasabi-cross/ui; esto es lo de adentro. */
+.detail__bar-info {
+  min-width: 0;
+}
+
+.detail__bar-info > p {
+  margin: 0;
+}
+
+/* "65% DE 100 KG": en el color del texto, no en el apagado de las etiquetas. */
+.detail__bar-caption {
+  color: var(--wc-text);
+}
+
+.detail__bar-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--wc-space-1) var(--wc-space-2);
+  margin-top: var(--wc-space-1);
+}
+
+/* "REGISTRAR NUEVO RM" en dos renglones, como en el diseño: angosto y alineado a la izquierda. */
+.detail__cta {
+  flex-shrink: 0;
+  max-width: 7.5rem;
+  min-height: 3.875rem;
+  padding-inline: var(--wc-space-3);
+  text-align: left;
 }
 
 /* Historial (mockup 6). */

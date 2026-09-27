@@ -1,4 +1,4 @@
-import type { Mark, RecordEntry } from '@wasabi-cross/schemas';
+import type { RecordEntry } from '@wasabi-cross/schemas';
 import { Button, Skeleton, Tag } from '@wasabi-cross/ui';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark } from '../../lib/format.ts';
@@ -6,9 +6,6 @@ import { formatDate, formatMark } from '../../lib/format.ts';
 export interface HistoryProps {
   /** Las marcas ya juntadas de todas las páginas traídas, más reciente primero. */
   records: RecordEntry[];
-  /** La mejor marca: se muestra en tiempo, donde no hay tabla de porcentajes (spec §5.1). */
-  best: Mark | undefined;
-  showBest: boolean;
   loading: boolean;
   error: unknown;
   hasMore: boolean;
@@ -19,8 +16,6 @@ export interface HistoryProps {
 /** El historial del detalle (mockup 6): las marcas con su fecha, la actual marcada. */
 export function History({
   records,
-  best,
-  showBest,
   loading,
   error,
   hasMore,
@@ -29,14 +24,6 @@ export function History({
 }: HistoryProps): React.JSX.Element {
   return (
     <section className="history" aria-labelledby="history-title">
-      {showBest && best ? (
-        <p className="history__best" data-testid="mejor-marca">
-          <span className="history__best-label">Mejor marca</span>
-          <span className="history__best-value">{formatMark(best)}</span>
-          <span className="history__best-date">{formatDate(best.performedAt)}</span>
-        </p>
-      ) : null}
-
       <h2 id="history-title" className="history__title">
         Historial
       </h2>

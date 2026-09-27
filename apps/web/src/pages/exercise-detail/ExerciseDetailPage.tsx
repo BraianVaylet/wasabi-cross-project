@@ -4,12 +4,14 @@ import {
   supportsPercentages,
   type LoadBand,
   type ManagedExerciseSummary,
+  type Mark,
   type MeasureKind,
   type PercentageRow,
   type RecordInput,
 } from '@wasabi-cross/schemas';
 import { Link } from '@tanstack/react-router';
 import {
+  BottomBar,
   Button,
   Measure,
   PencilIcon,
@@ -24,7 +26,7 @@ import { useId, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { History, type HistoryProps } from './History.tsx';
-import { NewMark, newMarkLabel } from './NewMark.tsx';
+import { NewMark, newMarkAction } from './NewMark.tsx';
 import { parsePercentage } from './percentage.ts';
 import './exercise-detail.css';
 
@@ -44,10 +46,15 @@ export interface ExerciseDetailPageProps {
   /** El porcentaje elegido vive en la URL, así un link lleva a la misma carga. */
   selected: number | undefined;
   onSelect: (percentage: number) => void;
-  /** El historial de marcas (F1-13b), que se pide aparte de la lista. */
-  history: Omit<HistoryProps, 'showBest'>;
+  /**
+   * El historial de marcas (F1-13b), que se pide aparte de la lista, con la mejor marca: la
+   * barra fija la muestra en tiempo, donde no hay carga que calcular (spec §5.2).
+   */
+  history: DetailHistory;
   mark: MarkFormProps;
 }
+
+export type DetailHistory = HistoryProps & { best: Mark | undefined };
 
 const CATEGORY_LABEL = {
   fuerza: 'Fuerza',
@@ -132,7 +139,7 @@ interface DetailProps {
   percentages: number[];
   selected: number | undefined;
   onSelect: (percentage: number) => void;
-  history: Omit<HistoryProps, 'showBest'>;
+  history: DetailHistory;
   mark: MarkFormProps;
 }
 
@@ -145,22 +152,16 @@ function Detail({
   mark,
 }: DetailProps): React.JSX.Element {
   const rows = percentageTable(exercise.kind, exercise.current.value, percentages) ?? [];
-  const current = selected ?? rows[0]?.percentage;
+  const withPercentages = supportsPercentages(exercise.kind);
+  // El porcentaje de la URL, o el primero de la grilla. La carga se calcula acá mismo:
+  // cambiar de porcentaje no le pregunta nada a la API.
+  const shown = selected ?? rows[0]?.percentage ?? 0;
   const [marking, setMarking] = useState(false);
+  const { best, ...list } = history;
 
   return (
     <>
       <Header exercise={exercise} />
-
-      <Button
-        block
-        disabled={mark.saving}
-        onClick={() => {
-          setMarking(true);
-        }}
-      >
-        {newMarkLabel(exercise.kind)}
-      </Button>
 
       <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__stats">
         Estadísticas
@@ -168,14 +169,8 @@ function Detail({
 
       {mark.error ? <ErrorNotice error={mark.error} /> : null}
 
-      {supportsPercentages(exercise.kind) ? (
-        <Percentages
-          kind={exercise.kind}
-          rows={rows}
-          currentValue={exercise.current.value}
-          selected={current}
-          onSelect={onSelect}
-        />
+      {withPercentages ? (
+        <Percentages kind={exercise.kind} rows={rows} selected={shown} onSelect={onSelect} />
       ) : (
         <p className="detail__no-table">
           Los ejercicios de tiempo no tienen tabla de porcentajes: menos es mejor, así que se miran
@@ -183,7 +178,22 @@ function Detail({
         </p>
       )}
 
-      <History {...history} showBest={!supportsPercentages(exercise.kind)} />
+      <History {...list} />
+
+      {/* Zona 6: la barra fija. Al final del contenido, así reserva su lugar abajo de todo. */}
+      <BottomBar label={withPercentages ? 'Carga seleccionada' : 'Mejor marca'}>
+        {withPercentages ? <Load exercise={exercise} percentage={shown} /> : <Best best={best} />}
+        <Button
+          variant="cta"
+          className="detail__cta"
+          disabled={mark.saving}
+          onClick={() => {
+            setMarking(true);
+          }}
+        >
+          {newMarkAction(exercise.kind)}
+        </Button>
+      </BottomBar>
 
       <NewMark
         kind={exercise.kind}
@@ -269,41 +279,78 @@ function Header({ exercise }: { exercise: ManagedExerciseSummary }): React.JSX.E
   );
 }
 
+/**
+ * La carga calculada de la barra fija: "65% DE 100 KG", la carga en grande y su banda
+ * (spec §5.1: el tag va acá, no hay barra de progreso).
+ */
+function Load({
+  exercise,
+  percentage,
+}: {
+  exercise: ManagedExerciseSummary;
+  percentage: number;
+}): React.JSX.Element {
+  const target = percentageTable(exercise.kind, exercise.current.value, [percentage])?.[0];
+  const parts = target
+    ? markParts({ value: target.target, unit: exercise.kind === 'rm' ? 'kg' : 'reps' })
+    : { value: '—' };
+  const band = loadBandFor(percentage);
+
+  return (
+    <div className="detail__bar-info">
+      <p className="wc-kicker detail__bar-caption">
+        {percentage}% de {formatMark(exercise.current)}
+      </p>
+      <Measure
+        value={parts.value}
+        unit={parts.unit}
+        size="hero"
+        tone="accent"
+        data-testid="carga"
+      />
+      <p className="detail__bar-foot">
+        <span className="wc-kicker">
+          {exercise.kind === 'rm' ? 'Carga calculada' : 'Reps calculadas'}
+        </span>
+        <Tag variant={BAND_VARIANT[band]}>{BAND_LABEL[band]}</Tag>
+      </p>
+    </div>
+  );
+}
+
+/** En tiempo no hay carga: la barra muestra la mejor marca (spec §5.2). */
+function Best({ best }: { best: Mark | undefined }): React.JSX.Element {
+  const parts = best ? markParts(best) : { value: '—' };
+
+  return (
+    <div className="detail__bar-info" data-testid="mejor-marca">
+      <p className="wc-kicker detail__bar-caption">Mejor marca</p>
+      <Measure value={parts.value} unit={parts.unit} size="hero" tone="accent" />
+      {best ? (
+        <p className="detail__bar-foot">
+          <span className="wc-kicker">Del {formatDate(best.performedAt)}</span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 interface PercentagesProps {
   kind: MeasureKind;
   rows: PercentageRow[];
-  currentValue: number;
-  selected: number | undefined;
+  selected: number;
   onSelect: (percentage: number) => void;
 }
 
 /** Zona 3 de spec §5.2: la grilla de porcentajes y el porcentaje personalizado. */
-function Percentages({
-  kind,
-  rows,
-  currentValue,
-  selected,
-  onSelect,
-}: PercentagesProps): React.JSX.Element {
+function Percentages({ kind, rows, selected, onSelect }: PercentagesProps): React.JSX.Element {
   const titleId = useId();
   const [custom, setCustom] = useState('');
   const customError = custom.trim() === '' ? null : parsePercentage(custom).error;
   const copy = kind === 'rm' ? LOAD_COPY.rm : LOAD_COPY.reps;
 
-  // La carga se calcula acá mismo: cambiar de porcentaje no le pregunta nada a la API.
-  const shown = selected ?? rows[0]?.percentage ?? 0;
-  const target = percentageTable(kind, currentValue, [shown])?.[0];
-  const band = loadBandFor(shown);
-
   return (
     <section className="detail__load" aria-labelledby={titleId}>
-      <p className="detail__target" data-testid="carga">
-        {target ? targetText(kind, target.target) : '—'}
-      </p>
-      <p className="detail__band">
-        <Tag variant={BAND_VARIANT[band]}>{BAND_LABEL[band]}</Tag>
-      </p>
-
       <SectionHeader id={titleId} title={copy.title} meta={copy.legend} />
 
       <PercentTiles
@@ -314,7 +361,7 @@ function Percentages({
           label: `${String(row.percentage)}%`,
           detail: targetText(kind, row.target),
         }))}
-        value={shown}
+        value={selected}
         onChange={(percentage) => {
           setCustom('');
           onSelect(percentage);
