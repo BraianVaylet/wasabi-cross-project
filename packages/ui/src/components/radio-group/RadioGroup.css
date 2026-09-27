@@ -1,37 +1,26 @@
+/* La leyenda, los casilleros y el radio dibujado vienen de forms.css. */
 .wc-radio-group {
   display: flex;
   flex-direction: column;
   gap: var(--wc-space-2);
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: none;
 }
 
 .wc-radio-group__legend {
-  padding: 0;
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-  font-weight: 500;
+  padding: 0 0 var(--wc-space-2);
 }
 
-.wc-radio-group__option {
-  display: flex;
-  align-items: center;
-  gap: var(--wc-space-3);
-  min-height: var(--wc-tap-target);
-  font-size: var(--wc-font-size-lg);
-  cursor: pointer;
+/* De a dos por renglón: las cuatro categorías del mockup 9 quedan en una grilla de 2×2. */
+.wc-radio-group__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--wc-space-2);
 }
 
-.wc-radio-group__input {
-  width: 1.25rem;
-  height: 1.25rem;
-  accent-color: var(--wc-accent);
-  cursor: pointer;
-}
-
-.wc-radio-group__error {
-  margin: 0;
-  color: var(--wc-danger-text);
-  font-size: var(--wc-font-size-sm);
+.wc-radio-group:disabled .wc-choice-tile {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

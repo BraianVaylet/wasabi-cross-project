@@ -1,12 +1,19 @@
 import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
+import '../../styles/forms.css';
 import './TextField.css';
 
 export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string;
   /** Mensaje de error del campo. Su presencia es lo que marca el campo como inválido. */
   error?: string | undefined;
-  /** Unidad o símbolo a la derecha, como el "%" del porcentaje custom. */
+  /** Unidad o símbolo a la derecha, como el "%" del porcentaje personalizado. */
   suffix?: ReactNode;
+  /**
+   * `stacked` es el de siempre: el label arriba, la caja abajo. `inline` es el "PORCENTAJE
+   * PERSONALIZADO" del diseño: una caja con el label a la izquierda y un campo corto,
+   * subrayado en naranja, a la derecha.
+   */
+  variant?: 'stacked' | 'inline';
 }
 
 /**
@@ -17,36 +24,44 @@ export function TextField({
   label,
   error,
   suffix,
+  variant = 'stacked',
   className,
   ...rest
 }: TextFieldProps): React.JSX.Element {
   const id = useId();
   const errorId = `${id}-error`;
 
-  const classes = ['wc-text-field', error ? 'wc-text-field--invalid' : '', className]
+  const classes = [
+    'wc-text-field',
+    variant === 'inline' ? 'wc-text-field--inline' : '',
+    error ? 'wc-text-field--invalid' : '',
+    className,
+  ]
     .filter(Boolean)
     .join(' ');
 
   return (
     <div className={classes}>
-      <label className="wc-text-field__label" htmlFor={id}>
-        {label}
-      </label>
+      <div className="wc-text-field__field">
+        <label className="wc-field-label wc-text-field__label" htmlFor={id}>
+          {label}
+        </label>
 
-      <div className="wc-text-field__control">
-        <input
-          id={id}
-          className="wc-text-field__input"
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
-          {...rest}
-        />
-        {suffix ? <span className="wc-text-field__suffix">{suffix}</span> : null}
+        <div className="wc-text-field__control">
+          <input
+            id={id}
+            className="wc-text-field__input"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
+            {...rest}
+          />
+          {suffix ? <span className="wc-text-field__suffix">{suffix}</span> : null}
+        </div>
       </div>
 
       {error ? (
         // role="alert" para que el lector de pantalla lo anuncie al aparecer.
-        <p id={errorId} className="wc-text-field__error" role="alert">
+        <p id={errorId} className="wc-field-error" role="alert">
           {error}
         </p>
       ) : null}

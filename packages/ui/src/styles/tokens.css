@@ -18,6 +18,8 @@
   --wc-border-muted: #32989a;
   /* La línea bajo el header y entre secciones: el verde azulado al 40%. Decorativa, sin requisito de contraste. */
   --wc-divider: rgb(50 152 154 / 40%);
+  /* La caja del porcentaje personalizado del diseño: el mismo verde azulado, al 60%. */
+  --wc-border-soft: rgb(50 152 154 / 60%);
 
   --wc-text: #d7efef;
   /* Labels y etiquetas chicas: 8.5:1 sobre `--wc-bg`, 8.1:1 sobre `--wc-surface`, 5.5:1 sobre el oliva. */

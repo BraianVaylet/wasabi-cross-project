@@ -4,13 +4,15 @@
   gap: var(--wc-space-2);
 }
 
-.wc-text-field__label {
-  font-size: var(--wc-font-size-sm);
-  font-weight: 600;
-  color: var(--wc-text-muted);
+.wc-text-field__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
 }
 
+/* La caja: la de todos los campos (forms.css), con el foco en toda la caja y no sólo en el input. */
 .wc-text-field__control {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: var(--wc-space-2);
@@ -18,9 +20,14 @@
   min-height: var(--wc-tap-target);
   padding: 0 var(--wc-space-4);
 
-  background-color: transparent;
+  background-color: var(--wc-surface);
   border: 1px solid var(--wc-border);
   border-radius: var(--wc-radius-sm);
+  transition: border-color var(--wc-transition);
+}
+
+.wc-text-field__control:hover {
+  border-color: var(--wc-border-muted);
 }
 
 .wc-text-field__control:focus-within {
@@ -46,7 +53,7 @@
 }
 
 .wc-text-field__input::placeholder {
-  color: var(--wc-text-muted);
+  color: var(--wc-text-placeholder);
   opacity: 1;
 }
 
@@ -54,11 +61,63 @@
   color: var(--wc-text-muted);
 }
 
-.wc-text-field__error {
-  color: var(--wc-danger-text);
-  font-size: var(--wc-font-size-sm);
+.wc-text-field--invalid .wc-text-field__control {
+  border-color: var(--wc-danger);
 }
 
-.wc-text-field--invalid .wc-text-field__control {
+/*
+ * En línea: el "PORCENTAJE PERSONALIZADO" del diseño. La caja es el renglón entero; el campo es
+ * corto, alineado a la derecha y subrayado en naranja (7.98:1 como texto sobre la superficie).
+ */
+.wc-text-field--inline .wc-text-field__field {
+  box-sizing: border-box;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+  min-height: 3.625rem;
+  padding: 0 var(--wc-space-3);
+
+  background-color: var(--wc-surface);
+  border: 1px solid var(--wc-border-soft);
+}
+
+.wc-text-field--inline .wc-text-field__label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--wc-font-size-xs);
+}
+
+.wc-text-field--inline .wc-text-field__control {
+  flex: none;
+  gap: var(--wc-space-1);
+  min-height: 0;
+  padding: 0 var(--wc-space-1);
+
+  background-color: transparent;
+  border-width: 0 0 1px;
+  border-color: var(--wc-warning);
+}
+
+.wc-text-field--inline .wc-text-field__input {
+  width: 4.25rem;
+  padding: var(--wc-space-1) 0;
+  font-size: 1.125rem;
+  line-height: 1;
+  text-align: right;
+}
+
+/* Al escribir, el número se pone lima, como en el diseño. */
+.wc-text-field--inline .wc-text-field__input:focus {
+  color: var(--wc-accent-text);
+}
+
+.wc-text-field--inline .wc-text-field__suffix {
+  color: var(--wc-warning-text);
+  font-size: 1.0625rem;
+  line-height: 1;
+}
+
+.wc-text-field--inline.wc-text-field--invalid .wc-text-field__control {
   border-color: var(--wc-danger);
 }

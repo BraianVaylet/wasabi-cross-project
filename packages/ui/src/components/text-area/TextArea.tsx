@@ -1,4 +1,5 @@
 import { useId, type TextareaHTMLAttributes } from 'react';
+import '../../styles/forms.css';
 import './TextArea.css';
 
 export interface TextAreaProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> {
@@ -17,13 +18,13 @@ export function TextArea({ label, error, className, ...rest }: TextAreaProps): R
         .filter(Boolean)
         .join(' ')}
     >
-      <label className="wc-text-area__label" htmlFor={id}>
+      <label className="wc-field-label" htmlFor={id}>
         {label}
       </label>
 
       <textarea
         id={id}
-        className="wc-text-area__input"
+        className="wc-field-box wc-text-area__input"
         rows={3}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
@@ -31,7 +32,7 @@ export function TextArea({ label, error, className, ...rest }: TextAreaProps): R
       />
 
       {error ? (
-        <p id={errorId} className="wc-text-area__error" role="alert">
+        <p id={errorId} className="wc-field-error" role="alert">
           {error}
         </p>
       ) : null}

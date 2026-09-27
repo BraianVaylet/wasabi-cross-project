@@ -1,0 +1,150 @@
+/*
+ * Lo que comparten los campos de formulario: la etiqueta, la caja, la casilla y el radio
+ * dibujados, y los casilleros de los grupos. Lo importa cada componente que lo usa.
+ */
+
+/*
+ * La etiqueta de cada campo y la leyenda de cada grupo, iguales en todo el formulario: chica, en
+ * mayúsculas, como los labels del diseño. 12px: es información, no decoración (spec §11).
+ */
+.wc-field-label {
+  color: var(--wc-text-soft);
+  font-size: var(--wc-font-size-caption);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: var(--wc-tracking-wide);
+  text-transform: uppercase;
+}
+
+/* La caja de un campo de texto, un área de texto o un select. Rectangular: sin recorte. */
+.wc-field-box {
+  box-sizing: border-box;
+  background-color: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius-sm);
+  color: var(--wc-text);
+  transition: border-color var(--wc-transition);
+}
+
+.wc-field-box:hover {
+  border-color: var(--wc-border-muted);
+}
+
+.wc-field-error {
+  margin: 0;
+  color: var(--wc-danger-text);
+  font-size: var(--wc-font-size-sm);
+}
+
+/*
+ * La casilla y el radio, dibujados: el control nativo se ve gris y claro sobre este fondo. Sigue
+ * siendo el `input` real (foco, teclado, lector de pantalla); sólo cambia cómo se pinta. El
+ * contorno verde azulado da 5.8:1 contra el fondo: un control necesita 3:1 (WCAG 1.4.11).
+ */
+.wc-choice {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+
+  background-color: transparent;
+  border: 1px solid var(--wc-border-muted);
+  border-radius: var(--wc-radius-sm);
+
+  cursor: pointer;
+  transition:
+    background-color var(--wc-transition),
+    border-color var(--wc-transition);
+}
+
+/* La marca: una tilde en la casilla, un cuadrado en el radio (el diseño no tiene círculos). */
+.wc-choice::before {
+  content: '';
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: var(--wc-text-on-accent);
+  transform: scale(0);
+  transition: transform var(--wc-transition);
+}
+
+.wc-choice[type='checkbox']::before {
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%);
+}
+
+.wc-choice[type='radio']::before {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.wc-choice:checked {
+  background-color: var(--wc-accent);
+  border-color: var(--wc-accent);
+}
+
+.wc-choice:checked::before {
+  transform: scale(1);
+}
+
+.wc-choice:disabled {
+  cursor: not-allowed;
+}
+
+/* En alto contraste el sistema pisa los colores: vuelve el control nativo, que ahí se ve bien. */
+@media (forced-colors: active) {
+  .wc-choice {
+    appearance: auto;
+  }
+
+  .wc-choice::before {
+    display: none;
+  }
+}
+
+/*
+ * Los casilleros de un grupo (capacidades, grupos musculares, la categoría): la opción entera
+ * es el label, con su casilla o radio adentro. El recorte no tapa el foco: el outline es del
+ * `input`, que va a la izquierda, lejos de las esquinas cortadas.
+ */
+.wc-choice-tile {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-3);
+  min-height: var(--wc-tap-target);
+  padding: var(--wc-space-2) var(--wc-space-3);
+
+  background-color: var(--wc-surface-muted);
+  border: 1px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
+  color: var(--wc-text);
+
+  font-size: var(--wc-font-size-sm);
+  line-height: 1.3;
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
+
+  cursor: pointer;
+  transition:
+    background-color var(--wc-transition),
+    border-color var(--wc-transition);
+}
+
+.wc-choice-tile:hover {
+  border-color: var(--wc-border-muted);
+}
+
+/* El elegido: el oliva del diseño con borde lima. El texto claro da 10.8:1 ahí. */
+.wc-choice-tile:has(.wc-choice:checked) {
+  background-color: var(--wc-accent-subtle);
+  border-color: var(--wc-accent);
+}
+
+@media (forced-colors: active) {
+  .wc-choice-tile {
+    clip-path: none;
+  }
+}
