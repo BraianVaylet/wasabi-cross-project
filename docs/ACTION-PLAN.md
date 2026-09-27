@@ -1464,19 +1464,28 @@ F4-05b y F4-05c → F4-05d.
   con la estructura vieja. Esta tarea agrega las utilidades de texto (`.wc-display` para
   titulares, `.wc-kicker` para las etiquetas chicas en mayúsculas con tracking amplio), la escala
   de tamaños del diseño como tokens con el piso de spec §11, y los colores que faltan: `#9ACBC8`
-  (fechas y labels secundarios), `#8CB2B2` (placeholder), `#7B123D` (sombra del botón magenta), el
-  verde azulado de los bordes al 40%, `#DD1964` (fondo de la CTA) y `#F576A7` (magenta sobre el
-  oliva del historial). `Button` en Staatliches, mayúsculas y `plate-cut`, con una variante `cta`
-  (magenta, texto blanco, sombra dura `4px 4px 0`); `IconButton` cuadrado y con borde; `Tag` en
-  mayúsculas chicas; `Card` con las dos variantes del historial: la actual (oliva, borde lima de
-  2px) y la anterior (superficie, borde violeta a la izquierda).
+  (fechas y labels secundarios), `#8CB2B2` (placeholder), el verde azulado de los bordes al 40%,
+  `#DD1964` (fondo de la CTA) y `#F576A7` (magenta sobre el oliva del historial). `Button` en
+  Staatliches, mayúsculas y `plate-cut`, con una variante `cta` (magenta, texto blanco);
+  `IconButton` cuadrado y con borde; `Tag` en mayúsculas chicas; `Card` con las dos variantes del
+  historial: la actual (oliva, borde lima de 2px) y la anterior (superficie, borde violeta a la
+  izquierda).
+
+  > Ajustada al implementarla (2026-09-27): el HTML del diseño le declara a la CTA una sombra dura
+  > (`#7B123D`), pero su propio `clip-path` la tapa y en el PNG no se ve; no se agrega. El recorte
+  > va en el propio elemento, con su fondo real: con el fondo en un `::before` axe deja el
+  > contraste sin verificar. Como el recorte se come el outline, el foco de botones y tarjetas es
+  > un anillo interior.
+
 - **acceptance-criteria:**
   - Dado cualquier titular de la app, cuando se mide su `font-family` computada, entonces es
     Staatliches.
   - Dado cada color nuevo, cuando se mide contra el fondo donde se usa, entonces pasa AA y el valor
     queda documentado en `tokens.css`, como el resto.
   - Dado el botón `cta`, cuando se lo pone en Storybook al lado del HTML del diseño, entonces
-    coincide en forma, color y sombra, con el magenta de spec §11.
+    coincide en forma y color, con el magenta de spec §11.
+  - Dado un botón o una tarjeta con foco de teclado, cuando se lo mira, entonces el indicador se ve
+    entero pese al recorte, y axe mide el contraste de su texto (no lo deja incompleto).
 - **example:** —
 - **story-points:** 5
 - **depends_on:** F4-01

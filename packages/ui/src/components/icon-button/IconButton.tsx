@@ -11,7 +11,7 @@ export interface IconButtonProps extends Omit<
   children: ReactNode;
 }
 
-/** Botón redondo de sólo ícono, como el del menú en el header (mockup 4). */
+/** Botón cuadrado de sólo ícono, como el del menú en el header (spec §5.2). */
 export function IconButton({
   label,
   className,

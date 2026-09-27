@@ -27,10 +27,32 @@ describe('Card', () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it('highlighted marca la tarjeta destacada', () => {
-    render(<Card highlighted>current</Card>);
+  it('por default es la tarjeta lisa', () => {
+    render(<Card>Back SQ</Card>);
 
-    expect(screen.getByText('current')).toHaveClass('wc-card--highlighted');
+    expect(screen.getByText('Back SQ')).toHaveClass('wc-card', 'wc-card--plain');
+  });
+
+  it('las dos variantes del historial: la marca actual y las anteriores', () => {
+    const { rerender } = render(<Card variant="current">100 kg</Card>);
+    expect(screen.getByText('100 kg')).toHaveClass('wc-card--current');
+
+    rerender(<Card variant="past">80 kg</Card>);
+    expect(screen.getByText('80 kg')).toHaveClass('wc-card--past');
+    expect(screen.getByText('80 kg')).not.toHaveClass('wc-card--current');
+  });
+
+  it('la variante también vale cuando la tarjeta es un botón', () => {
+    render(
+      <Card variant="current" onClick={vi.fn()}>
+        Back SQ
+      </Card>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Back SQ' })).toHaveClass(
+      'wc-card--current',
+      'wc-card--interactive',
+    );
   });
 
   it('acepta atributos extra del elemento', () => {
