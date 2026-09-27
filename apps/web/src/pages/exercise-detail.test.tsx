@@ -41,17 +41,41 @@ function renderDetalle(url: string, exercises = [backSquat, carrera]) {
   return { api, ...app };
 }
 
-describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
-  describe('lo que se ve del ejercicio', () => {
-    it('nombre, valor actual con su fecha y tags', async () => {
+describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
+  describe('la cabecera', () => {
+    it('nombre, valor actual con su fecha, y categoría, nivel y dolor en sus líneas', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4');
 
       expect(await screen.findByRole('heading', { name: 'Back squat' })).toBeInTheDocument();
-      expect(screen.getByText('RM del 23/06/2026')).toBeInTheDocument();
-      expect(screen.getByText('100 kg')).toBeInTheDocument();
+      expect(screen.getByText('Registrado el 23/06/2026')).toBeInTheDocument();
+      expect(screen.getByTestId('valor-actual')).toHaveTextContent('100 kg');
+      expect(screen.getByText('RM actual')).toBeInTheDocument();
+      expect(screen.getByText('RM vigente')).toBeInTheDocument();
       expect(screen.getByText('Fuerza')).toBeInTheDocument();
       expect(screen.getByText('Principiante')).toBeInTheDocument();
       expect(screen.getByText('Con dolor')).toBeInTheDocument();
+    });
+
+    it('vuelve a la lista desde arriba: instalada en iOS no hay botón atrás', async () => {
+      renderDetalle('/ejercicios/mex_a1b2c3d4');
+
+      const volver = await screen.findByRole('link', { name: 'Ejercicios' });
+      expect(volver).toHaveAttribute('href', '/');
+    });
+
+    it('el lápiz lleva a editar el ejercicio', async () => {
+      renderDetalle('/ejercicios/mex_a1b2c3d4');
+
+      const editar = await screen.findByRole('link', { name: 'Editar' });
+      expect(editar).toHaveAttribute('href', '/ejercicios/mex_a1b2c3d4/editar');
+    });
+
+    it('lo que no se mide en RM habla de marca, no de RM', async () => {
+      renderDetalle('/ejercicios/mex_z9y8x7w6');
+
+      await screen.findByRole('heading', { name: 'Carrera 1 km' });
+      expect(screen.getByText('Marca actual')).toBeInTheDocument();
+      expect(screen.getByText('Marca vigente')).toBeInTheDocument();
     });
 
     it('sin "con dolor", no se inventa el tag', async () => {
@@ -79,7 +103,8 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
       };
       renderDetalle('/ejercicios/mex_h1p2e3r4', [butterfly]);
 
-      expect(await screen.findByText('12 reps · 30 kg')).toBeInTheDocument();
+      expect(await screen.findByTestId('valor-actual')).toHaveTextContent('12 reps');
+      expect(screen.getByText('con 30 kg')).toBeInTheDocument();
     });
 
     it('en running, el valor actual suma el desnivel al tiempo', async () => {
@@ -87,15 +112,17 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
         { ...carrera, current: { ...carrera.current, elevationGainM: 150 } },
       ]);
 
-      expect(await screen.findByText('4:32 · 150 m')).toBeInTheDocument();
+      expect(await screen.findByTestId('valor-actual')).toHaveTextContent('4:32');
+      expect(screen.getByText('desnivel 150 m')).toBeInTheDocument();
     });
   });
 
-  describe('tabla de porcentajes (spec §5.1)', () => {
+  describe('elegí tu carga (spec §5.1)', () => {
     it('muestra los porcentajes del perfil con su carga', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4');
 
-      const tabla = await screen.findByRole('group', { name: 'Porcentajes' });
+      expect(await screen.findByRole('heading', { name: 'Elegí tu carga' })).toBeInTheDocument();
+      const tabla = screen.getByRole('group', { name: 'Porcentaje del RM' });
       const opciones = within(tabla).getAllByRole('radio');
 
       expect(opciones).toHaveLength(6);
@@ -108,7 +135,6 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
 
       expect(await screen.findByTestId('carga')).toHaveTextContent('65 kg');
       expect(screen.getByText('Carga liviana')).toHaveClass('wc-tag--success');
-      expect(document.querySelector('.detail__bar-fill')).toHaveClass('detail__bar-fill--liviana');
     });
 
     it('elegir otro cambia la carga y la banda, y queda en la URL — pesada, en rojo', async () => {
@@ -119,7 +145,6 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
 
       expect(screen.getByTestId('carga')).toHaveTextContent('85 kg');
       expect(screen.getByText('Carga pesada')).toHaveClass('wc-tag--danger');
-      expect(document.querySelector('.detail__bar-fill')).toHaveClass('detail__bar-fill--pesada');
       expect(router.state.location.search).toEqual({ pct: 85 });
     });
 
@@ -128,7 +153,6 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
 
       expect(await screen.findByTestId('carga')).toHaveTextContent('80 kg');
       expect(screen.getByText('Carga media')).toHaveClass('wc-tag--warning');
-      expect(document.querySelector('.detail__bar-fill')).toHaveClass('detail__bar-fill--media');
       expect(screen.getByRole('radio', { name: '80% · 80 kg' })).toBeChecked();
     });
 
@@ -137,11 +161,15 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
       await screen.findByTestId('carga');
       const llamadas = api.client.listExercises.mock.calls.length;
 
-      await userEvent.type(screen.getByLabelText('Porcentaje custom'), '98');
+      await userEvent.type(screen.getByLabelText('Porcentaje personalizado'), '98');
 
       expect(screen.getByTestId('carga')).toHaveTextContent('98 kg');
       expect(api.client.listExercises.mock.calls.length).toBe(llamadas);
       expect(api.client.savePreferences).not.toHaveBeenCalled();
+      // 98 no está en la grilla: ningún casillero queda elegido, como en el diseño.
+      for (const opcion of screen.getAllByRole('radio')) {
+        expect(opcion).not.toBeChecked();
+      }
     });
 
     it('un porcentaje custom fuera de rango lo dice y deja la última carga válida', async () => {
@@ -149,7 +177,7 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
       await screen.findByTestId('carga');
 
       // Tipeando "120" se pasa por 1 y por 12, que sí valen: la carga los va siguiendo.
-      await userEvent.type(screen.getByLabelText('Porcentaje custom'), '120');
+      await userEvent.type(screen.getByLabelText('Porcentaje personalizado'), '120');
 
       expect(await screen.findByText('El porcentaje máximo es 100')).toBeInTheDocument();
       expect(screen.getByTestId('carga')).toHaveTextContent('12 kg');
@@ -167,13 +195,15 @@ describe('Detalle de ejercicio: porcentajes (F1-13, mockups 5 y 6)', () => {
       renderDetalle('/ejercicios/mex_11111111', [dominadas]);
 
       expect(await screen.findByTestId('carga')).toHaveTextContent('13 reps');
+      expect(screen.getByRole('heading', { name: 'Elegí tus reps' })).toBeInTheDocument();
+      expect(screen.getByRole('group', { name: 'Porcentaje del máximo' })).toBeInTheDocument();
     });
 
     it('en tiempo no hay tabla: menos es mejor, no hay porcentaje que valga', async () => {
       renderDetalle('/ejercicios/mex_z9y8x7w6');
 
       await screen.findByRole('heading', { name: 'Carrera 1 km' });
-      expect(screen.queryByRole('group', { name: 'Porcentajes' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('group', { name: /Porcentaje/ })).not.toBeInTheDocument();
       expect(screen.getByText(/no tienen tabla de porcentajes/)).toBeInTheDocument();
     });
   });

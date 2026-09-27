@@ -9,10 +9,20 @@ import {
   type RecordInput,
 } from '@wasabi-cross/schemas';
 import { Link } from '@tanstack/react-router';
-import { Button, Skeleton, Tag, TextField, type TagVariant } from '@wasabi-cross/ui';
-import { useState } from 'react';
+import {
+  Button,
+  Measure,
+  PencilIcon,
+  PercentTiles,
+  SectionHeader,
+  Skeleton,
+  Tag,
+  TextField,
+  type TagVariant,
+} from '@wasabi-cross/ui';
+import { useId, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
-import { formatDate, formatMark } from '../../lib/format.ts';
+import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { History, type HistoryProps } from './History.tsx';
 import { NewMark, newMarkLabel } from './NewMark.tsx';
 import { parsePercentage } from './percentage.ts';
@@ -66,19 +76,17 @@ const BAND_VARIANT: Record<LoadBand, TagVariant> = {
   pesada: 'danger',
 };
 
-/** Cómo se llama el valor actual según lo que mide el ejercicio (spec §5.1). */
-const VALUE_LABEL: Record<MeasureKind, string> = {
-  rm: 'RM',
-  reps: 'Reps',
-  weighted_reps: 'Reps',
-  time: 'Tiempo',
-};
+/** Lo que dice la grilla según lo que mide el ejercicio (spec §5.2: repeticiones, no RM). */
+const LOAD_COPY = {
+  rm: { title: 'Elegí tu carga', legend: 'Porcentaje del RM' },
+  reps: { title: 'Elegí tus reps', legend: 'Porcentaje del máximo' },
+} as const;
 
 function targetText(kind: MeasureKind, target: number): string {
-  return kind === 'rm' ? `${String(target)} kg` : `${String(target)} reps`;
+  return formatMark({ value: target, unit: kind === 'rm' ? 'kg' : 'reps' });
 }
 
-/** Detalle de un ejercicio (mockups 5 y 6). El historial llega con F1-13b. */
+/** Detalle de un ejercicio: el diseño de `docs/design`, zona por zona (spec §5.2). */
 export function ExerciseDetailPage({
   exercise,
   percentages,
@@ -91,10 +99,6 @@ export function ExerciseDetailPage({
 }: ExerciseDetailPageProps): React.JSX.Element {
   return (
     <>
-      <Link to="/" className="page__back">
-        <span aria-hidden="true">‹</span> Ejercicios
-      </Link>
-
       {loading ? <Skeleton label="Cargando el ejercicio" count={3} /> : null}
       {error ? <ErrorNotice error={error} /> : null}
 
@@ -146,33 +150,7 @@ function Detail({
 
   return (
     <>
-      <div className="detail__head">
-        <h1 className="page__title">{exercise.name}</h1>
-        {/* Las dos acciones del mockup 5: el lápiz y la evolución. */}
-        <div className="detail__actions">
-          <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__edit">
-            Estadísticas
-          </Link>
-          <Link to="/ejercicios/$id/editar" params={{ id: exercise.id }} className="detail__edit">
-            Editar
-          </Link>
-        </div>
-      </div>
-
-      <div className="detail__current">
-        <div>
-          <p className="detail__current-label">
-            {VALUE_LABEL[exercise.kind]} del {formatDate(exercise.current.performedAt)}
-          </p>
-          <p className="detail__current-value">{formatMark(exercise.current)}</p>
-        </div>
-        <Tag>{CATEGORY_LABEL[exercise.category]}</Tag>
-      </div>
-
-      <div className="detail__tags">
-        <Tag variant="neutral">{LEVEL_LABEL[exercise.level]}</Tag>
-        {exercise.withPain ? <Tag variant="danger">Con dolor</Tag> : null}
-      </div>
+      <Header exercise={exercise} />
 
       <Button
         block
@@ -183,6 +161,10 @@ function Detail({
       >
         {newMarkLabel(exercise.kind)}
       </Button>
+
+      <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__stats">
+        Estadísticas
+      </Link>
 
       {mark.error ? <ErrorNotice error={mark.error} /> : null}
 
@@ -215,6 +197,78 @@ function Detail({
   );
 }
 
+/**
+ * Zona 2 de spec §5.2: de dónde viene, el nombre con su lápiz, el nivel y el valor actual. Las
+ * tags de categoría, nivel y dolor (§5.1) se leen en estas líneas, no como pastillas.
+ */
+function Header({ exercise }: { exercise: ManagedExerciseSummary }): React.JSX.Element {
+  const titleId = useId();
+  const isRm = exercise.kind === 'rm';
+  const value = markParts(exercise.current);
+
+  return (
+    <section className="detail__head" aria-labelledby={titleId}>
+      {/* "‹ EJERCICIOS" y no el "MOVIMIENTO" del diseño: instalada en iOS, no hay botón atrás. */}
+      <p className="wc-kicker detail__crumbs">
+        <Link to="/" className="detail__back">
+          <span aria-hidden="true">‹ </span>Ejercicios
+        </Link>
+        <span aria-hidden="true"> / </span>
+        <span>{CATEGORY_LABEL[exercise.category]}</span>
+      </p>
+
+      <div className="detail__title-row">
+        <h1 id={titleId} className="detail__title">
+          {exercise.name}
+        </h1>
+        <Link
+          to="/ejercicios/$id/editar"
+          params={{ id: exercise.id }}
+          className="wc-icon-button"
+          aria-label="Editar"
+        >
+          <span aria-hidden="true" className="wc-icon-button__icon">
+            <PencilIcon />
+          </span>
+        </Link>
+      </div>
+
+      <p className="detail__sub">
+        <span>{LEVEL_LABEL[exercise.level]}</span>
+        <span className="detail__slash" aria-hidden="true">
+          {' // '}
+        </span>
+        <span>{isRm ? 'RM vigente' : 'Marca vigente'}</span>
+        {exercise.withPain ? (
+          <>
+            <span className="detail__slash" aria-hidden="true">
+              {' // '}
+            </span>
+            <span className="detail__pain">Con dolor</span>
+          </>
+        ) : null}
+      </p>
+
+      <div className="detail__current">
+        <div className="detail__current-info">
+          <p className="wc-kicker">{isRm ? 'RM actual' : 'Marca actual'}</p>
+          <p className="detail__registered">
+            Registrado el {formatDate(exercise.current.performedAt)}
+          </p>
+          {value.extra ? <p className="detail__registered">{value.extra}</p> : null}
+        </div>
+        <Measure
+          value={value.value}
+          unit={value.unit}
+          size="lg"
+          className="detail__current-value"
+          data-testid="valor-actual"
+        />
+      </div>
+    </section>
+  );
+}
+
 interface PercentagesProps {
   kind: MeasureKind;
   rows: PercentageRow[];
@@ -223,6 +277,7 @@ interface PercentagesProps {
   onSelect: (percentage: number) => void;
 }
 
+/** Zona 3 de spec §5.2: la grilla de porcentajes y el porcentaje personalizado. */
 function Percentages({
   kind,
   rows,
@@ -230,8 +285,10 @@ function Percentages({
   selected,
   onSelect,
 }: PercentagesProps): React.JSX.Element {
+  const titleId = useId();
   const [custom, setCustom] = useState('');
   const customError = custom.trim() === '' ? null : parsePercentage(custom).error;
+  const copy = kind === 'rm' ? LOAD_COPY.rm : LOAD_COPY.reps;
 
   // La carga se calcula acá mismo: cambiar de porcentaje no le pregunta nada a la API.
   const shown = selected ?? rows[0]?.percentage ?? 0;
@@ -239,59 +296,37 @@ function Percentages({
   const band = loadBandFor(shown);
 
   return (
-    <>
+    <section className="detail__load" aria-labelledby={titleId}>
       <p className="detail__target" data-testid="carga">
         {target ? targetText(kind, target.target) : '—'}
       </p>
-
-      <div
-        className="detail__bar"
-        role="progressbar"
-        aria-label="Porcentaje elegido"
-        aria-valuenow={shown}
-        aria-valuemin={1}
-        aria-valuemax={100}
-      >
-        <span
-          className={`detail__bar-fill detail__bar-fill--${band}`}
-          style={{ width: `${String(shown)}%` }}
-        />
-      </div>
-
       <p className="detail__band">
         <Tag variant={BAND_VARIANT[band]}>{BAND_LABEL[band]}</Tag>
       </p>
 
-      <fieldset className="detail__grid">
-        <legend className="detail__grid-legend">Porcentajes</legend>
-        {rows.map((row) => (
-          <label
-            key={row.percentage}
-            className={`detail__option${row.percentage === shown ? ' detail__option--selected' : ''}`}
-          >
-            <input
-              type="radio"
-              className="detail__option-input"
-              name="percentage"
-              // Sin esto se lee "65%65 kg", pegado: los dos textos son cajas vecinas.
-              aria-label={`${String(row.percentage)}% · ${targetText(kind, row.target)}`}
-              checked={row.percentage === shown}
-              onChange={() => {
-                setCustom('');
-                onSelect(row.percentage);
-              }}
-            />
-            <span className="detail__option-percentage">{row.percentage}%</span>
-            <span className="detail__option-target">{targetText(kind, row.target)}</span>
-          </label>
-        ))}
-      </fieldset>
+      <SectionHeader id={titleId} title={copy.title} meta={copy.legend} />
+
+      <PercentTiles
+        legend={copy.legend}
+        name="percentage"
+        options={rows.map((row) => ({
+          value: row.percentage,
+          label: `${String(row.percentage)}%`,
+          detail: targetText(kind, row.target),
+        }))}
+        value={shown}
+        onChange={(percentage) => {
+          setCustom('');
+          onSelect(percentage);
+        }}
+      />
 
       <TextField
-        label="Porcentaje custom"
+        label="Porcentaje personalizado"
+        variant="inline"
         inputMode="numeric"
         suffix="%"
-        placeholder="Ej: 98"
+        placeholder="—"
         value={custom}
         error={customError ?? undefined}
         onChange={(event) => {
@@ -304,6 +339,6 @@ function Percentages({
           }
         }}
       />
-    </>
+    </section>
   );
 }

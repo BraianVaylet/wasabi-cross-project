@@ -1,47 +1,92 @@
-/* Detalle de ejercicio (mockups 5 y 6). */
+/* Detalle de ejercicio: el diseño de `docs/design`, zona por zona (spec §5.2). */
 
+/* Zona 2: la cabecera. */
 .detail__head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--wc-space-3);
+  flex-direction: column;
 }
 
-.detail__edit {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--wc-tap-target);
-  padding: 0 var(--wc-space-3);
-  color: var(--wc-accent-text);
+.detail__crumbs {
+  margin: 0;
+}
+
+/*
+ * El "‹ EJERCICIOS" es un renglón de 10px, pero el dedo necesita 44 (spec §11): el relleno lo
+ * agranda para tocar sin mover nada de lugar.
+ */
+.detail__back {
+  display: inline-block;
+  padding-block: 1rem;
+  margin-block: -1rem;
+  color: inherit;
   text-decoration: none;
 }
 
+.detail__back:hover {
+  color: var(--wc-text);
+}
+
+.detail__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-1);
+}
+
+.detail__title {
+  margin: 0;
+  font-size: var(--wc-font-size-title);
+  overflow-wrap: anywhere;
+}
+
+.detail__sub {
+  margin: var(--wc-space-1) 0 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-caption);
+  letter-spacing: var(--wc-tracking-wide);
+  text-transform: uppercase;
+}
+
+.detail__slash {
+  color: var(--wc-accent-text);
+  white-space: pre;
+}
+
+.detail__pain {
+  color: var(--wc-danger-text);
+}
+
+/* El valor actual, entre dos líneas violetas y con el filo magenta del diseño. */
 .detail__current {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--wc-space-3);
-  padding: var(--wc-space-3) var(--wc-space-4);
-  background-color: var(--wc-surface);
-  border-radius: var(--wc-radius-sm);
+  margin-top: var(--wc-space-4);
+  padding: var(--wc-space-3) 0;
+  border-block: 1px solid var(--wc-border);
 }
 
-.detail__current-label {
+.detail__current-info {
+  min-width: 0;
+}
+
+.detail__current-info > p {
   margin: 0;
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
+}
+
+.detail__registered {
+  margin-top: var(--wc-space-1);
+  font-size: var(--wc-font-size-xs);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
 }
 
 .detail__current-value {
-  margin: 0;
-  font-size: var(--wc-font-size-xl);
-  font-weight: 500;
-}
-
-.detail__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--wc-space-2);
+  flex-shrink: 0;
+  padding-left: var(--wc-space-3);
+  border-left: 2px solid var(--wc-danger);
 }
 
 .detail__missing {
@@ -53,37 +98,20 @@
   text-align: center;
 }
 
+/* Zona 3: la grilla de porcentajes y el personalizado. */
+.detail__load {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-4);
+}
+
 .detail__target {
-  margin: var(--wc-space-5) 0 0;
-  font-size: var(--wc-font-size-display);
-  font-weight: 500;
+  margin: 0;
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-hero);
   line-height: 1;
   text-align: center;
-}
-
-.detail__bar {
-  height: 0.75rem;
-  overflow: hidden;
-  background-color: var(--wc-surface);
-  border-radius: var(--wc-radius-pill);
-}
-
-.detail__bar-fill {
-  display: block;
-  height: 100%;
-}
-
-/* Semáforo de carga: verde liviana, ámbar media, rojo pesada (spec §5.1). */
-.detail__bar-fill--liviana {
-  background-color: var(--wc-accent);
-}
-
-.detail__bar-fill--media {
-  background-color: var(--wc-warning);
-}
-
-.detail__bar-fill--pesada {
-  background-color: var(--wc-danger);
 }
 
 .detail__band {
@@ -91,74 +119,15 @@
   text-align: center;
 }
 
-.detail__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--wc-space-3);
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.detail__grid-legend {
-  padding: 0 0 var(--wc-space-2);
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-  font-weight: 500;
-}
-
-.detail__option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--wc-space-1);
-  min-height: var(--wc-tap-target);
-  padding: var(--wc-space-3) var(--wc-space-2);
-
-  background-color: var(--wc-surface);
-  border: 2px solid transparent;
-  border-radius: var(--wc-radius-sm);
-
-  cursor: pointer;
-}
-
-.detail__option--selected {
-  border-color: var(--wc-accent);
-  background-color: var(--wc-accent-subtle);
-}
-
-/* El radio real queda invisible pero enfocable: el teclado sigue funcionando. */
-.detail__option-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-
-.detail__option-input:focus-visible + .detail__option-percentage {
-  outline: 2px solid var(--wc-focus);
-  outline-offset: 2px;
-}
-
-.detail__option-percentage {
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
-}
-
-.detail__option-target {
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-}
-
-/* Sobre el verde del elegido, el gris apagado se queda en 3.3:1: ahí va el texto pleno. */
-.detail__option--selected .detail__option-target {
-  color: var(--wc-text);
-}
-
 .detail__no-table {
-  margin: 0;
+  margin: var(--wc-space-4) 0 0;
   color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+}
+
+.detail__stats {
+  align-self: flex-start;
+  color: var(--wc-accent-text);
 }
 
 /* Historial (mockup 6). */
@@ -233,10 +202,4 @@
 .history__empty {
   margin: 0;
   color: var(--wc-text-muted);
-}
-
-/* Las dos acciones del encabezado: estadísticas y editar. */
-.detail__actions {
-  display: flex;
-  gap: var(--wc-space-4);
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { autoColon, formatDate, formatMark, parseDuration } from './format.ts';
+import { autoColon, formatDate, formatMark, markParts, parseDuration } from './format.ts';
 
 describe('formatDate — es-AR (spec §11)', () => {
   it('día/mes/año, como en los mockups', () => {
@@ -45,6 +45,35 @@ describe('formatMark — el valor con su unidad', () => {
 
   it('un desnivel de 0 (carrera plana) se muestra, no se omite', () => {
     expect(formatMark({ value: 272, unit: 's', elevationGainM: 0 })).toBe('4:32 · 0 m');
+  });
+});
+
+describe('markParts — el número grande, su unidad chica y el dato de al lado', () => {
+  it('una carga: el número y los kg por separado, con coma decimal', () => {
+    expect(markParts({ value: 102.5, unit: 'kg' })).toEqual({ value: '102,5', unit: 'kg' });
+  });
+
+  it('un tiempo no lleva unidad: 4:32 ya se lee como tiempo', () => {
+    expect(markParts({ value: 272, unit: 's' })).toEqual({ value: '4:32' });
+  });
+
+  it('por debajo del minuto, los segundos con su unidad', () => {
+    expect(markParts({ value: 45, unit: 's' })).toEqual({ value: '45', unit: 's' });
+  });
+
+  it('en hipertrofia el peso va aparte, no pegado al número grande', () => {
+    expect(markParts({ value: 12, unit: 'reps', weightKg: 30 })).toEqual({
+      value: '12',
+      unit: 'reps',
+      extra: 'con 30 kg',
+    });
+  });
+
+  it('en running el desnivel va aparte, también cuando es 0', () => {
+    expect(markParts({ value: 272, unit: 's', elevationGainM: 0 })).toEqual({
+      value: '4:32',
+      extra: 'desnivel 0 m',
+    });
   });
 });
 

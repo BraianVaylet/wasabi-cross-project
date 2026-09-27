@@ -135,7 +135,7 @@ describe('Historial del detalle (F1-13b, mockups 5 y 6)', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('WC-EXO-404-002');
     // La tabla de porcentajes sigue estando: no depende del historial.
-    expect(screen.getByRole('group', { name: 'Porcentajes' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Porcentaje del RM' })).toBeInTheDocument();
   });
 
   it('sin violaciones de accesibilidad', async () => {
