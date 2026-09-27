@@ -112,9 +112,38 @@
   font-size: var(--wc-font-size-sm);
 }
 
-.detail__stats {
+/* Zona 4: el progreso. */
+.detail__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-5);
+}
+
+/* "AUMENTO +40 KG", separado del título por un filo violeta, como en el diseño. */
+.detail__gain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--wc-space-1);
+  padding-left: var(--wc-space-2);
+  border-left: 1px solid var(--wc-border);
+}
+
+.detail__more {
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--wc-tap-target);
   color: var(--wc-accent-text);
+  font-size: var(--wc-font-size-caption);
+  letter-spacing: var(--wc-tracking-wide);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.detail__more:hover {
+  text-decoration: underline;
 }
 
 /* Zona 6: la barra fija. La barra en sí es de @wasabi-cross/ui; esto es lo de adentro. */

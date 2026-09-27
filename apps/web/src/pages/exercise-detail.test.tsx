@@ -1,4 +1,4 @@
-import type { ExerciseList, ManagedExerciseSummary } from '@wasabi-cross/schemas';
+import type { ExerciseList, ExerciseStats, ManagedExerciseSummary } from '@wasabi-cross/schemas';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
@@ -205,6 +205,63 @@ describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
       await screen.findByRole('heading', { name: 'Carrera 1 km' });
       expect(screen.queryByRole('group', { name: /Porcentaje/ })).not.toBeInTheDocument();
       expect(screen.getByText(/no tienen tabla de porcentajes/)).toBeInTheDocument();
+    });
+  });
+
+  describe('el progreso (spec §5.2, zona 4)', () => {
+    const progreso: ExerciseStats = {
+      id: 'mex_a1b2c3d4',
+      name: 'Back squat',
+      kind: 'rm',
+      unit: 'kg',
+      period: 'todo',
+      series: [
+        { performedAt: '2025-06-02T12:00:00.000Z', value: 60 },
+        { performedAt: '2026-02-23T12:00:00.000Z', value: 80 },
+        { performedAt: '2026-06-23T12:00:00.000Z', value: 100 },
+      ],
+      summary: { current: 100, best: 100, worst: 60, changePercent: 66.7, records: 3 },
+    };
+
+    it('pide todo el historial y muestra el aumento desde la primera marca', async () => {
+      const { api } = renderDetalle('/ejercicios/mex_a1b2c3d4');
+      api.client.exerciseStats.mockResolvedValue(progreso);
+
+      expect(await screen.findByRole('heading', { name: 'Progreso del RM' })).toBeInTheDocument();
+      expect(api.client.exerciseStats).toHaveBeenCalledWith('mex_a1b2c3d4', 'todo');
+      expect(await screen.findByTestId('aumento')).toHaveTextContent('Aumento+40 kg');
+      expect(screen.getByRole('figure', { name: 'RM registrado' })).toBeInTheDocument();
+    });
+
+    it('en tiempo, bajar es mejorar: de 4:40 a 4:32 es una mejora de 8 segundos', async () => {
+      const { api } = renderDetalle('/ejercicios/mex_z9y8x7w6');
+      api.client.exerciseStats.mockResolvedValue({
+        ...progreso,
+        id: 'mex_z9y8x7w6',
+        name: 'Carrera 1 km',
+        kind: 'time',
+        unit: 's',
+        series: [
+          { performedAt: '2026-01-10T12:00:00.000Z', value: 280 },
+          { performedAt: '2026-07-01T12:00:00.000Z', value: 272 },
+        ],
+      });
+
+      expect(await screen.findByTestId('aumento')).toHaveTextContent('Mejora+8 s');
+    });
+
+    it('con una sola marca no hay aumento que mostrar', async () => {
+      renderDetalle('/ejercicios/mex_a1b2c3d4');
+
+      await screen.findByRole('heading', { name: 'Progreso del RM' });
+      expect(screen.queryByTestId('aumento')).not.toBeInTheDocument();
+    });
+
+    it('"Ver estadísticas" lleva a Estadísticas con este ejercicio abierto', async () => {
+      renderDetalle('/ejercicios/mex_a1b2c3d4');
+
+      const link = await screen.findByRole('link', { name: 'Ver estadísticas' });
+      expect(link).toHaveAttribute('href', '/estadisticas?abierto=mex_a1b2c3d4');
     });
   });
 

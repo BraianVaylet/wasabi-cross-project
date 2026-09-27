@@ -1,7 +1,9 @@
 import {
+  improvement,
   loadBandFor,
   percentageTable,
   supportsPercentages,
+  type ExerciseStats,
   type LoadBand,
   type ManagedExerciseSummary,
   type Mark,
@@ -13,6 +15,7 @@ import { Link } from '@tanstack/react-router';
 import {
   BottomBar,
   Button,
+  Chart,
   Measure,
   PencilIcon,
   PercentTiles,
@@ -22,7 +25,7 @@ import {
   TextField,
   type TagVariant,
 } from '@wasabi-cross/ui';
-import { useId, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { History, type HistoryProps } from './History.tsx';
@@ -51,7 +54,15 @@ export interface ExerciseDetailPageProps {
    * barra fija la muestra en tiempo, donde no hay carga que calcular (spec §5.2).
    */
   history: DetailHistory;
+  /** La evolución de todo el historial, para el progreso (spec §5.2, zona 4). */
+  progress: ProgressProps;
   mark: MarkFormProps;
+}
+
+export interface ProgressProps {
+  stats: ExerciseStats | undefined;
+  loading: boolean;
+  error: unknown;
 }
 
 export type DetailHistory = HistoryProps & { best: Mark | undefined };
@@ -102,6 +113,7 @@ export function ExerciseDetailPage({
   selected,
   onSelect,
   history,
+  progress,
   mark,
 }: ExerciseDetailPageProps): React.JSX.Element {
   return (
@@ -127,6 +139,7 @@ export function ExerciseDetailPage({
           selected={selected}
           onSelect={onSelect}
           history={history}
+          progress={progress}
           mark={mark}
         />
       ) : null}
@@ -140,6 +153,7 @@ interface DetailProps {
   selected: number | undefined;
   onSelect: (percentage: number) => void;
   history: DetailHistory;
+  progress: ProgressProps;
   mark: MarkFormProps;
 }
 
@@ -149,6 +163,7 @@ function Detail({
   selected,
   onSelect,
   history,
+  progress,
   mark,
 }: DetailProps): React.JSX.Element {
   const rows = percentageTable(exercise.kind, exercise.current.value, percentages) ?? [];
@@ -163,10 +178,6 @@ function Detail({
     <>
       <Header exercise={exercise} />
 
-      <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__stats">
-        Estadísticas
-      </Link>
-
       {mark.error ? <ErrorNotice error={mark.error} /> : null}
 
       {withPercentages ? (
@@ -177,6 +188,8 @@ function Detail({
           la mejor marca y el historial.
         </p>
       )}
+
+      <Progress exercise={exercise} {...progress} />
 
       <History {...list} />
 
@@ -332,6 +345,80 @@ function Best({ best }: { best: Mark | undefined }): React.JSX.Element {
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Zona 4 de spec §5.2: el gráfico de todo el historial y cuánto mejoró desde la primera
+ * marca. La cuenta del aumento vive en `@wasabi-cross/schemas`, como el resto de las reglas.
+ */
+function Progress({
+  exercise,
+  stats,
+  loading,
+  error,
+}: ProgressProps & { exercise: ManagedExerciseSummary }): React.JSX.Element {
+  const titleId = useId();
+  const isRm = exercise.kind === 'rm';
+  const unit = stats?.unit ?? exercise.current.unit;
+  // Estable: si cambia en cada render, el gráfico se arma de nuevo cada vez.
+  const formatValue = useCallback((value: number) => formatMark({ value, unit }), [unit]);
+  const gain = stats ? improvement(exercise.kind, stats.series) : null;
+
+  return (
+    <section className="detail__progress" aria-labelledby={titleId}>
+      <SectionHeader
+        id={titleId}
+        title={isRm ? 'Progreso del RM' : 'Progreso'}
+        kicker={`Tendencia de ${CATEGORY_LABEL[exercise.category]}`}
+        divider={false}
+        meta={gain === null ? undefined : <Gain kind={exercise.kind} unit={unit} gain={gain} />}
+      />
+
+      {loading ? <Skeleton label="Cargando el progreso" /> : null}
+      {error ? <ErrorNotice error={error} /> : null}
+      {stats ? (
+        <Chart
+          label={isRm ? 'RM registrado' : 'Marcas registradas'}
+          unit={unit}
+          points={stats.series.map((point) => ({
+            label: formatDate(point.performedAt),
+            value: point.value,
+          }))}
+          formatValue={formatValue}
+        />
+      ) : null}
+
+      <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__more">
+        Ver estadísticas<span aria-hidden="true"> ›</span>
+      </Link>
+    </section>
+  );
+}
+
+/** "AUMENTO +40 KG"; en tiempo, "MEJORA +8 S": bajar es mejorar (spec §5.2). */
+function Gain({
+  kind,
+  unit,
+  gain,
+}: {
+  kind: MeasureKind;
+  unit: ExerciseStats['unit'];
+  gain: number;
+}): React.JSX.Element {
+  const parts = markParts({ value: Math.abs(gain), unit });
+  const sign = gain > 0 ? '+' : gain < 0 ? '−' : '';
+
+  return (
+    <span className="detail__gain" data-testid="aumento">
+      <span className="detail__gain-label">{kind === 'time' ? 'Mejora' : 'Aumento'}</span>
+      <Measure
+        value={`${sign}${parts.value}`}
+        unit={parts.unit}
+        size="sm"
+        tone={gain > 0 ? 'accent' : 'default'}
+      />
+    </span>
   );
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { periodStartFor, summarize, type SeriesPoint } from './evolution.ts';
+import { improvement, periodStartFor, summarize, type SeriesPoint } from './evolution.ts';
 
 function punto(fecha: string, value: number): SeriesPoint {
   return { performedAt: `${fecha}T12:00:00.000Z`, value };
@@ -77,5 +77,37 @@ describe('periodStartFor — desde cuándo se miran las marcas', () => {
 
   it('"todo" no tiene piso', () => {
     expect(periodStartFor('todo', ahora)).toBeNull();
+  });
+});
+
+describe('improvement — el aumento del progreso en el detalle (spec §5.2)', () => {
+  it('de 60 a 80 a 100 kg, mejoró 40: la actual menos la primera', () => {
+    const serie = [punto('2025-06-02', 60), punto('2026-02-23', 80), punto('2026-06-23', 100)];
+
+    expect(improvement('rm', serie)).toBe(40);
+  });
+
+  it('en tiempo, bajar de 4:40 a 4:32 es una mejora de 8 segundos, positiva', () => {
+    expect(improvement('time', [punto('2026-01-10', 280), punto('2026-06-10', 272)])).toBe(8);
+  });
+
+  it('si empeoró, lo dice en negativo', () => {
+    expect(improvement('rm', [punto('2026-01-10', 100), punto('2026-06-10', 95)])).toBe(-5);
+    expect(improvement('time', [punto('2026-01-10', 272), punto('2026-06-10', 280)])).toBe(-8);
+  });
+
+  it('va por fecha, no por el orden en que llegan', () => {
+    const desordenada = [punto('2026-06-23', 100), punto('2025-06-02', 60)];
+
+    expect(improvement('rm', desordenada)).toBe(40);
+  });
+
+  it('con una sola marca no hay contra qué comparar', () => {
+    expect(improvement('rm', [punto('2026-06-23', 100)])).toBeNull();
+    expect(improvement('rm', [])).toBeNull();
+  });
+
+  it('medio kilo no se pierde en el redondeo', () => {
+    expect(improvement('rm', [punto('2026-01-10', 100), punto('2026-06-10', 102.5)])).toBe(2.5);
   });
 });

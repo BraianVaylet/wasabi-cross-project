@@ -236,6 +236,8 @@ const exerciseDetailRoute = createRoute({
     const exercises = useQuery(exerciseListQueryOptions(api));
     const preferences = useQuery(preferencesQueryOptions(api));
     const history = useInfiniteQuery(historyQueryOptions(api, id));
+    // El progreso del detalle mira todo el historial, no un período (spec §5.2).
+    const progress = useQuery(exerciseStatsQueryOptions(api, id, 'todo'));
     const exercise = exercises.data?.exercises.find((item) => item.id === id);
 
     /*
@@ -270,11 +272,18 @@ const exerciseDetailRoute = createRoute({
         // historial lento dejaría el motivo del rechazo esperando a un pedido que no importa.
         void queryClient.invalidateQueries({ queryKey: historyQueryKey(id) });
         void queryClient.invalidateQueries({ queryKey: EXERCISES_QUERY_KEY });
+        // Y las estadísticas: el progreso del detalle y la cantidad de registros cambian.
+        void queryClient.invalidateQueries({ queryKey: ['stats'] });
       },
     });
 
     return (
       <ExerciseDetailPage
+        progress={{
+          stats: progress.data,
+          loading: progress.isPending,
+          error: progress.error,
+        }}
         history={{
           records: history.data?.pages.flatMap((page) => page.records) ?? [],
           best: history.data?.pages[0]?.best,
