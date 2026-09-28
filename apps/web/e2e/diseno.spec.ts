@@ -64,8 +64,11 @@ test('el detalle, igual al diseño @captura', async ({ page }, testInfo) => {
     'la referencia es la del CI, en Linux: las fuentes se dibujan distinto en cada sistema',
   );
   const referencia = join(testInfo.project.testDir, '__capturas__', `detalle-390-linux.png`);
+  // Sin `--update-snapshots` el modo es 'missing' (el default), no 'none': si no se lo pide
+  // explícitamente, una captura que falta no se escribe acá, se saltea.
+  const actualizando = ['all', 'changed'].includes(testInfo.config.updateSnapshots);
   test.skip(
-    !existsSync(referencia) && testInfo.config.updateSnapshots === 'none',
+    !existsSync(referencia) && !actualizando,
     'falta la captura de referencia: la genera el job de E2E del CI y se commitea',
   );
 
