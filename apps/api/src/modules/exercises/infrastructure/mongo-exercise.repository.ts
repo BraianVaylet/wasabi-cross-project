@@ -51,6 +51,13 @@ export function createMongoExerciseRepository(db: Db): ExerciseRepository {
       return documents.map(toEntity);
     },
 
+    findCatalogByKey: async (catalogKey: string) => {
+      // Igual que con el nombre: llega como string validado, nunca como objeto de consulta.
+      const document = await collection.findOne({ ownerId: null, catalogKey });
+
+      return document ? toEntity(document) : null;
+    },
+
     findCatalogByName: async (name: string) => {
       // `name` llega tipado como string y validado por Zod en el borde. Es lo que
       // evita que entre un objeto acá: Mongo lo interpretaría como operador

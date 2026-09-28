@@ -108,7 +108,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
   describe('editar', () => {
     it('cambia nivel y "con dolor", y devuelve el ejercicio actualizado', async () => {
       const cookie = await newUser();
-      const added = await addFromCatalog(cookie, 'Back squat');
+      const added = await addFromCatalog(cookie, 'Sentadilla trasera');
 
       const response = await patch(cookie, added.id, { level: 'avanzado', withPain: true });
 
@@ -128,8 +128,8 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
     it('el nivel es de cada usuario: editarlo no toca al de otro con el mismo ejercicio', async () => {
       const braian = await newUser();
       const amigo = await newUser();
-      const deBraian = await addFromCatalog(braian, 'Front squat');
-      await addFromCatalog(amigo, 'Front squat');
+      const deBraian = await addFromCatalog(braian, 'Sentadilla frontal');
+      await addFromCatalog(amigo, 'Sentadilla frontal');
 
       const response = await patch(braian, deBraian.id, { level: 'elite' });
 
@@ -164,10 +164,10 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
       const cookie = await newUser();
       const added = await addCustom(cookie, 'Mi sentadilla');
 
-      const response = await patch(cookie, added.id, { name: 'Back squat' });
+      const response = await patch(cookie, added.id, { name: 'Sentadilla trasera' });
 
       expect(response.statusCode).toBe(200);
-      expect(response.json<ManagedExerciseSummary>().name).toBe('Back squat');
+      expect(response.json<ManagedExerciseSummary>().name).toBe('Sentadilla trasera');
     });
 
     it('renombrar uno propio con el nombre de otro propio responde WC-EXO-409-003', async () => {
@@ -208,7 +208,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
 
     it('cambiar la categoría se rechaza', async () => {
       const cookie = await newUser();
-      const added = await addFromCatalog(cookie, 'Peso muerto');
+      const added = await addFromCatalog(cookie, 'Peso muerto convencional');
 
       const response = await patch(cookie, added.id, { category: 'running' });
 
@@ -218,7 +218,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
 
     it('un update vacío se rechaza', async () => {
       const cookie = await newUser();
-      const added = await addFromCatalog(cookie, 'Hip thruster');
+      const added = await addFromCatalog(cookie, 'Push Press');
 
       expect((await patch(cookie, added.id, {})).statusCode).toBe(400);
     });
@@ -227,7 +227,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
   describe('borrar', () => {
     it('uno del catálogo: se va de la lista con todas sus marcas, y el catálogo queda intacto', async () => {
       const cookie = await newUser();
-      const added = await addFromCatalog(cookie, 'Clean and jerk');
+      const added = await addFromCatalog(cookie, 'Clean and Jerk');
       expect(await records().countDocuments({ managedExerciseId: added.id })).toBe(1);
 
       const response = await remove(cookie, added.id);
@@ -236,7 +236,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
       expect((await list(cookie)).exercises).toHaveLength(0);
       expect(await records().countDocuments({ managedExerciseId: added.id })).toBe(0);
       expect(
-        await createMongoExerciseRepository(harness.mongo.db).findCatalogByName('Clean and jerk'),
+        await createMongoExerciseRepository(harness.mongo.db).findCatalogByName('Clean and Jerk'),
       ).not.toBeNull();
     });
 
@@ -257,16 +257,16 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
     it('libera el cupo: con 10, borrar uno deja agregar otro', async () => {
       const cookie = await newUser();
       const nombres = [
-        'Back squat',
-        'Front squat',
-        'Overhead squat',
-        'Peso muerto',
-        'Peso muerto rumano',
-        'Hip thruster',
-        'Press de banca',
-        'Floor press',
+        'Sentadilla trasera',
+        'Sentadilla frontal',
+        'Overhead Squat',
+        'Peso muerto convencional',
+        'Dominadas lastradas',
+        'Clean and Jerk',
+        'Pull-up',
+        'Burpee',
         'Press militar',
-        'Push press',
+        'Push Press',
       ];
       const agregados = [];
       for (const name of nombres) agregados.push(await addFromCatalog(cookie, name));
@@ -281,7 +281,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
 
     it('borrar dos veces: la segunda responde 404', async () => {
       const cookie = await newUser();
-      const added = await addFromCatalog(cookie, 'Power clean');
+      const added = await addFromCatalog(cookie, 'Snatch');
 
       await remove(cookie, added.id);
       const again = await remove(cookie, added.id);
@@ -295,7 +295,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
     it('editar el ejercicio de otro usuario responde 404 y no lo toca', async () => {
       const braian = await newUser();
       const amigo = await newUser();
-      const deBraian = await addFromCatalog(braian, 'Thruster');
+      const deBraian = await addFromCatalog(braian, 'Push Press');
 
       const response = await patch(amigo, deBraian.id, { level: 'elite', withPain: true });
 
@@ -329,7 +329,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
 
     it('sin sesión, ni edita ni borra', async () => {
       const cookie = await newUser();
-      const added = await addFromCatalog(cookie, 'Butterfly', { weightKg: 30 });
+      const added = await addFromCatalog(cookie, 'Press banca plano', { weightKg: 30 });
 
       const sinSesionPatch = await harness.app.inject({
         method: 'PATCH',

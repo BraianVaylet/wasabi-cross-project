@@ -94,11 +94,11 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('queda en la lista con su primera marca como valor actual', async () => {
       const cookie = await newUser();
 
-      const response = await addFromCatalog(cookie, 'Back squat', 100);
+      const response = await addFromCatalog(cookie, 'Sentadilla trasera', 100);
 
       expect(response.statusCode).toBe(201);
       expect(response.json<ManagedExerciseSummary>()).toMatchObject({
-        name: 'Back squat',
+        name: 'Sentadilla trasera',
         category: 'fuerza',
         kind: 'rm',
         isCustom: false,
@@ -106,13 +106,13 @@ describe('ejercicios gestionados (F1-05)', () => {
         withPain: false,
         current: { value: 100, unit: 'kg', performedAt: '2026-06-23T10:00:00.000Z' },
       });
-      expect((await list(cookie)).exercises.map((e) => e.name)).toEqual(['Back squat']);
+      expect((await list(cookie)).exercises.map((e) => e.name)).toEqual(['Sentadilla trasera']);
     });
 
     it('la medición sale de la categoría: la hipertrofia va en repeticiones con peso', async () => {
       const cookie = await newUser();
 
-      const response = await addFromCatalog(cookie, 'Butterfly', 12, { weightKg: 30 });
+      const response = await addFromCatalog(cookie, 'Press banca plano', 12, { weightKg: 30 });
 
       expect(response.json<ManagedExerciseSummary>()).toMatchObject({
         kind: 'weighted_reps',
@@ -123,7 +123,7 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('hipertrofia sin peso no es una marca válida', async () => {
       const cookie = await newUser();
 
-      const response = await addFromCatalog(cookie, 'Butterfly', 12);
+      const response = await addFromCatalog(cookie, 'Press banca plano', 12);
 
       expect(response.statusCode).toBe(422);
     });
@@ -150,7 +150,7 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('un peso negativo responde con el motivo, no un mensaje genérico', async () => {
       const cookie = await newUser();
 
-      const response = await addFromCatalog(cookie, 'Butterfly', 12, { weightKg: -5 });
+      const response = await addFromCatalog(cookie, 'Press banca plano', 12, { weightKg: -5 });
 
       expect(response.statusCode).toBe(422);
       expect(response.json()).toMatchObject({
@@ -177,7 +177,7 @@ describe('ejercicios gestionados (F1-05)', () => {
 
       const response = await add(cookie, {
         source: 'catalog',
-        exerciseId: await catalogId('Front squat'),
+        exerciseId: await catalogId('Sentadilla frontal'),
         level: 'avanzado',
         firstRecord: { value: 90 },
       });
@@ -244,27 +244,27 @@ describe('ejercicios gestionados (F1-05)', () => {
 
     it('sin cambios queda como del catálogo y no cuenta como propio', async () => {
       const cookie = await newUser();
-      const definition = await definitionOf('Back squat');
+      const definition = await definitionOf('Sentadilla trasera');
 
-      const response = await addEdited(cookie, await catalogId('Back squat'), {
+      const response = await addEdited(cookie, await catalogId('Sentadilla trasera'), {
         ...definition,
         // Mayúsculas y el orden de los secundarios no son una edición.
-        name: 'back SQUAT',
+        name: 'sentadilla TRASERA',
         secondaryMuscleGroups: [...definition.secondaryMuscleGroups].reverse(),
       });
 
       expect(response.statusCode).toBe(201);
       const added = response.json<ManagedExerciseSummary>();
-      expect(added).toMatchObject({ name: 'Back squat', isCustom: false });
-      expect(added.exerciseId).toBe(await catalogId('Back squat'));
+      expect(added).toMatchObject({ name: 'Sentadilla trasera', isCustom: false });
+      expect(added.exerciseId).toBe(await catalogId('Sentadilla trasera'));
       expect((await list(cookie)).usage.custom).toBe(0);
     });
 
     it('con otro grupo primario se crea un propio con esa definición, y cuenta como propio', async () => {
       const cookie = await newUser();
-      const definition = await definitionOf('Back squat');
+      const definition = await definitionOf('Sentadilla trasera');
 
-      const response = await addEdited(cookie, await catalogId('Back squat'), {
+      const response = await addEdited(cookie, await catalogId('Sentadilla trasera'), {
         ...definition,
         primaryMuscleGroup: 'gluteo',
         secondaryMuscleGroups: ['cuadriceps', 'core'],
@@ -272,20 +272,20 @@ describe('ejercicios gestionados (F1-05)', () => {
 
       expect(response.statusCode).toBe(201);
       const added = response.json<ManagedExerciseSummary>();
-      expect(added).toMatchObject({ name: 'Back squat', isCustom: true, kind: 'rm' });
-      expect(added.exerciseId).not.toBe(await catalogId('Back squat'));
+      expect(added).toMatchObject({ name: 'Sentadilla trasera', isCustom: true, kind: 'rm' });
+      expect(added.exerciseId).not.toBe(await catalogId('Sentadilla trasera'));
       expect((await list(cookie)).usage.custom).toBe(1);
       // El del catálogo no se toca: el propio es una copia aparte.
-      expect((await definitionOf('Back squat')).primaryMuscleGroup).toBe('cuadriceps');
+      expect((await definitionOf('Sentadilla trasera')).primaryMuscleGroup).toBe('cuadriceps');
     });
 
     it('con otra categoría, la primera marca se mide con la nueva', async () => {
       const cookie = await newUser();
-      const definition = await definitionOf('Back squat');
+      const definition = await definitionOf('Sentadilla trasera');
 
       const response = await add(cookie, {
         source: 'catalog',
-        exerciseId: await catalogId('Back squat'),
+        exerciseId: await catalogId('Sentadilla trasera'),
         definition: { ...definition, category: 'hipertrofia' },
         level: 'intermedio',
         firstRecord: { value: 8, weightKg: 100 },
@@ -301,10 +301,10 @@ describe('ejercicios gestionados (F1-05)', () => {
 
     it('editado, se puede agregar aunque ya tenga el del catálogo: es otro ejercicio', async () => {
       const cookie = await newUser();
-      await addFromCatalog(cookie, 'Back squat');
-      const definition = await definitionOf('Back squat');
+      await addFromCatalog(cookie, 'Sentadilla trasera');
+      const definition = await definitionOf('Sentadilla trasera');
 
-      const response = await addEdited(cookie, await catalogId('Back squat'), {
+      const response = await addEdited(cookie, await catalogId('Sentadilla trasera'), {
         ...definition,
         name: 'Back squat con pausa',
       });
@@ -315,12 +315,12 @@ describe('ejercicios gestionados (F1-05)', () => {
 
     it('sin editar y ya en la lista, responde WC-EXO-409-003 como siempre', async () => {
       const cookie = await newUser();
-      await addFromCatalog(cookie, 'Back squat');
+      await addFromCatalog(cookie, 'Sentadilla trasera');
 
       const response = await addEdited(
         cookie,
-        await catalogId('Back squat'),
-        await definitionOf('Back squat'),
+        await catalogId('Sentadilla trasera'),
+        await definitionOf('Sentadilla trasera'),
       );
 
       expect(response.statusCode).toBe(409);
@@ -332,9 +332,9 @@ describe('ejercicios gestionados (F1-05)', () => {
       for (const name of ['Propio 1', 'Propio 2', 'Propio 3']) {
         expect((await addCustom(cookie, name)).statusCode).toBe(201);
       }
-      const definition = await definitionOf('Back squat');
+      const definition = await definitionOf('Sentadilla trasera');
 
-      const response = await addEdited(cookie, await catalogId('Back squat'), {
+      const response = await addEdited(cookie, await catalogId('Sentadilla trasera'), {
         ...definition,
         capacities: ['fuerza', 'potencia'],
       });
@@ -346,7 +346,7 @@ describe('ejercicios gestionados (F1-05)', () => {
       expect(
         await harness.mongo.db
           .collection('exercises')
-          .countDocuments({ name: 'Back squat', capacities: 'potencia' }),
+          .countDocuments({ name: 'Sentadilla trasera', capacities: 'potencia' }),
       ).toBe(0);
     });
 
@@ -358,8 +358,8 @@ describe('ejercicios gestionados (F1-05)', () => {
 
       const response = await addEdited(
         cookie,
-        await catalogId('Back squat'),
-        await definitionOf('Back squat'),
+        await catalogId('Sentadilla trasera'),
+        await definitionOf('Sentadilla trasera'),
       );
 
       expect(response.statusCode).toBe(201);
@@ -368,9 +368,9 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('editado con el nombre de otro propio suyo responde WC-EXO-409-003', async () => {
       const cookie = await newUser();
       await addCustom(cookie, 'Mi sentadilla');
-      const definition = await definitionOf('Back squat');
+      const definition = await definitionOf('Sentadilla trasera');
 
-      const response = await addEdited(cookie, await catalogId('Back squat'), {
+      const response = await addEdited(cookie, await catalogId('Sentadilla trasera'), {
         ...definition,
         name: 'mi SENTADILLA',
       });
@@ -398,11 +398,11 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('puede llamarse como uno del catálogo: el nombre no decide nada (ADR-0009)', async () => {
       const cookie = await newUser();
 
-      const response = await addCustom(cookie, 'Back squat', 'fuerza', 100);
+      const response = await addCustom(cookie, 'Sentadilla trasera', 'fuerza', 100);
 
       expect(response.statusCode).toBe(201);
       expect(response.json<ManagedExerciseSummary>()).toMatchObject({
-        name: 'Back squat',
+        name: 'Sentadilla trasera',
         isCustom: true,
       });
     });
@@ -530,8 +530,8 @@ describe('ejercicios gestionados (F1-05)', () => {
       const cookie = await newUser();
 
       const responses = await Promise.all([
-        addFromCatalog(cookie, 'Thruster'),
-        addFromCatalog(cookie, 'Thruster'),
+        addFromCatalog(cookie, 'Push Press'),
+        addFromCatalog(cookie, 'Push Press'),
       ]);
 
       expect(responses.map((r) => r.statusCode).sort()).toEqual([201, 409]);
@@ -592,7 +592,7 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('un valor inválido para la medición responde WC-RM-422-001 con el motivo, y no crea nada', async () => {
       const cookie = await newUser();
 
-      const response = await addFromCatalog(cookie, 'Pull-ups', 12.5);
+      const response = await addFromCatalog(cookie, 'Pull-up', 12.5);
 
       expect(response.statusCode).toBe(422);
       expect(response.json()).toMatchObject({
@@ -608,7 +608,7 @@ describe('ejercicios gestionados (F1-05)', () => {
 
       const response = await add(cookie, {
         source: 'catalog',
-        exerciseId: await catalogId('Back squat'),
+        exerciseId: await catalogId('Sentadilla trasera'),
         level: 'intermedio',
         firstRecord: { value: 100, performedAt: manana },
       });
@@ -646,7 +646,7 @@ describe('ejercicios gestionados (F1-05)', () => {
   describe('cupo del plan Free', () => {
     it('la lista informa el uso del plan', async () => {
       const cookie = await newUser();
-      await addFromCatalog(cookie, 'Back squat');
+      await addFromCatalog(cookie, 'Sentadilla trasera');
       await addCustom(cookie, 'Wall ball');
 
       expect((await list(cookie)).usage).toEqual({
@@ -661,16 +661,16 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('el 11.º ejercicio no entra, y el mensaje dice por qué', async () => {
       const cookie = await newUser();
       const nombres = [
-        'Back squat',
-        'Front squat',
-        'Overhead squat',
-        'Peso muerto',
-        'Peso muerto rumano',
-        'Hip thruster',
-        'Press de banca',
-        'Floor press',
+        'Sentadilla trasera',
+        'Sentadilla frontal',
+        'Overhead Squat',
+        'Peso muerto convencional',
+        'Dominadas lastradas',
+        'Clean and Jerk',
+        'Pull-up',
+        'Burpee',
         'Press militar',
-        'Push press',
+        'Push Press',
       ];
       for (const name of nombres) {
         expect((await addFromCatalog(cookie, name)).statusCode, name).toBe(201);
@@ -714,13 +714,16 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('encuentra por parte del nombre, sin distinguir mayúsculas', async () => {
       const cookie = await newUser();
 
-      expect(await search(cookie, 'SQU')).toEqual(['Back squat', 'Front squat', 'Overhead squat']);
+      expect(await search(cookie, 'SENTADILLA')).toEqual([
+        'Sentadilla frontal',
+        'Sentadilla trasera',
+      ]);
     });
 
     it('sin distinguir acentos', async () => {
       const cookie = await newUser();
 
-      expect(await search(cookie, 'elevacion')).toEqual(['Elevación de gemelos']);
+      expect(await search(cookie, 'elevacion de')).toEqual(['Elevación de gemelos']);
     });
   });
 });
