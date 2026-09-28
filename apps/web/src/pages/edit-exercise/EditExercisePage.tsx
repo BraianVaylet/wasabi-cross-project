@@ -159,8 +159,8 @@ function EditForm({
         ) : (
           // El nombre de uno del catálogo no se cambia: lo comparten todos los usuarios.
           <p className="edit__fixed">
-            <span className="edit__fixed-label">Nombre</span>
-            {exercise.name}
+            <span className="wc-field-label">Nombre</span>
+            <span className="edit__fixed-value">{exercise.name}</span>
           </p>
         )}
 
