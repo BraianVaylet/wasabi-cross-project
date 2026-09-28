@@ -1,0 +1,89 @@
+.wc-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-4);
+  min-width: 0;
+}
+
+/* Las pestañas reparten el ancho en partes iguales: con dos, una grilla de 1×2. */
+.wc-tabs__list {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--wc-space-2);
+}
+
+/*
+ * Cada pestaña es un casillero como los de PercentTiles: fondo real con el recorte en el
+ * mismo elemento, así axe mide el contraste. El estado sale de `aria-selected`, no de una
+ * clase: lo que se ve es siempre lo que el lector de pantalla anuncia.
+ */
+.wc-tabs__tab {
+  box-sizing: border-box;
+  min-height: var(--wc-tap-target);
+  padding: var(--wc-space-2) var(--wc-space-3);
+
+  background-color: var(--wc-surface-muted);
+  border: 1px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
+  color: var(--wc-text);
+
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-button);
+  letter-spacing: var(--wc-tracking-button);
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color var(--wc-transition),
+    border-color var(--wc-transition),
+    color var(--wc-transition);
+}
+
+.wc-tabs__tab:hover {
+  border-color: var(--wc-border-muted);
+}
+
+/* La activa: lima con texto oscuro, 12.4:1. */
+.wc-tabs__tab[aria-selected='true'] {
+  background-color: var(--wc-accent);
+  border-color: var(--wc-accent);
+  color: var(--wc-text-on-accent);
+  cursor: default;
+}
+
+/* El foco, como anillo interior: el recorte se come el outline. */
+.wc-root .wc-tabs__tab:focus-visible,
+.wc-tabs__tab:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--wc-focus);
+}
+
+/* Sobre el lima, un anillo lima no se ve: va uno oscuro, 3px hacia adentro. */
+.wc-root .wc-tabs__tab[aria-selected='true']:focus-visible,
+.wc-tabs__tab[aria-selected='true']:focus-visible {
+  box-shadow:
+    inset 0 0 0 3px var(--wc-accent),
+    inset 0 0 0 5px var(--wc-text-on-accent);
+}
+
+.wc-tabs__panel {
+  min-width: 0;
+}
+
+@media (forced-colors: active) {
+  .wc-tabs__tab {
+    clip-path: none;
+  }
+
+  .wc-tabs__tab[aria-selected='true'] {
+    border-width: 3px;
+    border-color: Highlight;
+  }
+
+  .wc-root .wc-tabs__tab:focus-visible,
+  .wc-tabs__tab:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+}

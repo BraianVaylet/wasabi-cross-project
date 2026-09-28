@@ -41,3 +41,4 @@ export {
   type PercentTileOption,
 } from './components/percent-tiles/PercentTiles.tsx';
 export { BottomBar, type BottomBarProps } from './components/bottom-bar/BottomBar.tsx';
+export { Tabs, type TabOption, type TabsProps } from './components/tabs/Tabs.tsx';
