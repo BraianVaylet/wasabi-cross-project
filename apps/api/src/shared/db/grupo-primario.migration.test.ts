@@ -88,6 +88,26 @@ describe('migración: grupo primario y disciplinas', () => {
     expect(await row('exo_catviejo')).not.toHaveProperty('primaryMuscleGroup');
   });
 
+  it('un grupo que el mapa no conoce cae en cuerpo completo, a la ida y a la vuelta', async () => {
+    // Una base tocada a mano, con un grupo que el schema nunca tuvo y otro sin ninguno: la
+    // migración no inventa un segmento más preciso que el más genérico.
+    await exercises().insertMany([
+      { _id: 'exo_rarito01', ownerId: 'usr_braian0001', name: 'Raro', muscleGroups: ['aductor'] },
+      { _id: 'exo_vacio001', ownerId: 'usr_braian0001', name: 'Vacío', muscleGroups: [] },
+    ]);
+
+    await up(db);
+    expect(await row('exo_rarito01')).toMatchObject({
+      primaryMuscleGroup: 'aductor',
+      bodySegment: 'cuerpo_completo',
+    });
+    expect(await row('exo_vacio001')).not.toHaveProperty('primaryMuscleGroup');
+
+    await down(db);
+    expect(await row('exo_rarito01')).toMatchObject({ bodySegment: 'cuerpo_completo' });
+    expect(await row('exo_vacio001')).toMatchObject({ bodySegment: 'cuerpo_completo' });
+  });
+
   it('no pisa un primario que ya está, ni las disciplinas', async () => {
     await exercises().updateOne(
       { _id: 'exo_catalogo' },

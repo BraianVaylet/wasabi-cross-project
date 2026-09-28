@@ -72,10 +72,11 @@ export async function up(db: Db): Promise<void> {
 
 /** El segmento con la regla de antes: el de todos los grupos, o cuerpo completo si difieren. */
 function segmentFromAllGroups(groups: readonly string[]): string {
-  const segments = new Set(groups.map((group) => SEGMENT_BY_GROUP[group] ?? 'cuerpo_completo'));
-  const [only] = segments;
+  const [only, ...others] = new Set(
+    groups.map((group) => SEGMENT_BY_GROUP[group] ?? 'cuerpo_completo'),
+  );
 
-  return segments.size === 1 && only !== undefined ? only : 'cuerpo_completo';
+  return only !== undefined && others.length === 0 ? only : 'cuerpo_completo';
 }
 
 export async function down(db: Db): Promise<void> {
