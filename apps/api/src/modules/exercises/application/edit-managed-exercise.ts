@@ -45,8 +45,8 @@ async function loadOwned<Tx>(
 
 /**
  * El nombre sólo cambia en un ejercicio propio, y con las mismas reglas que al crearlo: no
- * puede ser el de uno del catálogo ni el de otro propio. Ponerle su mismo nombre con otras
- * mayúsculas no choca consigo mismo.
+ * puede ser el de otro propio, y sí el de uno del catálogo (ADR-0009). Ponerle su mismo
+ * nombre con otras mayúsculas no choca consigo mismo.
  */
 async function assertCanRename<Tx>(
   store: ManagedExerciseStore<Tx>,
@@ -61,10 +61,6 @@ async function assertCanRename<Tx>(
       ],
       meta: { userId, exerciseId: exercise.id },
     });
-  }
-
-  if ((await store.findCatalog()).some((other) => sameName(other.name, name))) {
-    throw new AppError('WC-EXO-409-004', { meta: { userId, name } });
   }
 
   const customs = await store.findCustomsOf(userId);

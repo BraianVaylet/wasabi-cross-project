@@ -18,7 +18,6 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 | `WC-AUTH-401-004`  | 401  | Sin sesión, o sesión vencida                                       | Iniciá sesión para continuar.                                      |
 | `WC-EXO-404-002`   | 404  | Ejercicio no encontrado                                            | No encontramos ese ejercicio.                                      |
 | `WC-EXO-409-003`   | 409  | El ejercicio ya está en la lista del usuario                       | Ya tenés ese ejercicio en tu lista.                                |
-| `WC-EXO-409-004`   | 409  | Un ejercicio propio con el nombre de uno del catálogo              | Ese ejercicio ya existe en el catálogo: elegilo de la lista.       |
 | `WC-RM-422-001`    | 422  | Valor de RM/tiempo/reps inválido                                   | El valor cargado no es válido.                                     |
 | `WC-RM-404-002`    | 404  | Registro no encontrado                                             | No encontramos ese registro.                                       |
 | `WC-STATS-404-001` | 404  | Ejercicio inexistente o de otro usuario, al pedir sus estadísticas | No encontramos ese ejercicio.                                      |
@@ -29,5 +28,13 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 | `WC-SYS-404-003`   | 404  | Ruta inexistente                                                   | No encontramos lo que buscás.                                      |
 | `WC-SYS-500-001`   | 500  | Error no controlado                                                | Ocurrió un error. Compartí el código {code} con soporte.           |
 | `WC-SYS-503-004`   | 503  | API inalcanzable o respuesta sin envelope (lo genera el front)     | No pudimos conectarnos con el servidor. Probá de nuevo en un rato. |
+
+## Retirados
+
+Un código retirado no se reusa: sigue acá para que nadie le asigne otro significado.
+
+| Código           | Retirado en | Por qué                                                                                                                                 |
+| ---------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `WC-EXO-409-004` | F5-08       | Un propio puede llamarse como uno del catálogo: un precargado editado conserva su nombre ([ADR-0009](./adr/0009-catalogo-ampliado.md)). |
 
 Reglas de logging asociadas a estos códigos: ver [docs/architecture.md](./architecture.md).

@@ -26,7 +26,8 @@ describe('addExerciseSchema — lo que manda "Nuevo ejercicio" (mockup 9)', () =
         name: 'Wall ball',
         category: 'gimnastico',
         capacities: ['fuerza', 'resistencia'],
-        muscleGroups: ['cuadriceps', 'hombro'],
+        primaryMuscleGroup: 'cuadriceps',
+        secondaryMuscleGroups: ['hombro'],
         level: 'principiante',
         firstRecord: { value: 30 },
       }).success,
@@ -42,11 +43,14 @@ describe('addExerciseSchema — lo que manda "Nuevo ejercicio" (mockup 9)', () =
       firstRecord: { value: 30 },
     };
 
-    expect(addExerciseSchema.safeParse({ ...base, muscleGroups: ['hombro'] }).success).toBe(false);
-    expect(addExerciseSchema.safeParse({ ...base, capacities: ['fuerza'] }).success).toBe(false);
-    expect(addExerciseSchema.safeParse({ ...base, capacities: [], muscleGroups: [] }).success).toBe(
+    expect(addExerciseSchema.safeParse({ ...base, primaryMuscleGroup: 'hombro' }).success).toBe(
       false,
     );
+    expect(addExerciseSchema.safeParse({ ...base, capacities: ['fuerza'] }).success).toBe(false);
+    expect(
+      addExerciseSchema.safeParse({ ...base, capacities: [], primaryMuscleGroup: 'hombro' })
+        .success,
+    ).toBe(false);
   });
 
   it('el segmento del cuerpo no se manda: lo deriva el servidor', () => {
@@ -55,7 +59,7 @@ describe('addExerciseSchema — lo que manda "Nuevo ejercicio" (mockup 9)', () =
       name: 'Wall ball',
       category: 'gimnastico',
       capacities: ['fuerza'],
-      muscleGroups: ['hombro'],
+      primaryMuscleGroup: 'hombro',
       level: 'principiante',
       firstRecord: { value: 30 },
       bodySegment: 'tren_inferior',
@@ -91,7 +95,7 @@ describe('addExerciseSchema — lo que manda "Nuevo ejercicio" (mockup 9)', () =
         source: 'custom',
         name: 'Wall ball',
         capacities: ['fuerza'],
-        muscleGroups: ['hombro'],
+        primaryMuscleGroup: 'hombro',
         level: 'principiante',
         firstRecord,
       }).success,
@@ -108,13 +112,73 @@ describe('addExerciseSchema — lo que manda "Nuevo ejercicio" (mockup 9)', () =
     ).toBe(false);
   });
 
+  it('los secundarios, las disciplinas y el equipo son opcionales en uno propio', () => {
+    const parsed = addExerciseSchema.parse({
+      source: 'custom',
+      name: 'Wall ball',
+      category: 'gimnastico',
+      capacities: ['fuerza'],
+      primaryMuscleGroup: 'hombro',
+      level: 'principiante',
+      firstRecord: { value: 30 },
+    });
+
+    expect(parsed).toMatchObject({ secondaryMuscleGroups: [], disciplines: [] });
+    expect(parsed).not.toHaveProperty('equipment');
+  });
+
+  it('el primario no se repite como secundario', () => {
+    const result = addExerciseSchema.safeParse({
+      source: 'custom',
+      name: 'Wall ball',
+      category: 'gimnastico',
+      capacities: ['fuerza'],
+      primaryMuscleGroup: 'hombro',
+      secondaryMuscleGroups: ['hombro', 'cuadriceps'],
+      level: 'principiante',
+      firstRecord: { value: 30 },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ['secondaryMuscleGroups'],
+      message: 'El grupo primario no se repite como secundario',
+    });
+  });
+
+  it('desde el catálogo, la definición editada es opcional y se valida igual (F5-08)', () => {
+    const catalogo = {
+      source: 'catalog',
+      exerciseId: 'exo_backsquat1',
+      level: 'intermedio',
+      firstRecord,
+    };
+    const definition = {
+      name: 'Back squat',
+      category: 'fuerza',
+      capacities: ['fuerza'],
+      primaryMuscleGroup: 'cuadriceps',
+    };
+
+    expect(addExerciseSchema.parse(catalogo)).not.toHaveProperty('definition');
+    expect(addExerciseSchema.parse({ ...catalogo, definition })).toMatchObject({
+      definition: { ...definition, secondaryMuscleGroups: [], disciplines: [] },
+    });
+    expect(
+      addExerciseSchema.safeParse({
+        ...catalogo,
+        definition: { ...definition, secondaryMuscleGroups: ['cuadriceps'] },
+      }).success,
+    ).toBe(false);
+  });
+
   it('ignora dueño e IDs que no le corresponde mandar al cliente', () => {
     const parsed = addExerciseSchema.parse({
       source: 'custom',
       name: 'Wall ball',
       category: 'gimnastico',
       capacities: ['fuerza'],
-      muscleGroups: ['hombro'],
+      primaryMuscleGroup: 'hombro',
       level: 'principiante',
       firstRecord: { value: 30 },
       ownerId: 'usr_otrousuario',

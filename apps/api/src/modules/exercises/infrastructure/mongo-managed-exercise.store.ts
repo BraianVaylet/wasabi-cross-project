@@ -87,8 +87,9 @@ export function createMongoManagedExerciseStore(db: Db) {
         primaryMuscleGroup: exercise.primaryMuscleGroup,
         muscleGroups: [...exercise.muscleGroups],
         bodySegment: exercise.bodySegment,
-        // En uno propio son opcionales, y el alta todavía no las pregunta (F5-08).
-        disciplines: [],
+        // En uno propio son opcionales (spec §5.1): lista vacía, equipo ausente.
+        disciplines: [...exercise.disciplines],
+        ...(exercise.equipment === undefined ? {} : { equipment: exercise.equipment }),
         createdAt: now,
         updatedAt: now,
       };

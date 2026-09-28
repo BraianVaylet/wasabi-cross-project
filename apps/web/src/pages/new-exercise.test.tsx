@@ -135,7 +135,8 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
           name: 'Wall ball',
           category: 'gimnastico',
           capacities: ['fuerza'],
-          muscleGroups: ['hombro'],
+          primaryMuscleGroup: 'hombro',
+          secondaryMuscleGroups: [],
         }),
       );
     });

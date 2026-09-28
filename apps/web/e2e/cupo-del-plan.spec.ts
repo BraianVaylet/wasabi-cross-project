@@ -18,7 +18,7 @@ const propio = (numero: number) => ({
   name: `Propio ${String(numero)}`,
   category: 'fuerza',
   capacities: ['fuerza'],
-  muscleGroups: ['cuadriceps'],
+  primaryMuscleGroup: 'cuadriceps',
   level: 'intermedio',
   firstRecord: { value: 50 + numero },
 });
