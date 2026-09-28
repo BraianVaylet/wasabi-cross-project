@@ -1,22 +1,23 @@
 import {
   bodySegmentFor,
   measureKindFor,
+  muscleGroupsFrom,
   parseExtraField,
   recordValueSchemaFor,
   type AddExercise,
-  type Capacity,
   type Exercise,
-  type ExerciseCategory,
+  type ExerciseDefinitionInput,
   type ManagedExercise,
   type ManagedExerciseSummary,
-  type MuscleGroup,
   type Plan,
 } from '@wasabi-cross/schemas';
 import { AppError } from '../../../shared/errors/app-error.ts';
+import { sameDefinition } from '../domain/definition.ts';
 import type {
   CurrentValue,
   ExerciseSlots,
   ManagedExerciseStore,
+  NewCustomExercise,
   RecordsGateway,
 } from '../domain/managed-exercise-ports.ts';
 import { sameName } from '../domain/names.ts';
@@ -58,7 +59,7 @@ export function toSummary(
  * propio de otro usuario responde lo mismo que uno que no existe — 404, no 403 — porque
  * confirmar que existe ya es filtrar información (spec §13).
  */
-async function resolveCatalogPick<Tx>(
+async function findPickable<Tx>(
   store: ManagedExerciseStore<Tx>,
   userId: string,
   exerciseId: string,
@@ -69,29 +70,73 @@ async function resolveCatalogPick<Tx>(
     throw new AppError('WC-EXO-404-002', { meta: { userId, exerciseId } });
   }
 
-  if (await store.findManaged(userId, exercise.id)) {
-    throw new AppError('WC-EXO-409-003', { meta: { userId, exerciseId } });
-  }
-
   return exercise;
 }
 
+/** Un ejercicio va una sola vez en la lista de cada usuario (spec §5.1). */
+async function assertNotManaged<Tx>(
+  store: ManagedExerciseStore<Tx>,
+  userId: string,
+  exercise: Exercise,
+): Promise<void> {
+  if (await store.findManaged(userId, exercise.id)) {
+    throw new AppError('WC-EXO-409-003', { meta: { userId, exerciseId: exercise.id } });
+  }
+}
+
 /**
- * Propio: se crea sólo si no existe (spec §5). Si su nombre es el de uno del catálogo, el
- * usuario tiene que elegir ese; si es el de otro propio suyo, ya lo tiene en la lista.
+ * Propio: se crea sólo si el usuario no tiene ya otro propio con ese nombre. Puede llamarse
+ * como uno del catálogo (ADR-0009): un precargado editado conserva su nombre.
  */
 async function assertCustomNameIsFree<Tx>(
   store: ManagedExerciseStore<Tx>,
   userId: string,
   name: string,
 ): Promise<void> {
-  if ((await store.findCatalog()).some((exercise) => sameName(exercise.name, name))) {
-    throw new AppError('WC-EXO-409-004', { meta: { userId, name } });
-  }
-
   if ((await store.findCustomsOf(userId)).some((exercise) => sameName(exercise.name, name))) {
     throw new AppError('WC-EXO-409-003', { meta: { userId, name } });
   }
+}
+
+/**
+ * Qué se agrega: uno que ya existe, o uno propio nuevo con esta definición. Desde el
+ * catálogo, un formulario editado es un propio (spec §5.3, ADR-0009); uno sin editar, el
+ * del catálogo.
+ */
+async function resolveTarget<Tx>(
+  store: ManagedExerciseStore<Tx>,
+  userId: string,
+  input: AddExercise,
+): Promise<{ existing: Exercise } | { definition: ExerciseDefinitionInput }> {
+  if (input.source === 'custom') {
+    await assertCustomNameIsFree(store, userId, input.name);
+    return { definition: input };
+  }
+
+  const exercise = await findPickable(store, userId, input.exerciseId);
+  if (input.definition !== undefined && !sameDefinition(exercise, input.definition)) {
+    await assertCustomNameIsFree(store, userId, input.definition.name);
+    return { definition: input.definition };
+  }
+
+  await assertNotManaged(store, userId, exercise);
+  return { existing: exercise };
+}
+
+/** El propio que se guarda: los grupos con el primario adelante y el segmento derivado. */
+function customFrom(userId: string, definition: ExerciseDefinitionInput): NewCustomExercise {
+  return {
+    ownerId: userId,
+    name: definition.name,
+    category: definition.category,
+    capacities: definition.capacities,
+    primaryMuscleGroup: definition.primaryMuscleGroup,
+    muscleGroups: muscleGroupsFrom(definition.primaryMuscleGroup, definition.secondaryMuscleGroups),
+    // No se pregunta: sale del grupo primario (spec §5.1).
+    bodySegment: bodySegmentFor(definition.primaryMuscleGroup),
+    disciplines: definition.disciplines,
+    ...(definition.equipment === undefined ? {} : { equipment: definition.equipment }),
+  };
 }
 
 /**
@@ -111,36 +156,9 @@ export async function addManagedExercise<Tx>(
 
   // Qué se agrega: un ejercicio que ya existe, o uno propio nuevo que se crea en la
   // transacción. Los dos caminos quedan explícitos en el tipo.
-  let target:
-    | { existing: Exercise }
-    | {
-        newName: string;
-        capacities: Capacity[];
-        primaryMuscleGroup: MuscleGroup;
-        muscleGroups: MuscleGroup[];
-      };
-  let category: ExerciseCategory;
-
-  if (input.source === 'catalog') {
-    const existing = await resolveCatalogPick(store, userId, input.exerciseId);
-    target = { existing };
-    category = existing.category;
-  } else {
-    await assertCustomNameIsFree(store, userId, input.name);
-    const [primaryMuscleGroup] = input.muscleGroups;
-    if (primaryMuscleGroup === undefined) {
-      // El schema del borde exige al menos uno: llegar acá sin grupos es un bug, no un caso.
-      throw new Error('Ejercicio propio sin grupos musculares');
-    }
-    target = {
-      newName: input.name,
-      capacities: input.capacities,
-      // Hasta que el alta pregunte el primario (F5-08), es el primero de los elegidos.
-      primaryMuscleGroup,
-      muscleGroups: input.muscleGroups,
-    };
-    category = input.category;
-  }
+  const target = await resolveTarget(store, userId, input);
+  const category = 'existing' in target ? target.existing.category : target.definition.category;
+  const isCustom = 'definition' in target;
 
   const kind = measureKindFor(category);
 
@@ -167,20 +185,13 @@ export async function addManagedExercise<Tx>(
 
   const performedAt = input.firstRecord.performedAt ?? new Date().toISOString();
 
-  return slots.withSlot({ userId, plan, isCustom: input.source === 'custom' }, async (tx) => {
+  // Un precargado editado cuenta como propio para el plan (spec §4): el cupo lo mira el
+  // backend, no el formulario.
+  return slots.withSlot({ userId, plan, isCustom }, async (tx) => {
     const exercise =
       'existing' in target
         ? target.existing
-        : await store.createCustom(tx, {
-            ownerId: userId,
-            name: target.newName,
-            category,
-            capacities: target.capacities,
-            primaryMuscleGroup: target.primaryMuscleGroup,
-            muscleGroups: target.muscleGroups,
-            // No se pregunta: sale del grupo primario (spec §5.1).
-            bodySegment: bodySegmentFor(target.primaryMuscleGroup),
-          });
+        : await store.createCustom(tx, customFrom(userId, target.definition));
 
     const managed = await store.createManaged(tx, {
       userId,

@@ -157,6 +157,10 @@ export function toAddExercise(
   const extraKind = extraFieldKindFor(kind);
   const extraValue = extraKind === null ? null : parsePlainNumber(values.extra);
 
+  // Hasta que el formulario pregunte el primario (F5-11), es el primero de los tildados. La
+  // validación ya exige al menos uno: el respaldo nunca se usa.
+  const [primaryMuscleGroup = 'cuerpo_completo', ...secondaryMuscleGroups] = values.muscleGroups;
+
   const shared = {
     level: values.level === '' ? 'principiante' : values.level,
     withPain: values.withPain,
@@ -176,7 +180,9 @@ export function toAddExercise(
         category: values.category === '' ? 'fuerza' : values.category,
         // El segmento del cuerpo no va: lo deriva el servidor (spec §5.1).
         capacities: values.capacities,
-        muscleGroups: values.muscleGroups,
+        primaryMuscleGroup,
+        secondaryMuscleGroups,
+        disciplines: [],
         ...shared,
       };
 }

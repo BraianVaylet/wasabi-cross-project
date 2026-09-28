@@ -172,18 +172,64 @@ export const exerciseDefinitionSchema = z.object({
 export type ExerciseDefinition = z.infer<typeof exerciseDefinitionSchema>;
 
 /**
- * Lo que define un ejercicio propio: además de nombre y categoría, las capacidades y los
- * grupos musculares que elige el usuario en el alta (spec §5.1). Sin ellos ese ejercicio
- * quedaría afuera de las estadísticas generales.
- *
- * El segmento del cuerpo no está: se deriva del grupo primario con `bodySegmentFor`. Hasta
- * que el alta lo pida (F5-08), el primario de uno propio es el primero de sus grupos.
+ * La base de una entrada del catálogo: nombre, categoría, capacidades y grupos musculares
+ * (spec §5.1). Sin capacidades ni grupos, un ejercicio quedaría afuera de las estadísticas
+ * generales.
  */
 export const customExerciseDefinitionSchema = exerciseDefinitionSchema.extend({
   capacities: capacitiesSchema,
   muscleGroups: muscleGroupsSchema,
 });
 export type CustomExerciseDefinition = z.infer<typeof customExerciseDefinitionSchema>;
+
+const secondaryMuscleGroupsSchema = z
+  .array(muscleGroupSchema)
+  .refine((values) => new Set(values).size === values.length, 'Grupos musculares repetidos');
+
+/**
+ * Lo que el usuario define de un ejercicio en el alta (spec §5.3): nombre, categoría,
+ * capacidades, el grupo primario y los secundarios, y —opcionales— disciplinas y equipo.
+ * Es lo que manda la pestaña "Crear", y la de "Catálogo" cuando el precargado se editó.
+ *
+ * El primario y los secundarios van separados, como los pide el formulario; el servidor
+ * arma la lista con el primario adelante (`muscleGroupsFrom`). El segmento no viaja: se
+ * deriva del primario.
+ */
+export const exerciseDefinitionInputShape = {
+  ...exerciseDefinitionSchema.shape,
+  capacities: capacitiesSchema,
+  primaryMuscleGroup: muscleGroupSchema,
+  secondaryMuscleGroups: secondaryMuscleGroupsSchema.default([]),
+  disciplines: disciplinesSchema.default([]),
+  equipment: equipmentSchema.optional(),
+};
+
+/** El primario no se repite como secundario (spec §5.1). */
+export function primaryIsNotSecondary(
+  value: { primaryMuscleGroup: MuscleGroup; secondaryMuscleGroups: readonly MuscleGroup[] },
+  ctx: z.RefinementCtx,
+): void {
+  if (value.secondaryMuscleGroups.includes(value.primaryMuscleGroup)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['secondaryMuscleGroups'],
+      message: 'El grupo primario no se repite como secundario',
+    });
+  }
+}
+
+export const exerciseDefinitionInputSchema = z
+  .object(exerciseDefinitionInputShape)
+  .superRefine(primaryIsNotSecondary);
+export type ExerciseDefinitionInput = z.infer<typeof exerciseDefinitionInputSchema>;
+
+/** La lista de grupos que se guarda: el primario adelante, después los secundarios. */
+export function muscleGroupsFrom(
+  primary: MuscleGroup,
+  secondaries: readonly MuscleGroup[],
+): MuscleGroup[] {
+  return [primary, ...secondaries.filter((group) => group !== primary)];
+}
 
 /**
  * Una entrada del catálogo pre-cargado (spec §5.3). Además de lo de uno propio, trae su

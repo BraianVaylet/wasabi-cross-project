@@ -68,7 +68,7 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
         name,
         category: 'gimnastico',
         capacities: ['fuerza'],
-        muscleGroups: ['hombro'],
+        primaryMuscleGroup: 'hombro',
         level: 'principiante',
         firstRecord: { value: 20 },
       }),
@@ -160,14 +160,14 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
       expect(response.json<ManagedExerciseSummary>().name).toBe('Wall ball 9 kg');
     });
 
-    it('renombrar uno propio con el nombre de uno del catálogo responde WC-EXO-409-004', async () => {
+    it('renombrar uno propio con el nombre de uno del catálogo se puede (ADR-0009)', async () => {
       const cookie = await newUser();
       const added = await addCustom(cookie, 'Mi sentadilla');
 
-      const response = await patch(cookie, added.id, { name: 'back squat' });
+      const response = await patch(cookie, added.id, { name: 'Back squat' });
 
-      expect(response.statusCode).toBe(409);
-      expect(response.json()).toMatchObject({ errorCode: 'WC-EXO-409-004' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json<ManagedExerciseSummary>().name).toBe('Back squat');
     });
 
     it('renombrar uno propio con el nombre de otro propio responde WC-EXO-409-003', async () => {

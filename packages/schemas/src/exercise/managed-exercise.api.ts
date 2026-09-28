@@ -4,9 +4,11 @@ import { plainText } from '../common/text.ts';
 import { planSchema } from '../user/plan.ts';
 import {
   exerciseCategorySchema,
+  exerciseDefinitionInputSchema,
+  exerciseDefinitionInputShape,
   exerciseDefinitionSchema,
-  customExerciseDefinitionSchema,
   measureKindSchema,
+  primaryIsNotSecondary,
 } from './exercise.schema.ts';
 import { levelSchema } from './managed-exercise.schema.ts';
 import { markSchema, recordInputSchema } from '../record/record.api.ts';
@@ -31,14 +33,25 @@ const userFields = {
 };
 
 /**
- * Lo que manda el formulario de "Nuevo ejercicio" (mockup 9): uno del catálogo por su ID,
- * o uno propio con nombre y categoría, siempre con su primera marca.
+ * Lo que manda el formulario de "Nuevo ejercicio" (spec §5.3), siempre con su primera marca:
+ *
+ * - `catalog`: uno precargado por su ID. Si el formulario se editó, viaja además la
+ *   `definition` como quedó; si difiere de la del catálogo, el servidor crea un propio con
+ *   ella (ADR-0009). Sin `definition`, es el del catálogo tal cual.
+ * - `custom`: uno propio, con toda su definición.
  *
  * Dueño e IDs no están: los pone el servidor desde la sesión.
  */
 export const addExerciseSchema = z.discriminatedUnion('source', [
-  z.object({ source: z.literal('catalog'), exerciseId: exerciseIdSchema, ...userFields }),
-  z.object({ source: z.literal('custom'), ...customExerciseDefinitionSchema.shape, ...userFields }),
+  z.object({
+    source: z.literal('catalog'),
+    exerciseId: exerciseIdSchema,
+    definition: exerciseDefinitionInputSchema.optional(),
+    ...userFields,
+  }),
+  z
+    .object({ source: z.literal('custom'), ...exerciseDefinitionInputShape, ...userFields })
+    .superRefine(primaryIsNotSecondary),
 ]);
 
 export type AddExercise = z.infer<typeof addExerciseSchema>;

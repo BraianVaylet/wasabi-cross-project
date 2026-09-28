@@ -1,5 +1,6 @@
 import { bodySegmentFor, type Exercise } from '@wasabi-cross/schemas';
 import { EXERCISE_CATALOG, type CatalogExercise } from '../domain/catalog.ts';
+import { sameSet } from '../domain/definition.ts';
 import type { ExerciseRepository } from '../domain/exercise-repository.ts';
 
 export interface SeedReport {
@@ -24,21 +25,6 @@ function hasSameDefinition(stored: Exercise, definition: CatalogExercise): boole
     sameSet(stored.capacities, definition.capacities) &&
     sameSet(stored.muscleGroups, definition.muscleGroups) &&
     sameSet(stored.disciplines, definition.disciplines)
-  );
-}
-
-/**
- * `stored` puede venir sin el campo: en el schema es opcional porque un ejercicio propio
- * no lo tiene. Un documento del catálogo sin él está incompleto y cuenta como cambio.
- */
-function sameSet(stored: readonly string[] | undefined, expected: readonly string[]): boolean {
-  if (!stored) {
-    return false;
-  }
-
-  return (
-    stored.length === expected.length &&
-    [...stored].sort().join('|') === [...expected].sort().join('|')
   );
 }
 

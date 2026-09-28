@@ -69,7 +69,7 @@ describe('ejercicios gestionados (F1-05)', () => {
       name,
       category,
       capacities: ['fuerza'],
-      muscleGroups: ['hombro'],
+      primaryMuscleGroup: 'hombro',
       level: 'principiante',
       firstRecord: { value },
     });
@@ -212,6 +212,174 @@ describe('ejercicios gestionados (F1-05)', () => {
     });
   });
 
+  describe('un precargado editado (F5-08, spec §5.3)', () => {
+    /** La definición de Back squat tal como la precarga el formulario. */
+    async function definitionOf(name: string) {
+      const exercise = await createMongoExerciseRepository(harness.mongo.db).findCatalogByName(
+        name,
+      );
+      if (!exercise) throw new Error(`No está en el catálogo: ${name}`);
+      return {
+        name: exercise.name,
+        category: exercise.category,
+        capacities: exercise.capacities,
+        primaryMuscleGroup: exercise.primaryMuscleGroup,
+        secondaryMuscleGroups: exercise.muscleGroups.filter(
+          (group) => group !== exercise.primaryMuscleGroup,
+        ),
+        disciplines: exercise.disciplines,
+        ...(exercise.equipment === undefined ? {} : { equipment: exercise.equipment }),
+      };
+    }
+
+    function addEdited(cookie: string, exerciseId: string, definition: Record<string, unknown>) {
+      return add(cookie, {
+        source: 'catalog',
+        exerciseId,
+        definition,
+        level: 'intermedio',
+        firstRecord: { value: 100 },
+      });
+    }
+
+    it('sin cambios queda como del catálogo y no cuenta como propio', async () => {
+      const cookie = await newUser();
+      const definition = await definitionOf('Back squat');
+
+      const response = await addEdited(cookie, await catalogId('Back squat'), {
+        ...definition,
+        // Mayúsculas y el orden de los secundarios no son una edición.
+        name: 'back SQUAT',
+        secondaryMuscleGroups: [...definition.secondaryMuscleGroups].reverse(),
+      });
+
+      expect(response.statusCode).toBe(201);
+      const added = response.json<ManagedExerciseSummary>();
+      expect(added).toMatchObject({ name: 'Back squat', isCustom: false });
+      expect(added.exerciseId).toBe(await catalogId('Back squat'));
+      expect((await list(cookie)).usage.custom).toBe(0);
+    });
+
+    it('con otro grupo primario se crea un propio con esa definición, y cuenta como propio', async () => {
+      const cookie = await newUser();
+      const definition = await definitionOf('Back squat');
+
+      const response = await addEdited(cookie, await catalogId('Back squat'), {
+        ...definition,
+        primaryMuscleGroup: 'gluteo',
+        secondaryMuscleGroups: ['cuadriceps', 'core'],
+      });
+
+      expect(response.statusCode).toBe(201);
+      const added = response.json<ManagedExerciseSummary>();
+      expect(added).toMatchObject({ name: 'Back squat', isCustom: true, kind: 'rm' });
+      expect(added.exerciseId).not.toBe(await catalogId('Back squat'));
+      expect((await list(cookie)).usage.custom).toBe(1);
+      // El del catálogo no se toca: el propio es una copia aparte.
+      expect((await definitionOf('Back squat')).primaryMuscleGroup).toBe('cuadriceps');
+    });
+
+    it('con otra categoría, la primera marca se mide con la nueva', async () => {
+      const cookie = await newUser();
+      const definition = await definitionOf('Back squat');
+
+      const response = await add(cookie, {
+        source: 'catalog',
+        exerciseId: await catalogId('Back squat'),
+        definition: { ...definition, category: 'hipertrofia' },
+        level: 'intermedio',
+        firstRecord: { value: 8, weightKg: 100 },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(response.json<ManagedExerciseSummary>()).toMatchObject({
+        isCustom: true,
+        kind: 'weighted_reps',
+        current: { value: 8, weightKg: 100 },
+      });
+    });
+
+    it('editado, se puede agregar aunque ya tenga el del catálogo: es otro ejercicio', async () => {
+      const cookie = await newUser();
+      await addFromCatalog(cookie, 'Back squat');
+      const definition = await definitionOf('Back squat');
+
+      const response = await addEdited(cookie, await catalogId('Back squat'), {
+        ...definition,
+        name: 'Back squat con pausa',
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect((await list(cookie)).exercises).toHaveLength(2);
+    });
+
+    it('sin editar y ya en la lista, responde WC-EXO-409-003 como siempre', async () => {
+      const cookie = await newUser();
+      await addFromCatalog(cookie, 'Back squat');
+
+      const response = await addEdited(
+        cookie,
+        await catalogId('Back squat'),
+        await definitionOf('Back squat'),
+      );
+
+      expect(response.statusCode).toBe(409);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-EXO-409-003' });
+    });
+
+    it('un Free con 3 propios no puede agregar un precargado editado, y no se crea nada', async () => {
+      const cookie = await newUser();
+      for (const name of ['Propio 1', 'Propio 2', 'Propio 3']) {
+        expect((await addCustom(cookie, name)).statusCode).toBe(201);
+      }
+      const definition = await definitionOf('Back squat');
+
+      const response = await addEdited(cookie, await catalogId('Back squat'), {
+        ...definition,
+        capacities: ['fuerza', 'potencia'],
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-SUBS-403-001' });
+      expect((await list(cookie)).exercises).toHaveLength(3);
+      // Ningún propio con lo editado: la transacción no dejó nada a medias.
+      expect(
+        await harness.mongo.db
+          .collection('exercises')
+          .countDocuments({ name: 'Back squat', capacities: 'potencia' }),
+      ).toBe(0);
+    });
+
+    it('el mismo Free sí puede agregar el precargado sin editar: no es propio', async () => {
+      const cookie = await newUser();
+      for (const name of ['Propio 1', 'Propio 2', 'Propio 3']) {
+        expect((await addCustom(cookie, name)).statusCode).toBe(201);
+      }
+
+      const response = await addEdited(
+        cookie,
+        await catalogId('Back squat'),
+        await definitionOf('Back squat'),
+      );
+
+      expect(response.statusCode).toBe(201);
+    });
+
+    it('editado con el nombre de otro propio suyo responde WC-EXO-409-003', async () => {
+      const cookie = await newUser();
+      await addCustom(cookie, 'Mi sentadilla');
+      const definition = await definitionOf('Back squat');
+
+      const response = await addEdited(cookie, await catalogId('Back squat'), {
+        ...definition,
+        name: 'mi SENTADILLA',
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-EXO-409-003' });
+    });
+  });
+
   describe('crear uno propio', () => {
     it('queda en la lista, marcado como propio, con la medición de su categoría', async () => {
       const cookie = await newUser();
@@ -227,15 +395,60 @@ describe('ejercicios gestionados (F1-05)', () => {
       });
     });
 
-    it('con el nombre de uno del catálogo, aunque cambien mayúsculas o acentos, responde WC-EXO-409-004', async () => {
+    it('puede llamarse como uno del catálogo: el nombre no decide nada (ADR-0009)', async () => {
       const cookie = await newUser();
 
-      for (const name of ['Back squat', 'back SQUAT', 'Elevacion de gemelos']) {
-        const response = await addCustom(cookie, name, 'fuerza', 100);
-        expect(response.statusCode, name).toBe(409);
-        expect(response.json(), name).toMatchObject({ errorCode: 'WC-EXO-409-004' });
-      }
-      expect((await list(cookie)).exercises).toHaveLength(0);
+      const response = await addCustom(cookie, 'Back squat', 'fuerza', 100);
+
+      expect(response.statusCode).toBe(201);
+      expect(response.json<ManagedExerciseSummary>()).toMatchObject({
+        name: 'Back squat',
+        isCustom: true,
+      });
+    });
+
+    it('guarda disciplinas y equipo si vienen, y el primario adelante de los secundarios', async () => {
+      const cookie = await newUser();
+
+      const response = await add(cookie, {
+        source: 'custom',
+        name: 'Sled del box',
+        category: 'hipertrofia',
+        capacities: ['fuerza'],
+        primaryMuscleGroup: 'cuadriceps',
+        secondaryMuscleGroups: ['core', 'gluteo'],
+        disciplines: ['hyrox', 'funcional'],
+        equipment: 'sled',
+        level: 'intermedio',
+        firstRecord: { value: 10, weightKg: 100 },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(await guardado('Sled del box')).toMatchObject({
+        primaryMuscleGroup: 'cuadriceps',
+        muscleGroups: ['cuadriceps', 'core', 'gluteo'],
+        bodySegment: 'tren_inferior',
+        disciplines: ['hyrox', 'funcional'],
+        equipment: 'sled',
+      });
+    });
+
+    it('el primario repetido como secundario se rechaza', async () => {
+      const cookie = await newUser();
+
+      const response = await add(cookie, {
+        source: 'custom',
+        name: 'Repetido',
+        category: 'fuerza',
+        capacities: ['fuerza'],
+        primaryMuscleGroup: 'hombro',
+        secondaryMuscleGroups: ['hombro'],
+        level: 'intermedio',
+        firstRecord: { value: 50 },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-400-002' });
     });
 
     it('dos propios con el mismo nombre, aunque cambien las mayúsculas, responde WC-EXO-409-003', async () => {
@@ -256,7 +469,8 @@ describe('ejercicios gestionados (F1-05)', () => {
         name: 'Peso muerto rumano del garage',
         category: 'fuerza',
         capacities: ['fuerza'],
-        muscleGroups: ['isquiotibiales', 'gluteo'],
+        primaryMuscleGroup: 'isquiotibiales',
+        secondaryMuscleGroups: ['gluteo'],
         level: 'intermedio',
         firstRecord: { value: 80 },
       });
@@ -277,7 +491,8 @@ describe('ejercicios gestionados (F1-05)', () => {
         name: 'Thruster del garage',
         category: 'gimnastico',
         capacities: ['fuerza', 'resistencia'],
-        muscleGroups: ['cuadriceps', 'hombro'],
+        primaryMuscleGroup: 'cuadriceps',
+        secondaryMuscleGroups: ['hombro'],
         level: 'intermedio',
         firstRecord: { value: 20 },
       });
@@ -296,7 +511,7 @@ describe('ejercicios gestionados (F1-05)', () => {
         source: 'custom',
         name: 'Sin capacidades',
         category: 'gimnastico',
-        muscleGroups: ['hombro'],
+        primaryMuscleGroup: 'hombro',
         level: 'intermedio',
         firstRecord: { value: 20 },
       });

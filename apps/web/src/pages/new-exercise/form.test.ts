@@ -149,7 +149,9 @@ describe('toAddExercise — lo que viaja a la API', () => {
       name: 'Wall ball',
       category: 'gimnastico',
       capacities: ['fuerza', 'resistencia'],
-      muscleGroups: ['cuadriceps', 'hombro'],
+      // Hasta F5-11, el primario es el primero de los tildados.
+      primaryMuscleGroup: 'cuadriceps',
+      secondaryMuscleGroups: ['hombro'],
       firstRecord: { value: 30 },
     });
   });
@@ -164,7 +166,8 @@ describe('toAddExercise — lo que viaja a la API', () => {
     });
 
     expect(input).not.toHaveProperty('capacities');
-    expect(input).not.toHaveProperty('muscleGroups');
+    expect(input).not.toHaveProperty('primaryMuscleGroup');
+    expect(input).not.toHaveProperty('definition');
   });
 
   it('el segmento del cuerpo no viaja: lo deriva el servidor (spec §5.1)', () => {

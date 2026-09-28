@@ -112,17 +112,17 @@ describe('Editar y borrar un ejercicio (F1-15)', () => {
     it('si la API rechaza el cambio, lo dice con su código', async () => {
       const { api } = renderEdicion('mex_z9y8x7w6');
       api.client.updateExercise.mockRejectedValueOnce(
-        new ApiError(409, 'WC-EXO-409-004', 'Ese ejercicio ya existe en el catálogo.', 'req-1'),
+        new ApiError(409, 'WC-EXO-409-003', 'Ya tenés ese ejercicio en tu lista.', 'req-1'),
       );
       await screen.findByLabelText('Nombre');
 
       await userEvent.clear(screen.getByLabelText('Nombre'));
-      await userEvent.type(screen.getByLabelText('Nombre'), 'Back squat');
+      await userEvent.type(screen.getByLabelText('Nombre'), 'Mi otro propio');
       await userEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
       const alert = await screen.findByRole('alert');
-      expect(alert).toHaveTextContent('Ese ejercicio ya existe en el catálogo.');
-      expect(alert).toHaveTextContent('WC-EXO-409-004');
+      expect(alert).toHaveTextContent('Ya tenés ese ejercicio en tu lista.');
+      expect(alert).toHaveTextContent('WC-EXO-409-003');
     });
   });
 

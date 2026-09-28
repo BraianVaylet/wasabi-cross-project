@@ -1,6 +1,8 @@
 import type {
   BodySegment,
   Capacity,
+  Discipline,
+  Equipment,
   Exercise,
   ExerciseCategory,
   Level,
@@ -85,6 +87,8 @@ export interface NewCustomExercise {
   readonly primaryMuscleGroup: MuscleGroup;
   readonly muscleGroups: readonly MuscleGroup[];
   readonly bodySegment: BodySegment;
+  readonly disciplines: readonly Discipline[];
+  readonly equipment?: Equipment | undefined;
 }
 
 export interface ManagedExerciseStore<Tx> {

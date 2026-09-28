@@ -32,10 +32,6 @@ export const ERROR_CATALOG = {
   'WC-AUTH-401-004': { status: 401, userMessage: 'Iniciá sesión para continuar.' },
   'WC-EXO-404-002': { status: 404, userMessage: 'No encontramos ese ejercicio.' },
   'WC-EXO-409-003': { status: 409, userMessage: 'Ya tenés ese ejercicio en tu lista.' },
-  'WC-EXO-409-004': {
-    status: 409,
-    userMessage: 'Ese ejercicio ya existe en el catálogo: elegilo de la lista.',
-  },
   'WC-RM-422-001': { status: 422, userMessage: 'El valor cargado no es válido.' },
   'WC-RM-404-002': { status: 404, userMessage: 'No encontramos ese registro.' },
   'WC-STATS-404-001': { status: 404, userMessage: 'No encontramos ese ejercicio.' },

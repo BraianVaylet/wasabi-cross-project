@@ -6,6 +6,7 @@ import {
   exerciseSchema,
   isCatalogExercise,
   measureKindFor,
+  muscleGroupsFrom,
   measureKindSchema,
 } from './exercise.schema.ts';
 
@@ -266,5 +267,20 @@ describe('isCatalogExercise', () => {
   it('sin dueño es del catálogo; con dueño es propio', () => {
     expect(isCatalogExercise({ ownerId: null })).toBe(true);
     expect(isCatalogExercise({ ownerId: 'usr_a1b2c3d4' })).toBe(false);
+  });
+});
+
+describe('muscleGroupsFrom', () => {
+  it('arma la lista que se guarda: el primario adelante, después los secundarios', () => {
+    expect(muscleGroupsFrom('cuadriceps', ['gluteo', 'core'])).toEqual([
+      'cuadriceps',
+      'gluteo',
+      'core',
+    ]);
+    expect(muscleGroupsFrom('core', [])).toEqual(['core']);
+  });
+
+  it('si el primario vino también como secundario, no lo repite', () => {
+    expect(muscleGroupsFrom('espalda', ['biceps', 'espalda'])).toEqual(['espalda', 'biceps']);
   });
 });
