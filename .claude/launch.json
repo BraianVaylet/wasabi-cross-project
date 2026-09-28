@@ -12,6 +12,29 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev"],
       "port": 5173
+    },
+    {
+      "name": "api-efimera",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@wasabi-cross/api", "dev:ephemeral"],
+      "port": 3100
+    },
+    {
+      "name": "web-efimera",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@wasabi-cross/web",
+        "exec",
+        "vite",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5174",
+        "--strictPort"
+      ],
+      "env": { "VITE_API_URL": "http://127.0.0.1:3100" },
+      "port": 5174
     }
   ]
 }

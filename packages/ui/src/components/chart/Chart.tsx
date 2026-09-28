@@ -210,8 +210,9 @@ export function Chart({
               </tr>
             </thead>
             <tbody>
-              {points.map((point) => (
-                <tr key={point.label}>
+              {/* La fecha no identifica un punto: dos marcas del mismo día comparten etiqueta. */}
+              {points.map((point, index) => (
+                <tr key={`${String(index)}-${point.label}`}>
                   <th scope="row">{point.label}</th>
                   <td>{format(point.value)}</td>
                 </tr>

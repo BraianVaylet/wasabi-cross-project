@@ -16,13 +16,12 @@ import {
 } from '@wasabi-cross/schemas';
 import { z } from 'zod';
 import {
-  elevationError,
+  EXTRA_FIELD,
   extraFieldKindFor,
   markValueError,
   parseMarkValue,
   parsePlainNumber,
   performedAtFrom,
-  weightError,
 } from '../../lib/mark-input.ts';
 
 /*
@@ -39,7 +38,7 @@ export interface NewExerciseValues {
   muscleGroups: MuscleGroup[];
   /** Como se escribe: "100", "92,5" o "4:32". */
   value: string;
-  /** El peso (hipertrofia) o el desnivel (running) de la primera marca, si corresponde. */
+  /** El dato extra de la primera marca, si corresponde: peso, desnivel o calorías. */
   extra: string;
   /** `yyyy-mm-dd` del campo de fecha, o vacío. */
   date: string;
@@ -140,7 +139,7 @@ export function newExerciseSchemaFor(catalog: readonly Exercise[]) {
         ctx.addIssue({
           code: 'custom',
           path: ['extra'],
-          message: extraKind === 'weightKg' ? weightError : elevationError,
+          message: EXTRA_FIELD[extraKind].error,
         });
       }
     });

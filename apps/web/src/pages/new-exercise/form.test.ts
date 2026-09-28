@@ -199,6 +199,27 @@ describe('toAddExercise — lo que viaja a la API', () => {
     expect(input.firstRecord.performedAt).toBeUndefined();
   });
 
+  it('uno propio de cardio pide las calorías, y las manda con los metros (F5-03a)', () => {
+    const cardio = {
+      ...EMPTY_VALUES,
+      name: 'Remo del garage',
+      category: 'cardio' as const,
+      capacities: ['resistencia' as const],
+      muscleGroups: ['cuerpo_completo' as const],
+      value: '2000',
+      level: 'intermedio' as const,
+    };
+
+    const sinCalorias = newExerciseSchemaFor(catalogo).safeParse(cardio);
+    expect(sinCalorias.success).toBe(false);
+    expect(sinCalorias.error?.issues.map((issue) => issue.message)).toContain(
+      'Cargá las calorías, como 120',
+    );
+
+    const input = toAddExercise(catalogo, { ...cardio, extra: '120' });
+    expect(input.firstRecord).toEqual({ value: 2000, caloriesKcal: 120 });
+  });
+
   it('sin comentarios, no manda el campo vacío', () => {
     const input = toAddExercise(catalogo, { ...base, name: 'Back squat', value: '100' });
 

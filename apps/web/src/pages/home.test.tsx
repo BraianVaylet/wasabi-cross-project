@@ -42,6 +42,21 @@ const carrera = {
   current: { value: 272, unit: 's' as const, performedAt: '2026-07-01T10:00:00.000Z' },
 };
 
+const remo = {
+  ...backSquat,
+  id: 'mex_r3m0e4r5',
+  exerciseId: 'exo_r3m0e4r5',
+  name: 'Remo del garage',
+  category: 'cardio' as const,
+  kind: 'distance' as const,
+  current: {
+    value: 2000,
+    unit: 'm' as const,
+    caloriesKcal: 120,
+    performedAt: '2026-07-02T10:00:00.000Z',
+  },
+};
+
 function renderHome(api: FakeApi) {
   return renderApp('/', fakeSession(braian).client, api.client);
 }
@@ -62,6 +77,16 @@ describe('Home: lista de ejercicios (F1-11, mockup 4)', () => {
       // Un tiempo se lee como tiempo, no como 272 segundos.
       expect(corrida).toHaveTextContent('4:32');
       expect(within(corrida).getByText('Tiempo del 01/07/2026')).toBeInTheDocument();
+    });
+
+    it('uno de cardio muestra los metros con sus calorías (F5-03a)', async () => {
+      renderHome(fakeApi(lista([remo])));
+
+      const [item] = await screen.findAllByRole('listitem');
+      const fila0 = fila(item ? [item] : [], 0);
+      expect(fila0).toHaveTextContent('2.000');
+      expect(fila0).toHaveTextContent('120 kcal');
+      expect(within(fila0).getByText('Distancia del 02/07/2026')).toBeInTheDocument();
     });
 
     it('cada ejercicio lleva a su detalle', async () => {

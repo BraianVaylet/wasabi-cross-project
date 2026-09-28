@@ -28,6 +28,16 @@ const carrera: ManagedExerciseSummary = {
   current: { value: 272, unit: 's', performedAt: '2026-07-01T12:00:00.000Z' },
 };
 
+const remo: ManagedExerciseSummary = {
+  ...backSquat,
+  id: 'mex_r3m0e4r5',
+  name: 'Remo del garage',
+  category: 'cardio',
+  kind: 'distance',
+  withPain: false,
+  current: { value: 2000, unit: 'm', caloriesKcal: 120, performedAt: '2026-07-01T12:00:00.000Z' },
+};
+
 function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
   return {
     exercises,
@@ -114,6 +124,33 @@ describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
 
       expect(await screen.findByTestId('valor-actual')).toHaveTextContent('4:32');
       expect(screen.getByText('desnivel 150 m')).toBeInTheDocument();
+    });
+  });
+
+  describe('cardio (F5-03a)', () => {
+    it('el valor actual son los metros, con las calorías al lado, y la categoría arriba', async () => {
+      renderDetalle('/ejercicios/mex_r3m0e4r5', [remo]);
+
+      expect(await screen.findByTestId('valor-actual')).toHaveTextContent('2.000');
+      expect(screen.getByText('120 kcal')).toBeInTheDocument();
+      expect(screen.getByText('Cardio')).toBeInTheDocument();
+    });
+
+    it('no hay tabla de porcentajes, y el motivo no dice que menos es mejor', async () => {
+      renderDetalle('/ejercicios/mex_r3m0e4r5', [remo]);
+
+      await screen.findByRole('heading', { name: 'Remo del garage' });
+      expect(screen.queryByRole('group', { name: /Porcentaje/ })).not.toBeInTheDocument();
+      expect(screen.getByText(/de distancia no tienen tabla de porcentajes/)).toBeInTheDocument();
+      expect(screen.queryByText(/menos es mejor/)).not.toBeInTheDocument();
+    });
+
+    it('la barra fija muestra la mejor marca, no una carga', async () => {
+      renderDetalle('/ejercicios/mex_r3m0e4r5', [remo]);
+
+      const barra = await screen.findByRole('region', { name: 'Mejor marca' });
+      expect(within(barra).getByRole('button', { name: 'Registrar nueva marca' })).toBeEnabled();
+      expect(screen.queryByTestId('carga')).not.toBeInTheDocument();
     });
   });
 

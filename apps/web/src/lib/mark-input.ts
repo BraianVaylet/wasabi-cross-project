@@ -1,4 +1,4 @@
-import type { MeasureKind } from '@wasabi-cross/schemas';
+import { extraFieldFor, type ExtraField, type MeasureKind } from '@wasabi-cross/schemas';
 import { parseDuration } from './format.ts';
 
 /*
@@ -20,22 +20,30 @@ export const MARK_FIELD: Record<MeasureKind, MarkField> = {
   weighted_distance: { label: 'Distancia (m)', placeholder: 'Ej: 50' },
 };
 
-/** El peso de una marca de hipertrofia, junto a las repeticiones (spec §5.1). */
-export const WEIGHT_FIELD: MarkField = { label: 'Peso (kg)', placeholder: 'Ej: 80' };
-
-/** El desnivel de una marca de running, junto al tiempo. Plano es 0, no vacío. */
-export const ELEVATION_FIELD: MarkField = { label: 'Desnivel (m)', placeholder: 'Ej: 150' };
+/**
+ * El campo del dato extra de una marca, con el motivo si lo que se escribió no es un número.
+ * Qué dato lleva cada medición lo dice `extraFieldFor` de schemas (spec §5.1): acá sólo
+ * cómo se pide en pantalla.
+ */
+export const EXTRA_FIELD: Record<ExtraField, MarkField & { error: string }> = {
+  weightKg: { label: 'Peso (kg)', placeholder: 'Ej: 80', error: 'Cargá el peso, como 80' },
+  // Plano es 0, no vacío.
+  elevationGainM: {
+    label: 'Desnivel (m)',
+    placeholder: 'Ej: 150',
+    error: 'Cargá el desnivel, como 150 (0 si es plano)',
+  },
+  caloriesKcal: {
+    label: 'Calorías (kcal)',
+    placeholder: 'Ej: 120',
+    error: 'Cargá las calorías, como 120',
+  },
+};
 
 /** El motivo cuando lo que se escribió no es un valor válido para esa medición. */
 export function markValueError(kind: MeasureKind): string {
   return kind === 'time' ? 'Escribilo como mm:ss, por ejemplo 4:32' : 'Cargá un número, como 100';
 }
-
-/** El motivo cuando el peso de hipertrofia no es un número. */
-export const weightError = 'Cargá el peso, como 80';
-
-/** El motivo cuando el desnivel de running no es un número. Plano es 0, no vacío. */
-export const elevationError = 'Cargá el desnivel, como 150 (0 si es plano)';
 
 /** El valor tal como viaja a la API: segundos en tiempo, el número en el resto. */
 export function parseMarkValue(kind: MeasureKind | null, value: string): number | null {
@@ -47,25 +55,14 @@ export function parseMarkValue(kind: MeasureKind | null, value: string): number 
   return value.trim() !== '' && Number.isFinite(parsed) ? parsed : null;
 }
 
-/** El peso de hipertrofia o el desnivel de running: un número simple, sin reglas de kind. */
+/** El dato extra (peso, desnivel, calorías): un número simple, sin reglas de kind. */
 export function parsePlainNumber(value: string): number | null {
   return parseMarkValue(null, value);
 }
 
-export type ExtraFieldKind = 'weightKg' | 'elevationGainM';
-
-/**
- * Qué campo extra pide una marca, además de su valor principal: el peso en hipertrofia,
- * el desnivel en running. El resto no tiene segundo campo (spec §5.1).
- */
-export function extraFieldKindFor(kind: MeasureKind | null): ExtraFieldKind | null {
-  if (kind === 'weighted_reps') {
-    return 'weightKg';
-  }
-  if (kind === 'time') {
-    return 'elevationGainM';
-  }
-  return null;
+/** Qué dato extra pide una marca, además de su valor principal, si pide alguno. */
+export function extraFieldKindFor(kind: MeasureKind | null): ExtraField | null {
+  return kind === null ? null : extraFieldFor(kind);
 }
 
 /**

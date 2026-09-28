@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Chart } from './Chart.tsx';
 
 /** La fila `index`, sin `as HTMLElement` ni `!`: el lint pelea con los dos. */
@@ -60,6 +60,26 @@ describe('Chart', () => {
 
     expect(screen.getByText('Todavía no hay marcas en este período')).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('dos marcas del mismo día son dos filas, sin pisarse', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    render(
+      <Chart
+        label="Evolución"
+        unit="m"
+        points={[
+          { label: '28/09/2026', value: 2000 },
+          { label: '28/09/2026', value: 2150 },
+        ]}
+      />,
+    );
+
+    const tabla = screen.getByRole('table', { name: 'Evolución' });
+    expect(within(tabla).getAllByRole('row')).toHaveLength(3);
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
   });
 
   it('con una sola marca no rompe: la muestra igual', () => {

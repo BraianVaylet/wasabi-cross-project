@@ -41,6 +41,15 @@ const butterfly: ManagedExerciseSummary = {
   current: { value: 12, unit: 'reps', weightKg: 30, performedAt: '2026-07-01T12:00:00.000Z' },
 };
 
+const remo: ManagedExerciseSummary = {
+  ...backSquat,
+  id: 'mex_r3m0e4r5',
+  name: 'Remo del garage',
+  category: 'cardio',
+  kind: 'distance',
+  current: { value: 2000, unit: 'm', caloriesKcal: 120, performedAt: '2026-07-01T12:00:00.000Z' },
+};
+
 const historial: RecordHistory = {
   records: [{ id: 'rec_1', value: 100, unit: 'kg', performedAt: '2026-06-23T12:00:00.000Z' }],
   current: { value: 100, unit: 'kg', performedAt: '2026-06-23T12:00:00.000Z' },
@@ -71,7 +80,7 @@ interface Opciones {
 
 function renderDetalle(
   id = 'mex_a1b2c3d4',
-  exercises = [backSquat, carrera, butterfly],
+  exercises = [backSquat, carrera, butterfly, remo],
   { historialCongelado = false }: Opciones = {},
 ) {
   const api = fakeApi(lista(exercises));
@@ -157,6 +166,14 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
 
       expect(screen.getByLabelText('Tiempo (mm:ss)')).toBeInTheDocument();
       expect(screen.getByLabelText('Desnivel (m)')).toBeInTheDocument();
+    });
+
+    it('en cardio pide los metros y las calorías (F5-03a)', async () => {
+      renderDetalle('mex_r3m0e4r5');
+      await abrirModal('Nueva marca');
+
+      expect(screen.getByLabelText('Distancia (m)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Calorías (kcal)')).toBeInTheDocument();
     });
 
     it('en fuerza no hay un segundo campo', async () => {
@@ -332,6 +349,34 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       const [, input] = api.client.logRecord.mock.calls[0] ?? [];
       expect(input?.value).toBe(272);
       expect(input?.elevationGainM).toBe(0);
+    });
+
+    it('cardio manda los metros y las calorías', async () => {
+      const { api } = renderDetalle('mex_r3m0e4r5');
+      api.client.logRecord.mockReturnValue(new Promise(() => undefined));
+      await abrirModal('Nueva marca');
+
+      await userEvent.type(screen.getByLabelText('Distancia (m)'), '2100');
+      await userEvent.type(screen.getByLabelText('Calorías (kcal)'), '125');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+      await waitFor(() => {
+        expect(api.client.logRecord).toHaveBeenCalledTimes(1);
+      });
+      const [, input] = api.client.logRecord.mock.calls[0] ?? [];
+      expect(input?.value).toBe(2100);
+      expect(input?.caloriesKcal).toBe(125);
+    });
+
+    it('cardio sin calorías no se guarda, y avisa sin llamar a la API', async () => {
+      const { api } = renderDetalle('mex_r3m0e4r5');
+      await abrirModal('Nueva marca');
+
+      await userEvent.type(screen.getByLabelText('Distancia (m)'), '2100');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+      expect(await screen.findByText('Cargá las calorías, como 120')).toBeInTheDocument();
+      expect(api.client.logRecord).not.toHaveBeenCalled();
     });
 
     it('running sin desnivel no se guarda', async () => {
