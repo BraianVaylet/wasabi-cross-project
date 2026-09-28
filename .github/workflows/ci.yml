@@ -94,6 +94,23 @@ jobs:
       - name: E2E
         run: pnpm e2e:prod
 
+      # F4-11: la captura de referencia del detalle es la de Linux (las fuentes se dibujan
+      # distinto en cada sistema). Mientras no esté en el repo, el test se saltea y acá se
+      # genera, para bajarla del artefacto y commitearla. Con la captura en el repo, este paso
+      # no corre y el E2E compara contra ella.
+      - name: Generar la captura de referencia, si falta
+        if: hashFiles('apps/web/e2e/__capturas__/*-linux.png') == ''
+        run: pnpm --filter @wasabi-cross/web exec playwright test -c playwright.prod.config.ts --grep @captura --update-snapshots
+
+      - name: Subir la captura de referencia
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: captura-de-referencia
+          path: apps/web/e2e/__capturas__
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Reporte de Playwright
         if: failure()
         uses: actions/upload-artifact@v7

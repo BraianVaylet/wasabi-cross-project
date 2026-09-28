@@ -7,8 +7,8 @@
 **Fases 0, 1 y 2: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde), la 1 el 2026-09-22 con F1-18, y
 la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y
 `packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
-F4-03a/b/c, F4-04a/b, F4-05a–d y F4-07 mergeadas; F4-06, F4-08, F4-09 y F4-10 en una PR; todas a
-la espera de que el usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
+F4-03a/b/c, F4-04a/b y F4-05a a F4-10 mergeadas; F4-11 en PR: con eso el código de la fase está
+completo. Todas a la espera de que el usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
 en paralelo a lo que quede bloqueado de la Fase 3.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
@@ -33,13 +33,16 @@ en paralelo a lo que quede bloqueado de la Fase 3.
   ("WASABI // CROSS" que se lee "Wasabi Cross"), header con la línea, menú en la condensada; la
   app en la columna de 430px, Home con las filas del historial, splash, 404, aviso de versión y
   manifest en `#0f041c`. Con esto el detalle coincide con el PNG también arriba.
-- **F4-06, F4-08, F4-09 y F4-10 · Las pantallas que quedaban** — código hecho, PR abierta
-  (`feat/f4-06-10-pantallas`), un commit por tarea: login y registro con la marca del header;
+- **F4-06, F4-08, F4-09 y F4-10 · Las pantallas que quedaban** — PR #68, mergeada, un commit por
+  tarea: login y registro con la marca del header;
   valores fijos y zona de borrado en nuevo/editar; el perfil con los porcentajes como el campo en
   línea del detalle; estadísticas con el período en casilleros, el acordeón recortado y los números
   con `Measure`. Con la app corriendo, axe en cada pantalla: 0 violaciones.
-- Queda **F4-11**: el E2E y axe de punta a punta con el tema único, y la captura de referencia
-  del detalle. Cierra la fase.
+- **F4-11 · E2E y axe de punta a punta** — código hecho, PR #69. axe a 390px en las pantallas
+  que faltaban (nuevo ejercicio, menú abierto, 404, detalle de un tiempo) y la captura de
+  referencia del detalle con las marcas del PNG. La captura es la de Linux (la del CI): el job de
+  E2E la genera si falta y se commitea en la misma PR; desde ahí, un cambio que mueva el detalle
+  hace fallar la comparación.
 
 ## Bloqueado
 
@@ -48,14 +51,16 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de las pantallas (`feat/f4-06-10-pantallas`).
-2. F4-11: el E2E y axe de punta a punta, con la captura de referencia del detalle. Cierra la
-   Fase 4.
-3. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
+1. Revisar y mergear PR #69 (F4-11): cierra el código de la Fase 4.
+2. El usuario revisa el Definition of Done de la Fase 4 (F4-01 a F4-12) y marca `[x]` y mueve
+   las tarjetas a `Completadas`.
+3. Después de la fase: decidir si Login, Perfil y Estadísticas merecen un diseño propio (hoy
+   extrapolan el del detalle) o si la Fase 3 (Railway y Atlas) vuelve a ser la prioridad.
+4. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.
-4. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
-5. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
+5. Nombrar a mano las seis etiquetas del tablero para cerrar F0-08.
+6. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
    (IA-01 a IA-09) entran al plan. No dependen de Railway ni de Atlas: pueden avanzar mientras la
    Fase 3 espera.
 
