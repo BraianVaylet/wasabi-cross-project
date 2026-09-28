@@ -95,8 +95,13 @@ export function crearConfig(target: E2eTarget) {
     expect: { timeout: 10_000 },
     reporter: enCI ? [['github'], ['html', { open: 'never' }]] : [['list']],
 
-    // Los specs que sólo tienen sentido contra el build (produccion.spec.ts) miran esto.
-    metadata: { target },
+    // Los specs que sólo tienen sentido contra el build (produccion.spec.ts) miran esto; los
+    // que cargan datos directo en la API (diseno.spec.ts), la dirección de la API.
+    metadata: { target, apiURL: API_URL },
+
+    // F4-11: la captura de referencia del detalle, una por sistema (Linux es la del CI: las
+    // fuentes se dibujan distinto en cada uno).
+    snapshotPathTemplate: '{testDir}/__capturas__/{arg}-{platform}{ext}',
 
     use: {
       // En producción el front vive en la API: la misma URL para las dos cosas.
