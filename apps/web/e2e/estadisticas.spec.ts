@@ -24,7 +24,7 @@ function paraElCampo(date: Date): string {
 
 /** Un ejercicio propio desde el formulario del mockup 9, con lo que entrena. */
 async function crearPropio(page: Page): Promise<string> {
-  await page.goto('/ejercicios/nuevo');
+  await page.goto('/ejercicios/nuevo?modo=crear');
   await page.getByLabel('Nombre').fill('Sentadilla del garage');
   await page.getByRole('radio', { name: 'Fuerza (RM en kg)' }).check();
   await page.getByRole('checkbox', { name: 'Fuerza', exact: true }).check();

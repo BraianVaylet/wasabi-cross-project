@@ -17,10 +17,11 @@ import {
   CheckboxGroup,
   RadioGroup,
   Select,
+  Tabs,
   TextArea,
   TextField,
 } from '@wasabi-cross/ui';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { autoColon } from '../../lib/format.ts';
 import { CAPACITY_LABEL, MUSCLE_GROUP_LABEL, optionsFrom } from '../../lib/labels.ts';
@@ -32,10 +33,23 @@ import {
   toAddExercise,
   EMPTY_VALUES,
 } from './form.ts';
+import { CatalogPicker } from './CatalogPicker.tsx';
 import './new-exercise.css';
+
+export type NewExerciseMode = 'catalogo' | 'crear';
+
+const MODES: readonly { value: NewExerciseMode; label: string }[] = [
+  { value: 'catalogo', label: 'Catálogo' },
+  { value: 'crear', label: 'Crear' },
+];
 
 export interface NewExercisePageProps {
   catalog: Exercise[];
+  /** Los `exerciseId` que el usuario ya tiene, para no ofrecerlos de nuevo. */
+  owned: ReadonlySet<string>;
+  /** La pestaña activa: vive en la URL, así "atrás" vuelve a la otra. */
+  mode: NewExerciseMode;
+  onModeChange: (mode: NewExerciseMode) => void;
   onSubmit: (input: AddExercise) => void;
   pending: boolean;
   error: unknown;
@@ -70,11 +84,15 @@ const MUSCLE_GROUPS = optionsFrom(MUSCLE_GROUP_LABEL);
 /** Nuevo ejercicio (mockup 9): uno del catálogo o uno propio, con su primera marca. */
 export function NewExercisePage({
   catalog,
+  owned,
+  mode,
+  onModeChange,
   onSubmit,
   pending,
   error,
 }: NewExercisePageProps): React.JSX.Element {
   const catalogListId = useId();
+  const [query, setQuery] = useState('');
 
   const form = useForm({
     defaultValues: EMPTY_VALUES,
@@ -91,228 +109,248 @@ export function NewExercisePage({
       </Link>
       <h1 className="page__title">Nuevo ejercicio</h1>
 
-      <form
-        className="new-exercise"
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit();
-        }}
-      >
-        <form.Field name="name">
-          {(field) => (
-            <>
-              <TextField
-                label="Nombre"
-                list={catalogListId}
-                autoComplete="off"
-                placeholder="Ej: Clean, Back squat…"
-                value={field.state.value}
-                onChange={(event) => {
-                  field.handleChange(event.target.value);
-                }}
-                onBlur={field.handleBlur}
-                error={field.state.meta.errors[0]?.message}
-              />
-              {/* El catálogo como sugerencias del navegador: se busca con el teclado. */}
-              <datalist id={catalogListId}>
-                {catalog.map((exercise) => (
-                  <option key={exercise.id} value={exercise.name} />
-                ))}
-              </datalist>
-            </>
-          )}
-        </form.Field>
+      <Tabs label="Cómo agregar el ejercicio" tabs={MODES} value={mode} onChange={onModeChange}>
+        {mode === 'catalogo' ? (
+          <CatalogPicker
+            catalog={catalog}
+            owned={owned}
+            query={query}
+            onQueryChange={setQuery}
+            onPick={(exercise) => {
+              // El formulario ya sabe qué hacer con un nombre del catálogo: categoría, campos y marca.
+              form.setFieldValue('name', exercise.name);
+              onModeChange('crear');
+            }}
+          />
+        ) : (
+          <form
+            className="new-exercise"
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              void form.handleSubmit();
+            }}
+          >
+            <form.Field name="name">
+              {(field) => (
+                <>
+                  <TextField
+                    label="Nombre"
+                    list={catalogListId}
+                    autoComplete="off"
+                    placeholder="Ej: Clean, Back squat…"
+                    value={field.state.value}
+                    onChange={(event) => {
+                      field.handleChange(event.target.value);
+                    }}
+                    onBlur={field.handleBlur}
+                    error={field.state.meta.errors[0]?.message}
+                  />
+                  {/* El catálogo como sugerencias del navegador: se busca con el teclado. */}
+                  <datalist id={catalogListId}>
+                    {catalog.map((exercise) => (
+                      <option key={exercise.id} value={exercise.name} />
+                    ))}
+                  </datalist>
+                </>
+              )}
+            </form.Field>
 
-        <form.Subscribe selector={(state) => [state.values.name, state.values.category] as const}>
-          {([name, category]) => {
-            const match = catalogMatch(catalog, name);
-            const kind = kindFor(catalog, name, category);
-            const field = kind ? MARK_FIELD[kind] : SIN_CATEGORIA;
-            const extraKind = kind ? extraFieldKindFor(kind) : null;
-
-            return (
-              <>
-                {match ? (
-                  <p className="new-exercise__fixed">
-                    <span className="wc-field-label">Categoría</span>
-                    <span className="new-exercise__fixed-value">
-                      {CATEGORIES.find((option) => option.value === match.category)?.label}
-                    </span>
-                  </p>
-                ) : (
-                  <form.Field name="category">
-                    {(categoryField) => (
-                      <RadioGroup
-                        legend="Categoría"
-                        name="category"
-                        options={CATEGORIES}
-                        value={
-                          categoryField.state.value === '' ? undefined : categoryField.state.value
-                        }
-                        onChange={(value) => {
-                          categoryField.handleChange(value);
-                        }}
-                        error={categoryField.state.meta.errors[0]?.message}
-                      />
-                    )}
-                  </form.Field>
-                )}
-
-                {/* Sólo en uno propio: el del catálogo ya trae lo suyo (spec §5.1). */}
-                {match ? null : (
-                  <>
-                    <form.Field name="capacities">
-                      {(capacitiesField) => (
-                        <CheckboxGroup
-                          legend="Capacidades"
-                          options={CAPACITIES}
-                          values={capacitiesField.state.value}
-                          onChange={(values) => {
-                            capacitiesField.handleChange(
-                              values.filter(
-                                (value): value is Capacity =>
-                                  capacitySchema.safeParse(value).success,
-                              ),
-                            );
-                          }}
-                          error={capacitiesField.state.meta.errors[0]?.message}
-                        />
-                      )}
-                    </form.Field>
-
-                    <form.Field name="muscleGroups">
-                      {(groupsField) => (
-                        <CheckboxGroup
-                          legend="Grupos musculares"
-                          options={MUSCLE_GROUPS}
-                          values={groupsField.state.value}
-                          onChange={(values) => {
-                            groupsField.handleChange(
-                              values.filter(
-                                (value): value is MuscleGroup =>
-                                  muscleGroupSchema.safeParse(value).success,
-                              ),
-                            );
-                          }}
-                          error={groupsField.state.meta.errors[0]?.message}
-                        />
-                      )}
-                    </form.Field>
-                  </>
-                )}
-
-                <form.Field name="value">
-                  {(valueField) => (
-                    <TextField
-                      label={field.label}
-                      placeholder={field.placeholder}
-                      inputMode={kind === 'time' ? 'text' : 'decimal'}
-                      value={valueField.state.value}
-                      onChange={(event) => {
-                        valueField.handleChange(
-                          kind === 'time' ? autoColon(event.target.value) : event.target.value,
-                        );
-                      }}
-                      onBlur={valueField.handleBlur}
-                      error={valueField.state.meta.errors[0]?.message}
-                    />
-                  )}
-                </form.Field>
-
-                {extraKind === null ? null : (
-                  <form.Field name="extra">
-                    {(extraFormField) => (
-                      <TextField
-                        label={EXTRA_FIELD[extraKind].label}
-                        placeholder={EXTRA_FIELD[extraKind].placeholder}
-                        inputMode="decimal"
-                        value={extraFormField.state.value}
-                        onChange={(event) => {
-                          extraFormField.handleChange(event.target.value);
-                        }}
-                        onBlur={extraFormField.handleBlur}
-                        error={extraFormField.state.meta.errors[0]?.message}
-                      />
-                    )}
-                  </form.Field>
-                )}
-              </>
-            );
-          }}
-        </form.Subscribe>
-
-        <form.Field name="date">
-          {(field) => (
-            <TextField
-              label="Fecha"
-              type="date"
-              max={today()}
-              value={field.state.value}
-              onChange={(event) => {
-                field.handleChange(event.target.value);
-              }}
-              onBlur={field.handleBlur}
-              error={field.state.meta.errors[0]?.message}
-            />
-          )}
-        </form.Field>
-
-        <form.Field name="level">
-          {(field) => (
-            <Select
-              label="Nivel"
-              value={field.state.value}
-              onChange={(event) => {
-                field.handleChange(levelSchema.parse(event.target.value));
-              }}
-              onBlur={field.handleBlur}
-              error={field.state.meta.errors[0]?.message}
+            <form.Subscribe
+              selector={(state) => [state.values.name, state.values.category] as const}
             >
-              <option value="" disabled>
-                Elegí tu nivel
-              </option>
-              {LEVELS.map((level) => (
-                <option key={level.value} value={level.value}>
-                  {level.label}
-                </option>
-              ))}
-            </Select>
-          )}
-        </form.Field>
+              {([name, category]) => {
+                const match = catalogMatch(catalog, name);
+                const kind = kindFor(catalog, name, category);
+                const field = kind ? MARK_FIELD[kind] : SIN_CATEGORIA;
+                const extraKind = kind ? extraFieldKindFor(kind) : null;
 
-        <form.Field name="notes">
-          {(field) => (
-            <TextArea
-              label="Comentarios (opcional)"
-              value={field.state.value}
-              onChange={(event) => {
-                field.handleChange(event.target.value);
+                return (
+                  <>
+                    {match ? (
+                      <p className="new-exercise__fixed">
+                        <span className="wc-field-label">Categoría</span>
+                        <span className="new-exercise__fixed-value">
+                          {CATEGORIES.find((option) => option.value === match.category)?.label}
+                        </span>
+                      </p>
+                    ) : (
+                      <form.Field name="category">
+                        {(categoryField) => (
+                          <RadioGroup
+                            legend="Categoría"
+                            name="category"
+                            options={CATEGORIES}
+                            value={
+                              categoryField.state.value === ''
+                                ? undefined
+                                : categoryField.state.value
+                            }
+                            onChange={(value) => {
+                              categoryField.handleChange(value);
+                            }}
+                            error={categoryField.state.meta.errors[0]?.message}
+                          />
+                        )}
+                      </form.Field>
+                    )}
+
+                    {/* Sólo en uno propio: el del catálogo ya trae lo suyo (spec §5.1). */}
+                    {match ? null : (
+                      <>
+                        <form.Field name="capacities">
+                          {(capacitiesField) => (
+                            <CheckboxGroup
+                              legend="Capacidades"
+                              options={CAPACITIES}
+                              values={capacitiesField.state.value}
+                              onChange={(values) => {
+                                capacitiesField.handleChange(
+                                  values.filter(
+                                    (value): value is Capacity =>
+                                      capacitySchema.safeParse(value).success,
+                                  ),
+                                );
+                              }}
+                              error={capacitiesField.state.meta.errors[0]?.message}
+                            />
+                          )}
+                        </form.Field>
+
+                        <form.Field name="muscleGroups">
+                          {(groupsField) => (
+                            <CheckboxGroup
+                              legend="Grupos musculares"
+                              options={MUSCLE_GROUPS}
+                              values={groupsField.state.value}
+                              onChange={(values) => {
+                                groupsField.handleChange(
+                                  values.filter(
+                                    (value): value is MuscleGroup =>
+                                      muscleGroupSchema.safeParse(value).success,
+                                  ),
+                                );
+                              }}
+                              error={groupsField.state.meta.errors[0]?.message}
+                            />
+                          )}
+                        </form.Field>
+                      </>
+                    )}
+
+                    <form.Field name="value">
+                      {(valueField) => (
+                        <TextField
+                          label={field.label}
+                          placeholder={field.placeholder}
+                          inputMode={kind === 'time' ? 'text' : 'decimal'}
+                          value={valueField.state.value}
+                          onChange={(event) => {
+                            valueField.handleChange(
+                              kind === 'time' ? autoColon(event.target.value) : event.target.value,
+                            );
+                          }}
+                          onBlur={valueField.handleBlur}
+                          error={valueField.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </form.Field>
+
+                    {extraKind === null ? null : (
+                      <form.Field name="extra">
+                        {(extraFormField) => (
+                          <TextField
+                            label={EXTRA_FIELD[extraKind].label}
+                            placeholder={EXTRA_FIELD[extraKind].placeholder}
+                            inputMode="decimal"
+                            value={extraFormField.state.value}
+                            onChange={(event) => {
+                              extraFormField.handleChange(event.target.value);
+                            }}
+                            onBlur={extraFormField.handleBlur}
+                            error={extraFormField.state.meta.errors[0]?.message}
+                          />
+                        )}
+                      </form.Field>
+                    )}
+                  </>
+                );
               }}
-              onBlur={field.handleBlur}
-              error={field.state.meta.errors[0]?.message}
-            />
-          )}
-        </form.Field>
+            </form.Subscribe>
 
-        <form.Field name="withPain">
-          {(field) => (
-            <Checkbox
-              label="Con dolor"
-              checked={field.state.value}
-              onChange={(event) => {
-                field.handleChange(event.target.checked);
-              }}
-            />
-          )}
-        </form.Field>
+            <form.Field name="date">
+              {(field) => (
+                <TextField
+                  label="Fecha"
+                  type="date"
+                  max={today()}
+                  value={field.state.value}
+                  onChange={(event) => {
+                    field.handleChange(event.target.value);
+                  }}
+                  onBlur={field.handleBlur}
+                  error={field.state.meta.errors[0]?.message}
+                />
+              )}
+            </form.Field>
 
-        {error ? <ErrorNotice error={error} /> : null}
+            <form.Field name="level">
+              {(field) => (
+                <Select
+                  label="Nivel"
+                  value={field.state.value}
+                  onChange={(event) => {
+                    field.handleChange(levelSchema.parse(event.target.value));
+                  }}
+                  onBlur={field.handleBlur}
+                  error={field.state.meta.errors[0]?.message}
+                >
+                  <option value="" disabled>
+                    Elegí tu nivel
+                  </option>
+                  {LEVELS.map((level) => (
+                    <option key={level.value} value={level.value}>
+                      {level.label}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </form.Field>
 
-        <Button type="submit" block disabled={pending}>
-          Guardar ejercicio
-        </Button>
-      </form>
+            <form.Field name="notes">
+              {(field) => (
+                <TextArea
+                  label="Comentarios (opcional)"
+                  value={field.state.value}
+                  onChange={(event) => {
+                    field.handleChange(event.target.value);
+                  }}
+                  onBlur={field.handleBlur}
+                  error={field.state.meta.errors[0]?.message}
+                />
+              )}
+            </form.Field>
+
+            <form.Field name="withPain">
+              {(field) => (
+                <Checkbox
+                  label="Con dolor"
+                  checked={field.state.value}
+                  onChange={(event) => {
+                    field.handleChange(event.target.checked);
+                  }}
+                />
+              )}
+            </form.Field>
+
+            {error ? <ErrorNotice error={error} /> : null}
+
+            <Button type="submit" block disabled={pending}>
+              Guardar ejercicio
+            </Button>
+          </form>
+        )}
+      </Tabs>
     </>
   );
 }

@@ -40,9 +40,9 @@ const CATALOGO = [
   delCatalogo('Carrera 1 km', 'running', 'exo_z9y8x7w6'),
 ];
 
-function renderNuevo(api: FakeApi = fakeApi()) {
+function renderNuevo(api: FakeApi = fakeApi(), path = '/ejercicios/nuevo?modo=crear') {
   api.client.catalog.mockResolvedValue(CATALOGO);
-  return { api, ...renderApp('/ejercicios/nuevo', fakeSession(braian).client, api.client) };
+  return { api, ...renderApp(path, fakeSession(braian).client, api.client) };
 }
 
 async function completarComun(): Promise<void> {
@@ -237,7 +237,8 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       });
 
       await userEvent.click(screen.getByRole('link', { name: 'Agregar el primero' }));
-      await userEvent.type(await screen.findByLabelText('Nombre'), 'Back squat');
+      // Se entra por el catálogo: se elige de la lista y el formulario ya trae el nombre.
+      await userEvent.click(await screen.findByRole('button', { name: /Back squat/ }));
       await userEvent.type(screen.getByLabelText('RM (kg)'), '100');
       await completarComun();
       await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
@@ -282,6 +283,77 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(await screen.findByRole('alert')).toHaveTextContent(
         'Ya tenés ese ejercicio en tu lista.',
       );
+    });
+  });
+
+  describe('la pestaña Catálogo (F5-10)', () => {
+    it('se abre por el catálogo y lista los precargados con su categoría, grupo y equipo', async () => {
+      renderNuevo(fakeApi(), '/ejercicios/nuevo');
+
+      expect(await screen.findByRole('tab', { name: 'Catálogo', selected: true })).toBeVisible();
+      const backSquat = await screen.findByRole('button', { name: /Back squat/ });
+      expect(backSquat).toHaveTextContent('Fuerza · Cuádriceps');
+      expect(screen.getByRole('button', { name: /Carrera 1 km/ })).toHaveTextContent('Running');
+    });
+
+    it('el buscador filtra sin distinguir mayúsculas ni acentos', async () => {
+      renderNuevo(fakeApi(), '/ejercicios/nuevo');
+      await screen.findByRole('button', { name: /Back squat/ });
+
+      await userEvent.type(screen.getByLabelText('Buscar en el catálogo'), 'CARRERA');
+
+      expect(screen.queryByRole('button', { name: /Back squat/ })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Carrera 1 km/ })).toBeInTheDocument();
+    });
+
+    it('sin coincidencias, lo dice y manda a crearlo', async () => {
+      renderNuevo(fakeApi(), '/ejercicios/nuevo');
+      await screen.findByRole('button', { name: /Back squat/ });
+
+      await userEvent.type(screen.getByLabelText('Buscar en el catálogo'), 'zzz');
+
+      expect(await screen.findByRole('status')).toHaveTextContent('Ningún ejercicio');
+    });
+
+    it('elegir uno pasa a "Crear" con el nombre cargado y la categoría fija', async () => {
+      const { router } = renderNuevo(fakeApi(), '/ejercicios/nuevo');
+
+      await userEvent.click(await screen.findByRole('button', { name: /Back squat/ }));
+
+      expect(await screen.findByLabelText('Nombre')).toHaveValue('Back squat');
+      expect(screen.getByLabelText('RM (kg)')).toBeInTheDocument();
+      expect(router.state.location.search).toEqual({ modo: 'crear' });
+    });
+
+    it('los que ya están en la lista se ven, pero no se pueden elegir', async () => {
+      const api = fakeApi({
+        exercises: [BACK_SQUAT_GESTIONADO],
+        usage: { plan: 'free', total: 1, custom: 0, maxTotal: 10, maxCustom: 3 },
+      });
+      renderNuevo(api, '/ejercicios/nuevo');
+
+      expect(await screen.findByText('Ya lo tenés en tu lista')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /Back squat/ })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Carrera 1 km/ })).toBeInTheDocument();
+    });
+
+    it('cambiar de pestaña con el navegador vuelve al catálogo', async () => {
+      const { router } = renderNuevo(fakeApi(), '/ejercicios/nuevo');
+      await userEvent.click(await screen.findByRole('button', { name: /Back squat/ }));
+      await screen.findByLabelText('Nombre');
+
+      router.history.back();
+
+      expect(await screen.findByRole('tab', { name: 'Catálogo', selected: true })).toBeVisible();
+    });
+
+    it('sin violaciones de accesibilidad', async () => {
+      renderNuevo(fakeApi(), '/ejercicios/nuevo');
+      await screen.findByRole('button', { name: /Back squat/ });
+
+      const results = await axe.run(document.body);
+
+      expect(results.violations).toEqual([]);
     });
   });
 

@@ -186,14 +186,23 @@ const homeRoute = createRoute({
   },
 });
 
-/* Las dos pantallas de ejercicios llegan con F1-12 y F1-13; la lista ya lleva a ellas. */
+/* La pestaña del alta vive en la URL: sin `modo` se abre el catálogo, la entrada de siempre. */
+const newExerciseSearch = z.object({
+  modo: z.enum(['catalogo', 'crear']).optional().catch(undefined),
+});
+
 const newExerciseRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/ejercicios/nuevo',
+  validateSearch: (search) => newExerciseSearch.parse(search),
   component: function NewExerciseRoute() {
     const { api, queryClient } = appRoute.useRouteContext();
+    const { modo = 'catalogo' } = newExerciseRoute.useSearch();
     const navigate = useNavigate();
     const catalog = useQuery(catalogQueryOptions(api));
+    // La misma lista de Home: si ya se pidió, no cuesta un pedido más.
+    const mine = useQuery(exerciseListQueryOptions(api));
+    const owned = new Set(mine.data?.exercises.map((exercise) => exercise.exerciseId));
     const add = useMutation({
       mutationFn: (input: AddExercise) => api.addExercise(input),
       onSuccess: async () => {
@@ -206,6 +215,11 @@ const newExerciseRoute = createRoute({
     return (
       <NewExercisePage
         catalog={catalog.data ?? []}
+        owned={owned}
+        mode={modo}
+        onModeChange={(next) => {
+          void navigate({ to: '/ejercicios/nuevo', search: { modo: next } });
+        }}
         pending={add.isPending}
         error={add.error}
         onSubmit={(input) => {

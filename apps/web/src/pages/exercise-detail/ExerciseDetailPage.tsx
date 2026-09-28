@@ -3,7 +3,6 @@ import {
   loadBandFor,
   percentageTable,
   supportsPercentages,
-  type ExerciseCategory,
   type ExerciseStats,
   type LoadBand,
   type ManagedExerciseSummary,
@@ -29,6 +28,7 @@ import {
 import { useCallback, useId, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark, markParts } from '../../lib/format.ts';
+import { CATEGORY_LABEL } from '../../lib/labels.ts';
 import { History, type HistoryProps } from './History.tsx';
 import { NewMark, newMarkAction } from './NewMark.tsx';
 import { parsePercentage } from './percentage.ts';
@@ -67,15 +67,6 @@ export interface ProgressProps {
 }
 
 export type DetailHistory = HistoryProps & { best: Mark | undefined };
-
-const CATEGORY_LABEL = {
-  fuerza: 'Fuerza',
-  hipertrofia: 'Hipertrofia',
-  gimnastico: 'Gimnástico',
-  running: 'Running',
-  cardio: 'Cardio',
-  distancia_carga: 'Distancia con carga',
-} as const satisfies Record<ExerciseCategory, string>;
 
 /** Por qué no hay tabla de porcentajes (spec §5.1): depende de hacia dónde se mejora. */
 function noTableCopy(kind: MeasureKind): string {
