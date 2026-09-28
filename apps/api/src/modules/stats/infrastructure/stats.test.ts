@@ -93,7 +93,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
 
   it('devuelve la serie ordenada de la más vieja a la más reciente, con su resumen', async () => {
     const cookie = await newUser();
-    const squat = await addFromCatalog(cookie, 'Back squat', 100, hace(5));
+    const squat = await addFromCatalog(cookie, 'Sentadilla trasera', 100, hace(5));
     // Desordenadas a propósito: la serie no depende del orden en que se cargaron.
     await log(cookie, squat.id, 120, hace(1));
     await log(cookie, squat.id, 95, hace(3));
@@ -102,7 +102,12 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
 
     expect(response.statusCode).toBe(200);
     const body = response.json<ExerciseStats>();
-    expect(body).toMatchObject({ id: squat.id, name: 'Back squat', kind: 'rm', unit: 'kg' });
+    expect(body).toMatchObject({
+      id: squat.id,
+      name: 'Sentadilla trasera',
+      kind: 'rm',
+      unit: 'kg',
+    });
     expect(body.series.map((point) => point.value)).toEqual([100, 95, 120]);
     expect(body.summary).toMatchObject({ current: 120, best: 120, worst: 95, records: 3 });
     expect(body.summary?.changePercent).toBe(20);
@@ -110,7 +115,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
 
   it('el período recorta lo que se mira, y por defecto es un año', async () => {
     const cookie = await newUser();
-    const squat = await addFromCatalog(cookie, 'Back squat', 80, hace(10));
+    const squat = await addFromCatalog(cookie, 'Sentadilla trasera', 80, hace(10));
     await log(cookie, squat.id, 100, hace(1));
 
     const año = (await stats(cookie, squat.id)).json<ExerciseStats>();
@@ -127,7 +132,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
 
   it('sin marcas en el período, la serie es vacía y el resumen null', async () => {
     const cookie = await newUser();
-    const squat = await addFromCatalog(cookie, 'Back squat', 100, hace(10));
+    const squat = await addFromCatalog(cookie, 'Sentadilla trasera', 100, hace(10));
 
     const body = (await stats(cookie, squat.id, '?period=3m')).json<ExerciseStats>();
 
@@ -176,7 +181,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
   it('el ejercicio de otro usuario responde 404, no 403 (spec §13)', async () => {
     const dueño = await newUser();
     const otro = await newUser();
-    const squat = await addFromCatalog(dueño, 'Back squat', 100, hace(2));
+    const squat = await addFromCatalog(dueño, 'Sentadilla trasera', 100, hace(2));
 
     const response = await stats(otro, squat.id);
 
@@ -399,7 +404,7 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
 
   it('un período inventado se rechaza', async () => {
     const cookie = await newUser();
-    const squat = await addFromCatalog(cookie, 'Back squat', 100, hace(1));
+    const squat = await addFromCatalog(cookie, 'Sentadilla trasera', 100, hace(1));
 
     const response = await stats(cookie, squat.id, '?period=2m');
 

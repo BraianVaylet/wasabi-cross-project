@@ -92,7 +92,12 @@ describe('marcas: cargar e historial (F1-07)', () => {
   describe('cargar una marca', () => {
     it('queda guardada y devuelve cómo quedaron el valor actual y la mejor marca', async () => {
       const cookie = await newUser();
-      const squat = await addFromCatalog(cookie, 'Back squat', 100, '2026-06-23T10:00:00.000Z');
+      const squat = await addFromCatalog(
+        cookie,
+        'Sentadilla trasera',
+        100,
+        '2026-06-23T10:00:00.000Z',
+      );
 
       const response = await log(cookie, squat.id, {
         value: 105,
@@ -110,7 +115,12 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('sin fecha, asume ahora', async () => {
       const cookie = await newUser();
-      const squat = await addFromCatalog(cookie, 'Front squat', 90, '2026-06-01T10:00:00.000Z');
+      const squat = await addFromCatalog(
+        cookie,
+        'Sentadilla frontal',
+        90,
+        '2026-06-01T10:00:00.000Z',
+      );
       const antes = Date.now();
 
       const response = await log(cookie, squat.id, { value: 92 });
@@ -122,7 +132,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('actualiza el valor actual que muestra Home', async () => {
       const cookie = await newUser();
-      const squat = await addFromCatalog(cookie, 'Overhead squat', 60, '2026-06-01T10:00:00.000Z');
+      const squat = await addFromCatalog(cookie, 'Overhead Squat', 60, '2026-06-01T10:00:00.000Z');
 
       await logOk(cookie, squat.id, 65, '2026-06-15T10:00:00.000Z');
 
@@ -136,7 +146,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('un valor inválido para la medición responde WC-RM-422-001 con el motivo, y no guarda nada', async () => {
       const cookie = await newUser();
-      const pullups = await addFromCatalog(cookie, 'Pull-ups', 10, '2026-06-01T10:00:00.000Z');
+      const pullups = await addFromCatalog(cookie, 'Pull-up', 10, '2026-06-01T10:00:00.000Z');
 
       const response = await log(cookie, pullups.id, { value: 10.5 });
 
@@ -150,9 +160,15 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('hipertrofia manda las repeticiones y el peso', async () => {
       const cookie = await newUser();
-      const butterfly = await addFromCatalog(cookie, 'Butterfly', 12, '2026-06-01T10:00:00.000Z', {
-        weightKg: 30,
-      });
+      const butterfly = await addFromCatalog(
+        cookie,
+        'Press banca plano',
+        12,
+        '2026-06-01T10:00:00.000Z',
+        {
+          weightKg: 30,
+        },
+      );
 
       const response = await log(cookie, butterfly.id, {
         value: 14,
@@ -168,9 +184,15 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('hipertrofia sin peso responde WC-RM-422-001 y no guarda nada', async () => {
       const cookie = await newUser();
-      const butterfly = await addFromCatalog(cookie, 'Butterfly', 12, '2026-06-01T10:00:00.000Z', {
-        weightKg: 30,
-      });
+      const butterfly = await addFromCatalog(
+        cookie,
+        'Press banca plano',
+        12,
+        '2026-06-01T10:00:00.000Z',
+        {
+          weightKg: 30,
+        },
+      );
 
       const response = await log(cookie, butterfly.id, { value: 14 });
 
@@ -356,7 +378,12 @@ describe('marcas: cargar e historial (F1-07)', () => {
   describe('fecha futura (spec §5.1)', () => {
     it('una marca con fecha futura se rechaza con el motivo, y no guarda nada', async () => {
       const cookie = await newUser();
-      const squat = await addFromCatalog(cookie, 'Back squat', 100, '2026-06-23T10:00:00.000Z');
+      const squat = await addFromCatalog(
+        cookie,
+        'Sentadilla trasera',
+        100,
+        '2026-06-23T10:00:00.000Z',
+      );
       const manana = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const response = await log(cookie, squat.id, { value: 200, performedAt: manana });
@@ -373,7 +400,12 @@ describe('marcas: cargar e historial (F1-07)', () => {
   describe('valor actual: la marca de fecha más reciente (spec §5.1)', () => {
     it('una marca con fecha anterior no cambia el valor actual', async () => {
       const cookie = await newUser();
-      const squat = await addFromCatalog(cookie, 'Peso muerto', 100, '2026-06-23T10:00:00.000Z');
+      const squat = await addFromCatalog(
+        cookie,
+        'Peso muerto convencional',
+        100,
+        '2026-06-23T10:00:00.000Z',
+      );
 
       const vieja = await logOk(cookie, squat.id, 90, '2026-05-01T10:00:00.000Z');
 
@@ -384,7 +416,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
       const cookie = await newUser();
       const squat = await addFromCatalog(
         cookie,
-        'Peso muerto rumano',
+        'Peso muerto convencional',
         100,
         '2026-06-23T10:00:00.000Z',
       );
@@ -399,7 +431,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
   describe('mejor marca por categoría', () => {
     it('en fuerza, la mayor', async () => {
       const cookie = await newUser();
-      const press = await addFromCatalog(cookie, 'Press de banca', 80, '2026-06-01T10:00:00.000Z');
+      const press = await addFromCatalog(cookie, 'Press militar', 80, '2026-06-01T10:00:00.000Z');
 
       await logOk(cookie, press.id, 85, '2026-06-10T10:00:00.000Z');
       const despues = await logOk(cookie, press.id, 82, '2026-06-20T10:00:00.000Z');
@@ -409,12 +441,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('en repeticiones, la mayor', async () => {
       const cookie = await newUser();
-      const fondos = await addFromCatalog(
-        cookie,
-        'Fondos en paralelas',
-        10,
-        '2026-06-01T10:00:00.000Z',
-      );
+      const fondos = await addFromCatalog(cookie, 'Pull-up', 10, '2026-06-01T10:00:00.000Z');
 
       await logOk(cookie, fondos.id, 12, '2026-06-10T10:00:00.000Z');
       const despues = await logOk(cookie, fondos.id, 8, '2026-06-20T10:00:00.000Z');
@@ -439,7 +466,12 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('si la mejor se repite, cuenta la primera vez que se logró', async () => {
       const cookie = await newUser();
-      const floor = await addFromCatalog(cookie, 'Floor press', 70, '2026-06-01T10:00:00.000Z');
+      const floor = await addFromCatalog(
+        cookie,
+        'Dominadas lastradas',
+        70,
+        '2026-06-01T10:00:00.000Z',
+      );
 
       await logOk(cookie, floor.id, 75, '2026-06-10T10:00:00.000Z');
       const igual = await logOk(cookie, floor.id, 75, '2026-06-20T10:00:00.000Z');
@@ -451,7 +483,12 @@ describe('marcas: cargar e historial (F1-07)', () => {
   describe('historial', () => {
     it('va del más reciente al más viejo, sin importar el orden en que se cargó', async () => {
       const cookie = await newUser();
-      const hip = await addFromCatalog(cookie, 'Hip thruster', 100, '2026-06-15T10:00:00.000Z');
+      const hip = await addFromCatalog(
+        cookie,
+        'Sentadilla frontal',
+        100,
+        '2026-06-15T10:00:00.000Z',
+      );
       await logOk(cookie, hip.id, 110, '2026-07-01T10:00:00.000Z');
       await logOk(cookie, hip.id, 90, '2026-05-01T10:00:00.000Z');
 
@@ -476,7 +513,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('pagina sin repetir ni saltear marcas', async () => {
       const cookie = await newUser();
-      const push = await addFromCatalog(cookie, 'Push press', 60, '2026-06-01T10:00:00.000Z');
+      const push = await addFromCatalog(cookie, 'Push Press', 60, '2026-06-01T10:00:00.000Z');
       for (const [value, day] of [
         [61, '02'],
         [62, '03'],
@@ -504,7 +541,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
     it('pagina sin repetir ni saltear aunque varias marcas compartan fecha', async () => {
       const cookie = await newUser();
       const mismaFecha = '2026-06-01T10:00:00.000Z';
-      const jerk = await addFromCatalog(cookie, 'Remo con barra', 70, mismaFecha);
+      const jerk = await addFromCatalog(cookie, 'Clean and Jerk', 70, mismaFecha);
       await logOk(cookie, jerk.id, 71, mismaFecha);
       await logOk(cookie, jerk.id, 72, mismaFecha);
 
@@ -538,7 +575,12 @@ describe('marcas: cargar e historial (F1-07)', () => {
     it('cargar una marca en el ejercicio de otro usuario responde 404 y no guarda nada', async () => {
       const braian = await newUser();
       const amigo = await newUser();
-      const deBraian = await addFromCatalog(braian, 'Thruster', 60, '2026-06-01T10:00:00.000Z');
+      const deBraian = await addFromCatalog(
+        braian,
+        'Clean and Jerk',
+        60,
+        '2026-06-01T10:00:00.000Z',
+      );
 
       const response = await log(amigo, deBraian.id, { value: 500 });
 
@@ -550,7 +592,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
     it('leer el historial de otro usuario responde 404', async () => {
       const braian = await newUser();
       const amigo = await newUser();
-      const deBraian = await addFromCatalog(braian, 'Power clean', 70, '2026-06-01T10:00:00.000Z');
+      const deBraian = await addFromCatalog(braian, 'Snatch', 70, '2026-06-01T10:00:00.000Z');
 
       const response = await history(amigo, deBraian.id);
 
@@ -567,7 +609,7 @@ describe('marcas: cargar e historial (F1-07)', () => {
 
     it('sin sesión, ni carga ni lee', async () => {
       const cookie = await newUser();
-      const squat = await addFromCatalog(cookie, 'Clean and jerk', 80, '2026-06-01T10:00:00.000Z');
+      const squat = await addFromCatalog(cookie, 'Clean and Jerk', 80, '2026-06-01T10:00:00.000Z');
 
       const post = await harness.app.inject({
         method: 'POST',

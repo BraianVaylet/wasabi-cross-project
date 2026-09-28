@@ -12,16 +12,16 @@ test('de cero a los porcentajes del detalle', async ({ page }) => {
   await expect(page.getByText('Todavía no tenés ejercicios')).toBeVisible();
   await auditar(page, 'Home vacía');
 
-  await agregarDelCatalogo(page, 'Back squat', '100');
+  await agregarDelCatalogo(page, 'Sentadilla trasera', '100');
 
-  await expect(page.getByRole('link', { name: /Back squat/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Sentadilla trasera/ })).toBeVisible();
   await expect(page.getByText('100 kg')).toBeVisible();
   await auditar(page, 'Home con ejercicios');
 
-  await page.getByRole('link', { name: /Back squat/ }).click();
-  await expect(page.getByRole('heading', { name: 'Back squat' })).toBeVisible();
+  await page.getByRole('link', { name: /Sentadilla trasera/ }).click();
+  await expect(page.getByRole('heading', { name: 'Sentadilla trasera' })).toBeVisible();
   // Los titulares van en la condensada del diseño (F4-03a): jsdom no carga CSS, esto sí.
-  await expect(page.getByRole('heading', { name: 'Back squat' })).toHaveCSS(
+  await expect(page.getByRole('heading', { name: 'Sentadilla trasera' })).toHaveCSS(
     'font-family',
     /Staatliches/,
   );
@@ -41,9 +41,9 @@ test('de cero a los porcentajes del detalle', async ({ page }) => {
 
 test('una marca nueva mueve el valor actual y la tabla', async ({ page }) => {
   await registrarse(page);
-  await agregarDelCatalogo(page, 'Back squat', '100');
+  await agregarDelCatalogo(page, 'Sentadilla trasera', '100');
 
-  await page.getByRole('link', { name: /Back squat/ }).click();
+  await page.getByRole('link', { name: /Sentadilla trasera/ }).click();
   await page.getByRole('button', { name: 'Registrar nuevo RM' }).click();
 
   const modal = page.getByRole('dialog', { name: 'Nuevo RM' });
@@ -61,14 +61,14 @@ test('una marca nueva mueve el valor actual y la tabla', async ({ page }) => {
 
 test('el perfil y la edición también pasan la auditoría', async ({ page }) => {
   await registrarse(page);
-  await agregarDelCatalogo(page, 'Back squat', '100');
+  await agregarDelCatalogo(page, 'Sentadilla trasera', '100');
 
   await page.goto('/perfil');
   await expect(page.getByRole('heading', { name: 'Perfil' })).toBeVisible();
   await auditar(page, 'Perfil');
 
   await page.goto('/');
-  await page.getByRole('link', { name: /Back squat/ }).click();
+  await page.getByRole('link', { name: /Sentadilla trasera/ }).click();
   await page.getByRole('link', { name: 'Editar' }).click();
   await expect(page.getByRole('heading', { name: 'Editar ejercicio' })).toBeVisible();
   await auditar(page, 'Editar ejercicio');

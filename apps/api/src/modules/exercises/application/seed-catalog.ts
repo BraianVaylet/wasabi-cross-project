@@ -17,7 +17,7 @@ export interface SeedReport {
  */
 function hasSameDefinition(stored: Exercise, definition: CatalogExercise): boolean {
   return (
-    stored.catalogKey === definition.catalogKey &&
+    stored.name === definition.name &&
     stored.category === definition.category &&
     stored.primaryMuscleGroup === definition.primaryMuscleGroup &&
     stored.bodySegment === bodySegmentFor(definition.primaryMuscleGroup) &&
@@ -42,7 +42,7 @@ export async function seedCatalog(
   const report: SeedReport = { created: [], updated: [], unchanged: [] };
 
   for (const definition of catalog) {
-    const existing = await repository.findCatalogByName(definition.name);
+    const existing = await repository.findCatalogByKey(definition.catalogKey);
 
     if (!existing) {
       await repository.insertCatalogExercise(definition);

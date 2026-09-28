@@ -33,6 +33,8 @@ function fakeRepository(initial: Exercise[] = []): ExerciseRepository & { rows: 
   return {
     rows,
     findCatalog: () => Promise.resolve(rows),
+    findCatalogByKey: (catalogKey) =>
+      Promise.resolve(rows.find((row) => row.catalogKey === catalogKey) ?? null),
     findCatalogByName: (name) => Promise.resolve(rows.find((row) => row.name === name) ?? null),
     insertCatalogExercise: (exercise) => {
       const created = storedFrom(exercise, `exo_${String(rows.length).padStart(8, '0')}`);
@@ -141,11 +143,10 @@ describe('seedCatalog', () => {
     expect(report.updated).toEqual(['Back squat']);
   });
 
-  it('detecta un cambio de disciplinas, de equipo o de clave', async () => {
+  it('detecta un cambio de disciplinas o de equipo', async () => {
     const cambios: CatalogExercise[] = [
       { ...backSquat, disciplines: ['gimnasio', 'crossfit'] },
       { ...backSquat, equipment: 'maquina' },
-      { ...backSquat, catalogKey: 'sentadilla-trasera' },
     ];
 
     for (const cambio of cambios) {
@@ -155,6 +156,27 @@ describe('seedCatalog', () => {
 
       expect(report.updated).toEqual(['Back squat']);
     }
+  });
+
+  it('un renombre actualiza la entrada de la misma clave y no crea otra', async () => {
+    const repository = fakeRepository([storedFrom(backSquat)]);
+
+    const report = await seedCatalog(repository, [{ ...backSquat, name: 'Sentadilla trasera' }]);
+
+    expect(report.updated).toEqual(['Sentadilla trasera']);
+    expect(report.created).toEqual([]);
+    expect(repository.rows).toHaveLength(1);
+    expect(repository.rows[0]?.id).toBe('exo_a1b2c3d4');
+    expect(repository.rows[0]?.name).toBe('Sentadilla trasera');
+  });
+
+  it('otra clave es otro ejercicio, aunque se llame parecido', async () => {
+    const repository = fakeRepository([storedFrom(backSquat)]);
+
+    const report = await seedCatalog(repository, [{ ...backSquat, catalogKey: 'back-squat-2' }]);
+
+    expect(report.created).toEqual(['Back squat']);
+    expect(repository.rows).toHaveLength(2);
   });
 
   it('un documento viejo sin capacidades cuenta como cambio y se completa', async () => {
@@ -174,7 +196,7 @@ describe('seedCatalog', () => {
 
     const report = await seedCatalog(repository, [
       backSquat,
-      { ...backSquat, name: 'Front squat' },
+      { ...backSquat, catalogKey: 'front-squat', name: 'Front squat' },
     ]);
 
     expect(report.created).toEqual(['Front squat']);

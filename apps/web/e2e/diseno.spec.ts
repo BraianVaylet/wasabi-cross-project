@@ -29,19 +29,18 @@ async function backSquatDelDiseno(page: Page, testInfo: TestInfo): Promise<strin
       body: JSON.stringify(body),
     });
 
-    const catalogo = (await (
-      await fetch(`${base}/api/v1/exercises/catalog`, { credentials: 'include' })
-    ).json()) as { exercises: { id: string; name: string }[] };
-    const squat = catalogo.exercises.find((ejercicio) => ejercicio.name === 'Back squat');
-    if (!squat) {
-      throw new Error('El catálogo no tiene Back squat');
-    }
-
+    // Propio y no del catálogo: el diseño es de un "Back squat", y el catálogo lo llama
+    // "Sentadilla trasera". El detalle se ve igual en los dos casos.
     const alta = await fetch(
       `${base}/api/v1/exercises`,
       opciones({
-        source: 'catalog',
-        exerciseId: squat.id,
+        source: 'custom',
+        name: 'Back squat',
+        category: 'fuerza',
+        capacities: ['fuerza'],
+        primaryMuscleGroup: 'cuadriceps',
+        secondaryMuscleGroups: ['gluteo', 'core'],
+        disciplines: [],
         level: 'intermedio',
         firstRecord: { value: 60, performedAt: '2025-06-02T12:00:00.000Z' },
       }),

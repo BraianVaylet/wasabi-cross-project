@@ -9,6 +9,8 @@ import type { CatalogExercise } from './catalog.ts';
 export interface ExerciseRepository {
   /** Ejercicios del catálogo pre-cargado, los que no tienen dueño. */
   findCatalog: () => Promise<Exercise[]>;
+  /** Por la clave estable: es con la que el seed reconoce a un ejercicio aunque se renombre. */
+  findCatalogByKey: (catalogKey: string) => Promise<Exercise | null>;
   findCatalogByName: (name: string) => Promise<Exercise | null>;
   insertCatalogExercise: (exercise: CatalogExercise) => Promise<Exercise>;
   updateCatalogExercise: (id: string, exercise: CatalogExercise) => Promise<Exercise>;

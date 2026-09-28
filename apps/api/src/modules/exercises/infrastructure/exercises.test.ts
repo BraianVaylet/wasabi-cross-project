@@ -72,35 +72,63 @@ describe('catálogo de ejercicios', () => {
       }
     });
 
-    it('la hipertrofia se mide en repeticiones con su peso, como en el Home del mockup 4', () => {
-      const butterfly = EXERCISE_CATALOG.find((exercise) => exercise.name === 'Butterfly');
+    it('son los 62 de la spec §5.3', () => {
+      expect(EXERCISE_CATALOG).toHaveLength(62);
+    });
 
-      expect(butterfly && measureKindFor(butterfly.category)).toBe('weighted_reps');
+    it('la hipertrofia se mide en repeticiones con su peso, como en el Home del mockup 4', () => {
+      const pressBanca = EXERCISE_CATALOG.find((exercise) => exercise.name === 'Press banca plano');
+
+      expect(pressBanca && measureKindFor(pressBanca.category)).toBe('weighted_reps');
     });
 
     it('no incluye la plancha: ninguna categoría la mide en tiempo', () => {
       expect(EXERCISE_CATALOG.map((exercise) => exercise.name)).not.toContain('Plancha');
     });
 
-    it('no hay nombres repetidos: el nombre es la clave del seed', () => {
+    it('no hay nombres ni claves repetidos: la clave es la del seed y el nombre, el del índice', () => {
       const names = EXERCISE_CATALOG.map((exercise) => exercise.name);
+      const keys = EXERCISE_CATALOG.map((exercise) => exercise.catalogKey);
 
       expect(new Set(names).size).toBe(names.length);
+      expect(new Set(keys).size).toBe(keys.length);
     });
 
-    it('cubre las cuatro categorías que nombra la spec §5', () => {
+    it('el mismo Sled Push en funcional y en Hyrox son dos ejercicios que se miden distinto', () => {
+      const porClave = (key: string) =>
+        EXERCISE_CATALOG.find((exercise) => exercise.catalogKey === key);
+
+      expect(porClave('sled-push')).toMatchObject({ category: 'hipertrofia' });
+      expect(porClave('sled-push-hyrox')).toMatchObject({ category: 'distancia_carga' });
+    });
+
+    it('no hay carreras de distancia variable: "mejor marca" sólo compara carreras iguales', () => {
+      const running = EXERCISE_CATALOG.filter((exercise) => exercise.category === 'running').map(
+        (exercise) => exercise.name,
+      );
+
+      expect(running).toEqual([
+        'Carrera 1km (estación Hyrox)',
+        'Carrera 100 m',
+        'Carrera 400 m',
+        'Carrera 1 km',
+        'Carrera 5 km',
+        'Carrera 10 km',
+      ]);
+    });
+
+    it('cubre las seis categorías', () => {
       const categories = new Set(EXERCISE_CATALOG.map((exercise) => exercise.category));
 
-      expect(categories).toContain('fuerza');
-      expect(categories).toContain('hipertrofia');
-      expect(categories).toContain('gimnastico');
-      expect(categories).toContain('running');
+      expect(categories).toEqual(
+        new Set(['fuerza', 'hipertrofia', 'gimnastico', 'running', 'cardio', 'distancia_carga']),
+      );
     });
 
-    it('cubre las cuatro formas de medir', () => {
+    it('cubre todas las formas de medir', () => {
       const kinds = new Set(EXERCISE_CATALOG.map((exercise) => measureKindFor(exercise.category)));
 
-      expect(kinds).toEqual(new Set(['rm', 'time', 'reps', 'weighted_reps']));
+      expect(kinds.size).toBe(6);
     });
   });
 
