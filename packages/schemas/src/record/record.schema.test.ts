@@ -72,11 +72,37 @@ describe('cardio: metros con sus calorías (spec §5.1)', () => {
   });
 });
 
+describe('distancia con carga: metros con su peso (spec §5.1)', () => {
+  const sledRecord = {
+    ...identity,
+    kind: 'weighted_distance',
+    value: 50,
+    unit: 'm',
+    weightKg: 152,
+  };
+
+  it('una marca lleva metros y peso', () => {
+    expect(recordSchema.safeParse(sledRecord).success).toBe(true);
+
+    const { weightKg: _w, ...sinPeso } = sledRecord;
+    expect(recordSchema.safeParse(sinPeso).success).toBe(false);
+  });
+
+  it('el alta y la marca nueva exigen el peso', () => {
+    const schema = createRecordSchemaFor('weighted_distance');
+
+    expect(schema.safeParse({ value: 50, weightKg: 152 }).success).toBe(true);
+    expect(schema.safeParse({ value: 50 }).success).toBe(false);
+    expect(schema.safeParse({ value: 50.5, weightKg: 152 }).success).toBe(false);
+  });
+});
+
 describe('el dato extra de cada medición', () => {
   it('peso en hipertrofia, desnivel en running, calorías en cardio, nada en el resto', () => {
     expect(extraFieldFor('weighted_reps')).toBe('weightKg');
     expect(extraFieldFor('time')).toBe('elevationGainM');
     expect(extraFieldFor('distance')).toBe('caloriesKcal');
+    expect(extraFieldFor('weighted_distance')).toBe('weightKg');
     expect(extraFieldFor('rm')).toBeNull();
     expect(extraFieldFor('reps')).toBeNull();
   });
@@ -232,6 +258,7 @@ describe('UNIT_BY_KIND', () => {
       weighted_reps: 'reps',
       time: 's',
       distance: 'm',
+      weighted_distance: 'm',
     });
   });
 });

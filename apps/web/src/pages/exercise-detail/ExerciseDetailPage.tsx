@@ -74,6 +74,7 @@ const CATEGORY_LABEL = {
   gimnastico: 'Gimnástico',
   running: 'Running',
   cardio: 'Cardio',
+  distancia_carga: 'Distancia con carga',
 } as const satisfies Record<ExerciseCategory, string>;
 
 const LEVEL_LABEL = {

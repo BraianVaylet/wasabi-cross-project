@@ -6,6 +6,7 @@ import {
   exerciseSchema,
   isCatalogExercise,
   measureKindFor,
+  measureKindSchema,
 } from './exercise.schema.ts';
 
 const customExercise = {
@@ -43,25 +44,25 @@ describe('measureKindFor', () => {
     expect(measureKindFor('gimnastico')).toBe('reps');
     expect(measureKindFor('running')).toBe('time');
     expect(measureKindFor('cardio')).toBe('distance');
+    expect(measureKindFor('distancia_carga')).toBe('weighted_distance');
   });
 
   it('tiene respuesta para toda categoría, sin excepción', () => {
     for (const category of exerciseCategorySchema.options) {
-      expect(['rm', 'reps', 'weighted_reps', 'time', 'distance']).toContain(
-        measureKindFor(category),
-      );
+      expect(measureKindSchema.options).toContain(measureKindFor(category));
     }
   });
 });
 
 describe('exerciseCategorySchema', () => {
-  it('son las cuatro de los mockups más cardio (ADR-0009)', () => {
+  it('son las cuatro de los mockups más cardio y distancia con carga (ADR-0009)', () => {
     expect(exerciseCategorySchema.options).toEqual([
       'fuerza',
       'hipertrofia',
       'gimnastico',
       'running',
       'cardio',
+      'distancia_carga',
     ]);
   });
 

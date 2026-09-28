@@ -66,12 +66,22 @@ export function repsFor(maxReps: number, percentage: number): number {
   return Math.max(1, Math.floor((maxReps * percentage) / 100));
 }
 
-/**
- * Tiempo (decisión del 2026-09-18) y distancia (spec §5.1) no tienen tabla de porcentajes:
- * se muestran la mejor marca y el historial.
+/*
+ * Qué mediciones tienen tabla de porcentajes. Tiempo (decisión del 2026-09-18), cardio y
+ * distancia con carga (spec §5.1) no: se muestran la mejor marca y el historial. Es una
+ * tabla y no una condición para que una medición nueva no pueda quedar sin decidir.
  */
+const PERCENTAGES_BY_KIND = {
+  rm: true,
+  reps: true,
+  weighted_reps: true,
+  time: false,
+  distance: false,
+  weighted_distance: false,
+} as const satisfies Record<MeasureKind, boolean>;
+
 export function supportsPercentages(kind: MeasureKind): boolean {
-  return kind !== 'time' && kind !== 'distance';
+  return PERCENTAGES_BY_KIND[kind];
 }
 
 /**

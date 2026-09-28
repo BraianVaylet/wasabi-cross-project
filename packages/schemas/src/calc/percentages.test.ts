@@ -54,8 +54,10 @@ describe('supportsPercentages', () => {
   it('fuerza y repeticiones tienen tabla de porcentajes; tiempo y distancia no', () => {
     expect(supportsPercentages('rm')).toBe(true);
     expect(supportsPercentages('reps')).toBe(true);
+    expect(supportsPercentages('weighted_reps')).toBe(true);
     expect(supportsPercentages('time')).toBe(false);
     expect(supportsPercentages('distance')).toBe(false);
+    expect(supportsPercentages('weighted_distance')).toBe(false);
   });
 });
 
