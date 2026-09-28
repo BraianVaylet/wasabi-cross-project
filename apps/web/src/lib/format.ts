@@ -43,6 +43,36 @@ export interface FormattableMark {
   elevationGainM?: number | undefined;
 }
 
+export interface MarkParts {
+  /** El número, ya formateado: "102,5", "4:32". */
+  value: string;
+  /** La unidad, si hace falta: un tiempo en mm:ss no la lleva. */
+  unit?: string;
+  /** Lo que acompaña a la marca: el peso en hipertrofia, el desnivel en running. */
+  extra?: string;
+}
+
+/**
+ * La misma marca que `formatMark`, en partes: el diseño la muestra con el número grande, la
+ * unidad chica al lado y el peso o el desnivel en otro renglón ("12 REPS" / "CON 30 KG").
+ */
+export function markParts({ value, unit, weightKg, elevationGainM }: FormattableMark): MarkParts {
+  const main: MarkParts =
+    unit !== 's'
+      ? { value: NUMBER.format(value), unit }
+      : value < 60
+        ? { value: NUMBER.format(value), unit: 's' }
+        : { value: formatSeconds(value) };
+
+  if (weightKg !== undefined) {
+    return { ...main, extra: `con ${NUMBER.format(weightKg)} kg` };
+  }
+  if (elevationGainM !== undefined) {
+    return { ...main, extra: `desnivel ${NUMBER.format(elevationGainM)} m` };
+  }
+  return main;
+}
+
 /**
  * El valor de una marca con su unidad: "100 kg", "10 reps", "4:32". En hipertrofia suma el
  * peso ("12 reps · 80 kg") y en running el desnivel ("4:32 · 150 m") — spec §5.1.

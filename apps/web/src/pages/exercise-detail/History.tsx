@@ -1,14 +1,12 @@
-import type { Mark, RecordEntry } from '@wasabi-cross/schemas';
-import { Button, Skeleton, Tag } from '@wasabi-cross/ui';
+import type { MeasureKind, RecordEntry } from '@wasabi-cross/schemas';
+import { Button, Card, Measure, SectionHeader, Skeleton } from '@wasabi-cross/ui';
+import { useId } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
-import { formatDate, formatMark } from '../../lib/format.ts';
+import { formatDate, markParts } from '../../lib/format.ts';
 
 export interface HistoryProps {
   /** Las marcas ya juntadas de todas las páginas traídas, más reciente primero. */
   records: RecordEntry[];
-  /** La mejor marca: se muestra en tiempo, donde no hay tabla de porcentajes (spec §5.1). */
-  best: Mark | undefined;
-  showBest: boolean;
   loading: boolean;
   error: unknown;
   hasMore: boolean;
@@ -16,30 +14,36 @@ export interface HistoryProps {
   onMore: () => void;
 }
 
-/** El historial del detalle (mockup 6): las marcas con su fecha, la actual marcada. */
+/** "03 registros", como en el diseño; "01 registro" en singular. */
+function countText(count: number): string {
+  return `${String(count).padStart(2, '0')} ${count === 1 ? 'registro' : 'registros'}`;
+}
+
+/**
+ * El historial del detalle (spec §5.2, zona 5): las marcas con su fecha, la actual resaltada y
+ * las anteriores más sobrias. La cantidad sale del resumen de la evolución (todo el historial),
+ * no de las páginas traídas: con "Ver más" pendiente, contarlas daría de menos.
+ */
 export function History({
   records,
-  best,
-  showBest,
   loading,
   error,
   hasMore,
   loadingMore,
   onMore,
-}: HistoryProps): React.JSX.Element {
-  return (
-    <section className="history" aria-labelledby="history-title">
-      {showBest && best ? (
-        <p className="history__best" data-testid="mejor-marca">
-          <span className="history__best-label">Mejor marca</span>
-          <span className="history__best-value">{formatMark(best)}</span>
-          <span className="history__best-date">{formatDate(best.performedAt)}</span>
-        </p>
-      ) : null}
+  kind,
+  count,
+}: HistoryProps & { kind: MeasureKind; count: number | undefined }): React.JSX.Element {
+  const titleId = useId();
+  const isRm = kind === 'rm';
 
-      <h2 id="history-title" className="history__title">
-        Historial
-      </h2>
+  return (
+    <section className="history" aria-labelledby={titleId}>
+      <SectionHeader
+        id={titleId}
+        title={isRm ? 'Historial de RM' : 'Historial'}
+        meta={count === undefined ? undefined : countText(count)}
+      />
 
       {loading ? <Skeleton label="Cargando el historial" count={3} /> : null}
       {error ? <ErrorNotice error={error} /> : null}
@@ -50,14 +54,30 @@ export function History({
 
       {records.length > 0 ? (
         <ul className="history__list" aria-label="Historial">
-          {records.map((record, index) => (
-            <li key={record.id} className="history__item">
-              <span className="history__date">{formatDate(record.performedAt)}</span>
-              {/* La primera es la de fecha más reciente: el valor actual (spec §5.1). */}
-              {index === 0 ? <Tag variant="solid">actual</Tag> : null}
-              <span className="history__value">{formatMark(record)}</span>
-            </li>
-          ))}
+          {records.map((record, index) => {
+            // La primera es la de fecha más reciente: el valor actual (spec §5.1).
+            const current = index === 0;
+            const parts = markParts(record);
+
+            return (
+              <li key={record.id}>
+                <Card variant={current ? 'current' : 'past'} className="history__item">
+                  <span className="history__when">
+                    <span className="history__date">{formatDate(record.performedAt)}</span>
+                    {current ? (
+                      <span className="wc-kicker history__current">
+                        {isRm ? 'RM actual' : 'Marca actual'}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="history__mark">
+                    <Measure value={parts.value} unit={parts.unit} size="md" />
+                    {parts.extra ? <span className="history__extra">{parts.extra}</span> : null}
+                  </span>
+                </Card>
+              </li>
+            );
+          })}
         </ul>
       ) : null}
 

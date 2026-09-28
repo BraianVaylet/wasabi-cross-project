@@ -303,7 +303,7 @@ describe('Estadísticas (F2-07, mockup 10)', () => {
   it('desde el detalle de un ejercicio se llega a su evolución', async () => {
     const { router } = renderStats('/ejercicios/mex_a1b2c3d4');
 
-    await userEvent.click(await screen.findByRole('link', { name: 'Estadísticas' }));
+    await userEvent.click(await screen.findByRole('link', { name: 'Ver estadísticas' }));
 
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/estadisticas');

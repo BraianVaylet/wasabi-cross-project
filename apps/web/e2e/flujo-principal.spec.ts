@@ -44,7 +44,7 @@ test('una marca nueva mueve el valor actual y la tabla', async ({ page }) => {
   await agregarDelCatalogo(page, 'Back squat', '100');
 
   await page.getByRole('link', { name: /Back squat/ }).click();
-  await page.getByRole('button', { name: 'Nuevo RM' }).click();
+  await page.getByRole('button', { name: 'Registrar nuevo RM' }).click();
 
   const modal = page.getByRole('dialog', { name: 'Nuevo RM' });
   await auditar(page, 'Modal de marca nueva');

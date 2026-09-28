@@ -68,10 +68,10 @@ describe('Historial del detalle (F1-13b, mockups 5 y 6)', () => {
 
     expect(marcas).toHaveLength(3);
     expect(within(fila(marcas, 0)).getByText('23/06/2026')).toBeInTheDocument();
-    expect(within(fila(marcas, 0)).getByText('100 kg')).toBeInTheDocument();
-    expect(within(fila(marcas, 0)).getByText('actual')).toBeInTheDocument();
+    expect(fila(marcas, 0)).toHaveTextContent('100 kg');
+    expect(within(fila(marcas, 0)).getByText('RM actual')).toBeInTheDocument();
     // Sólo la primera lo está.
-    expect(within(fila(marcas, 1)).queryByText('actual')).not.toBeInTheDocument();
+    expect(within(fila(marcas, 1)).queryByText('RM actual')).not.toBeInTheDocument();
     expect(within(fila(marcas, 2)).getByText('02/06/2025')).toBeInTheDocument();
   });
 
@@ -95,7 +95,7 @@ describe('Historial del detalle (F1-13b, mockups 5 y 6)', () => {
       'listitem',
     );
     expect(marcas).toHaveLength(4);
-    expect(within(fila(marcas, 3)).getByText('50 kg')).toBeInTheDocument();
+    expect(fila(marcas, 3)).toHaveTextContent('50 kg');
     expect(screen.queryByRole('button', { name: 'Ver más' })).not.toBeInTheDocument();
   });
 
@@ -135,7 +135,7 @@ describe('Historial del detalle (F1-13b, mockups 5 y 6)', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('WC-EXO-404-002');
     // La tabla de porcentajes sigue estando: no depende del historial.
-    expect(screen.getByRole('group', { name: 'Porcentajes' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Porcentaje del RM' })).toBeInTheDocument();
   });
 
   it('sin violaciones de accesibilidad', async () => {

@@ -1,20 +1,35 @@
 import {
+  improvement,
   loadBandFor,
   percentageTable,
   supportsPercentages,
+  type ExerciseStats,
   type LoadBand,
   type ManagedExerciseSummary,
+  type Mark,
   type MeasureKind,
   type PercentageRow,
   type RecordInput,
 } from '@wasabi-cross/schemas';
 import { Link } from '@tanstack/react-router';
-import { Button, Skeleton, Tag, TextField, type TagVariant } from '@wasabi-cross/ui';
-import { useState } from 'react';
+import {
+  BottomBar,
+  Button,
+  Chart,
+  Measure,
+  PencilIcon,
+  PercentTiles,
+  SectionHeader,
+  Skeleton,
+  Tag,
+  TextField,
+  type TagVariant,
+} from '@wasabi-cross/ui';
+import { useCallback, useId, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
-import { formatDate, formatMark } from '../../lib/format.ts';
+import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { History, type HistoryProps } from './History.tsx';
-import { NewMark, newMarkLabel } from './NewMark.tsx';
+import { NewMark, newMarkAction } from './NewMark.tsx';
 import { parsePercentage } from './percentage.ts';
 import './exercise-detail.css';
 
@@ -34,10 +49,23 @@ export interface ExerciseDetailPageProps {
   /** El porcentaje elegido vive en la URL, así un link lleva a la misma carga. */
   selected: number | undefined;
   onSelect: (percentage: number) => void;
-  /** El historial de marcas (F1-13b), que se pide aparte de la lista. */
-  history: Omit<HistoryProps, 'showBest'>;
+  /**
+   * El historial de marcas (F1-13b), que se pide aparte de la lista, con la mejor marca: la
+   * barra fija la muestra en tiempo, donde no hay carga que calcular (spec §5.2).
+   */
+  history: DetailHistory;
+  /** La evolución de todo el historial, para el progreso (spec §5.2, zona 4). */
+  progress: ProgressProps;
   mark: MarkFormProps;
 }
+
+export interface ProgressProps {
+  stats: ExerciseStats | undefined;
+  loading: boolean;
+  error: unknown;
+}
+
+export type DetailHistory = HistoryProps & { best: Mark | undefined };
 
 const CATEGORY_LABEL = {
   fuerza: 'Fuerza',
@@ -66,19 +94,17 @@ const BAND_VARIANT: Record<LoadBand, TagVariant> = {
   pesada: 'danger',
 };
 
-/** Cómo se llama el valor actual según lo que mide el ejercicio (spec §5.1). */
-const VALUE_LABEL: Record<MeasureKind, string> = {
-  rm: 'RM',
-  reps: 'Reps',
-  weighted_reps: 'Reps',
-  time: 'Tiempo',
-};
+/** Lo que dice la grilla según lo que mide el ejercicio (spec §5.2: repeticiones, no RM). */
+const LOAD_COPY = {
+  rm: { title: 'Elegí tu carga', legend: 'Porcentaje del RM' },
+  reps: { title: 'Elegí tus reps', legend: 'Porcentaje del máximo' },
+} as const;
 
 function targetText(kind: MeasureKind, target: number): string {
-  return kind === 'rm' ? `${String(target)} kg` : `${String(target)} reps`;
+  return formatMark({ value: target, unit: kind === 'rm' ? 'kg' : 'reps' });
 }
 
-/** Detalle de un ejercicio (mockups 5 y 6). El historial llega con F1-13b. */
+/** Detalle de un ejercicio: el diseño de `docs/design`, zona por zona (spec §5.2). */
 export function ExerciseDetailPage({
   exercise,
   percentages,
@@ -87,14 +113,11 @@ export function ExerciseDetailPage({
   selected,
   onSelect,
   history,
+  progress,
   mark,
 }: ExerciseDetailPageProps): React.JSX.Element {
   return (
     <>
-      <Link to="/" className="page__back">
-        <span aria-hidden="true">‹</span> Ejercicios
-      </Link>
-
       {loading ? <Skeleton label="Cargando el ejercicio" count={3} /> : null}
       {error ? <ErrorNotice error={error} /> : null}
 
@@ -116,6 +139,7 @@ export function ExerciseDetailPage({
           selected={selected}
           onSelect={onSelect}
           history={history}
+          progress={progress}
           mark={mark}
         />
       ) : null}
@@ -128,7 +152,8 @@ interface DetailProps {
   percentages: number[];
   selected: number | undefined;
   onSelect: (percentage: number) => void;
-  history: Omit<HistoryProps, 'showBest'>;
+  history: DetailHistory;
+  progress: ProgressProps;
   mark: MarkFormProps;
 }
 
@@ -138,62 +163,25 @@ function Detail({
   selected,
   onSelect,
   history,
+  progress,
   mark,
 }: DetailProps): React.JSX.Element {
   const rows = percentageTable(exercise.kind, exercise.current.value, percentages) ?? [];
-  const current = selected ?? rows[0]?.percentage;
+  const withPercentages = supportsPercentages(exercise.kind);
+  // El porcentaje de la URL, o el primero de la grilla. La carga se calcula acá mismo:
+  // cambiar de porcentaje no le pregunta nada a la API.
+  const shown = selected ?? rows[0]?.percentage ?? 0;
   const [marking, setMarking] = useState(false);
+  const { best, ...list } = history;
 
   return (
     <>
-      <div className="detail__head">
-        <h1 className="page__title">{exercise.name}</h1>
-        {/* Las dos acciones del mockup 5: el lápiz y la evolución. */}
-        <div className="detail__actions">
-          <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__edit">
-            Estadísticas
-          </Link>
-          <Link to="/ejercicios/$id/editar" params={{ id: exercise.id }} className="detail__edit">
-            Editar
-          </Link>
-        </div>
-      </div>
-
-      <div className="detail__current">
-        <div>
-          <p className="detail__current-label">
-            {VALUE_LABEL[exercise.kind]} del {formatDate(exercise.current.performedAt)}
-          </p>
-          <p className="detail__current-value">{formatMark(exercise.current)}</p>
-        </div>
-        <Tag>{CATEGORY_LABEL[exercise.category]}</Tag>
-      </div>
-
-      <div className="detail__tags">
-        <Tag variant="neutral">{LEVEL_LABEL[exercise.level]}</Tag>
-        {exercise.withPain ? <Tag variant="danger">Con dolor</Tag> : null}
-      </div>
-
-      <Button
-        block
-        disabled={mark.saving}
-        onClick={() => {
-          setMarking(true);
-        }}
-      >
-        {newMarkLabel(exercise.kind)}
-      </Button>
+      <Header exercise={exercise} />
 
       {mark.error ? <ErrorNotice error={mark.error} /> : null}
 
-      {supportsPercentages(exercise.kind) ? (
-        <Percentages
-          kind={exercise.kind}
-          rows={rows}
-          currentValue={exercise.current.value}
-          selected={current}
-          onSelect={onSelect}
-        />
+      {withPercentages ? (
+        <Percentages kind={exercise.kind} rows={rows} selected={shown} onSelect={onSelect} />
       ) : (
         <p className="detail__no-table">
           Los ejercicios de tiempo no tienen tabla de porcentajes: menos es mejor, así que se miran
@@ -201,7 +189,24 @@ function Detail({
         </p>
       )}
 
-      <History {...history} showBest={!supportsPercentages(exercise.kind)} />
+      <Progress exercise={exercise} {...progress} />
+
+      <History {...list} kind={exercise.kind} count={progress.stats?.summary?.records} />
+
+      {/* Zona 6: la barra fija. Al final del contenido, así reserva su lugar abajo de todo. */}
+      <BottomBar label={withPercentages ? 'Carga seleccionada' : 'Mejor marca'}>
+        {withPercentages ? <Load exercise={exercise} percentage={shown} /> : <Best best={best} />}
+        <Button
+          variant="cta"
+          className="detail__cta"
+          disabled={mark.saving}
+          onClick={() => {
+            setMarking(true);
+          }}
+        >
+          {newMarkAction(exercise.kind)}
+        </Button>
+      </BottomBar>
 
       <NewMark
         kind={exercise.kind}
@@ -215,83 +220,248 @@ function Detail({
   );
 }
 
+/**
+ * Zona 2 de spec §5.2: de dónde viene, el nombre con su lápiz, el nivel y el valor actual. Las
+ * tags de categoría, nivel y dolor (§5.1) se leen en estas líneas, no como pastillas.
+ */
+function Header({ exercise }: { exercise: ManagedExerciseSummary }): React.JSX.Element {
+  const titleId = useId();
+  const isRm = exercise.kind === 'rm';
+  const value = markParts(exercise.current);
+
+  return (
+    <section className="detail__head" aria-labelledby={titleId}>
+      {/* "‹ EJERCICIOS" y no el "MOVIMIENTO" del diseño: instalada en iOS, no hay botón atrás. */}
+      <p className="wc-kicker detail__crumbs">
+        <Link to="/" className="detail__back">
+          <span aria-hidden="true">‹ </span>Ejercicios
+        </Link>
+        <span aria-hidden="true"> / </span>
+        <span>{CATEGORY_LABEL[exercise.category]}</span>
+      </p>
+
+      <div className="detail__title-row">
+        <h1 id={titleId} className="detail__title">
+          {exercise.name}
+        </h1>
+        <Link
+          to="/ejercicios/$id/editar"
+          params={{ id: exercise.id }}
+          className="wc-icon-button"
+          aria-label="Editar"
+        >
+          <span aria-hidden="true" className="wc-icon-button__icon">
+            <PencilIcon />
+          </span>
+        </Link>
+      </div>
+
+      <p className="detail__sub">
+        <span>{LEVEL_LABEL[exercise.level]}</span>
+        <span className="detail__slash" aria-hidden="true">
+          {' // '}
+        </span>
+        <span>{isRm ? 'RM vigente' : 'Marca vigente'}</span>
+        {exercise.withPain ? (
+          <>
+            <span className="detail__slash" aria-hidden="true">
+              {' // '}
+            </span>
+            <span className="detail__pain">Con dolor</span>
+          </>
+        ) : null}
+      </p>
+
+      <div className="detail__current">
+        <div className="detail__current-info">
+          <p className="wc-kicker">{isRm ? 'RM actual' : 'Marca actual'}</p>
+          <p className="detail__registered">
+            Registrado el {formatDate(exercise.current.performedAt)}
+          </p>
+          {value.extra ? <p className="detail__registered">{value.extra}</p> : null}
+        </div>
+        <Measure
+          value={value.value}
+          unit={value.unit}
+          size="lg"
+          className="detail__current-value"
+          data-testid="valor-actual"
+        />
+      </div>
+    </section>
+  );
+}
+
+/**
+ * La carga calculada de la barra fija: "65% DE 100 KG", la carga en grande y su banda
+ * (spec §5.1: el tag va acá, no hay barra de progreso).
+ */
+function Load({
+  exercise,
+  percentage,
+}: {
+  exercise: ManagedExerciseSummary;
+  percentage: number;
+}): React.JSX.Element {
+  const target = percentageTable(exercise.kind, exercise.current.value, [percentage])?.[0];
+  const parts = target
+    ? markParts({ value: target.target, unit: exercise.kind === 'rm' ? 'kg' : 'reps' })
+    : { value: '—' };
+  const band = loadBandFor(percentage);
+
+  return (
+    <div className="detail__bar-info">
+      <p className="wc-kicker detail__bar-caption">
+        {percentage}% de {formatMark(exercise.current)}
+      </p>
+      <Measure
+        value={parts.value}
+        unit={parts.unit}
+        size="hero"
+        tone="accent"
+        data-testid="carga"
+      />
+      <p className="detail__bar-foot">
+        <span className="wc-kicker">
+          {exercise.kind === 'rm' ? 'Carga calculada' : 'Reps calculadas'}
+        </span>
+        <Tag variant={BAND_VARIANT[band]}>{BAND_LABEL[band]}</Tag>
+      </p>
+    </div>
+  );
+}
+
+/** En tiempo no hay carga: la barra muestra la mejor marca (spec §5.2). */
+function Best({ best }: { best: Mark | undefined }): React.JSX.Element {
+  const parts = best ? markParts(best) : { value: '—' };
+
+  return (
+    <div className="detail__bar-info" data-testid="mejor-marca">
+      <p className="wc-kicker detail__bar-caption">Mejor marca</p>
+      <Measure value={parts.value} unit={parts.unit} size="hero" tone="accent" />
+      {best ? (
+        <p className="detail__bar-foot">
+          <span className="wc-kicker">Del {formatDate(best.performedAt)}</span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Zona 4 de spec §5.2: el gráfico de todo el historial y cuánto mejoró desde la primera
+ * marca. La cuenta del aumento vive en `@wasabi-cross/schemas`, como el resto de las reglas.
+ */
+function Progress({
+  exercise,
+  stats,
+  loading,
+  error,
+}: ProgressProps & { exercise: ManagedExerciseSummary }): React.JSX.Element {
+  const titleId = useId();
+  const isRm = exercise.kind === 'rm';
+  const unit = stats?.unit ?? exercise.current.unit;
+  // Estable: si cambia en cada render, el gráfico se arma de nuevo cada vez.
+  const formatValue = useCallback((value: number) => formatMark({ value, unit }), [unit]);
+  const gain = stats ? improvement(exercise.kind, stats.series) : null;
+
+  return (
+    <section className="detail__progress" aria-labelledby={titleId}>
+      <SectionHeader
+        id={titleId}
+        title={isRm ? 'Progreso del RM' : 'Progreso'}
+        kicker={`Tendencia de ${CATEGORY_LABEL[exercise.category]}`}
+        divider={false}
+        meta={gain === null ? undefined : <Gain kind={exercise.kind} unit={unit} gain={gain} />}
+      />
+
+      {loading ? <Skeleton label="Cargando el progreso" /> : null}
+      {error ? <ErrorNotice error={error} /> : null}
+      {stats ? (
+        <Chart
+          label={isRm ? 'RM registrado' : 'Marcas registradas'}
+          // Un tiempo se escribe 4:32: "UNIDAD: S" diría otra cosa que lo que se ve.
+          unit={unit === 's' ? 'mm:ss' : unit}
+          points={stats.series.map((point) => ({
+            label: formatDate(point.performedAt),
+            value: point.value,
+          }))}
+          formatValue={formatValue}
+        />
+      ) : null}
+
+      <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__more">
+        Ver estadísticas<span aria-hidden="true"> ›</span>
+      </Link>
+    </section>
+  );
+}
+
+/** "AUMENTO +40 KG"; en tiempo, "MEJORA +8 S": bajar es mejorar (spec §5.2). */
+function Gain({
+  kind,
+  unit,
+  gain,
+}: {
+  kind: MeasureKind;
+  unit: ExerciseStats['unit'];
+  gain: number;
+}): React.JSX.Element {
+  const parts = markParts({ value: Math.abs(gain), unit });
+  const sign = gain > 0 ? '+' : gain < 0 ? '−' : '';
+
+  return (
+    <span className="detail__gain" data-testid="aumento">
+      <span className="detail__gain-label">{kind === 'time' ? 'Mejora' : 'Aumento'}</span>
+      <Measure
+        value={`${sign}${parts.value}`}
+        unit={parts.unit}
+        size="sm"
+        tone={gain > 0 ? 'accent' : 'default'}
+      />
+    </span>
+  );
+}
+
 interface PercentagesProps {
   kind: MeasureKind;
   rows: PercentageRow[];
-  currentValue: number;
-  selected: number | undefined;
+  selected: number;
   onSelect: (percentage: number) => void;
 }
 
-function Percentages({
-  kind,
-  rows,
-  currentValue,
-  selected,
-  onSelect,
-}: PercentagesProps): React.JSX.Element {
+/** Zona 3 de spec §5.2: la grilla de porcentajes y el porcentaje personalizado. */
+function Percentages({ kind, rows, selected, onSelect }: PercentagesProps): React.JSX.Element {
+  const titleId = useId();
   const [custom, setCustom] = useState('');
   const customError = custom.trim() === '' ? null : parsePercentage(custom).error;
-
-  // La carga se calcula acá mismo: cambiar de porcentaje no le pregunta nada a la API.
-  const shown = selected ?? rows[0]?.percentage ?? 0;
-  const target = percentageTable(kind, currentValue, [shown])?.[0];
-  const band = loadBandFor(shown);
+  const copy = kind === 'rm' ? LOAD_COPY.rm : LOAD_COPY.reps;
 
   return (
-    <>
-      <p className="detail__target" data-testid="carga">
-        {target ? targetText(kind, target.target) : '—'}
-      </p>
+    <section className="detail__load" aria-labelledby={titleId}>
+      <SectionHeader id={titleId} title={copy.title} meta={copy.legend} />
 
-      <div
-        className="detail__bar"
-        role="progressbar"
-        aria-label="Porcentaje elegido"
-        aria-valuenow={shown}
-        aria-valuemin={1}
-        aria-valuemax={100}
-      >
-        <span
-          className={`detail__bar-fill detail__bar-fill--${band}`}
-          style={{ width: `${String(shown)}%` }}
-        />
-      </div>
-
-      <p className="detail__band">
-        <Tag variant={BAND_VARIANT[band]}>{BAND_LABEL[band]}</Tag>
-      </p>
-
-      <fieldset className="detail__grid">
-        <legend className="detail__grid-legend">Porcentajes</legend>
-        {rows.map((row) => (
-          <label
-            key={row.percentage}
-            className={`detail__option${row.percentage === shown ? ' detail__option--selected' : ''}`}
-          >
-            <input
-              type="radio"
-              className="detail__option-input"
-              name="percentage"
-              // Sin esto se lee "65%65 kg", pegado: los dos textos son cajas vecinas.
-              aria-label={`${String(row.percentage)}% · ${targetText(kind, row.target)}`}
-              checked={row.percentage === shown}
-              onChange={() => {
-                setCustom('');
-                onSelect(row.percentage);
-              }}
-            />
-            <span className="detail__option-percentage">{row.percentage}%</span>
-            <span className="detail__option-target">{targetText(kind, row.target)}</span>
-          </label>
-        ))}
-      </fieldset>
+      <PercentTiles
+        legend={copy.legend}
+        name="percentage"
+        options={rows.map((row) => ({
+          value: row.percentage,
+          label: `${String(row.percentage)}%`,
+          detail: targetText(kind, row.target),
+        }))}
+        value={selected}
+        onChange={(percentage) => {
+          setCustom('');
+          onSelect(percentage);
+        }}
+      />
 
       <TextField
-        label="Porcentaje custom"
+        label="Porcentaje personalizado"
+        variant="inline"
         inputMode="numeric"
         suffix="%"
-        placeholder="Ej: 98"
+        placeholder="—"
         value={custom}
         error={customError ?? undefined}
         onChange={(event) => {
@@ -304,6 +474,6 @@ function Percentages({
           }
         }}
       />
-    </>
+    </section>
   );
 }

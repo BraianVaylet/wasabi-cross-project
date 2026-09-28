@@ -36,6 +36,15 @@ export function ChevronIcon(): React.JSX.Element {
   );
 }
 
+/** Editar: el lápiz de la cabecera del detalle (spec §5.2). */
+export function PencilIcon(): React.JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" focusable="false" {...STROKE}>
+      <path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" />
+    </svg>
+  );
+}
+
 /** El marcador de imagen de los mockups, hasta que haya logo de marca. */
 export function ImageIcon(): React.JSX.Element {
   return (

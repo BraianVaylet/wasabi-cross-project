@@ -84,3 +84,25 @@ export function summarize(
     records: ordered.length,
   };
 }
+
+/**
+ * Cuánto mejoró entre la primera marca y la actual, en la unidad del ejercicio: el "AUMENTO
+ * +40 KG" del progreso en el detalle (spec §5.2). Positivo es mejora — en tiempo, eso es
+ * haber bajado. `null` con menos de dos marcas: no hay contra qué comparar.
+ */
+export function improvement(kind: MeasureKind, points: readonly SeriesPoint[]): number | null {
+  if (points.length < 2) {
+    return null;
+  }
+
+  const ordered = [...points].sort((a, b) => Date.parse(a.performedAt) - Date.parse(b.performedAt));
+  const first = ordered[0]?.value;
+  const current = ordered.at(-1)?.value;
+  /* v8 ignore next 3 -- hay al menos dos: lo dice el `return null` de arriba */
+  if (first === undefined || current === undefined) {
+    return null;
+  }
+
+  const change = kind === 'time' ? first - current : current - first;
+  return round1(change);
+}

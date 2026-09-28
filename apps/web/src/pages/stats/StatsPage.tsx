@@ -167,7 +167,8 @@ function Evolution({ stats }: { stats: ExerciseStats }): React.JSX.Element {
     <>
       <Chart
         label={`Evolución de ${stats.name}`}
-        unit={unit}
+        // Un tiempo se escribe 4:32: "UNIDAD: S" diría otra cosa que lo que se ve.
+        unit={unit === 's' ? 'mm:ss' : unit}
         points={points}
         formatValue={formatValue}
       />

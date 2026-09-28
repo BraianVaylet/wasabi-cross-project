@@ -86,10 +86,16 @@ function renderDetalle(
   return { api, ...app };
 }
 
-async function abrirModal(nombreBoton = 'Nuevo RM'): Promise<HTMLElement> {
-  const boton = await screen.findByRole('button', { name: nombreBoton });
+/** El botón de la barra fija dice "Registrar nuevo RM"; el modal que abre, "Nuevo RM". */
+const BOTON = {
+  'Nuevo RM': 'Registrar nuevo RM',
+  'Nueva marca': 'Registrar nueva marca',
+} as const;
+
+async function abrirModal(nombreModal: keyof typeof BOTON = 'Nuevo RM'): Promise<HTMLElement> {
+  const boton = await screen.findByRole('button', { name: BOTON[nombreModal] });
   await userEvent.click(boton);
-  await screen.findByRole('dialog', { name: nombreBoton });
+  await screen.findByRole('dialog', { name: nombreModal });
   return boton;
 }
 
@@ -102,10 +108,12 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
   describe('el modal', () => {
     it('se llama "Nuevo RM" en fuerza y "Nueva marca" en el resto (mockup 12)', async () => {
       renderDetalle();
-      expect(await screen.findByRole('button', { name: 'Nuevo RM' })).toBeInTheDocument();
+      expect(await screen.findByRole('button', { name: 'Registrar nuevo RM' })).toBeInTheDocument();
 
       renderDetalle('mex_z9y8x7w6');
-      expect(await screen.findByRole('button', { name: 'Nueva marca' })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('button', { name: 'Registrar nueva marca' }),
+      ).toBeInTheDocument();
     });
 
     it('Escape lo cierra y el foco vuelve al botón que lo abrió', async () => {
@@ -173,7 +181,7 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       const marcas = within(await screen.findByRole('list', { name: 'Historial' })).getAllByRole(
         'listitem',
       );
-      expect(within(fila(marcas, 0)).getByText('105 kg')).toBeInTheDocument();
+      expect(fila(marcas, 0)).toHaveTextContent('105 kg');
       expect(within(fila(marcas, 0)).getByText('10/07/2026')).toBeInTheDocument();
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
@@ -226,7 +234,7 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       const marcas = within(await screen.findByRole('list', { name: 'Historial' })).getAllByRole(
         'listitem',
       );
-      expect(within(fila(marcas, 0)).getByText('110 kg')).toBeInTheDocument();
+      expect(fila(marcas, 0)).toHaveTextContent('110 kg');
       const hoy = new Date().toLocaleDateString('es-AR', {
         day: '2-digit',
         month: '2-digit',
@@ -255,7 +263,7 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
         'listitem',
       );
       expect(marcas).toHaveLength(1);
-      expect(within(fila(marcas, 0)).getByText('100 kg')).toBeInTheDocument();
+      expect(fila(marcas, 0)).toHaveTextContent('100 kg');
     });
 
     it('un tiempo mal escrito se frena en el formulario', async () => {
