@@ -250,6 +250,14 @@ describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
       expect(await screen.findByTestId('aumento')).toHaveTextContent('Mejora+8 s');
     });
 
+    it('el historial cuenta los registros de todo el historial, no las páginas traídas', async () => {
+      const { api } = renderDetalle('/ejercicios/mex_a1b2c3d4');
+      api.client.exerciseStats.mockResolvedValue(progreso);
+
+      const historial = await screen.findByRole('region', { name: 'Historial de RM' });
+      expect(await within(historial).findByText('03 registros')).toBeInTheDocument();
+    });
+
     it('con una sola marca no hay aumento que mostrar', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4');
 

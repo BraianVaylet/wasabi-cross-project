@@ -181,7 +181,7 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       const marcas = within(await screen.findByRole('list', { name: 'Historial' })).getAllByRole(
         'listitem',
       );
-      expect(within(fila(marcas, 0)).getByText('105 kg')).toBeInTheDocument();
+      expect(fila(marcas, 0)).toHaveTextContent('105 kg');
       expect(within(fila(marcas, 0)).getByText('10/07/2026')).toBeInTheDocument();
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
@@ -234,7 +234,7 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       const marcas = within(await screen.findByRole('list', { name: 'Historial' })).getAllByRole(
         'listitem',
       );
-      expect(within(fila(marcas, 0)).getByText('110 kg')).toBeInTheDocument();
+      expect(fila(marcas, 0)).toHaveTextContent('110 kg');
       const hoy = new Date().toLocaleDateString('es-AR', {
         day: '2-digit',
         month: '2-digit',
@@ -263,7 +263,7 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
         'listitem',
       );
       expect(marcas).toHaveLength(1);
-      expect(within(fila(marcas, 0)).getByText('100 kg')).toBeInTheDocument();
+      expect(fila(marcas, 0)).toHaveTextContent('100 kg');
     });
 
     it('un tiempo mal escrito se frena en el formulario', async () => {

@@ -191,7 +191,7 @@ function Detail({
 
       <Progress exercise={exercise} {...progress} />
 
-      <History {...list} />
+      <History {...list} kind={exercise.kind} count={progress.stats?.summary?.records} />
 
       {/* Zona 6: la barra fija. Al final del contenido, así reserva su lugar abajo de todo. */}
       <BottomBar label={withPercentages ? 'Carga seleccionada' : 'Mejor marca'}>
@@ -380,7 +380,8 @@ function Progress({
       {stats ? (
         <Chart
           label={isRm ? 'RM registrado' : 'Marcas registradas'}
-          unit={unit}
+          // Un tiempo se escribe 4:32: "UNIDAD: S" diría otra cosa que lo que se ve.
+          unit={unit === 's' ? 'mm:ss' : unit}
           points={stats.series.map((point) => ({
             label: formatDate(point.performedAt),
             value: point.value,

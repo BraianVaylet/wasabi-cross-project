@@ -177,45 +177,12 @@
   text-align: left;
 }
 
-/* Historial (mockup 6). */
-
+/* Zona 5: el historial. Las tarjetas (actual y anteriores) son de @wasabi-cross/ui. */
 .history {
   display: flex;
   flex-direction: column;
   gap: var(--wc-space-3);
-  margin-top: var(--wc-space-5);
-}
-
-.history__title {
-  margin: 0;
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
-}
-
-.history__best {
-  display: flex;
-  align-items: baseline;
-  gap: var(--wc-space-3);
-  margin: 0;
-  padding: var(--wc-space-3) var(--wc-space-4);
-  background-color: var(--wc-surface);
-  border-radius: var(--wc-radius-sm);
-}
-
-.history__best-label {
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-}
-
-.history__best-value {
-  margin-left: auto;
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
-}
-
-.history__best-date {
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
+  margin-top: var(--wc-space-6);
 }
 
 .history__list {
@@ -230,20 +197,48 @@
 .history__item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--wc-space-3);
-  padding: var(--wc-space-3) var(--wc-space-4);
-  background-color: var(--wc-surface);
-  border-radius: var(--wc-radius-sm);
+  min-height: 3.625rem;
+}
+
+.history__when {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-1);
+  min-width: 0;
 }
 
 .history__date {
-  color: var(--wc-text-muted);
+  color: var(--wc-text-soft);
+  font-size: var(--wc-font-size-caption);
+  letter-spacing: 0.06em;
 }
 
-.history__value {
-  margin-left: auto;
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
+/* En la actual, la fecha en el color del texto: sobre el oliva, el gris azulado pierde fuerza. */
+.wc-card--current .history__date {
+  color: var(--wc-text);
+}
+
+/* "RM ACTUAL": el rosa que pasa AA sobre el oliva (spec §11), no el magenta del diseño. */
+.history__current {
+  color: var(--wc-danger-on-subtle);
+  font-size: var(--wc-font-size-xs);
+}
+
+.history__mark {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--wc-space-1);
+  flex-shrink: 0;
+}
+
+.history__extra {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-xs);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
 }
 
 .history__empty {
