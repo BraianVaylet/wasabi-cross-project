@@ -202,6 +202,26 @@ describe('toAddExercise — lo que viaja a la API', () => {
     expect(input.firstRecord.performedAt).toBeUndefined();
   });
 
+  it('uno propio de distancia con carga pide el peso, y lo manda con los metros (F5-03b)', () => {
+    const sled = {
+      ...EMPTY_VALUES,
+      name: 'Sled Push del garage',
+      category: 'distancia_carga' as const,
+      capacities: ['fuerza' as const],
+      muscleGroups: ['cuadriceps' as const],
+      value: '50',
+      level: 'intermedio' as const,
+    };
+
+    const sinPeso = newExerciseSchemaFor(catalogo).safeParse(sled);
+    expect(sinPeso.success).toBe(false);
+    expect(sinPeso.error?.issues.map((issue) => issue.message)).toContain('Cargá el peso, como 80');
+
+    const input = toAddExercise(catalogo, { ...sled, extra: '152' });
+    expect(input).toMatchObject({ category: 'distancia_carga' });
+    expect(input.firstRecord).toEqual({ value: 50, weightKg: 152 });
+  });
+
   it('uno propio de cardio pide las calorías, y las manda con los metros (F5-03a)', () => {
     const cardio = {
       ...EMPTY_VALUES,

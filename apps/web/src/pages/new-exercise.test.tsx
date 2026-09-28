@@ -84,6 +84,18 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(screen.getByRole('group', { name: 'Categoría' })).toBeInTheDocument();
     });
 
+    it('distancia con carga se puede elegir, y pide los metros y el peso (F5-03b)', async () => {
+      renderNuevo();
+
+      await userEvent.type(await screen.findByLabelText('Nombre'), 'Sled Push del garage');
+      await userEvent.click(
+        screen.getByRole('radio', { name: 'Distancia con carga (metros y peso)' }),
+      );
+
+      expect(screen.getByLabelText('Distancia (m)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Peso (kg)')).toBeInTheDocument();
+    });
+
     it('cardio se puede elegir, y pide los metros y las calorías (F5-03a)', async () => {
       renderNuevo();
 

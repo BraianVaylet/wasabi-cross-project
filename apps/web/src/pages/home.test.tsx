@@ -42,6 +42,21 @@ const carrera = {
   current: { value: 272, unit: 's' as const, performedAt: '2026-07-01T10:00:00.000Z' },
 };
 
+const sled = {
+  ...backSquat,
+  id: 'mex_s1ed9x8y',
+  exerciseId: 'exo_s1ed9x8y',
+  name: 'Sled Push del garage',
+  category: 'distancia_carga' as const,
+  kind: 'weighted_distance' as const,
+  current: {
+    value: 50,
+    unit: 'm' as const,
+    weightKg: 152,
+    performedAt: '2026-07-02T10:00:00.000Z',
+  },
+};
+
 const remo = {
   ...backSquat,
   id: 'mex_r3m0e4r5',
@@ -77,6 +92,16 @@ describe('Home: lista de ejercicios (F1-11, mockup 4)', () => {
       // Un tiempo se lee como tiempo, no como 272 segundos.
       expect(corrida).toHaveTextContent('4:32');
       expect(within(corrida).getByText('Tiempo del 01/07/2026')).toBeInTheDocument();
+    });
+
+    it('uno de distancia con carga muestra los metros con su peso (F5-03b)', async () => {
+      renderHome(fakeApi(lista([sled])));
+
+      const [item] = await screen.findAllByRole('listitem');
+      const fila0 = fila(item ? [item] : [], 0);
+      expect(fila0).toHaveTextContent('50');
+      expect(fila0).toHaveTextContent('con 152 kg');
+      expect(within(fila0).getByText('Distancia del 02/07/2026')).toBeInTheDocument();
     });
 
     it('uno de cardio muestra los metros con sus calorías (F5-03a)', async () => {
