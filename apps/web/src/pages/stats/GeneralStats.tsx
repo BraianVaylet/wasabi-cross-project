@@ -1,6 +1,6 @@
 import type { Capacity, GeneralStats as Summary, MuscleGroup } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { Skeleton } from '@wasabi-cross/ui';
+import { SectionHeader, Skeleton } from '@wasabi-cross/ui';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { CAPACITY_LABEL, MUSCLE_GROUP_LABEL } from '../../lib/labels.ts';
 import { formatChange } from './change.ts';
@@ -36,9 +36,7 @@ export function GeneralStats({ stats }: GeneralStatsProps): React.JSX.Element | 
 
   return (
     <section className="stats__general" aria-labelledby="stats-general">
-      <h2 id="stats-general" className="stats__general-title">
-        En general
-      </h2>
+      <SectionHeader id="stats-general" title="En general" meta="Variación del período" />
 
       <Group
         title="Por capacidad"

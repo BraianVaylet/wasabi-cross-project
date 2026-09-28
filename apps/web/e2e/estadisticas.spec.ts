@@ -92,7 +92,7 @@ test('el período recorta: en tres meses queda una sola marca y no hay con qué 
   await cargarMarca(page, id, 125, 1);
 
   await page.goto(`/estadisticas?abierto=${id}`);
-  await page.getByLabel('Período').selectOption('3m');
+  await page.getByRole('radio', { name: 'Últimos 3 meses' }).check();
 
   await expect(page).toHaveURL(/periodo=3m/);
   // Del ejercicio queda la última marca sola: sin línea, un punto.

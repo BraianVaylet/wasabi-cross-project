@@ -1,4 +1,4 @@
-/* Tus estadísticas (mockup 10): el acordeón de ejercicios. */
+/* Tus estadísticas (mockup 10) con el lenguaje del diseño. */
 
 .stats__period {
   margin-bottom: var(--wc-space-4);
@@ -7,20 +7,25 @@
 .stats__list {
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-3);
+  gap: var(--wc-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * Cada ejercicio del acordeón, recortado como las tarjetas del diseño. El recorte se come el
+ * outline del botón: el foco va como anillo interior.
+ */
+/* Un tono arriba de la superficie: el gráfico de adentro (en --wc-surface) se recorta contra ella. */
 .stats__row {
-  border-radius: var(--wc-radius-md);
   background-color: var(--wc-surface-muted);
-  overflow: hidden;
+  border-left: 2px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
 }
 
 .stats__row--open {
-  background-color: var(--wc-surface);
+  border-left-color: var(--wc-accent);
 }
 
 .stats__head {
@@ -29,16 +34,23 @@
   justify-content: space-between;
   gap: var(--wc-space-3);
   width: 100%;
-  min-height: var(--wc-tap-target);
+  min-height: 3.5rem;
   padding: var(--wc-space-3) var(--wc-space-4);
 
   border: none;
   background: none;
   color: var(--wc-text);
-  font: inherit;
+  font-family: var(--wc-font-family-display);
   font-size: var(--wc-font-size-lg);
+  letter-spacing: var(--wc-tracking-button);
   text-align: left;
+  text-transform: uppercase;
   cursor: pointer;
+}
+
+.stats__head:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--wc-focus);
 }
 
 .stats__row--open .stats__name {
@@ -49,6 +61,7 @@
   display: inline-flex;
   width: 1.25rem;
   height: 1.25rem;
+  color: var(--wc-accent-text);
   transform: rotate(90deg);
   transition: transform 150ms ease;
 }
@@ -64,43 +77,41 @@
 }
 
 .stats__panel {
-  padding: 0 var(--wc-space-4) var(--wc-space-4);
+  padding: 0 var(--wc-space-3) var(--wc-space-4);
 }
 
 .stats__numbers {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--wc-space-3);
   margin: var(--wc-space-4) 0 0;
 }
 
 .stats__numbers dt {
   color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
+  font-size: var(--wc-font-size-2xs);
+  letter-spacing: var(--wc-tracking-kicker);
+  text-transform: uppercase;
 }
 
 .stats__numbers dd {
-  margin: 0;
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
+  margin: var(--wc-space-1) 0 0;
 }
 
 /* La segunda mitad del mockup 10: cómo viene cada capacidad y cada grupo muscular. */
 
 .stats__general {
+  display: flex;
+  flex-direction: column;
   margin-top: var(--wc-space-6);
-}
-
-.stats__general-title {
-  margin: 0 0 var(--wc-space-3);
-  font-size: var(--wc-font-size-lg);
 }
 
 .stats__general-subtitle {
   margin: var(--wc-space-4) 0 var(--wc-space-2);
   color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-  font-weight: 500;
+  font-family: var(--wc-font-family);
+  font-size: var(--wc-font-size-2xs);
+  letter-spacing: var(--wc-tracking-kicker);
 }
 
 .stats__general-list {
@@ -115,15 +126,26 @@
 .stats__general-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0 var(--wc-space-3);
-  padding: var(--wc-space-2) var(--wc-space-3);
-  border-radius: var(--wc-radius-md);
-  background-color: var(--wc-surface-muted);
+  align-items: center;
+  gap: var(--wc-space-1) var(--wc-space-3);
+  padding: var(--wc-space-3) var(--wc-space-4);
+
+  background-color: var(--wc-surface);
+  border-left: 2px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
+}
+
+.stats__general-label {
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-lg);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
 }
 
 .stats__general-change {
   color: var(--wc-accent-text);
-  font-weight: 600;
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-lg);
 }
 
 .stats__general-change--down {
@@ -132,12 +154,21 @@
 
 .stats__general-count {
   grid-column: 1 / -1;
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
+  color: var(--wc-text-soft);
+  font-size: var(--wc-font-size-xs);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
 }
 
 .stats__general-missing {
   margin: var(--wc-space-2) 0 0;
   color: var(--wc-text-muted);
   font-size: var(--wc-font-size-sm);
+}
+
+@media (forced-colors: active) {
+  .stats__row,
+  .stats__general-row {
+    clip-path: none;
+  }
 }

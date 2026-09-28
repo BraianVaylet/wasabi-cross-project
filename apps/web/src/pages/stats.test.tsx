@@ -238,7 +238,7 @@ describe('Estadísticas (F2-07, mockup 10)', () => {
       await screen.findByRole('region', { name: 'En general' });
       const generalesPrevias = api.client.generalStats.mock.calls.length;
 
-      await userEvent.selectOptions(screen.getByLabelText('Período'), '3m');
+      await userEvent.click(screen.getByRole('radio', { name: 'Últimos 3 meses' }));
 
       await waitFor(() => {
         expect(router.state.location.search).toMatchObject({ periodo: '3m' });
@@ -258,7 +258,7 @@ describe('Estadísticas (F2-07, mockup 10)', () => {
       await waitFor(() => {
         expect(api.client.generalStats).toHaveBeenCalledWith('6m');
       });
-      expect(screen.getByLabelText('Período')).toHaveValue('6m');
+      expect(screen.getByRole('radio', { name: 'Últimos 6 meses' })).toBeChecked();
     });
 
     it('un período inventado en la URL no rompe la pantalla: vuelve al de siempre', async () => {
