@@ -49,8 +49,15 @@ export async function agregarDelCatalogo(page: Page, nombre: string, valor: stri
 /**
  * Sin violaciones WCAG 2.2 AA en la pantalla que está abierta (spec §11). Las reglas de
  * contraste corren en el navegador de verdad: es lo que jsdom no puede mirar.
+ *
+ * Espera a que terminen las transiciones: axe mide el color que hay en ese instante, y una
+ * pestaña recién elegida a mitad de camino entre dos colores falla un contraste que no tiene.
  */
 export async function auditar(page: Page, pantalla: string): Promise<void> {
+  await page.evaluate(() =>
+    Promise.all(document.getAnimations().map((animation) => animation.finished)),
+  );
+
   const { violations } = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze();
