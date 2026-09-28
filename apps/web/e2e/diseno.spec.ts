@@ -91,7 +91,7 @@ test('el detalle, igual al diseño @captura', async ({ page }, testInfo) => {
 
 test('el detalle de un ejercicio de tiempo, con la mejor marca en la barra', async ({ page }) => {
   await registrarse(page);
-  await page.goto('/ejercicios/nuevo');
+  await page.goto('/ejercicios/nuevo?modo=crear');
   await page.getByLabel('Nombre').fill('Carrera 1 km');
   await page.getByLabel('Tiempo (mm:ss)').fill('0432');
   await page.getByLabel('Desnivel (m)').fill('0');
