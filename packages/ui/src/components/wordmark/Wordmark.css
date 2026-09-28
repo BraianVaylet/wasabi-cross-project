@@ -1,0 +1,48 @@
+.wc-wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wc-wordmark__name {
+  font-family: var(--wc-font-family-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/*
+ * Las "//" del diseño. El segundo `content` (con `/ ''`, texto alternativo vacío) gana donde el
+ * navegador lo entiende; donde no, queda el primero.
+ */
+.wc-wordmark__slash::before {
+  content: '//';
+  content: '//' / '';
+  color: var(--wc-accent-text);
+}
+
+.wc-wordmark__subtitle {
+  margin-top: var(--wc-space-1);
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-2xs);
+  line-height: 1.2;
+  letter-spacing: var(--wc-tracking-kicker);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wc-wordmark--large {
+  align-items: center;
+}
+
+.wc-wordmark--large .wc-wordmark__name {
+  font-size: var(--wc-font-size-title);
+}
+
+.wc-wordmark--large .wc-wordmark__subtitle {
+  margin-top: var(--wc-space-2);
+  font-size: var(--wc-font-size-xs);
+}

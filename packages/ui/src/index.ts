@@ -21,14 +21,9 @@ export { TextField, type TextFieldProps } from './components/text-field/TextFiel
 export { AppHeader, type AppHeaderProps } from './components/app-header/AppHeader.tsx';
 export { Drawer, type DrawerProps } from './components/drawer/Drawer.tsx';
 export { IconButton, type IconButtonProps } from './components/icon-button/IconButton.tsx';
-export {
-  ChevronIcon,
-  CloseIcon,
-  ImageIcon,
-  MenuIcon,
-  PencilIcon,
-} from './components/icons/icons.tsx';
+export { ChevronIcon, CloseIcon, MenuIcon, PencilIcon } from './components/icons/icons.tsx';
 export { Logo, type LogoProps } from './components/logo/Logo.tsx';
+export { Wordmark, type WordmarkProps } from './components/wordmark/Wordmark.tsx';
 export { Skeleton, type SkeletonProps } from './components/skeleton/Skeleton.tsx';
 export {
   SectionHeader,

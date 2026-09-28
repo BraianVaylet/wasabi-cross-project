@@ -7,8 +7,8 @@
 **Fases 0, 1 y 2: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde), la 1 el 2026-09-22 con F1-18, y
 la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y
 `packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
-F4-03a/b/c y F4-04b mergeadas; F4-05a a F4-05d en una PR; todas a la espera de que el usuario cumpla
-el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
+F4-03a/b/c, F4-04b y F4-05a–d mergeadas; F4-04a y F4-07 en una PR; todas a la espera de que el
+usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
 en paralelo a lo que quede bloqueado de la Fase 3.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
@@ -25,14 +25,18 @@ en paralelo a lo que quede bloqueado de la Fase 3.
   Charts). Hallazgos que quedaron como regla: el recorte va en el propio elemento (con el fondo en
   un `::before` axe deja el contraste sin verificar) y el foco es un anillo interior; axe no mide
   texto adentro de un SVG, ahí lo garantizan los tokens.
-- **F4-05a–d · El detalle de ejercicio** — código hecho, PR abierta (`feat/f4-05-detalle`), un
-  commit por tarea. La primera pantalla con el diseño real: cabecera con migas y lápiz, "ELEGÍ TU
+- **F4-05a–d · El detalle de ejercicio** — PR #66, mergeada, un commit por tarea. La primera pantalla con el diseño real: cabecera con migas y lápiz, "ELEGÍ TU
   CARGA", progreso con el aumento (`improvement()` en schemas), historial con la cantidad de
   registros y la barra fija con la carga, su banda y "Registrar nuevo RM". Comparada a 390px con
   el PNG: sólo difiere el header de la app (F4-04a y F4-07).
-- Quedan **F4-04a, F4-06 a F4-11**. F4-04a (header, logo y menú) y F4-07 (Home y shell a 430px)
-  terminan de igualar el detalle al diseño; el resto de las pantallas cuelga de los componentes
-  que ya están; F4-11 cierra la fase.
+- **F4-04a · Header, logo y menú** y **F4-07 · Home y shell** — código hecho, PR abierta
+  (`feat/f4-04a-07-header-home`), un commit por tarea. Logo con la "W" del diseño, `Wordmark`
+  ("WASABI // CROSS" que se lee "Wasabi Cross"), header con la línea, menú en la condensada; la
+  app en la columna de 430px, Home con las filas del historial, splash, 404, aviso de versión y
+  manifest en `#0f041c`. Con esto el detalle coincide con el PNG también arriba.
+- Quedan **F4-06, F4-08, F4-09, F4-10 y F4-11**: login/registro, nuevo/editar, perfil y
+  estadísticas (ya con los componentes nuevos, les falta el ajuste fino), y el E2E que cierra la
+  fase.
 
 ## Bloqueado
 
@@ -41,9 +45,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear la PR del detalle (`feat/f4-05-detalle`, F4-05a a F4-05d).
-2. Seguir con F4-04a (header, logo y menú) y F4-07 (Home y shell): con esas dos, el detalle queda
-   igual al diseño también arriba.
+1. Revisar y mergear la PR de F4-04a y F4-07 (`feat/f4-04a-07-header-home`).
+2. Seguir con las pantallas que quedan: F4-06 (login y registro), F4-08 (nuevo y editar), F4-09
+   (perfil) y F4-10 (estadísticas); después F4-11 cierra la fase.
 3. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.

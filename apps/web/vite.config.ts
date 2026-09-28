@@ -16,8 +16,9 @@ export default defineConfig({
         lang: 'es-AR',
         start_url: '/',
         display: 'standalone',
-        background_color: '#24333d',
-        theme_color: '#24333d',
+        // El fondo del tema único (ADR-0008): la barra del sistema y el arranque, iguales a la app.
+        background_color: '#0f041c',
+        theme_color: '#0f041c',
         icons: [],
       },
     }),

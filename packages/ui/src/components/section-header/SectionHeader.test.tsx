@@ -9,6 +9,13 @@ describe('SectionHeader', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Elegí tu carga' })).toBeInTheDocument();
   });
 
+  it('puede ser el h1 de la pantalla, con su tamaño de título', () => {
+    const { container } = render(<SectionHeader title="Tus ejercicios" level={1} />);
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Tus ejercicios' })).toBeInTheDocument();
+    expect(container.firstChild).toHaveClass('wc-section-header--page');
+  });
+
   it('puede ser un h3 cuando la sección está adentro de otra', () => {
     render(<SectionHeader title="Por capacidad" level={3} />);
 

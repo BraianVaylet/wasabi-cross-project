@@ -44,14 +44,3 @@ export function PencilIcon(): React.JSX.Element {
     </svg>
   );
 }
-
-/** El marcador de imagen de los mockups, hasta que haya logo de marca. */
-export function ImageIcon(): React.JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24" focusable="false" {...STROKE}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="9" cy="9" r="2" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  );
-}

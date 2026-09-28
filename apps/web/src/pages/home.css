@@ -1,49 +1,82 @@
-/* Home (mockup 4): la lista de ejercicios. */
+/* Home (mockup 4) con el lenguaje del diseño: la lista como el historial del detalle. */
 
 .home__list {
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-3);
-  margin: 0;
+  gap: var(--wc-space-2);
+  margin: var(--wc-space-3) 0 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * El recorte va en el propio link, con su fondo real (axe mide el contraste); el foco, como anillo
+ * interior, porque el recorte se come el outline.
+ */
 .home__row {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: var(--wc-space-3);
-  min-height: var(--wc-tap-target);
-  padding: var(--wc-space-3) var(--wc-space-4);
+  min-height: 3.875rem;
+  padding: var(--wc-space-3) var(--wc-space-3) var(--wc-space-3) var(--wc-space-4);
 
   background-color: var(--wc-surface);
-  border-radius: var(--wc-radius-sm);
+  border-left: 2px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
   color: var(--wc-text);
   text-decoration: none;
+
+  transition:
+    background-color var(--wc-transition),
+    border-color var(--wc-transition);
+}
+
+.home__row:hover {
+  background-color: var(--wc-surface-muted);
+  border-left-color: var(--wc-accent);
+}
+
+.home__row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--wc-focus);
 }
 
 .home__row-main {
   display: flex;
   flex: 1;
   flex-direction: column;
+  gap: var(--wc-space-1);
   min-width: 0;
 }
 
 .home__row-name {
-  color: var(--wc-accent-text);
+  font-family: var(--wc-font-family-display);
   font-size: var(--wc-font-size-lg);
+  line-height: 1.05;
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 
 .home__row-date {
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
+  color: var(--wc-text-soft);
+  font-size: var(--wc-font-size-xs);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
 }
 
 .home__row-value {
+  display: flex;
+  flex-direction: column;
   flex-shrink: 0;
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
+  align-items: flex-end;
+  gap: var(--wc-space-1);
+}
+
+.home__row-extra {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-xs);
+  text-transform: uppercase;
 }
 
 .home__row-chevron {
@@ -51,7 +84,7 @@
   flex-shrink: 0;
   width: 1.25rem;
   height: 1.25rem;
-  color: var(--wc-text-muted);
+  color: var(--wc-accent-text);
 }
 
 .home__row-chevron > svg {
@@ -59,10 +92,10 @@
   height: 100%;
 }
 
-/* Aire entre la lista y la acción, como en el mockup. */
+/* Aire entre la lista y la acción. */
 .home__list + .wc-button,
 .home__full {
-  margin-top: var(--wc-space-3);
+  margin-top: var(--wc-space-4);
 }
 
 .home__empty {
@@ -70,8 +103,19 @@
   flex-direction: column;
   gap: var(--wc-space-4);
   align-items: center;
-  padding: var(--wc-space-6) 0;
+  margin-top: var(--wc-space-4);
+  padding: var(--wc-space-6) var(--wc-space-4);
+
+  background-color: var(--wc-surface);
+  border: 1px dashed var(--wc-border);
   text-align: center;
+}
+
+.home__empty > p {
+  margin: 0;
+  color: var(--wc-text-soft);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
 }
 
 .home__full {
@@ -85,4 +129,11 @@
   color: var(--wc-text-muted);
   font-size: var(--wc-font-size-sm);
   text-align: center;
+}
+
+@media (forced-colors: active) {
+  .home__row {
+    clip-path: none;
+    border: 1px solid CanvasText;
+  }
 }

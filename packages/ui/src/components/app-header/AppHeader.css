@@ -1,13 +1,12 @@
+/* El header del diseño: sin caja, con una línea verde azulada abajo (spec §5.2, zona 1). */
 .wc-app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--wc-space-3);
 
-  padding: var(--wc-space-2) var(--wc-space-3);
-
-  background-color: var(--wc-surface);
-  border-radius: var(--wc-radius-sm);
+  padding-bottom: var(--wc-space-3);
+  border-bottom: 1px solid var(--wc-divider);
 }
 
 .wc-app-header__brand {
@@ -15,9 +14,6 @@
   align-items: center;
   gap: var(--wc-space-3);
   min-width: 0;
-
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
 }
 
 /* La marca suele ser un link a Home: que no parezca un link suelto. */

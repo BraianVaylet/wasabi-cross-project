@@ -8,9 +8,9 @@ import {
 } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Button, ChevronIcon, Skeleton } from '@wasabi-cross/ui';
+import { Button, ChevronIcon, Measure, SectionHeader, Skeleton } from '@wasabi-cross/ui';
 import { ErrorNotice } from '../app/ErrorNotice.tsx';
-import { formatDate, formatMark } from '../lib/format.ts';
+import { formatDate, markParts } from '../lib/format.ts';
 import './home.css';
 
 export interface HomePageProps {
@@ -26,12 +26,41 @@ const VALUE_LABEL: Record<MeasureKind, string> = {
   time: 'Tiempo',
 };
 
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+/**
+ * El cupo del plan al lado del título: "03 / 10". Para el lector de pantalla, en palabras: "3 / 10"
+ * suelto no dice de qué.
+ */
+function Usage({ usage }: { usage: PlanUsage }): React.JSX.Element | null {
+  if (usage.maxTotal === null) {
+    return null;
+  }
+
+  return (
+    <>
+      <span aria-hidden="true">
+        {pad(usage.total)} / {pad(usage.maxTotal)}
+      </span>
+      <span className="wc-visually-hidden">
+        {usage.total} de {usage.maxTotal} ejercicios de tu plan
+      </span>
+    </>
+  );
+}
+
 /** Home (mockup 4): la lista de ejercicios gestionados con su valor actual. */
 export function HomePage({ user, exercises }: HomePageProps): React.JSX.Element {
   return (
     <>
-      <p className="page__greeting">¡Hola, {user.name}!</p>
-      <h1 className="page__title">Tus ejercicios</h1>
+      <SectionHeader
+        level={1}
+        title="Tus ejercicios"
+        kicker={`¡Hola, ${user.name}!`}
+        meta={exercises.data ? <Usage usage={exercises.data.usage} /> : undefined}
+      />
 
       {exercises.isPending ? <Skeleton label="Cargando tus ejercicios" count={4} /> : null}
 
@@ -76,7 +105,10 @@ function ExerciseList({ list }: { list: ExerciseList }): React.JSX.Element {
   );
 }
 
+/** Cada fila, como las marcas anteriores del historial del diseño: recortada, con filo violeta. */
 function ExerciseRow({ exercise }: { exercise: ManagedExerciseSummary }): React.JSX.Element {
+  const value = markParts(exercise.current);
+
   return (
     <Link to="/ejercicios/$id" params={{ id: exercise.id }} className="home__row">
       <span className="home__row-main">
@@ -85,7 +117,10 @@ function ExerciseRow({ exercise }: { exercise: ManagedExerciseSummary }): React.
           {VALUE_LABEL[exercise.kind]} del {formatDate(exercise.current.performedAt)}
         </span>
       </span>
-      <span className="home__row-value">{formatMark(exercise.current)}</span>
+      <span className="home__row-value">
+        <Measure value={value.value} unit={value.unit} size="md" />
+        {value.extra ? <span className="home__row-extra">{value.extra}</span> : null}
+      </span>
       <span aria-hidden="true" className="home__row-chevron">
         <ChevronIcon />
       </span>

@@ -12,13 +12,14 @@
   justify-content: space-between;
   gap: var(--wc-space-3);
   width: fit-content;
-  max-width: 40rem;
+  max-width: var(--wc-column-max);
   margin: 0 auto;
   padding: var(--wc-space-3) var(--wc-space-4);
 
-  background-color: var(--wc-surface);
-  border: 1px solid var(--wc-border);
-  border-radius: var(--wc-radius-sm);
+  /* Como la barra fija del detalle: el borde lima arriba y la línea violeta. */
+  background-color: var(--wc-bg-raised);
+  border-top: 2px solid var(--wc-accent);
+  box-shadow: 0 -4px 0 var(--wc-border);
   color: var(--wc-text);
 }
 

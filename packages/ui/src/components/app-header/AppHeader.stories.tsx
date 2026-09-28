@@ -3,6 +3,7 @@ import { AppHeader } from './AppHeader.tsx';
 import { IconButton } from '../icon-button/IconButton.tsx';
 import { MenuIcon } from '../icons/icons.tsx';
 import { Logo } from '../logo/Logo.tsx';
+import { Wordmark } from '../wordmark/Wordmark.tsx';
 
 const meta = {
   title: 'Cross/AppHeader',
@@ -12,13 +13,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** El header del mockup 4: logo y nombre, menú. */
-export const Mockup4: Story = {
+/** El header del diseño, con el botón de menú que el diseño no muestra (spec §5.2). */
+export const Diseno: Story = {
   args: {
     brand: (
       <a href="#home">
         <Logo />
-        Wasabi Cross
+        <Wordmark subtitle="Fuerza · Registro de RM" />
       </a>
     ),
     actions: (
@@ -28,7 +29,7 @@ export const Mockup4: Story = {
     ),
   },
   render: (args) => (
-    <div className="wc-root" style={{ padding: '1rem' }}>
+    <div style={{ maxWidth: 'var(--wc-column-max)' }}>
       <AppHeader {...args} />
     </div>
   ),

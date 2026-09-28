@@ -29,6 +29,12 @@ describe('Logo', () => {
     expect(container.firstElementChild).toHaveAttribute('aria-hidden', 'true');
   });
 
+  it('es la "W" con la barra del diseño, no el marcador de imagen de antes', () => {
+    const { container } = render(<Logo />);
+
+    expect(container.querySelector('.wc-logo__mark')).toBeInTheDocument();
+  });
+
   it('tiene un tamaño grande para el splash', () => {
     const { container } = render(<Logo size="large" />);
 

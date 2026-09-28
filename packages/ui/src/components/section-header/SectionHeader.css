@@ -24,6 +24,12 @@
   font-size: var(--wc-font-size-heading);
 }
 
+/* Como título de la pantalla: el tamaño del nombre del ejercicio en el detalle. */
+.wc-section-header--page .wc-section-header__title {
+  font-size: var(--wc-font-size-title);
+  letter-spacing: var(--wc-tracking-title);
+}
+
 .wc-section-header__meta {
   flex-shrink: 0;
   color: var(--wc-text-muted);

@@ -57,10 +57,10 @@ describe('Home: lista de ejercicios (F1-11, mockup 4)', () => {
 
       expect(within(squat).getByText('Back squat')).toBeInTheDocument();
       expect(within(squat).getByText('RM del 23/06/2026')).toBeInTheDocument();
-      expect(within(squat).getByText('100 kg')).toBeInTheDocument();
+      expect(squat).toHaveTextContent('100 kg');
 
       // Un tiempo se lee como tiempo, no como 272 segundos.
-      expect(within(corrida).getByText('4:32')).toBeInTheDocument();
+      expect(corrida).toHaveTextContent('4:32');
       expect(within(corrida).getByText('Tiempo del 01/07/2026')).toBeInTheDocument();
     });
 

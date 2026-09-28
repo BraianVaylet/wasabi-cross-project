@@ -14,14 +14,15 @@ body {
   min-height: 100dvh;
 }
 
+/* La columna del diseño (spec §11): 430px como máximo, 20px a los costados. */
 .app-shell {
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-5);
+  gap: var(--wc-space-4);
   width: 100%;
-  max-width: 40rem;
+  max-width: var(--wc-column-max);
   margin: 0 auto;
-  padding: var(--wc-space-6) var(--wc-space-4);
+  padding: var(--wc-space-4) var(--wc-column-gutter) var(--wc-space-6);
 }
 
 .app-shell__main {
@@ -48,36 +49,31 @@ body {
   gap: var(--wc-space-5);
 }
 
-.splash__name {
-  margin: 0;
-  color: var(--wc-accent-text);
-  font-size: var(--wc-font-size-xl);
-  font-weight: 500;
-}
-
-.page__greeting {
-  margin: 0;
-}
-
-/* El "‹ Ejercicios" de las pantallas internas (mockup 9). */
+/*
+ * El "‹ Ejercicios" de las pantallas internas (mockup 9): la etiqueta chica del diseño, con un
+ * target de 44px (spec §11).
+ */
 .page__back {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: var(--wc-space-2);
+  gap: var(--wc-space-1);
   min-height: var(--wc-tap-target);
   color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-2xs);
+  letter-spacing: var(--wc-tracking-kicker);
   text-decoration: none;
+  text-transform: uppercase;
 }
 
 .page__back:hover {
   color: var(--wc-text);
 }
 
+/* Familia, mayúsculas y tracking los pone la regla global de titulares. */
 .page__title {
   margin: 0;
-  font-size: var(--wc-font-size-xl);
-  font-weight: 500;
+  font-size: var(--wc-font-size-title);
 }
 
 .error-notice {
