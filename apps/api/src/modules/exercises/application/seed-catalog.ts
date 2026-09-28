@@ -1,4 +1,4 @@
-import type { Exercise } from '@wasabi-cross/schemas';
+import { bodySegmentFor, type Exercise } from '@wasabi-cross/schemas';
 import { EXERCISE_CATALOG, type CatalogExercise } from '../domain/catalog.ts';
 import type { ExerciseRepository } from '../domain/exercise-repository.ts';
 
@@ -10,14 +10,20 @@ export interface SeedReport {
 
 /**
  * Campos que definen un ejercicio del catálogo. Lo demás (id, fechas) no se compara, y
- * la medición tampoco: sale de la categoría, así que comparar la categoría alcanza.
+ * la medición tampoco: sale de la categoría, así que comparar la categoría alcanza. El
+ * segmento sí: está guardado, y un documento con el de la regla vieja tiene que
+ * actualizarse.
  */
 function hasSameDefinition(stored: Exercise, definition: CatalogExercise): boolean {
   return (
+    stored.catalogKey === definition.catalogKey &&
     stored.category === definition.category &&
-    stored.bodySegment === definition.bodySegment &&
+    stored.primaryMuscleGroup === definition.primaryMuscleGroup &&
+    stored.bodySegment === bodySegmentFor(definition.primaryMuscleGroup) &&
+    stored.equipment === definition.equipment &&
     sameSet(stored.capacities, definition.capacities) &&
-    sameSet(stored.muscleGroups, definition.muscleGroups)
+    sameSet(stored.muscleGroups, definition.muscleGroups) &&
+    sameSet(stored.disciplines, definition.disciplines)
   );
 }
 

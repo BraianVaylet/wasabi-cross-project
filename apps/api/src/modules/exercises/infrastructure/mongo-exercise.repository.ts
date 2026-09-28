@@ -1,4 +1,4 @@
-import { exerciseSchema, type Exercise } from '@wasabi-cross/schemas';
+import { bodySegmentFor, exerciseSchema, type Exercise } from '@wasabi-cross/schemas';
 import type { Collection, Db } from 'mongodb';
 import { generateId } from '../../../shared/ids.ts';
 import type { CatalogExercise } from '../domain/catalog.ts';
@@ -13,6 +13,24 @@ export const MANAGED_EXERCISES_COLLECTION = 'managed_exercises';
  */
 interface ExerciseDocument extends Omit<Exercise, 'id'> {
   _id: string;
+}
+
+/**
+ * Lo que se guarda de una entrada del catálogo. El segmento se escribe derivado del grupo
+ * primario (spec §5.1): Estadísticas lo lee de la base sin recalcularlo.
+ */
+function catalogFields(exercise: CatalogExercise) {
+  return {
+    catalogKey: exercise.catalogKey,
+    name: exercise.name,
+    category: exercise.category,
+    capacities: exercise.capacities,
+    primaryMuscleGroup: exercise.primaryMuscleGroup,
+    muscleGroups: exercise.muscleGroups,
+    bodySegment: bodySegmentFor(exercise.primaryMuscleGroup),
+    disciplines: exercise.disciplines,
+    equipment: exercise.equipment,
+  };
 }
 
 function toEntity(document: ExerciseDocument): Exercise {
@@ -47,11 +65,7 @@ export function createMongoExerciseRepository(db: Db): ExerciseRepository {
       const document: ExerciseDocument = {
         _id: generateId('exo'),
         ownerId: null,
-        name: exercise.name,
-        category: exercise.category,
-        capacities: exercise.capacities,
-        muscleGroups: exercise.muscleGroups,
-        bodySegment: exercise.bodySegment,
+        ...catalogFields(exercise),
         createdAt: now,
         updatedAt: now,
       };
@@ -66,11 +80,7 @@ export function createMongoExerciseRepository(db: Db): ExerciseRepository {
         { _id: id, ownerId: null },
         {
           $set: {
-            name: exercise.name,
-            category: exercise.category,
-            capacities: exercise.capacities,
-            muscleGroups: exercise.muscleGroups,
-            bodySegment: exercise.bodySegment,
+            ...catalogFields(exercise),
             updatedAt: new Date().toISOString(),
           },
         },

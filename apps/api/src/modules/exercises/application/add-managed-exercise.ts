@@ -158,7 +158,12 @@ export async function addManagedExercise<Tx>(
   // transacción. Los dos caminos quedan explícitos en el tipo.
   let target:
     | { existing: Exercise }
-    | { newName: string; capacities: Capacity[]; muscleGroups: MuscleGroup[] };
+    | {
+        newName: string;
+        capacities: Capacity[];
+        primaryMuscleGroup: MuscleGroup;
+        muscleGroups: MuscleGroup[];
+      };
   let category: ExerciseCategory;
 
   if (input.source === 'catalog') {
@@ -167,9 +172,16 @@ export async function addManagedExercise<Tx>(
     category = existing.category;
   } else {
     await assertCustomNameIsFree(store, userId, input.name);
+    const [primaryMuscleGroup] = input.muscleGroups;
+    if (primaryMuscleGroup === undefined) {
+      // El schema del borde exige al menos uno: llegar acá sin grupos es un bug, no un caso.
+      throw new Error('Ejercicio propio sin grupos musculares');
+    }
     target = {
       newName: input.name,
       capacities: input.capacities,
+      // Hasta que el alta pregunte el primario (F5-08), es el primero de los elegidos.
+      primaryMuscleGroup,
       muscleGroups: input.muscleGroups,
     };
     category = input.category;
@@ -208,9 +220,10 @@ export async function addManagedExercise<Tx>(
             name: target.newName,
             category,
             capacities: target.capacities,
+            primaryMuscleGroup: target.primaryMuscleGroup,
             muscleGroups: target.muscleGroups,
-            // No se pregunta: sale de los grupos musculares elegidos (spec §5.1).
-            bodySegment: bodySegmentFor(target.muscleGroups),
+            // No se pregunta: sale del grupo primario (spec §5.1).
+            bodySegment: bodySegmentFor(target.primaryMuscleGroup),
           });
 
     const managed = await store.createManaged(tx, {

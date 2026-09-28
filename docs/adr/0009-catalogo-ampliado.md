@@ -79,8 +79,9 @@ quedan en funcional). Resultado: 62 ejercicios y una sexta categoría, **distanc
   sobre los ejercicios sin dueño.
 - **Reemplazo de cero** (opción 2), elegido por el usuario: no hay producción, así que sólo se
   pierden datos de desarrollo y staging. La migración borra los ejercicios del catálogo viejo y los
-  gestionados y marcas que apuntan a ellos, y completa `primaryMuscleGroup` en los propios que ya
-  existan (el primero de su lista). Su `down` vuelve a poner el catálogo viejo, pero **no puede
+  gestionados y marcas que apuntan a ellos. Antes, otra migración (F5-01) completa
+  `primaryMuscleGroup` en todos los que ya existan (el primero de su lista): el ejercicio se
+  valida al leerlo de Mongo, y sin ella ningún documento viejo pasaría. Su `down` vuelve a poner el catálogo viejo, pero **no puede
   devolver los gestionados ni las marcas borrados**: es la única parte no reversible, y es
   aceptable sólo porque no hay usuarios reales. Después de producción, un cambio así va por la
   opción 1.

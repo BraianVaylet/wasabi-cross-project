@@ -13,8 +13,10 @@ function delCatalogo(name: string, category: Exercise['category'], id: string): 
     name,
     category,
     capacities: ['fuerza'],
+    primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps', 'gluteo'],
     bodySegment: 'tren_inferior',
+    disciplines: [],
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
