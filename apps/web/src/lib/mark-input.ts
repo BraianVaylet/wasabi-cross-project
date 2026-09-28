@@ -16,6 +16,7 @@ export const MARK_FIELD: Record<MeasureKind, MarkField> = {
   reps: { label: 'Repeticiones', placeholder: 'Ej: 30' },
   weighted_reps: { label: 'Repeticiones', placeholder: 'Ej: 12' },
   time: { label: 'Tiempo (mm:ss)', placeholder: 'Ej: 04:32' },
+  distance: { label: 'Distancia (m)', placeholder: 'Ej: 2000' },
 };
 
 /** El peso de una marca de hipertrofia, junto a las repeticiones (spec §5.1). */

@@ -205,6 +205,96 @@ describe('marcas: cargar e historial (F1-07)', () => {
     });
   });
 
+  describe('cardio: metros con sus calorías (F5-02a)', () => {
+    async function addRemo(cookie: string): Promise<ManagedExerciseSummary> {
+      const response = await harness.app.inject({
+        method: 'POST',
+        url: '/api/v1/exercises',
+        headers: { cookie, 'content-type': 'application/json' },
+        payload: JSON.stringify({
+          source: 'custom',
+          name: 'Remo del garage',
+          category: 'cardio',
+          capacities: ['resistencia'],
+          muscleGroups: ['cuerpo_completo'],
+          level: 'intermedio',
+          firstRecord: { value: 2000, performedAt: '2026-06-01T10:00:00.000Z', caloriesKcal: 120 },
+        }),
+      });
+      expect(response.statusCode).toBe(201);
+      return response.json<ManagedExerciseSummary>();
+    }
+
+    it('se mide en metros, con las calorías en la marca', async () => {
+      const cookie = await newUser();
+      const remo = await addRemo(cookie);
+
+      expect(remo.kind).toBe('distance');
+      expect(remo.current).toMatchObject({ value: 2000, unit: 'm', caloriesKcal: 120 });
+
+      const list = await harness.app.inject({
+        method: 'GET',
+        url: '/api/v1/exercises',
+        headers: { cookie },
+      });
+      expect(list.json<ExerciseList>().exercises[0]?.current).toMatchObject({ caloriesKcal: 120 });
+    });
+
+    it('sin calorías responde WC-RM-422-001 y no guarda nada', async () => {
+      const cookie = await newUser();
+      const remo = await addRemo(cookie);
+
+      const response = await log(cookie, remo.id, { value: 2100 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        errorCode: 'WC-RM-422-001',
+        details: [{ path: 'caloriesKcal', message: 'Cargá las calorías' }],
+      });
+      expect((await history(cookie, remo.id)).json<RecordHistory>().records).toHaveLength(1);
+    });
+
+    it('la primera marca sin calorías tampoco se guarda', async () => {
+      const cookie = await newUser();
+
+      const response = await harness.app.inject({
+        method: 'POST',
+        url: '/api/v1/exercises',
+        headers: { cookie, 'content-type': 'application/json' },
+        payload: JSON.stringify({
+          source: 'custom',
+          name: 'Bici sin calorías',
+          category: 'cardio',
+          capacities: ['resistencia'],
+          muscleGroups: ['cuerpo_completo'],
+          level: 'intermedio',
+          firstRecord: { value: 5000 },
+        }),
+      });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        errorCode: 'WC-RM-422-001',
+        details: [{ path: 'firstRecord.caloriesKcal' }],
+      });
+    });
+
+    it('la mejor marca es la de más metros', async () => {
+      const cookie = await newUser();
+      const remo = await addRemo(cookie);
+
+      await logOk(cookie, remo.id, 2100, '2026-06-10T10:00:00.000Z', { caloriesKcal: 125 });
+      const despues = await logOk(cookie, remo.id, 1900, '2026-06-20T10:00:00.000Z', {
+        caloriesKcal: 110,
+      });
+
+      expect(despues.best).toMatchObject({ value: 2100, unit: 'm', caloriesKcal: 125 });
+      expect(despues.current).toMatchObject({ value: 1900, caloriesKcal: 110 });
+      const page = (await history(cookie, remo.id)).json<RecordHistory>();
+      expect(page.records.map((record) => record.caloriesKcal)).toEqual([110, 125, 120]);
+    });
+  });
+
   describe('fecha futura (spec §5.1)', () => {
     it('una marca con fecha futura se rechaza con el motivo, y no guarda nada', async () => {
       const cookie = await newUser();

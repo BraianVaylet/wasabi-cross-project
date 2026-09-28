@@ -148,6 +148,31 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
     expect(body.summary).toMatchObject({ best: 270, worst: 300, changePercent: 10 });
   });
 
+  it('en cardio, la mejor marca es la de más metros (F5-02a)', async () => {
+    const cookie = await newUser();
+    const response = await harness.app.inject({
+      method: 'POST',
+      url: '/api/v1/exercises',
+      headers: { cookie, 'content-type': 'application/json' },
+      payload: JSON.stringify({
+        source: 'custom',
+        name: 'SkiErg del gimnasio',
+        category: 'cardio',
+        capacities: ['resistencia'],
+        muscleGroups: ['cuerpo_completo'],
+        level: 'intermedio',
+        firstRecord: { value: 2000, performedAt: hace(4), caloriesKcal: 110 },
+      }),
+    });
+    const skierg = response.json<ManagedExerciseSummary>();
+    await log(cookie, skierg.id, 2200, hace(1), { caloriesKcal: 125 });
+
+    const body = (await stats(cookie, skierg.id)).json<ExerciseStats>();
+
+    expect(body).toMatchObject({ kind: 'distance', unit: 'm' });
+    expect(body.summary).toMatchObject({ best: 2200, worst: 2000, changePercent: 10 });
+  });
+
   it('el ejercicio de otro usuario responde 404, no 403 (spec §13)', async () => {
     const dueño = await newUser();
     const otro = await newUser();

@@ -46,6 +46,10 @@ describe('formatMark — el valor con su unidad', () => {
   it('un desnivel de 0 (carrera plana) se muestra, no se omite', () => {
     expect(formatMark({ value: 272, unit: 's', elevationGainM: 0 })).toBe('4:32 · 0 m');
   });
+
+  it('en cardio, los metros con separador de miles y las calorías al lado', () => {
+    expect(formatMark({ value: 2000, unit: 'm', caloriesKcal: 120 })).toBe('2.000 m · 120 kcal');
+  });
 });
 
 describe('markParts — el número grande, su unidad chica y el dato de al lado', () => {
@@ -73,6 +77,14 @@ describe('markParts — el número grande, su unidad chica y el dato de al lado'
     expect(markParts({ value: 272, unit: 's', elevationGainM: 0 })).toEqual({
       value: '4:32',
       extra: 'desnivel 0 m',
+    });
+  });
+
+  it('en cardio las calorías van aparte, también cuando son 0', () => {
+    expect(markParts({ value: 2000, unit: 'm', caloriesKcal: 0 })).toEqual({
+      value: '2.000',
+      unit: 'm',
+      extra: '0 kcal',
     });
   });
 });

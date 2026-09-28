@@ -3,6 +3,7 @@ import {
   loadBandFor,
   percentageTable,
   supportsPercentages,
+  type ExerciseCategory,
   type ExerciseStats,
   type LoadBand,
   type ManagedExerciseSummary,
@@ -72,7 +73,8 @@ const CATEGORY_LABEL = {
   hipertrofia: 'Hipertrofia',
   gimnastico: 'Gimnástico',
   running: 'Running',
-} as const;
+  cardio: 'Cardio',
+} as const satisfies Record<ExerciseCategory, string>;
 
 const LEVEL_LABEL = {
   principiante: 'Principiante',

@@ -91,6 +91,12 @@ describe('improvement — el aumento del progreso en el detalle (spec §5.2)', (
     expect(improvement('time', [punto('2026-01-10', 280), punto('2026-06-10', 272)])).toBe(8);
   });
 
+  it('en distancia, más metros es mejor: de 2.000 a 2.100 m mejoró 100', () => {
+    expect(improvement('distance', [punto('2026-01-10', 2000), punto('2026-06-10', 2100)])).toBe(
+      100,
+    );
+  });
+
   it('si empeoró, lo dice en negativo', () => {
     expect(improvement('rm', [punto('2026-01-10', 100), punto('2026-06-10', 95)])).toBe(-5);
     expect(improvement('time', [punto('2026-01-10', 272), punto('2026-06-10', 280)])).toBe(-8);

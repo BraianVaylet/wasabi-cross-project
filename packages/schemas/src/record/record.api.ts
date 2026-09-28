@@ -7,12 +7,12 @@ import { plainText } from '../common/text.ts';
  * Contratos HTTP de las marcas (F1-07). El valor se valida recién en el servidor, con la
  * regla de su medición: el cliente no manda el tipo, lo sabe el servidor por la categoría.
  *
- * `weightKg` (hipertrofia) y `elevationGainM` (running) viajan opcionales acá —el wire es
- * el mismo para toda medición, como `value`— y el servidor exige el que corresponda según
- * `createRecordSchemaFor(kind)` (spec §5.1).
+ * `weightKg` (hipertrofia), `elevationGainM` (running) y `caloriesKcal` (cardio) viajan
+ * opcionales acá —el wire es el mismo para toda medición, como `value`— y el servidor exige
+ * el que corresponda según `parseExtraField(kind)` (spec §5.1).
  */
 
-export const recordUnitSchema = z.enum(['kg', 'reps', 's']);
+export const recordUnitSchema = z.enum(['kg', 'reps', 's', 'm']);
 
 /** Lo que manda el modal de "New RM" / "New Record" (mockup 11). */
 export const recordInputSchema = z.object({
@@ -21,6 +21,7 @@ export const recordInputSchema = z.object({
   notes: plainText(300).optional(),
   weightKg: z.number().optional(),
   elevationGainM: z.number().optional(),
+  caloriesKcal: z.number().optional(),
 });
 
 export type RecordInput = z.infer<typeof recordInputSchema>;
@@ -32,6 +33,7 @@ export const markSchema = z.object({
   performedAt: isoDateTimeSchema,
   weightKg: z.number().optional(),
   elevationGainM: z.number().optional(),
+  caloriesKcal: z.number().optional(),
 });
 
 export type Mark = z.infer<typeof markSchema>;

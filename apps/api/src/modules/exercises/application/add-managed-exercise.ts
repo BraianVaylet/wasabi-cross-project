@@ -1,19 +1,16 @@
 import {
   bodySegmentFor,
-  elevationGainMSchema,
   measureKindFor,
+  parseExtraField,
   recordValueSchemaFor,
-  weightKgSchema,
   type AddExercise,
   type Capacity,
   type Exercise,
   type ExerciseCategory,
   type ManagedExercise,
   type ManagedExerciseSummary,
-  type MeasureKind,
   type MuscleGroup,
   type Plan,
-  type RecordInput,
 } from '@wasabi-cross/schemas';
 import { AppError } from '../../../shared/errors/app-error.ts';
 import type {
@@ -51,51 +48,9 @@ export function toSummary(
       performedAt: current.performedAt,
       ...(current.weightKg === undefined ? {} : { weightKg: current.weightKg }),
       ...(current.elevationGainM === undefined ? {} : { elevationGainM: current.elevationGainM }),
+      ...(current.caloriesKcal === undefined ? {} : { caloriesKcal: current.caloriesKcal }),
     },
   };
-}
-
-/**
- * El peso (hipertrofia) o el desnivel (running) de la primera marca, si corresponde: la
- * misma regla que aplica cargar una marca nueva (F1-07), acá para el alta (F1-05).
- */
-function extraFieldFor(
-  kind: MeasureKind,
-  firstRecord: RecordInput,
-):
-  | { ok: true; data: { weightKg?: number; elevationGainM?: number } }
-  | { ok: false; path: 'firstRecord.weightKg' | 'firstRecord.elevationGainM'; message: string } {
-  if (kind === 'weighted_reps') {
-    const parsed = weightKgSchema.safeParse(firstRecord.weightKg);
-    if (!parsed.success) {
-      return {
-        ok: false,
-        path: 'firstRecord.weightKg',
-        // Ausente vs. inválido son casos distintos: sin esto, el campo faltante mostraba
-        // el mensaje en inglés de Zod en una app en español.
-        message:
-          firstRecord.weightKg === undefined
-            ? 'Cargá el peso'
-            : (parsed.error.issues[0]?.message ?? 'Peso inválido'),
-      };
-    }
-    return { ok: true, data: { weightKg: parsed.data } };
-  }
-  if (kind === 'time') {
-    const parsed = elevationGainMSchema.safeParse(firstRecord.elevationGainM);
-    if (!parsed.success) {
-      return {
-        ok: false,
-        path: 'firstRecord.elevationGainM',
-        message:
-          firstRecord.elevationGainM === undefined
-            ? 'Cargá el desnivel'
-            : (parsed.error.issues[0]?.message ?? 'Desnivel inválido'),
-      };
-    }
-    return { ok: true, data: { elevationGainM: parsed.data } };
-  }
-  return { ok: true, data: {} };
 }
 
 /**
@@ -201,10 +156,11 @@ export async function addManagedExercise<Tx>(
     });
   }
 
-  const extra = extraFieldFor(kind, input.firstRecord);
+  // La misma regla del dato extra que al cargar una marca nueva (F1-07, spec §5.1).
+  const extra = parseExtraField(kind, input.firstRecord);
   if (!extra.ok) {
     throw new AppError('WC-RM-422-001', {
-      details: [{ path: extra.path, message: extra.message }],
+      details: [{ path: `firstRecord.${extra.field}`, message: extra.message }],
       meta: { userId, kind },
     });
   }
