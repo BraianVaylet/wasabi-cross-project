@@ -7,12 +7,6 @@
   margin-top: var(--wc-space-5);
 }
 
-.profile__heading {
-  margin: 0;
-  font-size: var(--wc-font-size-lg);
-  font-weight: 500;
-}
-
 .profile__hint {
   margin: 0;
   color: var(--wc-text-muted);
@@ -28,16 +22,17 @@
 .profile__percentages {
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-3);
+  gap: var(--wc-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Cada porcentaje como el "PORCENTAJE PERSONALIZADO" del detalle, con su botón al lado. */
 .profile__percentage {
   display: flex;
-  align-items: flex-end;
-  gap: var(--wc-space-3);
+  align-items: flex-start;
+  gap: var(--wc-space-2);
 }
 
 /* `min-width: 0` para que el campo achique y el botón no se vaya del borde. */
@@ -48,7 +43,8 @@
 
 .profile__percentage > .wc-button {
   flex-shrink: 0;
-  padding-inline: var(--wc-space-4);
+  min-height: 3.625rem;
+  padding-inline: var(--wc-space-3);
 }
 
 .profile__actions {

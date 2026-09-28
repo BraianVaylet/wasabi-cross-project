@@ -12,8 +12,13 @@
   margin: 0;
 }
 
-.new-exercise__fixed-label {
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-  font-weight: 500;
+/* El valor fijo, como un campo que no se puede tocar: la caja sin borde de foco. */
+.new-exercise__fixed-value {
+  padding: var(--wc-space-3) var(--wc-space-4);
+  background-color: var(--wc-surface);
+  border-left: 2px solid var(--wc-border);
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-lg);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
 }

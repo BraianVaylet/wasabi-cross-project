@@ -6,10 +6,10 @@ import type {
 } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Chart, ChevronIcon, Select, Skeleton } from '@wasabi-cross/ui';
+import { Chart, ChevronIcon, Measure, RadioGroup, Skeleton } from '@wasabi-cross/ui';
 import { useCallback } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
-import { formatDate, formatMark } from '../../lib/format.ts';
+import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { formatChange } from './change.ts';
 import { GeneralStats } from './GeneralStats.tsx';
 import './stats.css';
@@ -56,22 +56,20 @@ export function StatsPage({
       </Link>
       <h1 className="page__title">Tus estadísticas</h1>
 
-      <Select
-        className="stats__period"
-        label="Período"
-        value={period}
-        onChange={(event) => {
-          if (isPeriod(event.target.value)) {
-            onPeriodChange(event.target.value);
-          }
-        }}
-      >
-        {PERIODS.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </Select>
+      {/* En casilleros y no en un desplegable: son cuatro, y se ven todos de un vistazo. */}
+      <div className="stats__period">
+        <RadioGroup
+          legend="Período"
+          name="periodo"
+          value={period}
+          options={PERIODS}
+          onChange={(value) => {
+            if (isPeriod(value)) {
+              onPeriodChange(value);
+            }
+          }}
+        />
+      </div>
 
       {exercises.isPending ? <Skeleton label="Cargando tus ejercicios" count={4} /> : null}
       {exercises.isError ? (
@@ -175,24 +173,43 @@ function Evolution({ stats }: { stats: ExerciseStats }): React.JSX.Element {
 
       {stats.summary ? (
         <dl className="stats__numbers" data-testid="numeros">
-          <div>
-            <dt>Actual</dt>
-            <dd>{formatMark({ value: stats.summary.current, unit: stats.unit })}</dd>
-          </div>
-          <div>
-            <dt>Mejor</dt>
-            <dd>{formatMark({ value: stats.summary.best, unit: stats.unit })}</dd>
-          </div>
-          <div>
-            <dt>Peor</dt>
-            <dd>{formatMark({ value: stats.summary.worst, unit: stats.unit })}</dd>
-          </div>
+          <StatNumber label="Actual" value={stats.summary.current} unit={stats.unit} />
+          <StatNumber label="Mejor" value={stats.summary.best} unit={stats.unit} />
+          <StatNumber label="Peor" value={stats.summary.worst} unit={stats.unit} />
           <div>
             <dt>Variación</dt>
-            <dd>{formatChange(stats.summary.changePercent)}</dd>
+            <dd>
+              <Measure
+                value={formatChange(stats.summary.changePercent)}
+                size="md"
+                tone={stats.summary.changePercent > 0 ? 'accent' : 'default'}
+              />
+            </dd>
           </div>
         </dl>
       ) : null}
     </>
+  );
+}
+
+/** Un número del resumen con su unidad chica, como los del detalle. */
+function StatNumber({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: number;
+  unit: ExerciseStats['unit'];
+}): React.JSX.Element {
+  const parts = markParts({ value, unit });
+
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>
+        <Measure value={parts.value} unit={parts.unit} size="md" />
+      </dd>
+    </div>
   );
 }

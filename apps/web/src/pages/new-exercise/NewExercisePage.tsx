@@ -141,8 +141,10 @@ export function NewExercisePage({
               <>
                 {match ? (
                   <p className="new-exercise__fixed">
-                    <span className="new-exercise__fixed-label">Categoría</span>
-                    {CATEGORIES.find((option) => option.value === match.category)?.label}
+                    <span className="wc-field-label">Categoría</span>
+                    <span className="new-exercise__fixed-value">
+                      {CATEGORIES.find((option) => option.value === match.category)?.label}
+                    </span>
                   </p>
                 ) : (
                   <form.Field name="category">

@@ -1,6 +1,6 @@
 import type { UserPreferences } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { Button, Skeleton, TextField } from '@wasabi-cross/ui';
+import { Button, SectionHeader, Skeleton, TextField } from '@wasabi-cross/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { validatePercentages } from './percentages.ts';
@@ -27,9 +27,7 @@ export function ProfilePage({
       <h1 className="page__title">Perfil</h1>
 
       <section className="profile__section" aria-labelledby="profile-porcentajes">
-        <h2 id="profile-porcentajes" className="profile__heading">
-          Porcentajes por defecto
-        </h2>
+        <SectionHeader id="profile-porcentajes" title="Porcentajes por defecto" />
         <p className="profile__hint">
           Los que se muestran en la tabla de cada ejercicio de fuerza, hipertrofia o gimnástico.
         </p>
@@ -121,7 +119,9 @@ function PercentagesForm({
           <li key={row.id} className="profile__percentage">
             <TextField
               label={`Porcentaje ${String(index + 1)}`}
+              variant="inline"
               inputMode="numeric"
+              placeholder="—"
               suffix="%"
               value={row.value}
               onChange={(event) => {
