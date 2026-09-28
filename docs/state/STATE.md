@@ -6,128 +6,33 @@
 
 **Fases 0, 1 y 2: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde), la 1 el 2026-09-22 con F1-18, y
 la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y
-`packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk,
-arrancó el 2026-09-27**: tema único, se retira el selector dark/light ([ADR-0008](../adr/0008-tema-unico-toxic-cyberpunk.md)).
-
-Queda abierta sólo F0-08 (el tablero): las seis etiquetas de Trello siguen sin nombre, y el MCP no
-puede nombrarlas. Es el único pendiente de la fase y no bloquea nada.
-
-Lo que hay hoy, en una línea cada uno:
-
-- API Fastify con envelope de error único, logger Pino con redacción, y `/health` + `/ready`.
-- Auth con Better Auth sobre Mongo: registro, login, sesión persistida, rate limit.
-- `@wasabi-cross/schemas`: `User`, `Exercise`, `ManagedExercise`, `ExerciseRecord` en Zod, fuente
-  única de tipos, alineados con la spec §5.1.
-- `@wasabi-cross/ui`: los Componentes Cross, tema único "Toxic Cyberpunk" (ADR-0008) y Storybook.
-- Catálogo de 33 ejercicios con seed idempotente y `GET /api/v1/exercises/catalog`.
-- CI en GitHub Actions: build, formato, lint, typecheck, tests con umbral de coverage al 90%,
-  Storybook, audit de dependencias y el E2E de Playwright con su auditoría axe.
-
-## En progreso
-
-**Fase 1 — El loop del atleta: cerrada el 2026-09-22.** 19 tareas, 71 puntos. Un atleta se
-registra, arma su lista, carga marcas y ve sus porcentajes, y el E2E recorre ese camino en cada PR.
-
-**Fase 2 — Estadísticas: cerrada el 2026-09-22.** 10 tareas, 44 puntos.
-
-- **F2-01 · Contratos**: cerrada. El período, la serie, el resumen y los agregados, más
-  `summarize()` en el paquete compartido.
-- **F2-02 · El ejercicio propio lleva capacidades y grupos musculares** y **F2-03 · El formulario
-  las pregunta**: cerradas juntas. El segmento se deriva de los grupos; sale el `CheckboxGroup`.
-- **F2-04 · Estadísticas de un ejercicio**: cerrada. `GET /api/v1/stats/exercises/:id`; nace el
-  módulo `stats`.
-- **F2-05 · Estadísticas generales**: cerrada. `GET /api/v1/stats/summary` promedia variaciones por
-  capacidad y grupo muscular, nunca valores.
-- **F2-06 · Componente Cross de gráfico**: cerrada. TanStack Charts, con su tabla equivalente para
-  lectores de pantalla.
-- **F2-07 · Pantalla de Estadísticas** y **F2-09 · Los accesos**: cerradas juntas. El acordeón del
-  mockup 10, en el menú y en el detalle.
-- **F2-08 · Sección de estadísticas generales**: cerrada. Con el período en la URL.
-- **F2-10 · E2E de Estadísticas**: cerrada. El recorrido nuevo, con su axe en los dos temas.
-
-- **F1-01 · Schemas**: cerrada. El modelo ya coincide con los mockups.
-- **F1-02 · Migraciones**: cerrada. migrate-mongo
-  ([ADR-0005](../adr/0005-migraciones-con-migrate-mongo.md)).
-- **F1-03 · Entitlements**: cerrada, con revisión humana de sus tests.
-- **F1-04 · Cálculo de porcentajes**: cerrada. Reglas compartidas en schemas
-  ([ADR-0006](../adr/0006-reglas-de-dominio-compartidas-en-schemas.md)).
-- **F1-05 · Agregar y listar ejercicios**: cerrada.
-- **F1-06 · Editar y borrar**: cerrada.
-- **F1-07 · Marcas e historial**: cerrada. `POST` y `GET /api/v1/exercises/:id/records`, con valor
-  actual, mejor marca y cursor.
-- **F1-08 · Preferencias**: cerrada. `GET` y `PATCH /api/v1/me/preferences`, en el módulo `users`.
-- **F1-09 · Shell del front**: cerrada. Rutas protegidas, sesión, splash, header y menú.
-- **F1-10 · Login y registro**: cerrada. `/login` y `/registro` con TanStack Form.
-- **F1-11 · Home**: cerrada. La lista de ejercicios con sus estados.
-- **F1-12 · Nuevo ejercicio**: cerrada. Formulario del mockup 9.
-- **F1-13a · Detalle, porcentajes**: cerrada. F1-13 se partió en dos.
-- **F1-13b · Detalle, historial**: cerrada. Historial paginado y mejor marca en tiempo.
-- **F1-14 · Cargar una marca**: cerrada. El modal del mockup 11, con la marca en el historial
-  antes de que responda la API y rollback si la rechaza.
-- **F1-15 · Editar y borrar**: cerrada. Desde el lápiz del detalle, con borrado confirmado
-  escribiendo el nombre.
-- **F1-16 · Perfil**: cerrada. Porcentajes por defecto, guardados en la API (el tema que tenía se
-  retiró en F4-02, ADR-0008).
-- **F1-17 · Aviso de nueva versión**: cerrada. El popup de la PWA.
-- **F1-18 · E2E y axe en CI**: cerrada. Playwright contra la app entera con un Mongo efímero,
-  auditando cada pantalla de la fase (en su momento, en los dos temas; desde F4-02 el E2E ya no
-  ejercita el toggle, que se retiró). **Con esto la Fase 1 queda cerrada.**
-
-**Fase 3 — A producción: en curso, 5 de 12 tareas.** 37 puntos en total (spec §12).
-
-- **F3-01 · La API lee su `.env` en desarrollo**: cerrada. `dev`, `migrate` y `seed` con
-  `--env-file-if-exists`.
-- **F3-02 · Un error del cliente responde 4xx, no 500**: cerrada. Un JSON roto o un cuerpo enorme
-  ya no disparan alertas de servidor.
-- **F3-03 · El front y la API en el mismo sitio**: parcial (`[~]`). ADR-0007 en estado propuesta: la
-  API sirve el front compilado, mismo origen. Falta confirmarlo en staging (F3-07, F3-12).
-- **F3-04 · El build de producción de la API**: cerrada. `.railway/railway.ts` (Infrastructure as
-  Code): build, `preDeploy` con las migraciones, `healthcheck: /ready`. Simulado a mano de punta a
-  punta.
-- **F3-05 · El build de producción del front**: cerrada. Caché de assets con hash un año, resto sin
-  caché. `pnpm e2e:prod` corre la suite contra ese build; es lo que corre CI.
-- **F3-06 · Headers de seguridad en producción**: cerrada. Los cuatro headers de spec §13,
-  confirmados también en lo que sirve el front.
-- Quedan **F3-07 a F3-12**, todas encadenadas a F3-07 y F3-08 (🔑 necesitan al usuario: crear los
-  ambientes en Railway y el cluster de Atlas). Ninguna arranca sin eso — no es que falte código,
-  es que la regla de dependencias del propio plan lo impide.
-
-**Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
-F4-03a y F4-03c mergeadas, F4-03b en PR; todas a la espera de que el usuario cumpla el Definition of
-Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar en paralelo a lo que
-quede bloqueado de la Fase 3.
+`packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
+F4-03a/b/c y F4-04b mergeadas; F4-05a a F4-05d en una PR; todas a la espera de que el usuario cumpla
+el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
+en paralelo a lo que quede bloqueado de la Fase 3.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
-- **F4-01 · Fundaciones del tema**: código hecho, PR #56 mergeada. `tokens.css` con la paleta
-  única, tipografía Share Tech Mono + Staatliches vía Fontsource, radios a 0 y la utilidad
-  `.wc-plate-cut`.
-- **F4-02 · Se retira la preferencia de tema**: código hecho, PR #57 mergeada. `theme` sale de
-  schemas/API/Mongo (migración versionada), y de `packages/ui` (`theme.ts`, `ThemeToggle`). De
-  paso arregló un bug real que esto destapó: `ExerciseDetailPage` podía renderizar la tabla de
-  porcentajes antes de que las preferencias llegaran, y `percentageTable` tiraba con un porcentaje 0.
-- **Replanificada el 2026-09-27.** Con la app corriendo al lado del diseño, la app tenía la paleta
-  nueva y la estructura vieja: ningún componente usa `--wc-font-family-display` (Staatliches no se
-  ve en ninguna pantalla), `.wc-plate-cut` no tiene usos, no hay mayúsculas ni tracking, y el
-  detalle sigue los mockups 5 y 6. Las decisiones del usuario sobre lo que el diseño contradice o no
-  cubre quedaron en spec §5, §5.1, §5.2 (nueva) y §11. F4-03, F4-04 y F4-05 se partieron
-  (F4-03a/b/c, F4-04a/b, F4-05a/b/c/d) y entró **F4-12** (la spec): PR #60, mergeada.
-- **F4-03a · Tipografía, botones y tarjetas**: código hecho, PR #61 mergeada. Titulares de toda la
-  app en Staatliches, escala y tracking del diseño como tokens, los colores nuevos con su contraste, `Button` con recorte y variante
-  `cta`, `IconButton` cuadrado, `Tag` en mayúsculas, `Card` con las variantes del historial. Dos
-  hallazgos: el recorte tiene que ir en el propio elemento (con el fondo en un `::before`, axe deja
-  el contraste sin verificar), así que el foco pasa a ser un anillo interior; y la sombra de la CTA
-  no existe en el diseño real (su propio recorte la tapa).
-- **F4-03c · Componentes nuevos del diseño**: código hecho, PR #63 mergeada. `SectionHeader`, `Measure`, `PercentTiles` (radios reales,
-  flechas del teclado) y `BottomBar` (fija, con un espacio reservado del alto medido para no tapar
-  el final de la página). Más la story "Fundaciones/Detalle del diseño", que arma el detalle con
-  estas piezas para compararlo con el PNG.
-- **F4-03b · Formularios y estados**: código hecho, PR abierta (`feat/f4-03b-formularios`).
-  Etiquetas iguales en todos los campos, cajas con el fondo del diseño, casilla y radio dibujados
-  (el control nativo se veía gris), `CheckboxGroup` y `RadioGroup` en casilleros, `Skeleton`
-  violeta, y `TextField variant="inline"`: el "PORCENTAJE PERSONALIZADO" del diseño.
-- Quedan **F4-04a/b, F4-05a a F4-11**. Con F4-03b mergeada, F4-05a (el detalle, cabecera y carga)
-  queda destrabada; F4-05c espera el gráfico (F4-04b). El resto de las pantallas (F4-06 a F4-10)
-  cuelga de los componentes; F4-11 cierra la fase.
+- **F4-01 · Fundaciones del tema** (PR #56) y **F4-02 · Se retira la preferencia de tema** (PR
+  #57): mergeadas. Paleta única, Share Tech Mono + Staatliches vía Fontsource, radios a 0,
+  `.wc-plate-cut`; `theme` fuera de schemas/API/Mongo y de `packages/ui`.
+- **Replanificada el 2026-09-27** (F4-12, PR #60): la app tenía la paleta nueva y la estructura
+  vieja. Las decisiones del usuario sobre lo que el diseño contradice o no cubre quedaron en spec
+  §5, §5.1, §5.2 (nueva) y §11; F4-03, F4-04 y F4-05 se partieron.
+- **Componentes Cross**, mergeados: F4-03a (#61: titulares en Staatliches, tokens de escala y
+  color, `Button` con `cta`, `Card` actual/anterior), F4-03c (#63: `SectionHeader`, `Measure`,
+  `PercentTiles`, `BottomBar`), F4-03b (#64: formularios, casilla y radio dibujados,
+  `TextField variant="inline"`) y F4-04b (#65: el gráfico de progreso, sin salir de TanStack
+  Charts). Hallazgos que quedaron como regla: el recorte va en el propio elemento (con el fondo en
+  un `::before` axe deja el contraste sin verificar) y el foco es un anillo interior; axe no mide
+  texto adentro de un SVG, ahí lo garantizan los tokens.
+- **F4-05a–d · El detalle de ejercicio** — código hecho, PR abierta (`feat/f4-05-detalle`), un
+  commit por tarea. La primera pantalla con el diseño real: cabecera con migas y lápiz, "ELEGÍ TU
+  CARGA", progreso con el aumento (`improvement()` en schemas), historial con la cantidad de
+  registros y la barra fija con la carga, su banda y "Registrar nuevo RM". Comparada a 390px con
+  el PNG: sólo difiere el header de la app (F4-04a y F4-07).
+- Quedan **F4-04a, F4-06 a F4-11**. F4-04a (header, logo y menú) y F4-07 (Home y shell a 430px)
+  terminan de igualar el detalle al diseño; el resto de las pantallas cuelga de los componentes
+  que ya están; F4-11 cierra la fase.
 
 ## Bloqueado
 
@@ -136,9 +41,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F4-03b (`feat/f4-03b-formularios`).
-2. Seguir con F4-05a (el detalle: cabecera y carga, la primera pantalla con el diseño real) y
-   F4-04b (el gráfico de progreso, que destraba F4-05c).
+1. Revisar y mergear la PR del detalle (`feat/f4-05-detalle`, F4-05a a F4-05d).
+2. Seguir con F4-04a (header, logo y menú) y F4-07 (Home y shell): con esas dos, el detalle queda
+   igual al diseño también arriba.
 3. El usuario crea el proyecto en Railway (staging + production) y el cluster de Atlas. La IA
    prepara lo que se pueda automatizar alrededor (runbooks, workflow de CI) y confirma cada paso que
    toca la cuenta real antes de ejecutarlo.
