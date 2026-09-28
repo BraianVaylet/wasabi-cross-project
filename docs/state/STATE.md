@@ -7,9 +7,10 @@
 **Fases 0, 1 y 2: cerradas.** La 0 el 2026-09-17 (PR #1, CI verde), la 1 el 2026-09-22 con F1-18, y
 la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packages/schemas` y
 `packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
-F4-03a/b/c, F4-04a/b y F4-05a a F4-10 mergeadas; F4-11 en PR: con eso el código de la fase está
-completo. Todas a la espera de que el usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
-en paralelo a lo que quede bloqueado de la Fase 3.
+F4-03a/b/c, F4-04a/b y F4-05a a F4-11 mergeadas: el código de la fase está completo. Todas a la
+espera de que el usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
+en paralelo a lo que quede bloqueado de la Fase 3. **Fase 5 — Catálogo ampliado: planificada, 0 de
+15 tareas** (59 puntos); F5-00, la spec, en PR. Ver abajo.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
 - **F4-01 · Fundaciones del tema** (PR #56) y **F4-02 · Se retira la preferencia de tema** (PR
@@ -38,11 +39,28 @@ en paralelo a lo que quede bloqueado de la Fase 3.
   valores fijos y zona de borrado en nuevo/editar; el perfil con los porcentajes como el campo en
   línea del detalle; estadísticas con el período en casilleros, el acordeón recortado y los números
   con `Measure`. Con la app corriendo, axe en cada pantalla: 0 violaciones.
-- **F4-11 · E2E y axe de punta a punta** — código hecho, PR #69. axe a 390px en las pantallas
+- **F4-11 · E2E y axe de punta a punta** — PR #69, mergeada. axe a 390px en las pantallas
   que faltaban (nuevo ejercicio, menú abierto, 404, detalle de un tiempo) y la captura de
   referencia del detalle con las marcas del PNG. La captura es la de Linux (la del CI): el job de
   E2E la genera si falta y se commitea en la misma PR; desde ahí, un cambio que mueva el detalle
   hace fallar la comparación.
+
+**Fase 5 — Catálogo ampliado** (2026-09-28): el usuario trajo un catálogo nuevo de ejercicios y
+pidió dos pestañas en el alta (elegir un precargado o crear uno propio), con el precargado
+editable. Decidido con él y volcado en [ADR-0009](../adr/0009-catalogo-ampliado.md) y spec §5.1 y
+§5.3 (F5-00, en PR):
+
+- 62 ejercicios que **reemplazan de cero** a los 33 de la Fase 0 (no hay producción; la migración
+  borra también los gestionados y marcas de dev/staging que apunten al catálogo viejo).
+- Dos categorías nuevas: **cardio** (metros + calorías) y **distancia con carga** (metros + peso,
+  para las versiones de Hyrox de Sled Push/Pull y Farmers Carry). Sin porcentajes.
+- **Hipertrofia con RM estimado (Epley)**: la tabla pasa a kg y la mejor marca es la de mayor RM
+  estimado.
+- Capacidad **potencia**; grupos **espalda baja** y **trapecio**; grupo **primario** más
+  secundarios, y el segmento del cuerpo sale sólo del primario. Disciplinas y equipo como campos
+  nuevos.
+- **Un precargado editado se guarda como propio** y cuenta para el límite del plan. Se retira
+  `WC-EXO-409-004`.
 
 ## Bloqueado
 
@@ -51,7 +69,8 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear PR #69 (F4-11): cierra el código de la Fase 4.
+1. Revisar y mergear la PR de F5-00 (spec, ADR-0009 y Fase 5 en el backlog) y sincronizar Trello
+   (`/trello-sync`). Después arranca F5-01; F5-04 (Epley) y F5-09 (pestañas) pueden ir en paralelo.
 2. El usuario revisa el Definition of Done de la Fase 4 (F4-01 a F4-12) y marca `[x]` y mueve
    las tarjetas a `Completadas`.
 3. Después de la fase: decidir si Login, Perfil y Estadísticas merecen un diseño propio (hoy
@@ -124,12 +143,11 @@ desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
 
-2026-09-27 — Arranca la Fase 4: llegó un mockup nuevo con un lenguaje visual completo
-("Toxic Cyberpunk", `docs/design/`), y el usuario pidió aplicarlo a toda la app aunque sólo esa
-pantalla (detalle de ejercicio) está diseñada. PR #55 (plan: ADR-0008, spec, ACTION-PLAN) y PR #56
-(F4-01, tokens y tipografía) mergeadas. PR #57 (F4-02, se retira la preferencia de tema) abierta,
-CI verde — de paso corrigió un bug real en `ExerciseDetailPage` que la propia refactorización
-destapó (el detalle podía renderizar antes de que las preferencias llegaran). Fase 3 sin cambios
-(F3-01, F3-02, F3-04, F3-05 y F3-06 cerradas, F3-03 parcial, el resto en cadena detrás de
-F3-07/F3-08); no depende de la Fase 4, avanzan en paralelo. Bitácoras en [bitacora](./bitacora); la
-última es [la de esta sesión](./bitacora/2026-09-27-fase-4-toxic-cyberpunk-inicio.md).
+2026-09-28 — Se planifica la Fase 5, catálogo ampliado: el usuario trajo 61 ejercicios en JSON con
+disciplinas, equipo y grupo primario/secundarios, y pidió dos pestañas en el alta con el precargado
+editable. Revisados los datos contra el modelo, salieron seis decisiones del usuario (reemplazo de
+cero, Epley, cardio en metros + calorías, precargado editado = propio, running sólo de distancia
+única, peso fijo = gimnástico) y la versión en metros de Hyrox: 62 ejercicios, 15 tareas y 59
+puntos. F5-00 (spec, ADR-0009, backlog) en PR. PR #69 (F4-11) mergeada: el código de la Fase 4
+está completo. Bitácoras en [bitacora](./bitacora); la última es
+[la de esta sesión](./bitacora/2026-09-28-f5-00-catalogo-ampliado.md).

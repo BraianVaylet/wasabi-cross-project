@@ -20,6 +20,7 @@
 | Fase 2 — Estadísticas             |     10 |           44 |     10 |
 | Fase 3 — A producción             |     12 |           37 |      5 |
 | Fase 4 — Rediseño Toxic Cyberpunk |     18 |           75 |      0 |
+| Fase 5 — Catálogo ampliado        |     15 |           59 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -1811,6 +1812,351 @@ F4-05b y F4-05c → F4-05d.
 - **example:** —
 - **story-points:** 3
 - **depends_on:** F4-05a, F4-05b, F4-05c, F4-05d, F4-06, F4-07, F4-08, F4-09, F4-10
+- **risk:** medium
+- **test_plan:** `pnpm e2e` completo en CI.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+---
+
+# Fase 5 — Catálogo ampliado
+
+El usuario trajo un catálogo nuevo de ejercicios (2026-09-28), con disciplinas, equipo, grupo
+muscular primario y secundarios, y dos formas de medir que el modelo no tenía. Pidió además que el
+alta separe en dos pestañas elegir un precargado de crear uno propio, y que un precargado se pueda
+editar. Las decisiones están en [ADR-0009](./adr/0009-catalogo-ampliado.md) y en spec §5.1 y §5.3
+(nueva): 62 ejercicios que reemplazan a los 33 de la Fase 0, dos categorías nuevas (cardio y
+distancia con carga), hipertrofia con RM estimado (Epley), la capacidad potencia, espalda baja y
+trapecio, el segmento derivado del grupo primario, y un precargado editado que pasa a ser propio.
+
+No depende de Railway/Atlas. Camino más corto al alta con pestañas: F5-00 → F5-01 → F5-02a →
+F5-02b → F5-03a → F5-03b → F5-11 → F5-10 → F5-12, con F5-05/F5-07, F5-08 y F5-09 en paralelo.
+F5-04 (Epley) es independiente del resto.
+
+## [ ] F5-00 · Spec: catálogo ampliado y alta con pestañas
+
+- **module:** spec
+- **description:** Las decisiones del usuario sobre el catálogo nuevo, volcadas en spec §3, §5,
+  §5.1, §5.2 y §5.3 (nueva), en ADR-0009 y en este backlog: las seis categorías con su medición,
+  Epley en hipertrofia, capacidades y grupos nuevos, grupo primario y secundarios, disciplinas y
+  equipo, las reglas del catálogo y la lista de los 62, las dos pestañas del alta y el precargado
+  editado que pasa a ser propio.
+- **acceptance-criteria:**
+  - Dada la spec, cuando se lee §5.1, entonces cada categoría dice qué se mide, cuál es su dato
+    extra y si tiene porcentajes.
+  - Dada §5.3, cuando se lee, entonces están los 62 ejercicios por disciplina y categoría, y la
+    regla de qué pasa al editar un precargado.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** revisión humana de la PR.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F5-01 · Schemas: la taxonomía ampliada
+
+- **module:** schemas
+- **description:** En `@wasabi-cross/schemas`: la capacidad `potencia`; los grupos `espalda_baja`
+  (segmento core) y `trapecio` (tren superior); los enums de disciplina (gimnasio, crossfit,
+  hyrox, funcional, running) y de equipo (los 20 de los datos); `primaryMuscleGroup` en el
+  ejercicio, con la invariante de que está en `muscleGroups` y va primero; `catalogKey` en la
+  definición del catálogo; `disciplines` y `equipment` (obligatorios en el catálogo, opcionales en
+  el propio); `bodySegmentFor` pasa a recibir el grupo primario. Etiquetas en es-AR de todo lo
+  nuevo en `apps/web/src/lib/labels.ts`. Estadísticas suma potencia a la evolución por capacidad.
+- **acceptance-criteria:**
+  - Dado un ejercicio cuyo primario no está en `muscleGroups`, o está repetido, cuando se valida,
+    entonces se rechaza.
+  - Dado un ejercicio con primario cuádriceps y core de secundario, cuando se deriva el segmento,
+    entonces es tren inferior.
+  - Dada una entrada del catálogo sin disciplinas, sin equipo o sin `catalogKey`, cuando se valida,
+    entonces se rechaza; un propio sin ellas pasa.
+- **example:** `{ primaryMuscleGroup: 'cuadriceps', muscleGroups: ['cuadriceps', 'gluteo', 'core'] }` → `tren_inferior`
+- **story-points:** 3
+- **depends_on:** F5-00
+- **risk:** low
+- **test_plan:** tests de schema y de `bodySegmentFor` (cada grupo nuevo con su segmento); test de
+  Estadísticas con un ejercicio de potencia.
+- **error-codes:** ninguno
+- **data-model-impact:** `Exercise` suma `primaryMuscleGroup`, `disciplines`, `equipment` y, en el
+  catálogo, `catalogKey`. Los documentos existentes se completan en F5-06.
+
+## [ ] F5-02a · Cardio en schemas y API
+
+- **module:** records
+- **description:** La categoría `cardio` con su medición (metros de valor principal, calorías de
+  dato extra obligatorio): `measureKindFor`, el contrato de la marca, la validación del valor
+  (entero positivo) y de las calorías (entero, 0 o más), mejor marca = máximo,
+  `supportsPercentages` en falso, y las estadísticas por ejercicio. Los `switch` sobre la medición
+  quedan exhaustivos para que el compilador marque lo que falte.
+- **acceptance-criteria:**
+  - Dado un ejercicio de cardio, cuando se registra una marca sin calorías, entonces la API la
+    rechaza con `WC-RM-422-001`.
+  - Dadas dos marcas de 2.000 m y 2.100 m, cuando se pide la mejor, entonces es la de 2.100 m y
+    dispara `pr.achieved`.
+  - Dado el detalle de un ejercicio de cardio, cuando se piden porcentajes, entonces no hay tabla.
+- **example:** marca `{ value: 2000, caloriesKcal: 120 }` → "2.000 m"
+- **story-points:** 5
+- **depends_on:** F5-01
+- **risk:** medium
+- **test_plan:** tests de schema, de mejor marca y del endpoint de marcas contra
+  `mongodb-memory-server`.
+- **error-codes:** ninguno nuevo (`WC-RM-422-001`)
+- **data-model-impact:** `Record` suma el dato extra de calorías.
+
+## [ ] F5-02b · Distancia con carga en schemas y API
+
+- **module:** records
+- **description:** La categoría `distancia_carga`: la misma forma que cardio (metros de valor
+  principal, mejor marca = máximo, sin porcentajes), con el peso en kg de dato extra en lugar de
+  las calorías. Reusa lo de F5-02a; lo nuevo es el dato extra.
+- **acceptance-criteria:**
+  - Dado un ejercicio de distancia con carga, cuando se registra una marca sin peso, entonces la
+    API la rechaza con `WC-RM-422-001`.
+  - Dadas dos marcas, cuando se pide la mejor, entonces es la de más metros, sin importar el peso.
+- **example:** marca `{ value: 50, weightKg: 152 }` → "50 m"
+- **story-points:** 3
+- **depends_on:** F5-02a
+- **risk:** low
+- **test_plan:** tests de schema y de mejor marca; endpoint de marcas.
+- **error-codes:** ninguno nuevo
+- **data-model-impact:** ninguno más allá de F5-02a (el peso ya existe como dato extra).
+
+## [ ] F5-03a · Cardio en la web
+
+- **module:** web
+- **description:** Cardio de punta a punta en la app: los campos de la primera marca en el alta
+  (metros y calorías), el modal de marca nueva, el detalle sin "Elegí tu carga" y con la mejor
+  marca en la barra fija, la fila de Home y el historial ("2.000 m · 120 kcal"), y Estadísticas.
+- **acceptance-criteria:**
+  - Dado un ejercicio de cardio, cuando se abre el detalle, entonces no hay grilla de porcentajes
+    y la barra fija muestra la mejor marca.
+  - Dado el modal de marca nueva de cardio, cuando se deja vacío el campo de calorías, entonces
+    avisa el error sin llamar a la API.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F5-02a
+- **risk:** medium
+- **test_plan:** tests de componente del alta, del modal, del detalle y de Home; axe del detalle.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F5-03b · Distancia con carga en la web
+
+- **module:** web
+- **description:** Lo mismo que F5-03a para distancia con carga, con el peso como dato extra
+  ("50 m · 152 kg").
+- **acceptance-criteria:**
+  - Dado un ejercicio de distancia con carga, cuando se abre el detalle, entonces se comporta como
+    cardio y el historial muestra el peso de cada marca.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F5-02b, F5-03a
+- **risk:** low
+- **test_plan:** tests de componente del modal, del detalle y de Home.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F5-04 · Hipertrofia con RM estimado (Epley)
+
+- **module:** records
+- **description:** `estimatedOneRm(weightKg, reps)` en `packages/schemas/src/calc` (con una
+  repetición, el RM es el peso). La tabla de porcentajes de hipertrofia pasa a carga en kg sobre el
+  RM estimado de la marca actual; la mejor marca y `pr.achieved` pasan a ser la de mayor RM
+  estimado; el progreso del detalle y la evolución de Estadísticas grafican el RM estimado. En el
+  detalle, "Elegí tu carga" y la barra fija hablan de "RM estimado" y muestran kg.
+- **acceptance-criteria:**
+  - Dada una marca de 10 × 80 kg, cuando se calcula el RM estimado, entonces se muestra 106,5 kg
+    (80 × 1,333…, redondeado al 0,5 kg) y el 80% da 85,5 kg.
+  - Dadas 10 × 80 kg y 6 × 90 kg, cuando se pide la mejor marca, entonces es 6 × 90 kg (RM
+    estimado 108 kg).
+  - Dada una marca de 1 × 100 kg, cuando se calcula el RM estimado, entonces es 100 kg.
+- **example:** `estimatedOneRm(80, 10)` → `106.67` (se muestra 106,5 kg)
+- **story-points:** 8
+- **depends_on:** F5-00
+- **risk:** medium
+- **test_plan:** tests de `estimatedOneRm` y de la tabla; tests de mejor marca y de estadísticas;
+  tests de componente del detalle de hipertrofia. La captura de referencia del detalle es la de
+  fuerza, así que no se mueve.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno (el RM estimado se calcula, no se guarda).
+
+## [ ] F5-05 · El catálogo nuevo: 62 ejercicios y seed por clave
+
+- **module:** exercises
+- **description:** `EXERCISE_CATALOG` se reemplaza por los 62 de spec §5.3, en la forma del
+  dominio (categoría, capacidades, grupo primario y secundarios, disciplinas, equipo,
+  `catalogKey`), con los ajustes que decidió el usuario sobre los datos originales: Sled Pull sin
+  espalda repetida; Wall Ball, Crunch, Medicine Ball Slam y Kettlebell Swing en gimnástico; Sled
+  Push, Sled Pull y Farmers Carry en funcional, y sus versiones de Hyrox en distancia con carga;
+  sin los running de distancia variable, y con las carreras de 100 m, 400 m, 1 km, 5 km y 10 km. El
+  seed compara por `catalogKey` en vez de por nombre, y un renombre actualiza en lugar de duplicar.
+- **acceptance-criteria:**
+  - Dado el catálogo, cuando corre el test, entonces cada entrada valida contra el schema del
+    catálogo, no hay claves ni nombres repetidos, y son 62.
+  - Dado un catálogo ya sembrado y una entrada renombrada, cuando corre el seed de nuevo, entonces
+    actualiza esa entrada y no crea otra.
+  - Dado el seed corrido dos veces seguidas, cuando se mira el reporte, entonces la segunda vez
+    todo está sin cambios.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F5-01, F5-02b
+- **risk:** medium
+- **test_plan:** test del catálogo contra el schema; tests del seed (crear, actualizar por clave,
+  idempotencia) contra `mongodb-memory-server`.
+- **error-codes:** ninguno
+- **data-model-impact:** el catálogo en Mongo pasa a los 62; la clave de siembra es `catalogKey`.
+
+## [ ] F5-06 · Migración: fuera el catálogo viejo
+
+- **module:** exercises
+- **description:** Migración versionada que borra los ejercicios del catálogo de la Fase 0 (los
+  sin dueño y sin `catalogKey`) junto con los ejercicios gestionados y marcas que apuntan a ellos;
+  completa `primaryMuscleGroup` en los propios existentes con el primero de su lista; y crea el
+  índice único parcial sobre `catalogKey` para los ejercicios sin dueño. El `down` borra el índice
+  y vuelve a insertar el catálogo viejo, pero no devuelve los gestionados ni las marcas: queda
+  dicho en la migración y en ADR-0009. **No se corre en producción**: todavía no existe; después
+  de producción, un cambio así se hace migrando.
+- **acceptance-criteria:**
+  - Dado un Mongo con el catálogo viejo, un gestionado sobre "Back squat" con marcas y un propio,
+    cuando corre la migración, entonces el ejercicio viejo, su gestionado y sus marcas ya no
+    están, y el propio sigue, con su primario.
+  - Dado el `down`, cuando corre, entonces el catálogo viejo vuelve y el índice ya no existe.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F5-05
+- **risk:** high
+- **test_plan:** test de la migración up/down contra `mongodb-memory-server`; `dev:ephemeral` y el
+  E2E siembran con el catálogo nuevo.
+- **error-codes:** ninguno
+- **data-model-impact:** borra el catálogo viejo y lo que depende de él; índice único parcial sobre
+  `catalogKey`.
+
+## [ ] F5-07 · API del catálogo: campos nuevos y filtro por disciplina
+
+- **module:** exercises
+- **description:** `GET /exercises/catalog` devuelve disciplinas, equipo y grupo primario de cada
+  ejercicio, y acepta `discipline` junto a `q`. Cada resultado dice si el usuario ya lo tiene en su
+  lista, para que el front lo muestre sin poder elegirlo. OpenAPI generado desde Zod, como siempre.
+- **acceptance-criteria:**
+  - Dado `?discipline=hyrox`, cuando se pide el catálogo, entonces vienen los seis de Hyrox más
+    Wall Ball, Remo y SkiErg, que son de crossfit y de hyrox.
+  - Dado un usuario que ya tiene "Snatch", cuando pide el catálogo, entonces Snatch viene marcado
+    como ya agregado.
+  - Dada una disciplina inexistente, cuando se pide, entonces responde `WC-SYS-400-002`.
+- **example:** `GET /exercises/catalog?q=press&discipline=gimnasio`
+- **story-points:** 3
+- **depends_on:** F5-05
+- **risk:** low
+- **test_plan:** tests del endpoint contra `mongodb-memory-server`; el OpenAPI generado incluye el
+  parámetro.
+- **error-codes:** ninguno nuevo
+- **data-model-impact:** ninguno
+
+## [ ] F5-08 · Alta: un precargado editado pasa a ser propio
+
+- **module:** exercises
+- **description:** El contrato del alta (`addExerciseSchema`): desde el catálogo se manda el
+  `exerciseId` y la definición tal como quedó en el formulario. El backend la compara con la del
+  catálogo: si es igual, agrega el del catálogo; si cambió algo, crea un propio con esa definición,
+  con el límite de propios del plan. Se retira `WC-EXO-409-004`: un propio puede llamarse como uno
+  del catálogo. Un propio suma disciplinas y equipo opcionales, y grupo primario obligatorio.
+- **acceptance-criteria:**
+  - Dado un precargado mandado sin cambios, cuando se agrega, entonces queda en la lista como del
+    catálogo y no cuenta como propio.
+  - Dado un precargado con otro grupo primario, cuando se agrega, entonces se crea un propio con
+    esa definición y cuenta como propio.
+  - Dado un usuario Free con 3 propios que manda un precargado editado, cuando se agrega, entonces
+    responde `WC-SUBS-403-001` y no crea nada.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F5-01
+- **risk:** high
+- **test_plan:** tests del caso de uso y del endpoint contra `mongodb-memory-server`, incluido el
+  de atomicidad. **Toca permisos y límites del plan: los tests requieren revisión humana.**
+- **error-codes:** se retira `WC-EXO-409-004` del diccionario.
+- **data-model-impact:** ninguno más allá de F5-01.
+
+## [ ] F5-09 · Componente Cross: pestañas
+
+- **module:** ui
+- **description:** `Tabs` en `@wasabi-cross/ui` según el patrón de pestañas de WAI-ARIA:
+  `tablist`, `tab` y `tabpanel` enlazados, flechas izquierda y derecha, Home y End, un solo tab en
+  el orden de foco, activación con Enter/Espacio. Controlado desde afuera (valor y `onChange`), así
+  la pantalla guarda la pestaña en la URL. Con los tokens del tema y el recorte de esquina.
+- **acceptance-criteria:**
+  - Dadas dos pestañas, cuando se navega con las flechas y se activa una, entonces cambia el panel
+    y el lector de pantalla anuncia la pestaña seleccionada.
+  - Dado el componente en Storybook, cuando pasa el axe, entonces no hay violaciones.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** tests de componente (teclado, ARIA); story; axe.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F5-11 · Nuevo ejercicio: la pestaña "Crear"
+
+- **module:** web
+- **description:** `NewExercisePage` se arma sobre `Tabs`, con la pestaña en la URL
+  (`?modo=catalogo|crear`, `validateSearch` de TanStack Router, como el resto de la app). "Crear"
+  es el formulario actual con lo nuevo: seis casilleros de categoría, potencia, grupo primario (uno)
+  y secundarios, disciplinas y equipo opcionales, y los campos de la primera marca de cardio y
+  distancia con carga. El nombre ya no decide nada: si coincide con uno del catálogo, se avisa sin
+  bloquear. Sale el `<datalist>` del catálogo.
+- **acceptance-criteria:**
+  - Dado `/ejercicios/nuevo?modo=crear`, cuando se abre, entonces está activa la pestaña "Crear" y
+    el botón atrás del navegador vuelve a la otra pestaña si se venía de ahí.
+  - Dado el formulario sin grupo primario, cuando se guarda, entonces lo pide sin llamar a la API.
+  - Dado un nombre igual a uno del catálogo, cuando se escribe, entonces aparece el aviso y se
+    puede guardar igual.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F5-03b, F5-08, F5-09
+- **risk:** medium
+- **test_plan:** tests de `form.ts` y de componente; axe de la pantalla.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F5-10 · Nuevo ejercicio: la pestaña "Catálogo"
+
+- **module:** web
+- **description:** La pestaña de entrada. Buscador por nombre y casilleros de disciplina que
+  consultan `GET /exercises/catalog` (TanStack Query); cada resultado en una tarjeta con nombre,
+  categoría, grupo primario y equipo, y los que el usuario ya tiene, deshabilitados con el motivo.
+  Elegir uno llena el mismo formulario de "Crear" con su definición, editable; apenas se edita un
+  campo de la definición, aparece el aviso de que se va a guardar como propio (y, si el plan no
+  admite más propios, la opción de volver a los valores del catálogo).
+- **acceptance-criteria:**
+  - Dado el filtro "Hyrox", cuando se aplica, entonces sólo se ven los ejercicios de Hyrox.
+  - Dado "Sentadilla trasera" elegido, cuando se abre el formulario, entonces trae fuerza de
+    categoría y de capacidad, cuádriceps de primario, glúteo y core de secundarios, gimnasio y
+    barra.
+  - Dado un campo de la definición editado, cuando se mira el formulario, entonces avisa que se
+    guarda como propio; volviendo al valor original, el aviso se va.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F5-07, F5-11
+- **risk:** medium
+- **test_plan:** tests de componente (búsqueda, filtro, elegir, aviso de edición); axe de la
+  pantalla con resultados.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F5-12 · E2E y axe del alta con pestañas
+
+- **module:** infra
+- **description:** Cierra la fase. El E2E del flujo principal agrega un ejercicio desde la pestaña
+  "Catálogo" y otro editado (que queda como propio); suma un ejercicio de cardio con su marca y uno
+  de hipertrofia con la carga en kg. axe a 390px en las dos pestañas. Si algo mueve el detalle, la
+  captura de referencia se regenera en CI, como en F4-11.
+- **acceptance-criteria:**
+  - Dado el E2E completo, cuando corre en CI, entonces pasa contra el catálogo nuevo sembrado.
+  - Dadas las dos pestañas del alta, cuando pasa el axe, entonces no hay violaciones.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F5-03b, F5-04, F5-06, F5-10
 - **risk:** medium
 - **test_plan:** `pnpm e2e` completo en CI.
 - **error-codes:** ninguno
