@@ -83,6 +83,16 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
 
       expect(screen.getByRole('group', { name: 'Categoría' })).toBeInTheDocument();
     });
+
+    it('cardio se puede elegir, y pide los metros y las calorías (F5-03a)', async () => {
+      renderNuevo();
+
+      await userEvent.type(await screen.findByLabelText('Nombre'), 'Remo del garage');
+      await userEvent.click(screen.getByRole('radio', { name: 'Cardio (metros y calorías)' }));
+
+      expect(screen.getByLabelText('Distancia (m)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Calorías (kcal)')).toBeInTheDocument();
+    });
   });
 
   describe('guardar', () => {

@@ -3,8 +3,7 @@ import { Button, Drawer, TextArea, TextField } from '@wasabi-cross/ui';
 import { useState } from 'react';
 import { autoColon } from '../../lib/format.ts';
 import {
-  ELEVATION_FIELD,
-  elevationError,
+  EXTRA_FIELD,
   extraFieldKindFor,
   MARK_FIELD,
   markValueError,
@@ -12,8 +11,6 @@ import {
   parsePlainNumber,
   performedAtFrom,
   today,
-  WEIGHT_FIELD,
-  weightError,
 } from '../../lib/mark-input.ts';
 import './new-mark.css';
 
@@ -48,7 +45,6 @@ export function NewMark({ kind, open, onClose, onSave }: NewMarkProps): React.JS
 
   const field = MARK_FIELD[kind];
   const extraKind = extraFieldKindFor(kind);
-  const extraField = extraKind === 'weightKg' ? WEIGHT_FIELD : ELEVATION_FIELD;
 
   const close = () => {
     setValue('');
@@ -69,7 +65,7 @@ export function NewMark({ kind, open, onClose, onSave }: NewMarkProps): React.JS
 
     const extraParsed = extraKind === null ? null : parsePlainNumber(extra);
     if (extraKind !== null && extraParsed === null) {
-      setExtraError(extraKind === 'weightKg' ? weightError : elevationError);
+      setExtraError(EXTRA_FIELD[extraKind].error);
       return;
     }
 
@@ -116,8 +112,8 @@ export function NewMark({ kind, open, onClose, onSave }: NewMarkProps): React.JS
 
         {extraKind === null ? null : (
           <TextField
-            label={extraField.label}
-            placeholder={extraField.placeholder}
+            label={EXTRA_FIELD[extraKind].label}
+            placeholder={EXTRA_FIELD[extraKind].placeholder}
             inputMode="decimal"
             value={extra}
             error={extraError ?? undefined}

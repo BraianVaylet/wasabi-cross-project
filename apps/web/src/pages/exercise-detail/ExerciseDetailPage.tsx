@@ -76,6 +76,13 @@ const CATEGORY_LABEL = {
   cardio: 'Cardio',
 } as const satisfies Record<ExerciseCategory, string>;
 
+/** Por qué no hay tabla de porcentajes (spec §5.1): depende de hacia dónde se mejora. */
+function noTableCopy(kind: MeasureKind): string {
+  return kind === 'time'
+    ? 'Los ejercicios de tiempo no tienen tabla de porcentajes: menos es mejor, así que se miran la mejor marca y el historial.'
+    : 'Los ejercicios de distancia no tienen tabla de porcentajes: se miran la mejor marca y el historial.';
+}
+
 const LEVEL_LABEL = {
   principiante: 'Principiante',
   intermedio: 'Intermedio',
@@ -185,10 +192,7 @@ function Detail({
       {withPercentages ? (
         <Percentages kind={exercise.kind} rows={rows} selected={shown} onSelect={onSelect} />
       ) : (
-        <p className="detail__no-table">
-          Los ejercicios de tiempo no tienen tabla de porcentajes: menos es mejor, así que se miran
-          la mejor marca y el historial.
-        </p>
+        <p className="detail__no-table">{noTableCopy(exercise.kind)}</p>
       )}
 
       <Progress exercise={exercise} {...progress} />

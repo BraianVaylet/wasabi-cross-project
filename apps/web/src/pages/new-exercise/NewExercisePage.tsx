@@ -24,13 +24,7 @@ import { useId } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { autoColon } from '../../lib/format.ts';
 import { CAPACITY_LABEL, MUSCLE_GROUP_LABEL, optionsFrom } from '../../lib/labels.ts';
-import {
-  ELEVATION_FIELD,
-  extraFieldKindFor,
-  MARK_FIELD,
-  today,
-  WEIGHT_FIELD,
-} from '../../lib/mark-input.ts';
+import { EXTRA_FIELD, extraFieldKindFor, MARK_FIELD, today } from '../../lib/mark-input.ts';
 import {
   catalogMatch,
   kindFor,
@@ -52,6 +46,7 @@ const CATEGORIES: readonly { value: ExerciseCategory; label: string }[] = [
   { value: 'hipertrofia', label: 'Hipertrofia (repeticiones y peso)' },
   { value: 'gimnastico', label: 'Gimnástico (repeticiones)' },
   { value: 'running', label: 'Running (tiempo)' },
+  { value: 'cardio', label: 'Cardio (metros y calorías)' },
 ];
 
 const LEVELS: readonly { value: Level; label: string }[] = [
@@ -135,7 +130,6 @@ export function NewExercisePage({
             const kind = kindFor(catalog, name, category);
             const field = kind ? MARK_FIELD[kind] : SIN_CATEGORIA;
             const extraKind = kind ? extraFieldKindFor(kind) : null;
-            const extraFieldMeta = extraKind === 'weightKg' ? WEIGHT_FIELD : ELEVATION_FIELD;
 
             return (
               <>
@@ -230,8 +224,8 @@ export function NewExercisePage({
                   <form.Field name="extra">
                     {(extraFormField) => (
                       <TextField
-                        label={extraFieldMeta.label}
-                        placeholder={extraFieldMeta.placeholder}
+                        label={EXTRA_FIELD[extraKind].label}
+                        placeholder={EXTRA_FIELD[extraKind].placeholder}
                         inputMode="decimal"
                         value={extraFormField.state.value}
                         onChange={(event) => {
