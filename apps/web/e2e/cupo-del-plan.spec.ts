@@ -39,16 +39,20 @@ async function catalogo(
   }));
 }
 
-/** Hipertrofia pide peso y running pide desnivel, junto al valor (spec §5.1). */
+/** Lo que pide cada medición junto al valor: peso, desnivel o calorías (spec §5.1). */
 function firstRecordExtraFor(category: ExerciseCategory): Record<string, number> {
-  const kind = measureKindFor(category);
-  if (kind === 'weighted_reps') {
-    return { weightKg: 40 };
+  switch (measureKindFor(category)) {
+    case 'weighted_reps':
+    case 'weighted_distance':
+      return { weightKg: 40 };
+    case 'time':
+      return { elevationGainM: 0 };
+    case 'distance':
+      return { caloriesKcal: 100 };
+    case 'rm':
+    case 'reps':
+      return {};
   }
-  if (kind === 'time') {
-    return { elevationGainM: 0 };
-  }
-  return {};
 }
 
 async function llenarPlan(request: APIRequestContext, cuantos: number): Promise<void> {
