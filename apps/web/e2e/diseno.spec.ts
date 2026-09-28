@@ -91,7 +91,7 @@ test('el detalle, igual al diseño @captura', async ({ page }, testInfo) => {
 
 test('el detalle de un ejercicio de tiempo, con la mejor marca en la barra', async ({ page }) => {
   await registrarse(page);
-  await page.goto('/ejercicios/nuevo');
+  await page.goto('/ejercicios/nuevo?modo=crear');
   await page.getByLabel('Nombre').fill('Carrera 1 km');
   await page.getByLabel('Tiempo (mm:ss)').fill('0432');
   await page.getByLabel('Desnivel (m)').fill('0');
@@ -108,7 +108,10 @@ test('nuevo ejercicio, el menú y la página que no existe', async ({ page }) =>
 
   await page.goto('/ejercicios/nuevo');
   await expect(page.getByRole('heading', { name: 'Nuevo ejercicio' })).toBeVisible();
-  await auditar(page, 'Nuevo ejercicio');
+  await auditar(page, 'Nuevo ejercicio: catálogo');
+
+  await page.getByRole('tab', { name: 'Crear' }).click();
+  await auditar(page, 'Nuevo ejercicio: crear');
 
   await page.getByRole('button', { name: 'Abrir menú' }).click();
   await expect(page.getByRole('dialog', { name: 'Menú principal' })).toBeVisible();

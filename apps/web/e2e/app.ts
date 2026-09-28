@@ -37,7 +37,7 @@ export async function registrarse(page: Page): Promise<Atleta> {
 
 /** Agrega un ejercicio del catálogo con su primera marca, desde el formulario del mockup 9. */
 export async function agregarDelCatalogo(page: Page, nombre: string, valor: string): Promise<void> {
-  await page.goto('/ejercicios/nuevo');
+  await page.goto('/ejercicios/nuevo?modo=crear');
   await page.getByLabel('Nombre').fill(nombre);
   await page.getByLabel('RM (kg)').fill(valor);
   await page.getByLabel('Nivel').selectOption('intermedio');

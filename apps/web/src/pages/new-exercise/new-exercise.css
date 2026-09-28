@@ -22,3 +22,54 @@
   letter-spacing: var(--wc-tracking-button);
   text-transform: uppercase;
 }
+
+/* La pestaña "Catálogo": buscador y lista de tarjetas. */
+.catalog-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-4);
+}
+
+.catalog-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.catalog-picker__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-1);
+  width: 100%;
+  text-align: left;
+}
+
+.catalog-picker__name {
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-lg);
+  letter-spacing: var(--wc-tracking-button);
+  text-transform: uppercase;
+}
+
+.catalog-picker__details {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+}
+
+/* Ya lo tiene: se ve atenuado y dice por qué no se puede elegir. */
+.catalog-picker__item--owned {
+  opacity: 0.7;
+}
+
+.catalog-picker__owned {
+  font-size: var(--wc-font-size-sm);
+  font-weight: 600;
+}
+
+.catalog-picker__empty {
+  margin: 0;
+  color: var(--wc-text-muted);
+}

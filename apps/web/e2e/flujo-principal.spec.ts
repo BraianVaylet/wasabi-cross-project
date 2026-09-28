@@ -83,7 +83,7 @@ test('las pantallas públicas también', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Crear una cuenta' })).toBeVisible();
   await auditar(page, 'Crear una cuenta');
 
-  await page.goto('/ejercicios/nuevo');
+  await page.goto('/ejercicios/nuevo?modo=crear');
   // Sin sesión no hay pantalla privada: manda a entrar y se acuerda de a dónde iba.
   await expect(page).toHaveURL(/\/login\?redirect=/);
 });

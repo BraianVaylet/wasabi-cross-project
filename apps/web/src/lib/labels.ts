@@ -1,10 +1,25 @@
-import type { Capacity, Discipline, Equipment, MuscleGroup } from '@wasabi-cross/schemas';
+import type {
+  Capacity,
+  Discipline,
+  Equipment,
+  ExerciseCategory,
+  MuscleGroup,
+} from '@wasabi-cross/schemas';
 
 /*
  * Cómo se llaman en pantalla las capacidades, los grupos musculares, las disciplinas y el
  * equipo. Están acá y no en cada pantalla porque los usan el alta de un ejercicio (F2-03,
  * F5-10) y las estadísticas generales (F2-08): lugares que tienen que decirles igual.
  */
+
+export const CATEGORY_LABEL = {
+  fuerza: 'Fuerza',
+  hipertrofia: 'Hipertrofia',
+  gimnastico: 'Gimnástico',
+  running: 'Running',
+  cardio: 'Cardio',
+  distancia_carga: 'Distancia con carga',
+} as const satisfies Record<ExerciseCategory, string>;
 
 export const CAPACITY_LABEL: Record<Capacity, string> = {
   fuerza: 'Fuerza',
