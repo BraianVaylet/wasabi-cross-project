@@ -66,9 +66,12 @@ export function repsFor(maxReps: number, percentage: number): number {
   return Math.max(1, Math.floor((maxReps * percentage) / 100));
 }
 
-/** Los ejercicios de tiempo no tienen tabla de porcentajes (decisión del 2026-09-18). */
+/**
+ * Tiempo (decisión del 2026-09-18) y distancia (spec §5.1) no tienen tabla de porcentajes:
+ * se muestran la mejor marca y el historial.
+ */
 export function supportsPercentages(kind: MeasureKind): boolean {
-  return kind !== 'time';
+  return kind !== 'time' && kind !== 'distance';
 }
 
 /**

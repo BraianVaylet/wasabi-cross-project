@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   UNIT_BY_KIND,
   createRecordSchemaFor,
+  extraFieldFor,
+  parseExtraField,
   recordSchema,
   recordValueSchemaFor,
 } from './record.schema.ts';
@@ -31,6 +33,80 @@ const timeRecord = {
   unit: 's',
   elevationGainM: 150,
 };
+const distanceRecord = {
+  ...identity,
+  kind: 'distance',
+  value: 2000,
+  unit: 'm',
+  caloriesKcal: 120,
+};
+
+describe('cardio: metros con sus calorías (spec §5.1)', () => {
+  it('una marca de cardio lleva metros y calorías', () => {
+    expect(recordSchema.safeParse(distanceRecord).success).toBe(true);
+
+    const { caloriesKcal: _c, ...sinCalorias } = distanceRecord;
+    expect(recordSchema.safeParse(sinCalorias).success).toBe(false);
+  });
+
+  it('los metros son enteros y positivos', () => {
+    const distance = recordValueSchemaFor('distance');
+
+    expect(distance.safeParse(2000).success).toBe(true);
+    expect(distance.safeParse(2000.5).success).toBe(false);
+    expect(distance.safeParse(0).success).toBe(false);
+    expect(distance.safeParse(100_001).success).toBe(false);
+  });
+
+  it('las calorías son enteras, y 0 vale', () => {
+    const schema = createRecordSchemaFor('distance');
+
+    expect(schema.safeParse({ value: 2000, caloriesKcal: 0 }).success).toBe(true);
+    expect(schema.safeParse({ value: 2000, caloriesKcal: 12.5 }).success).toBe(false);
+    expect(schema.safeParse({ value: 2000, caloriesKcal: -1 }).success).toBe(false);
+    expect(schema.safeParse({ value: 2000 }).success).toBe(false);
+  });
+
+  it('no se mide en otra unidad', () => {
+    expect(recordSchema.safeParse({ ...distanceRecord, unit: 'kg' }).success).toBe(false);
+  });
+});
+
+describe('el dato extra de cada medición', () => {
+  it('peso en hipertrofia, desnivel en running, calorías en cardio, nada en el resto', () => {
+    expect(extraFieldFor('weighted_reps')).toBe('weightKg');
+    expect(extraFieldFor('time')).toBe('elevationGainM');
+    expect(extraFieldFor('distance')).toBe('caloriesKcal');
+    expect(extraFieldFor('rm')).toBeNull();
+    expect(extraFieldFor('reps')).toBeNull();
+  });
+
+  it('devuelve sólo el de su medición, e ignora los de otras', () => {
+    expect(parseExtraField('distance', { caloriesKcal: 120, weightKg: 80 })).toEqual({
+      ok: true,
+      data: { caloriesKcal: 120 },
+    });
+    expect(parseExtraField('rm', { weightKg: 80 })).toEqual({ ok: true, data: {} });
+  });
+
+  it('si falta, lo pide en castellano, sin el mensaje crudo de Zod', () => {
+    expect(parseExtraField('distance', {})).toEqual({
+      ok: false,
+      field: 'caloriesKcal',
+      message: 'Cargá las calorías',
+    });
+    expect(parseExtraField('weighted_reps', {})).toMatchObject({ message: 'Cargá el peso' });
+    expect(parseExtraField('time', {})).toMatchObject({ message: 'Cargá el desnivel' });
+  });
+
+  it('si es inválido, dice por qué', () => {
+    expect(parseExtraField('distance', { caloriesKcal: -5 })).toEqual({
+      ok: false,
+      field: 'caloriesKcal',
+      message: 'Las calorías no pueden ser negativas',
+    });
+  });
+});
 
 describe('recordSchema', () => {
   it('acepta una marca de cada tipo', () => {
@@ -150,6 +226,12 @@ describe('createRecordSchemaFor', () => {
 
 describe('UNIT_BY_KIND', () => {
   it('cada medición tiene una sola unidad', () => {
-    expect(UNIT_BY_KIND).toEqual({ rm: 'kg', reps: 'reps', weighted_reps: 'reps', time: 's' });
+    expect(UNIT_BY_KIND).toEqual({
+      rm: 'kg',
+      reps: 'reps',
+      weighted_reps: 'reps',
+      time: 's',
+      distance: 'm',
+    });
   });
 });

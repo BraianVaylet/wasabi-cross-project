@@ -42,22 +42,26 @@ describe('measureKindFor', () => {
     expect(measureKindFor('hipertrofia')).toBe('weighted_reps');
     expect(measureKindFor('gimnastico')).toBe('reps');
     expect(measureKindFor('running')).toBe('time');
+    expect(measureKindFor('cardio')).toBe('distance');
   });
 
   it('tiene respuesta para toda categoría, sin excepción', () => {
     for (const category of exerciseCategorySchema.options) {
-      expect(['rm', 'reps', 'weighted_reps', 'time']).toContain(measureKindFor(category));
+      expect(['rm', 'reps', 'weighted_reps', 'time', 'distance']).toContain(
+        measureKindFor(category),
+      );
     }
   });
 });
 
 describe('exerciseCategorySchema', () => {
-  it('son exactamente las cuatro categorías de los mockups', () => {
+  it('son las cuatro de los mockups más cardio (ADR-0009)', () => {
     expect(exerciseCategorySchema.options).toEqual([
       'fuerza',
       'hipertrofia',
       'gimnastico',
       'running',
+      'cardio',
     ]);
   });
 

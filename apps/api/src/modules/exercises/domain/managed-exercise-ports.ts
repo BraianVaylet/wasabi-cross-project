@@ -28,10 +28,11 @@ export interface ExerciseSlots<Tx> {
 
 export interface CurrentValue {
   readonly value: number;
-  readonly unit: 'kg' | 'reps' | 's';
+  readonly unit: 'kg' | 'reps' | 's' | 'm';
   readonly performedAt: string;
   readonly weightKg?: number | undefined;
   readonly elevationGainM?: number | undefined;
+  readonly caloriesKcal?: number | undefined;
 }
 
 export interface NewRecord {
@@ -43,6 +44,7 @@ export interface NewRecord {
   notes?: string;
   weightKg?: number;
   elevationGainM?: number;
+  caloriesKcal?: number;
 }
 
 export interface RecordsGateway<Tx> {

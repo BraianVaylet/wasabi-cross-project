@@ -34,6 +34,8 @@ export interface NewRecordEntry {
   weightKg?: number;
   /** Sólo en running (`kind: 'time'`), junto al tiempo. Plano es 0, no ausente. */
   elevationGainM?: number;
+  /** Sólo en cardio (`kind: 'distance'`), junto a los metros. */
+  caloriesKcal?: number;
 }
 
 export interface RecordStore {

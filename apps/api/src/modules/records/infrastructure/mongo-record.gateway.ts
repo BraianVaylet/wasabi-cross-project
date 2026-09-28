@@ -1,8 +1,8 @@
 import {
-  elevationGainMSchema,
   UNIT_BY_KIND,
+  parseExtraField,
   recordValueSchemaFor,
-  weightKgSchema,
+  type ExtraField,
   type Mark,
   type MeasureKind,
   type RecordEntry,
@@ -20,13 +20,39 @@ interface RecordDocument {
   managedExerciseId: string;
   kind: MeasureKind;
   value: number;
-  unit: 'kg' | 'reps' | 's';
+  unit: Mark['unit'];
   performedAt: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
   weightKg?: number;
   elevationGainM?: number;
+  caloriesKcal?: number;
+}
+
+const EXTRA_FIELDS = [
+  'weightKg',
+  'elevationGainM',
+  'caloriesKcal',
+] as const satisfies readonly ExtraField[];
+
+/**
+ * Los datos extra que tiene la marca, sin los ausentes. `$first` de un campo que falta en
+ * el grupo da `null`, no `undefined`: sin filtrarlo, una marca sin peso llegaba con
+ * `weightKg: null` y rompía la respuesta contra `markSchema`, que sólo acepta número u
+ * omitido.
+ */
+function extrasOf(
+  source: Readonly<Partial<Record<ExtraField, number | null | undefined>>>,
+): Partial<Record<ExtraField, number>> {
+  const extras: Partial<Record<ExtraField, number>> = {};
+  for (const field of EXTRA_FIELDS) {
+    const value = source[field];
+    if (value != null) {
+      extras[field] = value;
+    }
+  }
+  return extras;
 }
 
 /*
@@ -44,14 +70,12 @@ function toDocument(record: NewRecordEntry): RecordDocument {
     throw new AppError('WC-RM-422-001', { meta: { kind: record.kind, value: record.value } });
   }
 
-  // Misma segunda red para el peso (hipertrofia) y el desnivel (running): no existe el
-  // estado inválido de una marca de esa medición sin su campo extra.
-  if (record.kind === 'weighted_reps' && !weightKgSchema.safeParse(record.weightKg).success) {
-    throw new AppError('WC-RM-422-001', { meta: { kind: record.kind, weightKg: record.weightKg } });
-  }
-  if (record.kind === 'time' && !elevationGainMSchema.safeParse(record.elevationGainM).success) {
+  // Misma segunda red para el dato extra (peso, desnivel o calorías): no existe el estado
+  // inválido de una marca de esa medición sin su campo.
+  const extra = parseExtraField(record.kind, record);
+  if (!extra.ok) {
     throw new AppError('WC-RM-422-001', {
-      meta: { kind: record.kind, elevationGainM: record.elevationGainM },
+      meta: { kind: record.kind, [extra.field]: record[extra.field] },
     });
   }
 
@@ -69,8 +93,7 @@ function toDocument(record: NewRecordEntry): RecordDocument {
     createdAt: now,
     updatedAt: now,
     ...(record.notes === undefined ? {} : { notes: record.notes }),
-    ...(record.weightKg === undefined ? {} : { weightKg: record.weightKg }),
-    ...(record.elevationGainM === undefined ? {} : { elevationGainM: record.elevationGainM }),
+    ...extra.data,
   };
 }
 
@@ -79,8 +102,7 @@ function toMark(document: RecordDocument): Mark {
     value: document.value,
     unit: document.unit,
     performedAt: document.performedAt,
-    ...(document.weightKg === undefined ? {} : { weightKg: document.weightKg }),
-    ...(document.elevationGainM === undefined ? {} : { elevationGainM: document.elevationGainM }),
+    ...extrasOf(document),
   };
 }
 
@@ -125,7 +147,7 @@ export function createMongoRecordGateway(db: Db) {
     },
 
     best: async (managedExerciseId, kind) => {
-      // En tiempo, menos es mejor. Si la mejor se repite, cuenta la primera vez que se
+      // En tiempo, menos es mejor; en el resto, más. Si la mejor se repite, cuenta la primera vez que se
       // logró. Un ejercicio tiene decenas de marcas, no miles: ordenar en memoria las de
       // uno solo, que el índice ya filtra, no justifica otro índice.
       const document = await records.findOne(
@@ -182,6 +204,7 @@ export function createMongoRecordGateway(db: Db) {
               performedAt: { $first: '$performedAt' },
               weightKg: { $first: '$weightKg' },
               elevationGainM: { $first: '$elevationGainM' },
+              caloriesKcal: { $first: '$caloriesKcal' },
             },
           },
         ])
@@ -194,11 +217,7 @@ export function createMongoRecordGateway(db: Db) {
             value: row.value,
             unit: row.unit,
             performedAt: row.performedAt,
-            // `$first` de un campo ausente en el grupo da `null`, no `undefined`: sin este
-            // chequeo laxo, una marca sin peso/desnivel llegaba con `weightKg: null` y
-            // rompía la respuesta contra `markSchema`, que sólo acepta número u omitido.
-            ...(row.weightKg == null ? {} : { weightKg: row.weightKg }),
-            ...(row.elevationGainM == null ? {} : { elevationGainM: row.elevationGainM }),
+            ...extrasOf(row),
           },
         ]),
       );

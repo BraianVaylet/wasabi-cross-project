@@ -51,10 +51,11 @@ describe('loadBandFor — bandas <70 / 70–84 / ≥85 (decidido el 2026-09-18)'
 });
 
 describe('supportsPercentages', () => {
-  it('fuerza y repeticiones tienen tabla de porcentajes; tiempo no', () => {
+  it('fuerza y repeticiones tienen tabla de porcentajes; tiempo y distancia no', () => {
     expect(supportsPercentages('rm')).toBe(true);
     expect(supportsPercentages('reps')).toBe(true);
     expect(supportsPercentages('time')).toBe(false);
+    expect(supportsPercentages('distance')).toBe(false);
   });
 });
 
