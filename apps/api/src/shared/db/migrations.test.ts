@@ -78,6 +78,16 @@ describe('migraciones', () => {
   });
 
   it('down revierte sólo la última migración', async () => {
+    expect(await indexNames(db, 'exercises')).toContain('catalog_key_unique');
+
+    const reverted = await migrateDown(db, client);
+
+    expect(reverted).toHaveLength(1);
+    expect(reverted[0]).toMatch(/catalogo-nuevo/);
+    expect(await indexNames(db, 'exercises')).not.toContain('catalog_key_unique');
+  });
+
+  it('el siguiente down se lleva el grupo primario', async () => {
     const reverted = await migrateDown(db, client);
 
     expect(reverted).toHaveLength(1);
@@ -96,8 +106,8 @@ describe('migraciones', () => {
 
     expect(reverted).toHaveLength(1);
     expect(reverted[0]).toMatch(/capacidades-en-propios/);
-    // Pendientes: ésta y las dos que ya se habían revertido en los tests anteriores.
-    expect(await pendingMigrations(db)).toHaveLength(3);
+    // Pendientes: ésta y las tres que ya se habían revertido en los tests anteriores.
+    expect(await pendingMigrations(db)).toHaveLength(4);
     // Las anteriores siguen aplicadas.
     expect(await indexNames(db, 'records')).toContain('managed_history');
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
@@ -125,6 +135,7 @@ describe('migraciones', () => {
     await migrateUp(db, client);
 
     expect(await pendingMigrations(db)).toEqual([]);
+    expect(await indexNames(db, 'exercises')).toContain('catalog_key_unique');
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
     expect(await indexNames(db, 'managed_exercises')).toContain('user_exercise_unique');
     expect(await indexNames(db, 'records')).toContain('managed_history');
