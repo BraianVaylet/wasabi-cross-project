@@ -15,6 +15,7 @@ export const UNIT_BY_KIND = {
   weighted_reps: 'reps',
   time: 's',
   distance: 'm',
+  weighted_distance: 'm',
 } as const satisfies Record<MeasureKind, string>;
 
 const rmValueSchema = z
@@ -34,7 +35,7 @@ const timeValueSchema = z
   .positive('El tiempo tiene que ser mayor a cero')
   .max(86_400, 'El tiempo no puede superar las 24 horas');
 
-/** Metros enteros: una máquina de cardio no marca fracciones de metro. */
+/** Metros enteros: ni una máquina de cardio ni un trineo se miden en fracciones de metro. */
 const distanceValueSchema = z
   .number()
   .int('Los metros son un número entero')
@@ -47,6 +48,7 @@ const VALUE_BY_KIND = {
   weighted_reps: repsValueSchema,
   time: timeValueSchema,
   distance: distanceValueSchema,
+  weighted_distance: distanceValueSchema,
 } as const satisfies Record<MeasureKind, z.ZodNumber>;
 
 /** Cómo se valida el valor de una marca según qué mide su ejercicio. */
@@ -54,7 +56,10 @@ export function recordValueSchemaFor(kind: MeasureKind): z.ZodNumber {
   return VALUE_BY_KIND[kind];
 }
 
-/** El peso de una marca de hipertrofia, siempre junto a las repeticiones (spec §5.1). */
+/**
+ * El peso de una marca de hipertrofia, junto a las repeticiones, o de distancia con carga,
+ * junto a los metros (spec §5.1).
+ */
 export const weightKgSchema = z
   .number()
   .positive('El peso tiene que ser mayor a cero')
@@ -82,11 +87,12 @@ const EXTRA_FIELD_BY_KIND = {
   weighted_reps: 'weightKg',
   time: 'elevationGainM',
   distance: 'caloriesKcal',
+  weighted_distance: 'weightKg',
 } as const satisfies Record<MeasureKind, ExtraField | null>;
 
 /**
- * Qué dato extra lleva una marca de esta medición: el peso en hipertrofia, el desnivel en
- * running, las calorías en cardio. `null` si no lleva ninguno.
+ * Qué dato extra lleva una marca de esta medición: el peso en hipertrofia y en distancia con
+ * carga, el desnivel en running, las calorías en cardio. `null` si no lleva ninguno.
  */
 export function extraFieldFor(kind: MeasureKind): ExtraField | null {
   return EXTRA_FIELD_BY_KIND[kind];
@@ -192,13 +198,22 @@ export const recordSchema = z.discriminatedUnion('kind', [
       caloriesKcal: caloriesKcalSchema,
     })
     .extend(timestampsSchema.shape),
+  identity
+    .extend({
+      kind: z.literal('weighted_distance'),
+      value: distanceValueSchema,
+      unit: z.literal(UNIT_BY_KIND.weighted_distance),
+      weightKg: weightKgSchema,
+    })
+    .extend(timestampsSchema.shape),
 ]);
 
 export type ExerciseRecord = z.infer<typeof recordSchema>;
 
 /**
  * Lo que manda el cliente al cargar una marca: valor, fecha y comentario, más el peso en
- * hipertrofia, el desnivel en running o las calorías en cardio. El tipo de medición no
+ * hipertrofia y en distancia con carga, el desnivel en running o las calorías en cardio.
+ * El tipo de medición no
  * viaja del cliente — lo sabe el servidor por la categoría del ejercicio —, así que el
  * schema se arma para ese tipo.
  */
@@ -209,7 +224,7 @@ export function createRecordSchemaFor(kind: MeasureKind) {
     notes: plainText(300).optional(),
   };
 
-  if (kind === 'weighted_reps') {
+  if (kind === 'weighted_reps' || kind === 'weighted_distance') {
     return z.object({ ...base, weightKg: weightKgSchema });
   }
   if (kind === 'time') {

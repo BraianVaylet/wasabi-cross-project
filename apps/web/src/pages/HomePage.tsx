@@ -25,6 +25,7 @@ const VALUE_LABEL: Record<MeasureKind, string> = {
   weighted_reps: 'Reps',
   time: 'Tiempo',
   distance: 'Distancia',
+  weighted_distance: 'Distancia',
 };
 
 function pad(value: number): string {

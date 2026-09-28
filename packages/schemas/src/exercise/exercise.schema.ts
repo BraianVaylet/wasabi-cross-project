@@ -10,12 +10,19 @@ import { plainText } from '../common/text.ts';
  * cada marca lleva además el peso levantado — dos categorías con la misma forma de tabla
  * de porcentajes, pero una marca de distinta forma, así que no pueden compartir `kind`.
  */
-export const measureKindSchema = z.enum(['rm', 'reps', 'weighted_reps', 'time', 'distance']);
+export const measureKindSchema = z.enum([
+  'rm',
+  'reps',
+  'weighted_reps',
+  'time',
+  'distance',
+  'weighted_distance',
+]);
 export type MeasureKind = z.infer<typeof measureKindSchema>;
 
 /**
- * Las categorías (spec §5.1): las cuatro de los mockups (leyenda del mockup 12) y cardio,
- * que llegó con el catálogo ampliado (ADR-0009).
+ * Las categorías (spec §5.1): las cuatro de los mockups (leyenda del mockup 12), y cardio y
+ * distancia con carga, que llegaron con el catálogo ampliado (ADR-0009).
  */
 export const exerciseCategorySchema = z.enum([
   'fuerza',
@@ -23,6 +30,7 @@ export const exerciseCategorySchema = z.enum([
   'gimnastico',
   'running',
   'cardio',
+  'distancia_carga',
 ]);
 export type ExerciseCategory = z.infer<typeof exerciseCategorySchema>;
 
@@ -32,6 +40,7 @@ const MEASURE_BY_CATEGORY = {
   gimnastico: 'reps',
   running: 'time',
   cardio: 'distance',
+  distancia_carga: 'weighted_distance',
 } as const satisfies Record<ExerciseCategory, MeasureKind>;
 
 /**

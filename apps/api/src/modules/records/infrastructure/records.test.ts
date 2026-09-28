@@ -295,6 +295,63 @@ describe('marcas: cargar e historial (F1-07)', () => {
     });
   });
 
+  describe('distancia con carga: metros con su peso (F5-02b)', () => {
+    async function addSled(cookie: string): Promise<ManagedExerciseSummary> {
+      const response = await harness.app.inject({
+        method: 'POST',
+        url: '/api/v1/exercises',
+        headers: { cookie, 'content-type': 'application/json' },
+        payload: JSON.stringify({
+          source: 'custom',
+          name: 'Sled del box',
+          category: 'distancia_carga',
+          capacities: ['fuerza'],
+          muscleGroups: ['cuadriceps', 'gluteo'],
+          level: 'intermedio',
+          firstRecord: { value: 50, performedAt: '2026-06-01T10:00:00.000Z', weightKg: 152 },
+        }),
+      });
+      expect(response.statusCode).toBe(201);
+      return response.json<ManagedExerciseSummary>();
+    }
+
+    it('se mide en metros, con el peso en la marca, y sin tabla de porcentajes', async () => {
+      const cookie = await newUser();
+      const sled = await addSled(cookie);
+
+      expect(sled.kind).toBe('weighted_distance');
+      expect(sled.current).toMatchObject({ value: 50, unit: 'm', weightKg: 152 });
+    });
+
+    it('sin peso responde WC-RM-422-001 y no guarda nada', async () => {
+      const cookie = await newUser();
+      const sled = await addSled(cookie);
+
+      const response = await log(cookie, sled.id, { value: 60 });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        errorCode: 'WC-RM-422-001',
+        details: [{ path: 'weightKg', message: 'Cargá el peso' }],
+      });
+      expect((await history(cookie, sled.id)).json<RecordHistory>().records).toHaveLength(1);
+    });
+
+    it('la mejor marca es la de más metros, sin importar el peso', async () => {
+      const cookie = await newUser();
+      const sled = await addSled(cookie);
+
+      // Más metros con menos peso: igual es la mejor. El peso viaja como dato de la marca.
+      await logOk(cookie, sled.id, 75, '2026-06-10T10:00:00.000Z', { weightKg: 102 });
+      const despues = await logOk(cookie, sled.id, 60, '2026-06-20T10:00:00.000Z', {
+        weightKg: 202,
+      });
+
+      expect(despues.best).toMatchObject({ value: 75, unit: 'm', weightKg: 102 });
+      expect(despues.current).toMatchObject({ value: 60, weightKg: 202 });
+    });
+  });
+
   describe('fecha futura (spec §5.1)', () => {
     it('una marca con fecha futura se rechaza con el motivo, y no guarda nada', async () => {
       const cookie = await newUser();
