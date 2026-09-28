@@ -61,6 +61,7 @@ const CATEGORIES: readonly { value: ExerciseCategory; label: string }[] = [
   { value: 'gimnastico', label: 'Gimnástico (repeticiones)' },
   { value: 'running', label: 'Running (tiempo)' },
   { value: 'cardio', label: 'Cardio (metros y calorías)' },
+  { value: 'distancia_carga', label: 'Distancia con carga (metros y peso)' },
 ];
 
 const LEVELS: readonly { value: Level; label: string }[] = [

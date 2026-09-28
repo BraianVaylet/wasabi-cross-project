@@ -27,6 +27,15 @@ const carrera: ManagedExerciseSummary = {
   current: { value: 272, unit: 's', performedAt: '2026-07-01T12:00:00.000Z' },
 };
 
+const sled: ManagedExerciseSummary = {
+  ...backSquat,
+  id: 'mex_s1ed9x8y',
+  name: 'Sled Push del garage',
+  category: 'distancia_carga',
+  kind: 'weighted_distance',
+  current: { value: 50, unit: 'm', weightKg: 152, performedAt: '2026-07-01T12:00:00.000Z' },
+};
+
 function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
   return {
     exercises,
@@ -114,6 +123,38 @@ describe('Historial del detalle (F1-13b, mockups 5 y 6)', () => {
     const mejor = await screen.findByTestId('mejor-marca');
     expect(mejor).toHaveTextContent('4:25');
     expect(mejor).toHaveTextContent('01/05/2026');
+  });
+
+  it('en distancia con carga cada marca muestra su peso (F5-03b)', async () => {
+    const { api } = renderDetalle('mex_s1ed9x8y', [sled]);
+    api.client.history.mockResolvedValue({
+      records: [
+        {
+          id: 'rec_1',
+          value: 50,
+          unit: 'm',
+          weightKg: 152,
+          performedAt: '2026-07-01T12:00:00.000Z',
+        },
+        {
+          id: 'rec_2',
+          value: 50,
+          unit: 'm',
+          weightKg: 102,
+          performedAt: '2026-05-01T12:00:00.000Z',
+        },
+      ],
+      current: { value: 50, unit: 'm', weightKg: 152, performedAt: '2026-07-01T12:00:00.000Z' },
+      best: { value: 50, unit: 'm', weightKg: 152, performedAt: '2026-07-01T12:00:00.000Z' },
+      nextCursor: null,
+    });
+
+    const marcas = within(await screen.findByRole('list', { name: 'Historial' })).getAllByRole(
+      'listitem',
+    );
+
+    expect(fila(marcas, 0)).toHaveTextContent('con 152 kg');
+    expect(fila(marcas, 1)).toHaveTextContent('con 102 kg');
   });
 
   it('mientras llega se ven skeletons, no la lista vacía', async () => {

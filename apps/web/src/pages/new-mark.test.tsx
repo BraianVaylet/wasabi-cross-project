@@ -41,6 +41,15 @@ const butterfly: ManagedExerciseSummary = {
   current: { value: 12, unit: 'reps', weightKg: 30, performedAt: '2026-07-01T12:00:00.000Z' },
 };
 
+const sled: ManagedExerciseSummary = {
+  ...backSquat,
+  id: 'mex_s1ed9x8y',
+  name: 'Sled Push del garage',
+  category: 'distancia_carga',
+  kind: 'weighted_distance',
+  current: { value: 50, unit: 'm', weightKg: 152, performedAt: '2026-07-01T12:00:00.000Z' },
+};
+
 const remo: ManagedExerciseSummary = {
   ...backSquat,
   id: 'mex_r3m0e4r5',
@@ -80,7 +89,7 @@ interface Opciones {
 
 function renderDetalle(
   id = 'mex_a1b2c3d4',
-  exercises = [backSquat, carrera, butterfly, remo],
+  exercises = [backSquat, carrera, butterfly, remo, sled],
   { historialCongelado = false }: Opciones = {},
 ) {
   const api = fakeApi(lista(exercises));
@@ -166,6 +175,31 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
 
       expect(screen.getByLabelText('Tiempo (mm:ss)')).toBeInTheDocument();
       expect(screen.getByLabelText('Desnivel (m)')).toBeInTheDocument();
+    });
+
+    it('en distancia con carga pide los metros y el peso (F5-03b)', async () => {
+      renderDetalle('mex_s1ed9x8y');
+      await abrirModal('Nueva marca');
+
+      expect(screen.getByLabelText('Distancia (m)')).toBeInTheDocument();
+      expect(screen.getByLabelText('Peso (kg)')).toBeInTheDocument();
+    });
+
+    it('distancia con carga manda los metros y el peso', async () => {
+      const { api } = renderDetalle('mex_s1ed9x8y');
+      api.client.logRecord.mockReturnValue(new Promise(() => undefined));
+      await abrirModal('Nueva marca');
+
+      await userEvent.type(screen.getByLabelText('Distancia (m)'), '50');
+      await userEvent.type(screen.getByLabelText('Peso (kg)'), '160');
+      await userEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+
+      await waitFor(() => {
+        expect(api.client.logRecord).toHaveBeenCalledTimes(1);
+      });
+      const [, input] = api.client.logRecord.mock.calls[0] ?? [];
+      expect(input?.value).toBe(50);
+      expect(input?.weightKg).toBe(160);
     });
 
     it('en cardio pide los metros y las calorías (F5-03a)', async () => {
