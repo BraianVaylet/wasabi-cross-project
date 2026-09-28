@@ -27,7 +27,7 @@ Si una tarea o un LLM proponen alguno de estos conceptos, es señal de que se es
 
 ## 3. Descripción del producto
 
-Webapp donde el usuario carga sus ejercicios (o los elige de un listado pre-cargado en la base de datos) y registra su RM, tiempo o repeticiones según el tipo de ejercicio. La app calcula automáticamente los porcentajes de carga sobre el RM y guarda el histórico para ver la evolución del entrenamiento en el tiempo.
+Webapp donde el usuario carga sus ejercicios (o los elige de un listado pre-cargado en la base de datos) y registra su RM, tiempo, repeticiones o distancia según el tipo de ejercicio. La app calcula automáticamente los porcentajes de carga sobre el RM y guarda el histórico para ver la evolución del entrenamiento en el tiempo.
 
 ## 4. Monetización
 
@@ -44,16 +44,16 @@ Los límites de plan son un **entitlement por usuario**, se validan en el módul
 
 Mockups en [`../mockup`](../mockup).
 
-| Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                          |
-| -------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                            |
-| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                |
-| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                   |
-| Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2). |
-| Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                             |
-| Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior.      |
-| Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                          |
-| Nuevo ejercicio            | `wasabi (9).png`                                    | Nombre (elige del catálogo o crea uno propio si no existe), categoría (sólo si es propio: la de un ejercicio del catálogo ya está definida), **capacidades y grupos musculares, también sólo si es propio**, primera marca con su fecha, nivel, comentarios y "con dolor".                           |
+| Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                               |
+| -------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                                 |
+| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                     |
+| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                        |
+| Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2).      |
+| Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                                  |
+| Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, potencia, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. |
+| Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                               |
+| Nuevo ejercicio            | `wasabi (9).png`                                    | Dos pestañas: **Catálogo** (buscar y elegir un precargado, que llena el formulario y se puede editar) y **Crear** (uno propio, campo por campo). En las dos: primera marca con su fecha, nivel, comentarios y "con dolor". Reglas en §5.3.                                                                |
 
 Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
@@ -65,29 +65,40 @@ Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
 **La categoría define qué se mide.** No se elige por separado:
 
-| Categoría   | Se mide en                     | Porcentajes                                   |
-| ----------- | ------------------------------ | --------------------------------------------- |
-| Fuerza      | RM, en kg                      | Sí: carga = RM × %                            |
-| Hipertrofia | Repeticiones, con su peso (kg) | Sí: repeticiones = máximo × %                 |
-| Gimnástico  | Repeticiones                   | Sí                                            |
-| Running     | Tiempo, con su desnivel (m)    | No: se muestran la mejor marca y el historial |
+| Categoría           | Se mide en                     | Porcentajes                                                  |
+| ------------------- | ------------------------------ | ------------------------------------------------------------ |
+| Fuerza              | RM, en kg                      | Sí: carga = RM × %                                           |
+| Hipertrofia         | Repeticiones, con su peso (kg) | Sí: carga = RM estimado × %, en kg (fórmula de Epley, abajo) |
+| Gimnástico          | Repeticiones                   | Sí: repeticiones = máximo × %                                |
+| Running             | Tiempo, con su desnivel (m)    | No: se muestran la mejor marca y el historial                |
+| Cardio              | Metros, con sus calorías       | No: se muestran la mejor marca y el historial                |
+| Distancia con carga | Metros, con su peso (kg)       | No: se muestran la mejor marca y el historial                |
 
 El peso se registra sólo en kg. El desnivel es siempre en metros y siempre se carga: una carrera
-plana es 0, no un campo vacío.
+plana es 0, no un campo vacío. Lo mismo el dato extra de las otras categorías: las calorías en
+cardio y el peso en distancia con carga se cargan siempre.
+
+**RM estimado (hipertrofia).** Con la fórmula de Epley: RM = peso × (1 + repeticiones / 30), y con
+una sola repetición el RM es el peso. Se calcula, no se guarda: sale del peso y las repeticiones de
+cada marca. La mejor marca de hipertrofia es la de mayor RM estimado —no la de más repeticiones—,
+porque 10 × 80 kg y 6 × 90 kg sólo se comparan así; el progreso del detalle y de Estadísticas
+también grafica el RM estimado.
 
 **Tres conceptos distintos:**
 
-- **Ejercicio**: la definición — nombre, categoría, capacidades y grupos musculares. Es del catálogo (sin dueño, lo ven todos) o propio (lo creó un usuario y sólo lo ve él). En los del catálogo vienen cargados; en los propios los elige el usuario al crearlo, porque sin ellos ese ejercicio queda afuera de las estadísticas generales.
+- **Ejercicio**: la definición — nombre, categoría, capacidades, grupo muscular primario y secundarios, disciplinas y equipo. Es del catálogo (sin dueño, lo ven todos, §5.3) o propio (lo creó un usuario y sólo lo ve él). En los del catálogo vienen cargados; en los propios los elige el usuario al crearlo, porque sin ellos ese ejercicio queda afuera de las estadísticas generales.
 - **Ejercicio gestionado**: la entrada de un ejercicio en la lista de un usuario. Lleva lo que es del usuario y no del ejercicio: nivel, "con dolor" y comentarios. Un ejercicio aparece una sola vez en la lista de cada usuario.
-- **Marca**: un valor con su fecha de realización y un comentario opcional, sobre un ejercicio gestionado. En hipertrofia lleva además el peso; en running, el desnivel. Los porcentajes y la mejor marca siguen calculándose sobre el valor principal (repeticiones o tiempo), no sobre el peso ni el desnivel, que viajan como dato informativo de la marca.
+- **Marca**: un valor con su fecha de realización y un comentario opcional, sobre un ejercicio gestionado. Lleva además el dato extra de su categoría: el peso en hipertrofia y en distancia con carga, el desnivel en running, las calorías en cardio. La mejor marca se calcula sobre el valor principal (tiempo, repeticiones o metros), salvo en hipertrofia, donde es el RM estimado; los demás datos extra viajan como dato informativo de la marca.
 
-**Capacidades y grupos musculares.** Los dos son obligatorios y admiten más de uno: son el eje de las estadísticas generales (§5, mockup 10). El **segmento del cuerpo** —tren superior, tren inferior, core o cuerpo completo— no se pregunta: se deriva de los grupos musculares elegidos, y es cuerpo completo cuando hay grupos de más de un segmento. Un dato que se puede calcular no se le pide al usuario.
+**Capacidades y grupos musculares.** Las capacidades son fuerza, potencia, resistencia y velocidad: al menos una, y admiten más de una. Cada ejercicio tiene **un grupo muscular primario** y, opcionalmente, secundarios (sin repetir el primario). Los grupos son pectoral, espalda, espalda baja, trapecio, hombro, bíceps, tríceps, antebrazo, core, glúteo, cuádriceps, isquiotibiales, gemelo y cuerpo completo. Capacidades y grupos son el eje de las estadísticas generales (§5, mockup 10): la evolución por grupo muscular cuenta el primario y los secundarios. El **segmento del cuerpo** —tren superior, tren inferior, core o cuerpo completo— no se pregunta: **se deriva del grupo primario** (espalda baja cuenta como core; trapecio, como tren superior). Los secundarios no lo mueven: una sentadilla con core de secundario sigue siendo tren inferior. Un dato que se puede calcular no se le pide al usuario.
+
+**Disciplinas y equipo.** Una disciplina es el contexto de entrenamiento: gimnasio, crossfit, hyrox, funcional o running. Un ejercicio puede tener más de una (el Wall Ball es de crossfit y de hyrox). El equipo es uno solo (barra, mancuerna, kettlebell, máquina, sin equipo, entre otros). En el catálogo los dos vienen cargados y sirven para buscar; en uno propio son opcionales. Ninguno cambia qué se mide ni qué se calcula: eso lo decide sólo la categoría.
 
 **La fecha de realización no puede ser futura**: una marca de mañana pasaría a ser el valor actual antes de existir. Se tolera un margen de 5 minutos por la diferencia de reloj entre el dispositivo y el servidor. Vale también para la primera marca, al agregar un ejercicio.
 
 **Tags:**
 
-- **Categoría**: Fuerza, Hipertrofia, Gimnástico, Running.
+- **Categoría**: Fuerza, Hipertrofia, Gimnástico, Running, Cardio, Distancia con carga.
 - **Nivel**: Principiante, Intermedio, Avanzado, Elite. Del usuario sobre ese ejercicio.
 - **Con dolor**: sí o no. Del usuario. Etiqueta de UX, no registro clínico (§2).
 - **Carga**: liviana, media o pesada. **Se calcula, no se guarda**: menos de 70% es liviana, de 70% a 84% media, desde 85% pesada. Cada banda tiene su color — verde liviana, ámbar media, rojo pesada — en su tag, que va en la barra fija del detalle, al lado de la carga calculada (§5.2). No hay barra de progreso: el diseño de `../design` no la tiene, y el porcentaje ya se lee en la grilla.
@@ -95,11 +106,12 @@ plana es 0, no un campo vacío.
 **Valor actual y mejor marca:**
 
 - **Valor actual**: la marca con la fecha de realización más reciente. Sobre ella se calculan los porcentajes, porque refleja la capacidad de hoy.
-- **Mejor marca**: el máximo histórico (el mínimo, en tiempo). Es lo que dispara `pr.achieved`.
+- **Mejor marca**: el máximo histórico (el mínimo, en tiempo; el mayor RM estimado, en hipertrofia). Es lo que dispara `pr.achieved`.
 
 **Redondeo:**
 
-- Carga: al 0,5 kg más cercano.
+- Carga y RM estimado: al 0,5 kg más cercano. La carga de hipertrofia sale del RM estimado sin
+  redondear; sólo se redondea lo que se muestra.
 - Repeticiones: hacia abajo, con mínimo 1. Nunca por encima de la intensidad pedida.
 
 **Porcentajes por defecto**: 65, 75, 80, 85, 90 y 95%, configurables por usuario en su perfil.
@@ -125,7 +137,8 @@ lenguaje. De arriba abajo:
      unidad.
 3. **Elegí tu carga** (sólo si el ejercicio tiene porcentajes, §5.1): grilla de tres columnas con
    los porcentajes del perfil, el elegido resaltado; debajo, el porcentaje personalizado en una sola
-   fila. En los ejercicios de repeticiones los textos hablan de repeticiones, no de RM.
+   fila. En gimnástico los textos hablan de repeticiones, no de RM; en hipertrofia, de "RM
+   estimado", y la carga va en kg.
 4. **Progreso**: la evolución de todo el historial, con el valor de cada punto y su fecha, y al lado
    del título el aumento — el valor actual menos la primera marca; en tiempo, la mejora es hacia
    abajo. Debajo del gráfico, "Ver estadísticas ›", que abre Estadísticas con este ejercicio
@@ -135,9 +148,66 @@ lenguaje. De arriba abajo:
    páginas.
 6. **Barra fija abajo**: "{porcentaje}% DE {valor actual}", la carga calculada en grande, el tag de
    su banda de carga (§5.1) y el botón "Registrar nuevo RM" ("Registrar nueva marca" si no es RM),
-   que abre el modal de siempre. En los ejercicios de tiempo, sin porcentajes, la barra muestra la
-   mejor marca en lugar de la carga calculada. El contenido deja lugar abajo para que la barra no
+   que abre el modal de siempre. En las categorías sin porcentajes (running, cardio y distancia con
+   carga) la barra muestra la mejor marca en lugar de la carga calculada. El contenido deja lugar abajo para que la barra no
    tape el final del historial.
+
+### 5.3 Catálogo pre-cargado y alta de un ejercicio
+
+**Reglas del catálogo** ([ADR-0009](../adr/0009-catalogo-ampliado.md)):
+
+- Cada entrada tiene una **clave estable** (`back-squat`, `wall-ball`): el seed la usa para saber
+  qué ya existe, así que un ejercicio se puede renombrar sin duplicarse.
+- Lo que depende de la categoría no se guarda por ejercicio: qué campos se registran, si hay
+  porcentajes y cómo se calcula la referencia (RM directo en fuerza, RM estimado en hipertrofia)
+  salen de la categoría (§5.1).
+- Un ejercicio de **running** tiene una única distancia: "Carrera 5 km" sí, "Long run" o
+  "Fartlek" no, porque "mejor marca = menor tiempo" sólo compara carreras iguales.
+- Un ejercicio con **peso fijo o corporal** (balón, kettlebell, crunch) es gimnástico: medir un RM
+  estimado sobre un peso que no se elige no dice nada.
+- Si una disciplina mide un ejercicio distinto, es otro ejercicio: el Sled Push de funcional va en
+  repeticiones y el de Hyrox, en metros.
+
+**El catálogo inicial: 62 ejercicios.** Reemplaza al de la Fase 0 (33 ejercicios), que se borra
+por migración: no hay producción todavía, así que no hay datos reales que conservar. El detalle de
+cada entrada (grupos, capacidad, equipo) vive en el código del módulo `exercises`, validado contra
+los schemas.
+
+| Disciplina | Categoría           | Ejercicios                                                                                                                                                                                                                                              |
+| ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gimnasio   | Fuerza              | Sentadilla trasera, Sentadilla frontal, Peso muerto convencional, Press militar, Dominadas lastradas                                                                                                                                                    |
+| Gimnasio   | Hipertrofia         | Peso muerto rumano, Press banca plano, Press banca inclinado, Remo con barra, Curl bíceps con barra, Curl martillo, Extensión tríceps en polea, Press francés, Prensa de piernas, Curl femoral, Elevación de gemelos, Hip thrust, Elevaciones laterales |
+| Gimnasio   | Gimnástico          | Crunch abdominal                                                                                                                                                                                                                                        |
+| CrossFit   | Fuerza              | Snatch, Clean and Jerk, Push Press, Overhead Squat                                                                                                                                                                                                      |
+| CrossFit   | Hipertrofia         | Thruster                                                                                                                                                                                                                                                |
+| CrossFit   | Gimnástico          | Wall Ball (también Hyrox), Kettlebell Swing, Pull-up, Toes to Bar, Muscle Up, Handstand Push-up, Box Jump, Burpee, Double Under, Rope Climb                                                                                                             |
+| CrossFit   | Cardio              | Remo (ergómetro) (también Hyrox), Assault Bike, SkiErg (también Hyrox)                                                                                                                                                                                  |
+| Hyrox      | Hipertrofia         | Sandbag Lunges                                                                                                                                                                                                                                          |
+| Hyrox      | Gimnástico          | Burpee Broad Jump                                                                                                                                                                                                                                       |
+| Hyrox      | Running             | Carrera 1km (estación Hyrox)                                                                                                                                                                                                                            |
+| Hyrox      | Distancia con carga | Sled Push (Hyrox), Sled Pull (Hyrox), Farmers Carry (Hyrox)                                                                                                                                                                                             |
+| Funcional  | Hipertrofia         | Kettlebell Goblet Squat, Sled Push, Sled Pull, Farmers Carry                                                                                                                                                                                            |
+| Funcional  | Gimnástico          | Battle Ropes, TRX Row, TRX Push-up, Mountain Climbers, Jumping Jacks, Bear Crawl, Medicine Ball Slam, Box Step-up, Lateral Band Walk, Jump Squat                                                                                                        |
+| Running    | Running             | Carrera 100 m, Carrera 400 m, Carrera 1 km, Carrera 5 km, Carrera 10 km                                                                                                                                                                                 |
+
+**Alta de un ejercicio: dos pestañas.** La pestaña elegida va en la URL, así un link o el botón
+atrás vuelven a la misma.
+
+- **Catálogo** (la de entrada): un buscador por nombre (sin distinguir mayúsculas ni acentos) y un
+  filtro por disciplina. Cada resultado muestra nombre, categoría, grupo primario y equipo. Los que
+  el usuario ya tiene en su lista aparecen pero no se pueden elegir (un ejercicio va una sola vez
+  por lista, §5.1). Al elegir uno, el formulario se llena con toda su definición.
+- **Crear**: el formulario vacío, campo por campo: nombre, categoría (seis casilleros),
+  capacidades, grupo primario, secundarios, y —opcionales— disciplinas y equipo. Si el nombre
+  coincide con uno del catálogo se avisa, sin bloquear: el nombre no decide nada, la pestaña sí.
+
+**Un precargado editado pasa a ser propio.** Si el usuario elige uno del catálogo y guarda sin
+tocar la definición, se agrega el del catálogo. Si cambió cualquier campo de la definición
+(nombre, categoría, capacidades, grupos, disciplinas o equipo), se guarda como **ejercicio propio**
+con los valores editados: cuenta para el límite de propios del plan (§4), y el formulario lo avisa
+antes de guardar, apenas se edita el primer campo. Si el plan ya no admite más propios, el aviso lo
+dice y ofrece volver a los valores del catálogo; quien decide igual es el backend. Nivel, comentarios, "con dolor" y la primera
+marca son del usuario y se cargan igual en los dos casos: editarlos no convierte nada.
 
 ## 6. Stack
 
@@ -174,7 +244,7 @@ Un solo deployable de backend, módulos aislados (`domain / application / infras
 | `auth`          | Login, registro, sesión (Better Auth)                                                                            |
 | `users`         | Perfil, configuración (porcentajes de carga default)                                                             |
 | `exercises`     | Catálogo pre-cargado, ejercicios propios y la lista de ejercicios gestionados de cada usuario (nivel, con dolor) |
-| `records`       | Carga y evolución de RM / tiempos / repeticiones, cálculo de porcentajes                                         |
+| `records`       | Carga y evolución de RM / tiempos / repeticiones / distancias, cálculo de porcentajes                            |
 | `stats`         | Agregaciones y análisis (por ejercicio y generales)                                                              |
 | `subscriptions` | Plan Free/Max, límites, entitlements                                                                             |
 | `billing`       | Pago de la suscripción Max                                                                                       |
