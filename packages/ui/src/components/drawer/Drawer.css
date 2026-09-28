@@ -4,14 +4,16 @@
   z-index: 100;
 }
 
+/* El fondo del diseño, casi opaco: el panel se lee sin competir con lo de atrás. */
 .wc-drawer__backdrop {
   position: absolute;
   inset: 0;
-  background-color: rgb(0 0 0 / 45%);
+  background-color: rgb(15 4 28 / 80%);
 }
 
 .wc-drawer__panel {
   position: absolute;
+  box-sizing: border-box;
 
   display: flex;
   flex-direction: column;
@@ -19,28 +21,33 @@
   padding: var(--wc-space-4) var(--wc-space-5) var(--wc-space-6);
   overflow-y: auto;
 
-  background-color: var(--wc-surface);
+  background-color: var(--wc-bg-raised);
   color: var(--wc-text);
 }
 
-/* El menú, que entra desde el costado. */
+/* El menú, que entra desde el costado, con el filo violeta del diseño. */
 .wc-drawer__panel--side {
   top: 0;
   right: 0;
   bottom: 0;
   width: min(22rem, 82vw);
-  border-left: 1px solid var(--wc-border);
+  border-left: 2px solid var(--wc-border);
   animation: wc-drawer-in 200ms ease-out;
 }
 
-/* La hoja que sube desde abajo, para formularios cortos en el celular (mockup 11). */
+/*
+ * La hoja que sube desde abajo, para formularios cortos en el celular (mockup 11): con el mismo
+ * borde lima arriba que la barra fija del detalle.
+ */
 .wc-drawer__panel--bottom {
   right: 0;
   bottom: 0;
   left: 0;
+  max-width: var(--wc-column-max);
   max-height: 90vh;
-  border-top: 1px solid var(--wc-border);
-  border-radius: var(--wc-radius-md) var(--wc-radius-md) 0 0;
+  margin: 0 auto;
+  border-top: 2px solid var(--wc-accent);
+  box-shadow: 0 -4px 0 var(--wc-border);
   animation: wc-sheet-in 200ms ease-out;
 }
 
@@ -53,34 +60,48 @@
   justify-content: flex-end;
 }
 
-/* Las opciones del menú: grandes, como en el mockup 4a, y con target táctil de 44px. */
+/*
+ * Las opciones del menú: en la condensada, grandes, con target táctil de 44px. La actual en lima,
+ * con un filo a la izquierda: el color solo no alcanza para decir "estás acá".
+ */
 .wc-drawer__item {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: var(--wc-space-3);
   width: 100%;
   min-height: var(--wc-tap-target);
-  padding: var(--wc-space-2) 0;
+  padding: var(--wc-space-2) var(--wc-space-3);
 
   background: none;
   border: none;
+  border-left: 2px solid transparent;
   color: var(--wc-text);
-  font: inherit;
-  font-size: var(--wc-font-size-lg);
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-heading);
+  line-height: 1;
+  letter-spacing: var(--wc-tracking-heading);
   text-align: left;
   text-decoration: none;
+  text-transform: uppercase;
 
   cursor: pointer;
 }
 
-.wc-drawer__item:hover,
+.wc-drawer__item:hover {
+  color: var(--wc-accent-text);
+}
+
 .wc-drawer__item[aria-current='page'] {
+  border-left-color: var(--wc-accent);
   color: var(--wc-accent-text);
 }
 
 /* Lo que va al final del panel, como "Cerrar sesión". */
 .wc-drawer__footer {
   margin-top: auto;
+  padding-top: var(--wc-space-3);
+  border-top: 1px solid var(--wc-border);
 }
 
 @keyframes wc-drawer-in {

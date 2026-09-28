@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { AppHeader, Drawer, IconButton, Logo, MenuIcon } from '@wasabi-cross/ui';
+import { AppHeader, Drawer, IconButton, Logo, MenuIcon, Wordmark } from '@wasabi-cross/ui';
 import { useState, type ReactNode } from 'react';
 import { ErrorNotice } from '../ErrorNotice.tsx';
 
@@ -9,6 +9,9 @@ export interface AppShellProps {
   signingOut: boolean;
   signOutError: unknown;
 }
+
+/** El subtítulo de la marca en el header del diseño. */
+export const BRAND_SUBTITLE = 'Fuerza · Registro de RM';
 
 /** Header y menú, presentes en todas las páginas con sesión (spec §5). */
 export function AppShell({
@@ -28,7 +31,7 @@ export function AppShell({
         brand={
           <Link to="/">
             <Logo />
-            Wasabi Cross
+            <Wordmark subtitle={BRAND_SUBTITLE} />
           </Link>
         }
         actions={
