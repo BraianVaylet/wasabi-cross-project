@@ -5,8 +5,8 @@ export interface SectionHeaderProps {
   title: ReactNode;
   /** Va en el título: la sección lo usa de nombre con `aria-labelledby`. */
   id?: string;
-  /** `3` para una sección adentro de otra. */
-  level?: 2 | 3;
+  /** `1` para el título de la pantalla, `3` para una sección adentro de otra. */
+  level?: 1 | 2 | 3;
   /** La etiqueta chica de arriba, como el "TENDENCIA DE FUERZA" del diseño. */
   kicker?: ReactNode;
   /** El dato de la derecha: "PORCENTAJE DEL RM", "03 REGISTROS", el aumento. */
@@ -29,8 +29,13 @@ export function SectionHeader({
   divider = true,
   className,
 }: SectionHeaderProps): React.JSX.Element {
-  const Heading = level === 2 ? 'h2' : 'h3';
-  const classes = ['wc-section-header', divider ? 'wc-section-header--divider' : '', className]
+  const Heading = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
+  const classes = [
+    'wc-section-header',
+    level === 1 ? 'wc-section-header--page' : '',
+    divider ? 'wc-section-header--divider' : '',
+    className,
+  ]
     .filter(Boolean)
     .join(' ');
 
