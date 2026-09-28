@@ -1,15 +1,18 @@
-import type { Exercise } from '@wasabi-cross/schemas';
+import { bodySegmentFor, type Exercise } from '@wasabi-cross/schemas';
 import { describe, expect, it, vi } from 'vitest';
 import type { CatalogExercise } from '../domain/catalog.ts';
 import type { ExerciseRepository } from '../domain/exercise-repository.ts';
 import { seedCatalog } from './seed-catalog.ts';
 
 const backSquat: CatalogExercise = {
+  catalogKey: 'back-squat',
   name: 'Back squat',
   category: 'fuerza',
   capacities: ['fuerza'],
+  primaryMuscleGroup: 'cuadriceps',
   muscleGroups: ['cuadriceps', 'gluteo'],
-  bodySegment: 'tren_inferior',
+  disciplines: ['gimnasio'],
+  equipment: 'barra',
 };
 
 function storedFrom(definition: CatalogExercise, id = 'exo_a1b2c3d4'): Exercise {
@@ -19,6 +22,7 @@ function storedFrom(definition: CatalogExercise, id = 'exo_a1b2c3d4'): Exercise 
     createdAt: '2026-09-01T10:00:00.000Z',
     updatedAt: '2026-09-01T10:00:00.000Z',
     ...definition,
+    bodySegment: bodySegmentFor(definition.primaryMuscleGroup),
   };
 }
 
@@ -91,11 +95,13 @@ describe('seedCatalog', () => {
     expect(repository.rows[0]?.muscleGroups).toEqual(['cuadriceps', 'gluteo', 'core']);
   });
 
-  it('no considera un cambio el mismo conjunto en otro orden', async () => {
-    const repository = fakeRepository([storedFrom(backSquat)]);
+  it('no considera un cambio los mismos secundarios en otro orden', async () => {
+    const repository = fakeRepository([
+      storedFrom({ ...backSquat, muscleGroups: ['cuadriceps', 'gluteo', 'core'] }),
+    ]);
 
     const report = await seedCatalog(repository, [
-      { ...backSquat, muscleGroups: ['gluteo', 'cuadriceps'] },
+      { ...backSquat, muscleGroups: ['cuadriceps', 'core', 'gluteo'] },
     ]);
 
     expect(report.unchanged).toEqual(['Back squat']);
@@ -109,14 +115,46 @@ describe('seedCatalog', () => {
     expect(report.updated).toEqual(['Back squat']);
   });
 
-  it('detecta un cambio de segmento del cuerpo', async () => {
+  it('detecta un cambio de grupo primario, y guarda el segmento que sale de él', async () => {
     const repository = fakeRepository([storedFrom(backSquat)]);
 
     const report = await seedCatalog(repository, [
-      { ...backSquat, bodySegment: 'cuerpo_completo' },
+      {
+        ...backSquat,
+        primaryMuscleGroup: 'cuerpo_completo',
+        muscleGroups: ['cuerpo_completo', 'cuadriceps'],
+      },
     ]);
 
     expect(report.updated).toEqual(['Back squat']);
+  });
+
+  it('un documento con el segmento de la regla vieja se actualiza', async () => {
+    // Antes de F5-01 el segmento salía de todos los grupos: un documento guardado así
+    // tiene que pasar al del grupo primario.
+    const repository = fakeRepository([
+      { ...storedFrom(backSquat), bodySegment: 'cuerpo_completo' },
+    ]);
+
+    const report = await seedCatalog(repository, [backSquat]);
+
+    expect(report.updated).toEqual(['Back squat']);
+  });
+
+  it('detecta un cambio de disciplinas, de equipo o de clave', async () => {
+    const cambios: CatalogExercise[] = [
+      { ...backSquat, disciplines: ['gimnasio', 'crossfit'] },
+      { ...backSquat, equipment: 'maquina' },
+      { ...backSquat, catalogKey: 'sentadilla-trasera' },
+    ];
+
+    for (const cambio of cambios) {
+      const repository = fakeRepository([storedFrom(backSquat)]);
+
+      const report = await seedCatalog(repository, [cambio]);
+
+      expect(report.updated).toEqual(['Back squat']);
+    }
   });
 
   it('un documento viejo sin capacidades cuenta como cambio y se completa', async () => {

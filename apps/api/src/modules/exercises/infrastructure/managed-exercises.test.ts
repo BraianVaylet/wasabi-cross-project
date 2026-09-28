@@ -269,7 +269,7 @@ describe('ejercicios gestionados (F1-05)', () => {
       });
     });
 
-    it('con grupos de segmentos distintos, el ejercicio es de cuerpo completo', async () => {
+    it('el primario es el primero de los grupos, y sólo él da el segmento (F5-01)', async () => {
       const cookie = await newUser();
 
       await add(cookie, {
@@ -283,7 +283,9 @@ describe('ejercicios gestionados (F1-05)', () => {
       });
 
       expect(await guardado('Thruster del garage')).toMatchObject({
-        bodySegment: 'cuerpo_completo',
+        primaryMuscleGroup: 'cuadriceps',
+        bodySegment: 'tren_inferior',
+        disciplines: [],
       });
     });
 

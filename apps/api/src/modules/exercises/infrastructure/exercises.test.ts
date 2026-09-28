@@ -1,4 +1,5 @@
 import {
+  bodySegmentFor,
   catalogExerciseDefinitionSchema,
   exerciseSchema,
   measureKindFor,
@@ -64,6 +65,7 @@ describe('catálogo de ejercicios', () => {
           createdAt: '2026-09-17T14:03:11.412Z',
           updatedAt: '2026-09-17T14:03:11.412Z',
           ...definition,
+          bodySegment: bodySegmentFor(definition.primaryMuscleGroup),
         });
 
         expect(result.success, `${definition.name}: ${result.error?.message ?? ''}`).toBe(true);

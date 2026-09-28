@@ -2,13 +2,16 @@ import type { BodySegment, MuscleGroup } from './exercise.schema.ts';
 
 /*
  * De qué parte del cuerpo es cada grupo muscular (spec §5.1). El segmento no se le
- * pregunta al usuario: sale de los grupos que eligió. Un dato que se puede calcular no se
- * pide, y así no hay forma de que los dos campos se contradigan.
+ * pregunta al usuario: sale del grupo primario del ejercicio. Un dato que se puede
+ * calcular no se pide, y así no hay forma de que los dos campos se contradigan.
  */
 
 const SEGMENT: Record<MuscleGroup, BodySegment> = {
   pectoral: 'tren_superior',
   espalda: 'tren_superior',
+  // La espalda baja estabiliza el tronco: cuenta como core, no como tren superior.
+  espalda_baja: 'core',
+  trapecio: 'tren_superior',
   hombro: 'tren_superior',
   biceps: 'tren_superior',
   triceps: 'tren_superior',
@@ -22,13 +25,11 @@ const SEGMENT: Record<MuscleGroup, BodySegment> = {
 };
 
 /**
- * El segmento de un ejercicio según sus grupos musculares: el de todos si coinciden, y
- * cuerpo completo si hay de más de uno. Es lo que permite comparar tren inferior contra
- * tren superior en las estadísticas generales (spec §5).
+ * El segmento de un ejercicio según su grupo primario. Los secundarios no lo mueven: una
+ * sentadilla con core de secundario sigue siendo tren inferior (ADR-0009). Es lo que
+ * permite comparar tren inferior contra tren superior en las estadísticas generales
+ * (spec §5).
  */
-export function bodySegmentFor(muscleGroups: readonly MuscleGroup[]): BodySegment {
-  const segments = new Set(muscleGroups.map((group) => SEGMENT[group]));
-  const only = [...segments];
-
-  return only.length === 1 && only[0] !== undefined ? only[0] : 'cuerpo_completo';
+export function bodySegmentFor(primaryMuscleGroup: MuscleGroup): BodySegment {
+  return SEGMENT[primaryMuscleGroup];
 }

@@ -33,12 +33,14 @@ export function measureKindFor(category: ExerciseCategory): MeasureKind {
 }
 
 /** Capacidad que entrena. Es el eje de las estadísticas generales (spec §5). */
-export const capacitySchema = z.enum(['fuerza', 'resistencia', 'velocidad']);
+export const capacitySchema = z.enum(['fuerza', 'potencia', 'resistencia', 'velocidad']);
 export type Capacity = z.infer<typeof capacitySchema>;
 
 export const muscleGroupSchema = z.enum([
   'pectoral',
   'espalda',
+  'espalda_baja',
+  'trapecio',
   'hombro',
   'biceps',
   'triceps',
@@ -63,6 +65,69 @@ export const bodySegmentSchema = z.enum([
   'cuerpo_completo',
 ]);
 export type BodySegment = z.infer<typeof bodySegmentSchema>;
+
+/**
+ * El contexto de entrenamiento (spec §5.1). Un ejercicio puede tener más de una: el Wall
+ * Ball es de crossfit y de hyrox. No cambia qué se mide: eso lo decide sólo la categoría.
+ */
+export const disciplineSchema = z.enum(['gimnasio', 'crossfit', 'hyrox', 'funcional', 'running']);
+export type Discipline = z.infer<typeof disciplineSchema>;
+
+/** Con qué se hace. Uno por ejercicio; sirve para buscar en el catálogo (spec §5.3). */
+export const equipmentSchema = z.enum([
+  'barra',
+  'barra_dominadas',
+  'barra_dominadas_o_anillas',
+  'mancuerna',
+  'kettlebell',
+  'polea',
+  'maquina',
+  'balon_medicinal',
+  'caja',
+  'cuerda',
+  'cuerda_de_saltar',
+  'cuerda_battle',
+  'remoergometro',
+  'bicicleta_assault',
+  'skierg',
+  'sled',
+  'sandbag',
+  'trx',
+  'banda_elastica',
+  'sin_equipo',
+]);
+export type Equipment = z.infer<typeof equipmentSchema>;
+
+/**
+ * La clave estable de un ejercicio del catálogo (`back-squat`): el seed la usa para saber
+ * qué ya existe, así un renombre no duplica el ejercicio (ADR-0009).
+ */
+export const catalogKeySchema = z
+  .string()
+  .max(60)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'La clave va en minúsculas, con guiones');
+
+const disciplinesSchema = z
+  .array(disciplineSchema)
+  .refine((values) => new Set(values).size === values.length, 'Disciplinas repetidas');
+
+/**
+ * El grupo primario encabeza la lista de grupos (spec §5.1). La lista completa es la que
+ * cuenta Estadísticas; el primario es el que da el segmento. Que vaya primero hace
+ * imposible que los dos digan cosas distintas.
+ */
+function primaryLeadsMuscleGroups(
+  value: { primaryMuscleGroup: MuscleGroup; muscleGroups: readonly MuscleGroup[] },
+  ctx: z.RefinementCtx,
+): void {
+  if (value.muscleGroups[0] !== value.primaryMuscleGroup) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['primaryMuscleGroup'],
+      message: 'El grupo primario tiene que encabezar los grupos musculares',
+    });
+  }
+}
 
 const capacitiesSchema = z
   .array(capacitySchema)
@@ -92,7 +157,8 @@ export type ExerciseDefinition = z.infer<typeof exerciseDefinitionSchema>;
  * grupos musculares que elige el usuario en el alta (spec §5.1). Sin ellos ese ejercicio
  * quedaría afuera de las estadísticas generales.
  *
- * El segmento del cuerpo no está: se deriva de los grupos con `bodySegmentFor`.
+ * El segmento del cuerpo no está: se deriva del grupo primario con `bodySegmentFor`. Hasta
+ * que el alta lo pida (F5-08), el primario de uno propio es el primero de sus grupos.
  */
 export const customExerciseDefinitionSchema = exerciseDefinitionSchema.extend({
   capacities: capacitiesSchema,
@@ -101,12 +167,20 @@ export const customExerciseDefinitionSchema = exerciseDefinitionSchema.extend({
 export type CustomExerciseDefinition = z.infer<typeof customExerciseDefinitionSchema>;
 
 /**
- * Una entrada del catálogo pre-cargado. Lo mismo que uno propio, más el segmento del
- * cuerpo, que en el catálogo viene cargado a mano.
+ * Una entrada del catálogo pre-cargado (spec §5.3). Además de lo de uno propio, trae su
+ * clave, el grupo primario, las disciplinas y el equipo, que en el catálogo son
+ * obligatorios: son con lo que se busca.
+ *
+ * El segmento del cuerpo no está: se deriva del grupo primario con `bodySegmentFor`.
  */
-export const catalogExerciseDefinitionSchema = customExerciseDefinitionSchema.extend({
-  bodySegment: bodySegmentSchema,
-});
+export const catalogExerciseDefinitionSchema = customExerciseDefinitionSchema
+  .extend({
+    catalogKey: catalogKeySchema,
+    primaryMuscleGroup: muscleGroupSchema,
+    disciplines: disciplinesSchema.min(1, 'Elegí al menos una disciplina'),
+    equipment: equipmentSchema,
+  })
+  .superRefine(primaryLeadsMuscleGroups);
 export type CatalogExerciseDefinition = z.infer<typeof catalogExerciseDefinitionSchema>;
 
 export const exerciseSchema = exerciseDefinitionSchema
@@ -117,13 +191,20 @@ export const exerciseSchema = exerciseDefinitionSchema
      * Con `userId` = ejercicio propio, visible sólo para su dueño.
      */
     ownerId: userIdSchema.nullable(),
+    /** Sólo en los del catálogo: la clave con la que los reconoce el seed. */
+    catalogKey: catalogKeySchema.optional(),
     // Los lleva todo ejercicio, del catálogo o propio: son el eje de Estadísticas
-    // (spec §5.1). En los propios el segmento sale de los grupos musculares.
+    // (spec §5.1). El segmento sale del grupo primario.
     capacities: capacitiesSchema,
+    primaryMuscleGroup: muscleGroupSchema,
     muscleGroups: muscleGroupsSchema,
     bodySegment: bodySegmentSchema,
+    // En el catálogo vienen cargados; en uno propio son opcionales (spec §5.1).
+    disciplines: disciplinesSchema,
+    equipment: equipmentSchema.optional(),
   })
-  .extend(timestampsSchema.shape);
+  .extend(timestampsSchema.shape)
+  .superRefine(primaryLeadsMuscleGroups);
 
 export type Exercise = z.infer<typeof exerciseSchema>;
 

@@ -265,6 +265,28 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
       expect(body.period).toBe('12m');
     });
 
+    it('la potencia y los grupos nuevos cuentan como cualquier otro (F5-01)', async () => {
+      const cookie = await newUser();
+      const snatch = await addCustom(
+        cookie,
+        'Snatch propio',
+        'fuerza',
+        ['potencia'],
+        ['trapecio', 'espalda_baja'],
+        60,
+        hace(6),
+      );
+      await log(cookie, snatch.id, 66, hace(1));
+
+      const body = (await summary(cookie)).json<GeneralStats>();
+
+      expect(body.byCapacity).toEqual([{ capacity: 'potencia', changePercent: 10, exercises: 1 }]);
+      expect(body.byMuscleGroup.map((entry) => entry.muscleGroup).sort()).toEqual([
+        'espalda_baja',
+        'trapecio',
+      ]);
+    });
+
     it('lo que no tiene marcas suficientes se informa aparte, no en cero', async () => {
       const cookie = await newUser();
       const medible = await addCustom(

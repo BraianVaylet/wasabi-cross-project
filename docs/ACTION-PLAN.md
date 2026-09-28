@@ -1864,6 +1864,10 @@ F5-04 (Epley) es independiente del resto.
   definición del catálogo; `disciplines` y `equipment` (obligatorios en el catálogo, opcionales en
   el propio); `bodySegmentFor` pasa a recibir el grupo primario. Etiquetas en es-AR de todo lo
   nuevo en `apps/web/src/lib/labels.ts`. Estadísticas suma potencia a la evolución por capacidad.
+  Como el ejercicio se valida al salir de Mongo, una migración completa el grupo primario (el
+  primero de la lista) y las disciplinas (vacías) en los documentos existentes, y recalcula el
+  segmento; el seed completa lo del catálogo. Hasta F5-08, el primario de un propio nuevo es el
+  primero de sus grupos.
 - **acceptance-criteria:**
   - Dado un ejercicio cuyo primario no está en `muscleGroups`, o está repetido, cuando se valida,
     entonces se rechaza.
@@ -1879,7 +1883,8 @@ F5-04 (Epley) es independiente del resto.
   Estadísticas con un ejercicio de potencia.
 - **error-codes:** ninguno
 - **data-model-impact:** `Exercise` suma `primaryMuscleGroup`, `disciplines`, `equipment` y, en el
-  catálogo, `catalogKey`. Los documentos existentes se completan en F5-06.
+  catálogo, `catalogKey`. Migración `20260928120000-grupo-primario`: completa los existentes;
+  el `down` vuelve a la regla vieja del segmento y saca los campos nuevos.
 
 ## [ ] F5-02a · Cardio en schemas y API
 
@@ -2011,16 +2016,16 @@ F5-04 (Epley) es independiente del resto.
 
 - **module:** exercises
 - **description:** Migración versionada que borra los ejercicios del catálogo de la Fase 0 (los
-  sin dueño y sin `catalogKey`) junto con los ejercicios gestionados y marcas que apuntan a ellos;
-  completa `primaryMuscleGroup` en los propios existentes con el primero de su lista; y crea el
-  índice único parcial sobre `catalogKey` para los ejercicios sin dueño. El `down` borra el índice
+  sin dueño y sin `catalogKey`) junto con los ejercicios gestionados y marcas que apuntan a ellos,
+  y crea el índice único parcial sobre `catalogKey` para los ejercicios sin dueño. (El grupo
+  primario de los propios existentes ya lo completó la migración de F5-01.) El `down` borra el índice
   y vuelve a insertar el catálogo viejo, pero no devuelve los gestionados ni las marcas: queda
   dicho en la migración y en ADR-0009. **No se corre en producción**: todavía no existe; después
   de producción, un cambio así se hace migrando.
 - **acceptance-criteria:**
   - Dado un Mongo con el catálogo viejo, un gestionado sobre "Back squat" con marcas y un propio,
     cuando corre la migración, entonces el ejercicio viejo, su gestionado y sus marcas ya no
-    están, y el propio sigue, con su primario.
+    están, y el propio sigue intacto.
   - Dado el `down`, cuando corre, entonces el catálogo viejo vuelve y el índice ya no existe.
 - **example:** —
 - **story-points:** 3

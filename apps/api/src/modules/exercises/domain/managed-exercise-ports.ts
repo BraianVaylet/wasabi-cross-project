@@ -80,6 +80,7 @@ export interface NewCustomExercise {
   readonly name: string;
   readonly category: ExerciseCategory;
   readonly capacities: readonly Capacity[];
+  readonly primaryMuscleGroup: MuscleGroup;
   readonly muscleGroups: readonly MuscleGroup[];
   readonly bodySegment: BodySegment;
 }
