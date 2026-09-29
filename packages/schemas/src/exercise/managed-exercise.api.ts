@@ -6,7 +6,9 @@ import {
   exerciseCategorySchema,
   exerciseDefinitionInputSchema,
   exerciseDefinitionInputShape,
+  disciplineSchema,
   exerciseDefinitionSchema,
+  exerciseSchema,
   measureKindSchema,
   primaryIsNotSecondary,
 } from './exercise.schema.ts';
@@ -55,6 +57,28 @@ export const addExerciseSchema = z.discriminatedUnion('source', [
 ]);
 
 export type AddExercise = z.infer<typeof addExerciseSchema>;
+
+/**
+ * Lo que se pide del catálogo (spec §5.3): `q` filtra por parte del nombre y `discipline`, por
+ * disciplina; juntos, se cumplen los dos. Una disciplina que no existe se rechaza.
+ */
+export const catalogQuerySchema = z.object({
+  q: z.string().trim().max(80).optional(),
+  discipline: disciplineSchema.optional(),
+});
+
+export type CatalogQuery = z.infer<typeof catalogQuerySchema>;
+
+/**
+ * Un ejercicio del catálogo, más si el usuario ya lo tiene en su lista: el front lo muestra
+ * pero no lo deja elegir (un ejercicio va una sola vez por lista, spec §5.1). Un propio
+ * editado a partir del catálogo no cuenta: es otro ejercicio.
+ */
+export const catalogEntrySchema = exerciseSchema.and(z.object({ alreadyAdded: z.boolean() }));
+
+export type CatalogEntry = z.infer<typeof catalogEntrySchema>;
+
+export const catalogResponseSchema = z.object({ exercises: z.array(catalogEntrySchema) });
 
 /** Un ejercicio de la lista de Home (mockup 4), con su valor actual. */
 export const managedExerciseSummarySchema = z.object({

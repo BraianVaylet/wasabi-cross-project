@@ -59,7 +59,7 @@ export function composeExercises(
   };
 
   return {
-    searchCatalog: (query) => searchCatalog(repository, query),
+    searchCatalog: (user, filters) => searchCatalog({ repository, store }, user.id, filters),
     addExercise: (user, input) =>
       addManagedExercise({ store, slots, records }, { userId: user.id, plan: user.plan, input }),
     listExercises: (user) => listManagedExercises({ store, records, counter }, user),

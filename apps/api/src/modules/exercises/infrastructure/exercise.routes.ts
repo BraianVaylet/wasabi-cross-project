@@ -1,12 +1,14 @@
 import {
   addExerciseSchema,
+  catalogQuerySchema,
+  catalogResponseSchema,
   exerciseListSchema,
-  exerciseSchema,
   managedExerciseIdSchema,
   managedExerciseSummarySchema,
   updateManagedExerciseSchema,
   type AddExercise,
-  type Exercise,
+  type CatalogEntry,
+  type CatalogQuery,
   type ExerciseList,
   type ManagedExerciseSummary,
   type Plan,
@@ -17,8 +19,6 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { AppError } from '../../../shared/errors/app-error.ts';
 
-const catalogResponse = z.object({ exercises: z.array(exerciseSchema) });
-const catalogQuery = z.object({ q: z.string().trim().max(80).optional() });
 // Un ID con otro formato se rechaza antes de buscar nada.
 const managedExerciseParams = z.object({ id: managedExerciseIdSchema });
 
@@ -33,7 +33,7 @@ export interface ExerciseRoutesOptions {
    * conoce el interior de otro módulo (docs/architecture.md).
    */
   requireSession: onRequestAsyncHookHandler;
-  searchCatalog: (query: string | undefined) => Promise<Exercise[]>;
+  searchCatalog: (user: SessionUser, filters: CatalogQuery) => Promise<CatalogEntry[]>;
   addExercise: (user: SessionUser, input: AddExercise) => Promise<ManagedExerciseSummary>;
   listExercises: (user: SessionUser) => Promise<ExerciseList>;
   editExercise: (
@@ -74,14 +74,17 @@ export function exerciseRoutes(options: ExerciseRoutesOptions): FastifyPluginAsy
         schema: {
           summary: 'Catálogo pre-cargado de ejercicios',
           description:
-            'Los ejercicios que todo usuario ve por default. Con `q`, filtra por parte del ' +
-            'nombre sin distinguir mayúsculas ni acentos.',
+            'Los ejercicios que todo usuario ve por default, cada uno con `alreadyAdded`: si ya ' +
+            'está en la lista del usuario. Con `q`, filtra por parte del nombre sin distinguir ' +
+            'mayúsculas ni acentos; con `discipline`, por disciplina; juntos, se cumplen los dos.',
           tags: ['exercises'],
-          querystring: catalogQuery,
-          response: { 200: catalogResponse },
+          querystring: catalogQuerySchema,
+          response: { 200: catalogResponseSchema },
         },
       },
-      async (request) => ({ exercises: await searchCatalog(request.query.q) }),
+      async (request) => ({
+        exercises: await searchCatalog(sessionUser(request), request.query),
+      }),
     );
 
     app.get(

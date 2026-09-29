@@ -228,6 +228,18 @@ describe('catálogo de ejercicios', () => {
       );
     });
 
+    it('el OpenAPI generado documenta los filtros y si ya está agregado', async () => {
+      const response = await harness.app.inject({ method: 'GET', url: '/docs/json' });
+
+      const spec = response.json<{
+        paths: Record<string, { get: { parameters: { name: string }[] } }>;
+      }>();
+      const parameters = spec.paths['/exercises/catalog']?.get.parameters ?? [];
+
+      expect(parameters.map((parameter) => parameter.name)).toEqual(['q', 'discipline']);
+      expect(response.body).toContain('alreadyAdded');
+    });
+
     it('vienen ordenados por nombre', async () => {
       const response = await harness.app.inject({
         method: 'GET',
