@@ -701,14 +701,30 @@ describe('ejercicios gestionados (F1-05)', () => {
   });
 
   describe('búsqueda en el catálogo', () => {
-    async function search(cookie: string, q: string): Promise<string[]> {
-      const response = await harness.app.inject({
+    interface Entry {
+      name: string;
+      alreadyAdded: boolean;
+      disciplines: string[];
+      equipment?: string;
+      primaryMuscleGroup: string;
+    }
+
+    function get(cookie: string, query: string) {
+      return harness.app.inject({
         method: 'GET',
-        url: `/api/v1/exercises/catalog?q=${encodeURIComponent(q)}`,
+        url: `/api/v1/exercises/catalog${query}`,
         headers: { cookie },
       });
+    }
+
+    async function entries(cookie: string, query = ''): Promise<Entry[]> {
+      const response = await get(cookie, query);
       expect(response.statusCode).toBe(200);
-      return response.json<{ exercises: { name: string }[] }>().exercises.map((e) => e.name);
+      return response.json<{ exercises: Entry[] }>().exercises;
+    }
+
+    async function search(cookie: string, q: string): Promise<string[]> {
+      return (await entries(cookie, `?q=${encodeURIComponent(q)}`)).map((e) => e.name);
     }
 
     it('encuentra por parte del nombre, sin distinguir mayúsculas', async () => {
@@ -724,6 +740,120 @@ describe('ejercicios gestionados (F1-05)', () => {
       const cookie = await newUser();
 
       expect(await search(cookie, 'elevacion de')).toEqual(['Elevación de gemelos']);
+    });
+
+    it('cada ejercicio trae sus disciplinas, su equipo y su grupo primario', async () => {
+      const cookie = await newUser();
+
+      const [snatch] = (await entries(cookie, '?q=snatch')).filter((e) => e.name === 'Snatch');
+
+      expect(snatch).toMatchObject({
+        disciplines: ['crossfit'],
+        equipment: 'barra',
+        primaryMuscleGroup: 'cuerpo_completo',
+      });
+    });
+
+    describe('por disciplina', () => {
+      it('Hyrox trae los seis de Hyrox y los tres que son de crossfit y de hyrox', async () => {
+        const cookie = await newUser();
+
+        const names = (await entries(cookie, '?discipline=hyrox')).map((e) => e.name);
+
+        expect(names).toHaveLength(9);
+        expect(names).toEqual(
+          expect.arrayContaining([
+            'Burpee Broad Jump',
+            'Carrera 1km (estación Hyrox)',
+            'Farmers Carry (Hyrox)',
+            'Sandbag Lunges',
+            'Sled Pull (Hyrox)',
+            'Sled Push (Hyrox)',
+            'Wall Ball',
+            'Remo (ergómetro)',
+            'SkiErg',
+          ]),
+        );
+      });
+
+      it('no trae uno de otra disciplina: el Sled Push de funcional no es el de Hyrox', async () => {
+        const cookie = await newUser();
+
+        const hyrox = (await entries(cookie, '?discipline=hyrox')).map((e) => e.name);
+        const funcional = (await entries(cookie, '?discipline=funcional')).map((e) => e.name);
+
+        expect(hyrox).not.toContain('Sled Push');
+        expect(funcional).toContain('Sled Push');
+        expect(funcional).not.toContain('Sled Push (Hyrox)');
+      });
+
+      it('con el nombre, se cumplen los dos filtros', async () => {
+        const cookie = await newUser();
+
+        const names = (await entries(cookie, '?q=press&discipline=gimnasio')).map((e) => e.name);
+
+        expect(names).toEqual([
+          'Press banca inclinado',
+          'Press banca plano',
+          'Press francés',
+          'Press militar',
+        ]);
+      });
+
+      it('una disciplina inexistente responde WC-SYS-400-002', async () => {
+        const cookie = await newUser();
+
+        const response = await get(cookie, '?discipline=natacion');
+
+        expect(response.statusCode).toBe(400);
+        expect(response.json()).toMatchObject({ errorCode: 'WC-SYS-400-002' });
+      });
+    });
+
+    describe('si el usuario ya lo tiene', () => {
+      it('sin nada en la lista, ninguno viene marcado', async () => {
+        const cookie = await newUser();
+
+        expect((await entries(cookie)).some((e) => e.alreadyAdded)).toBe(false);
+      });
+
+      it('el que ya agregó viene marcado, y los demás no', async () => {
+        const cookie = await newUser();
+        await addFromCatalog(cookie, 'Snatch');
+
+        const marcados = (await entries(cookie)).filter((e) => e.alreadyAdded);
+
+        expect(marcados.map((e) => e.name)).toEqual(['Snatch']);
+      });
+
+      it('es de cada usuario: lo que agrega uno no se marca al otro', async () => {
+        const braian = await newUser();
+        const amigo = await newUser();
+        await addFromCatalog(braian, 'Snatch');
+
+        expect((await entries(amigo)).some((e) => e.alreadyAdded)).toBe(false);
+      });
+
+      it('sigue marcado con los filtros', async () => {
+        const cookie = await newUser();
+        await addFromCatalog(cookie, 'Snatch');
+
+        const [snatch] = await entries(cookie, '?q=snatch&discipline=crossfit');
+
+        expect(snatch).toMatchObject({ name: 'Snatch', alreadyAdded: true });
+      });
+
+      it('borrarlo de la lista lo desmarca', async () => {
+        const cookie = await newUser();
+        const added = await addFromCatalog(cookie, 'Snatch');
+        await harness.app.inject({
+          method: 'DELETE',
+          url: `/api/v1/exercises/${added.json<ManagedExerciseSummary>().id}`,
+          headers: { cookie },
+        });
+
+        expect((await entries(cookie)).some((e) => e.alreadyAdded)).toBe(false);
+      });
     });
   });
 });

@@ -1,4 +1,10 @@
-import { limitsFor, type Exercise, type ExerciseList, type Plan } from '@wasabi-cross/schemas';
+import {
+  limitsFor,
+  type CatalogEntry,
+  type CatalogQuery,
+  type ExerciseList,
+  type Plan,
+} from '@wasabi-cross/schemas';
 import type {
   ManagedExerciseStore,
   RecordsGateway,
@@ -53,18 +59,25 @@ export async function listManagedExercises<Tx>(
 }
 
 /**
- * Búsqueda en el catálogo para "Nuevo ejercicio", sin distinguir mayúsculas ni acentos.
+ * Búsqueda en el catálogo para "Nuevo ejercicio": por parte del nombre (sin distinguir
+ * mayúsculas ni acentos) y por disciplina, y cada resultado dice si el usuario ya lo tiene.
  *
  * Filtra en memoria: el catálogo son decenas de entradas. Si alguna vez son miles, lo que
  * corresponde es guardar el nombre normalizado con un índice y filtrar en la base.
  */
-export async function searchCatalog(
-  repository: ExerciseRepository,
-  query: string | undefined,
-): Promise<Exercise[]> {
-  const catalog = await repository.findCatalog();
+export async function searchCatalog<Tx>(
+  deps: { repository: ExerciseRepository; store: ManagedExerciseStore<Tx> },
+  userId: string,
+  { q, discipline }: CatalogQuery,
+): Promise<CatalogEntry[]> {
+  const [catalog, managed] = await Promise.all([
+    deps.repository.findCatalog(),
+    deps.store.listManaged(userId),
+  ]);
+  const added = new Set(managed.map((entry) => entry.exerciseId));
 
-  return query === undefined || query.trim() === ''
-    ? catalog
-    : catalog.filter((exercise) => nameMatches(exercise.name, query));
+  return catalog
+    .filter((exercise) => q === undefined || q === '' || nameMatches(exercise.name, q))
+    .filter((exercise) => discipline === undefined || exercise.disciplines.includes(discipline))
+    .map((exercise) => ({ ...exercise, alreadyAdded: added.has(exercise.id) }));
 }
