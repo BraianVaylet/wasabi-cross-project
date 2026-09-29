@@ -4,11 +4,11 @@ import {
   generalStatsSchema,
   logRecordResponseSchema,
   recordHistorySchema,
-  exerciseSchema,
+  catalogResponseSchema,
   managedExerciseSummarySchema,
   userPreferencesSchema,
   type AddExercise,
-  type Exercise,
+  type CatalogEntry,
   type ExerciseList,
   type ExerciseStats,
   type GeneralStats,
@@ -32,7 +32,7 @@ import type { HttpClient } from '../lib/http.ts';
 export interface ApiClient {
   listExercises: () => Promise<ExerciseList>;
   /** El catálogo pre-cargado, para el buscador de "Nuevo ejercicio". */
-  catalog: () => Promise<Exercise[]>;
+  catalog: () => Promise<CatalogEntry[]>;
   addExercise: (input: AddExercise) => Promise<ManagedExerciseSummary>;
   updateExercise: (id: string, change: UpdateManagedExercise) => Promise<ManagedExerciseSummary>;
   deleteExercise: (id: string) => Promise<void>;
@@ -48,13 +48,11 @@ export interface ApiClient {
   savePreferences: (change: UpdatePreferences) => Promise<UserPreferences>;
 }
 
-const catalogResponse = z.object({ exercises: z.array(exerciseSchema) });
-
 export function createApiClient(http: HttpClient): ApiClient {
   return {
     listExercises: () => http.request(exerciseListSchema, '/api/v1/exercises'),
     catalog: async () =>
-      (await http.request(catalogResponse, '/api/v1/exercises/catalog')).exercises,
+      (await http.request(catalogResponseSchema, '/api/v1/exercises/catalog')).exercises,
     addExercise: (input) =>
       http.request(managedExerciseSummarySchema, '/api/v1/exercises', {
         method: 'POST',
@@ -113,12 +111,14 @@ export function exerciseListQueryOptions(api: ApiClient) {
 
 export const CATALOG_QUERY_KEY = ['catalog'] as const;
 
-/** El catálogo cambia poco: una vez por sesión alcanza. */
+/**
+ * El catálogo es igual para todos, pero cada entrada trae `alreadyAdded`, que es de cada
+ * usuario y cambia al agregar o borrar un ejercicio: por eso se vuelve a pedir en cada visita.
+ */
 export function catalogQueryOptions(api: ApiClient) {
   return queryOptions({
     queryKey: CATALOG_QUERY_KEY,
     queryFn: () => api.catalog(),
-    staleTime: Number.POSITIVE_INFINITY,
   });
 }
 

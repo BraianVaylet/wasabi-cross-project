@@ -9,8 +9,9 @@ la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packag
 `packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
 F4-03a/b/c, F4-04a/b y F4-05a a F4-11 mergeadas: el código de la fase está completo. Todas a la
 espera de que el usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
-en paralelo a lo que quede bloqueado de la Fase 3. **Fase 5 — Catálogo ampliado: planificada, 0 de
-15 tareas** (59 puntos); F5-00, la spec, en PR. Ver abajo.
+en paralelo a lo que quede bloqueado de la Fase 3. **Fase 5 — Catálogo ampliado: en curso, con el
+código hecho salvo F5-04 (Epley) y F5-12 (E2E de cierre)**; ninguna tarea cerrada todavía, a la
+espera del Definition of Done. Ver abajo.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
 - **F4-01 · Fundaciones del tema** (PR #56) y **F4-02 · Se retira la preferencia de tema** (PR
@@ -48,7 +49,7 @@ en paralelo a lo que quede bloqueado de la Fase 3. **Fase 5 — Catálogo amplia
 **Fase 5 — Catálogo ampliado** (2026-09-28): el usuario trajo un catálogo nuevo de ejercicios y
 pidió dos pestañas en el alta (elegir un precargado o crear uno propio), con el precargado
 editable. Decidido con él y volcado en [ADR-0009](../adr/0009-catalogo-ampliado.md) y spec §5.1 y
-§5.3 (F5-00, en PR):
+§5.3 (F5-00):
 
 - 62 ejercicios que **reemplazan de cero** a los 33 de la Fase 0 (no hay producción; la migración
   borra también los gestionados y marcas de dev/staging que apunten al catálogo viejo).
@@ -69,8 +70,10 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Revisar y mergear la PR de F5-00 (spec, ADR-0009 y Fase 5 en el backlog) y sincronizar Trello
-   (`/trello-sync`). Después arranca F5-01; F5-04 (Epley) y F5-09 (pestañas) pueden ir en paralelo.
+1. Fase 5: el alta con pestañas ya funciona de punta a punta (F5-00 a F5-03b y F5-05 a F5-11, en
+   `main` o en PR). Faltan **F5-04** (hipertrofia con RM estimado, Epley) y **F5-12** (E2E y axe del
+   alta con pestañas, que depende de F5-04). Después, el usuario cumple el Definition of Done de la
+   fase y sincroniza Trello (`/trello-sync`).
 2. El usuario revisa el Definition of Done de la Fase 4 (F4-01 a F4-12) y marca `[x]` y mueve
    las tarjetas a `Completadas`.
 3. Después de la fase: decidir si Login, Perfil y Estadísticas merecen un diseño propio (hoy

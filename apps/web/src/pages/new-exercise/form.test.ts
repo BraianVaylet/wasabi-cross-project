@@ -1,125 +1,301 @@
 import type { Exercise } from '@wasabi-cross/schemas';
 import { describe, expect, it } from 'vitest';
 import { formatDate } from '../../lib/format.ts';
-import { EMPTY_VALUES, kindFor, newExerciseSchemaFor, toAddExercise } from './form.ts';
+import {
+  EMPTY_VALUES,
+  catalogNameMatch,
+  definitionOf,
+  definitionValuesOf,
+  filterCatalog,
+  isEdited,
+  kindFor,
+  newExerciseSchema,
+  toAddExercise,
+  valuesFromCatalog,
+  type NewExerciseValues,
+} from './form.ts';
 
-const catalogo: Exercise[] = [
-  {
-    id: 'exo_a1b2c3d4',
-    ownerId: null,
-    name: 'Back squat',
-    category: 'fuerza',
-    capacities: ['fuerza'],
-    primaryMuscleGroup: 'cuadriceps',
-    muscleGroups: ['cuadriceps', 'gluteo'],
-    bodySegment: 'tren_inferior',
-    disciplines: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'exo_z9y8x7w6',
-    ownerId: null,
-    name: 'Carrera 1 km',
-    category: 'running',
-    capacities: ['resistencia'],
-    primaryMuscleGroup: 'cuerpo_completo',
-    muscleGroups: ['cuerpo_completo'],
-    bodySegment: 'cuerpo_completo',
-    disciplines: [],
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-  },
-];
+const sentadilla: Exercise = {
+  id: 'exo_a1b2c3d4',
+  ownerId: null,
+  catalogKey: 'back-squat',
+  name: 'Sentadilla trasera',
+  category: 'fuerza',
+  capacities: ['fuerza'],
+  primaryMuscleGroup: 'cuadriceps',
+  muscleGroups: ['cuadriceps', 'gluteo', 'core'],
+  bodySegment: 'tren_inferior',
+  disciplines: ['gimnasio'],
+  equipment: 'barra',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
 
-const base = { ...EMPTY_VALUES, level: 'intermedio' as const, date: '2026-06-23' };
+const wallBall: Exercise = {
+  ...sentadilla,
+  id: 'exo_z9y8x7w6',
+  catalogKey: 'wall-ball',
+  name: 'Wall Ball',
+  category: 'gimnastico',
+  capacities: ['resistencia'],
+  primaryMuscleGroup: 'cuerpo_completo',
+  muscleGroups: ['cuerpo_completo', 'cuadriceps', 'hombro'],
+  bodySegment: 'cuerpo_completo',
+  disciplines: ['crossfit', 'hyrox'],
+  equipment: 'balon_medicinal',
+};
+
+const catalogo = [sentadilla, wallBall];
+
+/** Un ejercicio propio completo: lo mínimo que el formulario acepta. */
+const propio: NewExerciseValues = {
+  ...EMPTY_VALUES,
+  name: 'Sentadilla del garage',
+  category: 'fuerza',
+  capacities: ['fuerza'],
+  primaryMuscleGroup: 'cuadriceps',
+  value: '100',
+  level: 'intermedio',
+  date: '2026-06-23',
+};
 
 describe('kindFor — qué mide lo que se está cargando', () => {
-  it('si el nombre es uno del catálogo, lo dice el catálogo', () => {
-    expect(kindFor(catalogo, 'back SQUAT', '')).toBe('rm');
-    expect(kindFor(catalogo, 'Carrera 1 km', '')).toBe('time');
+  it('lo dice la categoría', () => {
+    expect(kindFor('fuerza')).toBe('rm');
+    expect(kindFor('running')).toBe('time');
+    expect(kindFor('cardio')).toBe('distance');
+    expect(kindFor('distancia_carga')).toBe('weighted_distance');
   });
 
-  it('si es uno propio, lo dice la categoría elegida', () => {
-    expect(kindFor(catalogo, 'Wall ball', 'gimnastico')).toBe('reps');
-  });
-
-  it('sin nombre conocido ni categoría, todavía no se sabe', () => {
-    expect(kindFor(catalogo, 'Wall ball', '')).toBeNull();
+  it('sin categoría todavía no se sabe', () => {
+    expect(kindFor('')).toBeNull();
   });
 });
 
-describe('newExerciseSchemaFor — lo que se valida antes de llamar a la API', () => {
-  const schema = newExerciseSchemaFor(catalogo);
+describe('newExerciseSchema — lo que se valida antes de llamar a la API', () => {
+  const messagesOf = (values: NewExerciseValues) =>
+    (newExerciseSchema.safeParse(values).error?.issues ?? []).map((issue) => ({
+      path: issue.path,
+      message: issue.message,
+    }));
 
-  it('acepta uno del catálogo con su marca', () => {
-    expect(schema.safeParse({ ...base, name: 'Back squat', value: '100' }).success).toBe(true);
+  it('acepta un ejercicio propio completo', () => {
+    expect(newExerciseSchema.safeParse(propio).success).toBe(true);
   });
 
-  it('un ejercicio propio necesita categoría', () => {
-    const result = schema.safeParse({ ...base, name: 'Wall ball', value: '30' });
-
-    expect(result.error?.issues[0]).toMatchObject({
+  it('necesita categoría', () => {
+    expect(messagesOf({ ...propio, category: '' })).toContainEqual({
       path: ['category'],
       message: 'Elegí una categoría',
     });
   });
 
-  it('un ejercicio propio necesita capacidades y grupos musculares (spec §5.1)', () => {
-    const propio = {
-      ...base,
-      name: 'Wall ball',
-      category: 'gimnastico' as const,
-      value: '30',
-      capacities: ['fuerza' as const],
-      muscleGroups: ['hombro' as const],
-    };
-
-    expect(schema.safeParse(propio).success).toBe(true);
-    expect(schema.safeParse({ ...propio, capacities: [] }).success).toBe(false);
-    expect(schema.safeParse({ ...propio, muscleGroups: [] }).success).toBe(false);
+  it('necesita capacidades (spec §5.1)', () => {
+    expect(messagesOf({ ...propio, capacities: [] })).toContainEqual({
+      path: ['capacities'],
+      message: 'Elegí al menos una capacidad',
+    });
   });
 
-  it('uno del catálogo no la necesita: ya la tiene', () => {
-    expect(schema.safeParse({ ...base, name: 'Back squat', value: '100' }).success).toBe(true);
+  it('necesita el grupo primario, y sin él no llama a la API', () => {
+    expect(messagesOf({ ...propio, primaryMuscleGroup: '' })).toContainEqual({
+      path: ['primaryMuscleGroup'],
+      message: 'Elegí el grupo muscular primario',
+    });
   });
 
-  it('un tiempo mal escrito se rechaza en el campo de la marca', () => {
-    const result = schema.safeParse({ ...base, name: 'Carrera 1 km', value: '4:72' });
-
-    expect(result.error?.issues[0]).toMatchObject({ path: ['value'] });
-    expect(result.error?.issues[0]?.message).toMatch(/mm:ss/);
+  it('el primario no se repite como secundario', () => {
+    expect(messagesOf({ ...propio, secondaryMuscleGroups: ['cuadriceps'] })).toContainEqual({
+      path: ['secondaryMuscleGroups'],
+      message: 'El grupo primario no se repite como secundario',
+    });
   });
 
-  it('una marca que no es un número se rechaza', () => {
-    const result = schema.safeParse({ ...base, name: 'Back squat', value: 'cien' });
-
-    expect(result.error?.issues[0]?.path).toEqual(['value']);
+  it('las disciplinas, el equipo y los secundarios son opcionales', () => {
+    expect(
+      newExerciseSchema.safeParse({
+        ...propio,
+        disciplines: [],
+        equipment: '',
+        secondaryMuscleGroups: [],
+      }).success,
+    ).toBe(true);
   });
 
   it('el nombre y el nivel son obligatorios', () => {
-    expect(schema.safeParse({ ...base, name: '  ', value: '100' }).success).toBe(false);
-    expect(schema.safeParse({ ...base, name: 'Back squat', value: '100', level: '' }).success).toBe(
-      false,
-    );
+    expect(newExerciseSchema.safeParse({ ...propio, name: '  ' }).success).toBe(false);
+    expect(newExerciseSchema.safeParse({ ...propio, level: '' }).success).toBe(false);
   });
 
   it('sin nivel, el mensaje está en es-AR y no es el crudo de Zod', () => {
-    const result = schema.safeParse({ ...base, name: 'Back squat', value: '100', level: '' });
-
-    expect(result.error?.issues[0]).toMatchObject({
+    expect(messagesOf({ ...propio, level: '' })).toContainEqual({
       path: ['level'],
       message: 'Elegí tu nivel',
     });
   });
+
+  it('un tiempo mal escrito se rechaza en el campo de la marca', () => {
+    const [issue] = messagesOf({ ...propio, category: 'running', value: '4:72' });
+
+    expect(issue?.path).toEqual(['value']);
+    expect(issue?.message).toMatch(/mm:ss/);
+  });
+
+  it('una marca que no es un número se rechaza', () => {
+    expect(messagesOf({ ...propio, value: 'cien' })[0]?.path).toEqual(['value']);
+  });
+
+  it('distancia con carga pide el peso (F5-03b)', () => {
+    const sled = { ...propio, category: 'distancia_carga' as const, value: '50' };
+
+    expect(messagesOf(sled).map((issue) => issue.message)).toContain('Cargá el peso, como 80');
+    expect(newExerciseSchema.safeParse({ ...sled, extra: '152' }).success).toBe(true);
+  });
+
+  it('cardio pide las calorías (F5-03a)', () => {
+    const cardio = { ...propio, category: 'cardio' as const, value: '2000' };
+
+    expect(messagesOf(cardio).map((issue) => issue.message)).toContain(
+      'Cargá las calorías, como 120',
+    );
+    expect(newExerciseSchema.safeParse({ ...cardio, extra: '120' }).success).toBe(true);
+  });
+});
+
+describe('valuesFromCatalog — elegir un precargado llena el formulario', () => {
+  it('trae toda su definición, con el primario aparte de los secundarios', () => {
+    expect(valuesFromCatalog(sentadilla)).toMatchObject({
+      catalogId: 'exo_a1b2c3d4',
+      name: 'Sentadilla trasera',
+      category: 'fuerza',
+      capacities: ['fuerza'],
+      primaryMuscleGroup: 'cuadriceps',
+      secondaryMuscleGroups: ['gluteo', 'core'],
+      disciplines: ['gimnasio'],
+      equipment: 'barra',
+    });
+  });
+
+  it('lo del usuario arranca vacío: la marca, el nivel, la fecha y los comentarios', () => {
+    expect(valuesFromCatalog(sentadilla)).toMatchObject({
+      value: '',
+      level: '',
+      date: '',
+      notes: '',
+      withPain: false,
+    });
+  });
+
+  it('uno sin equipo deja el campo vacío, no "undefined"', () => {
+    const { equipment: _equipment, ...sinEquipo } = sentadilla;
+
+    expect(valuesFromCatalog(sinEquipo).equipment).toBe('');
+  });
+});
+
+describe('isEdited — cuándo un precargado pasa a ser propio', () => {
+  const values = valuesFromCatalog(sentadilla);
+
+  it('sin tocar nada no está editado', () => {
+    expect(isEdited(sentadilla, values)).toBe(false);
+  });
+
+  it('el nombre en otras mayúsculas o el orden de los secundarios no son ediciones', () => {
+    expect(
+      isEdited(sentadilla, {
+        ...values,
+        name: 'SENTADILLA trasera',
+        secondaryMuscleGroups: ['core', 'gluteo'],
+      }),
+    ).toBe(false);
+  });
+
+  it.each<[string, Partial<NewExerciseValues>]>([
+    ['el nombre', { name: 'Sentadilla con pausa' }],
+    ['la categoría', { category: 'hipertrofia' }],
+    ['las capacidades', { capacities: ['fuerza', 'potencia'] }],
+    ['el grupo primario', { primaryMuscleGroup: 'gluteo', secondaryMuscleGroups: ['core'] }],
+    ['los secundarios', { secondaryMuscleGroups: ['gluteo'] }],
+    ['las disciplinas', { disciplines: ['gimnasio', 'crossfit'] }],
+    ['el equipo', { equipment: 'maquina' }],
+  ])('cambiar %s lo edita', (_campo, cambio) => {
+    expect(isEdited(sentadilla, { ...values, ...cambio })).toBe(true);
+  });
+
+  it('borrar el primario o la categoría también es editar', () => {
+    expect(isEdited(sentadilla, { ...values, primaryMuscleGroup: '' })).toBe(true);
+    expect(isEdited(sentadilla, { ...values, category: '' })).toBe(true);
+  });
+
+  it('lo que es del usuario no edita nada: la marca, el nivel y los comentarios', () => {
+    expect(
+      isEdited(sentadilla, {
+        ...values,
+        value: '100',
+        level: 'elite',
+        notes: 'Con cinturón',
+        withPain: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('volver al valor original quita la edición', () => {
+    const editado = { ...values, name: 'Otra' };
+    expect(isEdited(sentadilla, editado)).toBe(true);
+
+    expect(isEdited(sentadilla, { ...editado, ...definitionValuesOf(sentadilla) })).toBe(false);
+  });
+});
+
+describe('definitionOf', () => {
+  it('sin categoría o sin primario todavía no hay definición', () => {
+    expect(definitionOf({ ...propio, category: '' })).toBeNull();
+    expect(definitionOf({ ...propio, primaryMuscleGroup: '' })).toBeNull();
+  });
+
+  it('sin equipo, no manda el campo', () => {
+    expect(definitionOf(propio)).not.toHaveProperty('equipment');
+    expect(definitionOf({ ...propio, equipment: 'barra' })).toMatchObject({ equipment: 'barra' });
+  });
+
+  it('recorta el nombre', () => {
+    expect(definitionOf({ ...propio, name: '  Sentadilla  ' })?.name).toBe('Sentadilla');
+  });
 });
 
 describe('toAddExercise — lo que viaja a la API', () => {
-  it('uno del catálogo viaja por su ID, no por su nombre', () => {
-    const input = toAddExercise(catalogo, {
-      ...base,
-      name: 'back squat',
+  it('uno creado de cero viaja como propio, con toda su definición', () => {
+    const input = toAddExercise({
+      ...propio,
+      secondaryMuscleGroups: ['gluteo'],
+      disciplines: ['gimnasio'],
+      equipment: 'barra',
+    });
+
+    expect(input).toMatchObject({
+      source: 'custom',
+      name: 'Sentadilla del garage',
+      category: 'fuerza',
+      capacities: ['fuerza'],
+      primaryMuscleGroup: 'cuadriceps',
+      secondaryMuscleGroups: ['gluteo'],
+      disciplines: ['gimnasio'],
+      equipment: 'barra',
+      firstRecord: { value: 100 },
+    });
+  });
+
+  it('un nombre igual al del catálogo no lo convierte en uno del catálogo', () => {
+    const input = toAddExercise({ ...propio, name: 'Sentadilla trasera' });
+
+    expect(input.source).toBe('custom');
+  });
+
+  it('uno del catálogo viaja por su ID, con la definición como quedó', () => {
+    const input = toAddExercise({
+      ...valuesFromCatalog(sentadilla),
       value: '100',
+      level: 'intermedio',
       notes: 'Con cinturón',
       withPain: true,
     });
@@ -127,6 +303,14 @@ describe('toAddExercise — lo que viaja a la API', () => {
     expect(input).toMatchObject({
       source: 'catalog',
       exerciseId: 'exo_a1b2c3d4',
+      definition: {
+        name: 'Sentadilla trasera',
+        category: 'fuerza',
+        primaryMuscleGroup: 'cuadriceps',
+        secondaryMuscleGroups: ['gluteo', 'core'],
+        disciplines: ['gimnasio'],
+        equipment: 'barra',
+      },
       level: 'intermedio',
       withPain: true,
       notes: 'Con cinturón',
@@ -134,118 +318,93 @@ describe('toAddExercise — lo que viaja a la API', () => {
     });
   });
 
-  it('uno propio viaja con su nombre, su categoría y lo que entrena', () => {
-    const input = toAddExercise(catalogo, {
-      ...base,
-      name: 'Wall ball',
-      category: 'gimnastico',
-      capacities: ['fuerza', 'resistencia'],
-      muscleGroups: ['cuadriceps', 'hombro'],
-      value: '30',
+  it('uno del catálogo editado manda la definición editada: el servidor decide si es propio', () => {
+    const input = toAddExercise({
+      ...valuesFromCatalog(sentadilla),
+      primaryMuscleGroup: 'gluteo',
+      secondaryMuscleGroups: ['core'],
+      value: '100',
+      level: 'intermedio',
     });
 
     expect(input).toMatchObject({
-      source: 'custom',
-      name: 'Wall ball',
-      category: 'gimnastico',
-      capacities: ['fuerza', 'resistencia'],
-      // Hasta F5-11, el primario es el primero de los tildados.
-      primaryMuscleGroup: 'cuadriceps',
-      secondaryMuscleGroups: ['hombro'],
-      firstRecord: { value: 30 },
+      source: 'catalog',
+      exerciseId: 'exo_a1b2c3d4',
+      definition: { primaryMuscleGroup: 'gluteo', secondaryMuscleGroups: ['core'] },
     });
-  });
-
-  it('uno del catálogo no las manda: las suyas ya están cargadas', () => {
-    const input = toAddExercise(catalogo, {
-      ...base,
-      name: 'Back squat',
-      capacities: ['velocidad'],
-      muscleGroups: ['gemelo'],
-      value: '100',
-    });
-
-    expect(input).not.toHaveProperty('capacities');
-    expect(input).not.toHaveProperty('primaryMuscleGroup');
-    expect(input).not.toHaveProperty('definition');
   });
 
   it('el segmento del cuerpo no viaja: lo deriva el servidor (spec §5.1)', () => {
-    const input = toAddExercise(catalogo, {
-      ...base,
-      name: 'Wall ball',
-      category: 'gimnastico',
-      capacities: ['fuerza'],
-      muscleGroups: ['hombro'],
-      value: '30',
-    });
-
-    expect(input).not.toHaveProperty('bodySegment');
+    expect(toAddExercise(propio)).not.toHaveProperty('bodySegment');
   });
 
   it('un tiempo se guarda en segundos', () => {
-    const input = toAddExercise(catalogo, { ...base, name: 'Carrera 1 km', value: '4:32' });
+    const input = toAddExercise({ ...propio, category: 'running', value: '4:32' });
 
     expect(input.firstRecord.value).toBe(272);
   });
 
   it('la fecha elegida viaja al mediodía, para que no se corra de día por la zona horaria', () => {
-    const input = toAddExercise(catalogo, { ...base, name: 'Back squat', value: '100' });
+    const input = toAddExercise(propio);
 
     // Mirado desde la zona del usuario, sigue siendo el mismo día en cualquier huso.
     expect(formatDate(input.firstRecord.performedAt ?? '')).toBe('23/06/2026');
   });
 
   it('sin fecha, no manda ninguna: la pone la API', () => {
-    const input = toAddExercise(catalogo, { ...base, name: 'Back squat', value: '100', date: '' });
-
-    expect(input.firstRecord.performedAt).toBeUndefined();
+    expect(toAddExercise({ ...propio, date: '' }).firstRecord.performedAt).toBeUndefined();
   });
 
-  it('uno propio de distancia con carga pide el peso, y lo manda con los metros (F5-03b)', () => {
-    const sled = {
-      ...EMPTY_VALUES,
-      name: 'Sled Push del garage',
-      category: 'distancia_carga' as const,
-      capacities: ['fuerza' as const],
-      muscleGroups: ['cuadriceps' as const],
+  it('distancia con carga manda el peso con los metros (F5-03b)', () => {
+    const input = toAddExercise({
+      ...propio,
+      category: 'distancia_carga',
       value: '50',
-      level: 'intermedio' as const,
-    };
+      extra: '152',
+    });
 
-    const sinPeso = newExerciseSchemaFor(catalogo).safeParse(sled);
-    expect(sinPeso.success).toBe(false);
-    expect(sinPeso.error?.issues.map((issue) => issue.message)).toContain('Cargá el peso, como 80');
-
-    const input = toAddExercise(catalogo, { ...sled, extra: '152' });
-    expect(input).toMatchObject({ category: 'distancia_carga' });
-    expect(input.firstRecord).toEqual({ value: 50, weightKg: 152 });
+    expect(input.firstRecord).toMatchObject({ value: 50, weightKg: 152 });
   });
 
-  it('uno propio de cardio pide las calorías, y las manda con los metros (F5-03a)', () => {
-    const cardio = {
-      ...EMPTY_VALUES,
-      name: 'Remo del garage',
-      category: 'cardio' as const,
-      capacities: ['resistencia' as const],
-      muscleGroups: ['cuerpo_completo' as const],
-      value: '2000',
-      level: 'intermedio' as const,
-    };
+  it('cardio manda las calorías con los metros (F5-03a)', () => {
+    const input = toAddExercise({ ...propio, category: 'cardio', value: '2000', extra: '120' });
 
-    const sinCalorias = newExerciseSchemaFor(catalogo).safeParse(cardio);
-    expect(sinCalorias.success).toBe(false);
-    expect(sinCalorias.error?.issues.map((issue) => issue.message)).toContain(
-      'Cargá las calorías, como 120',
-    );
-
-    const input = toAddExercise(catalogo, { ...cardio, extra: '120' });
-    expect(input.firstRecord).toEqual({ value: 2000, caloriesKcal: 120 });
+    expect(input.firstRecord).toMatchObject({ value: 2000, caloriesKcal: 120 });
   });
 
   it('sin comentarios, no manda el campo vacío', () => {
-    const input = toAddExercise(catalogo, { ...base, name: 'Back squat', value: '100' });
+    expect(toAddExercise(propio).notes).toBeUndefined();
+  });
+});
 
-    expect(input.notes).toBeUndefined();
+describe('catalogNameMatch — el aviso de un nombre parecido', () => {
+  it('encuentra el del catálogo sin distinguir mayúsculas ni acentos', () => {
+    expect(catalogNameMatch(catalogo, 'sentadilla TRASERA')?.id).toBe('exo_a1b2c3d4');
+  });
+
+  it('sin nombre o sin coincidencia no avisa', () => {
+    expect(catalogNameMatch(catalogo, '  ')).toBeUndefined();
+    expect(catalogNameMatch(catalogo, 'Press banca')).toBeUndefined();
+  });
+});
+
+describe('filterCatalog — el buscador y el filtro de disciplina', () => {
+  it('sin filtros trae todo', () => {
+    expect(filterCatalog(catalogo, '', null)).toHaveLength(2);
+  });
+
+  it('por nombre, sin distinguir mayúsculas ni acentos', () => {
+    expect(filterCatalog(catalogo, 'WALL', null).map((e) => e.name)).toEqual(['Wall Ball']);
+  });
+
+  it('por disciplina', () => {
+    expect(filterCatalog(catalogo, '', 'hyrox').map((e) => e.name)).toEqual(['Wall Ball']);
+    expect(filterCatalog(catalogo, '', 'gimnasio').map((e) => e.name)).toEqual([
+      'Sentadilla trasera',
+    ]);
+  });
+
+  it('con los dos, se cumplen los dos', () => {
+    expect(filterCatalog(catalogo, 'sentadilla', 'hyrox')).toEqual([]);
   });
 });

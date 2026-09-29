@@ -1,10 +1,14 @@
 import {
   capacitySchema,
+  disciplineSchema,
+  equipmentSchema,
+  exerciseCategorySchema,
   levelSchema,
   muscleGroupSchema,
   type AddExercise,
   type Capacity,
-  type Exercise,
+  type CatalogEntry,
+  type Discipline,
   type ExerciseCategory,
   type Level,
   type MuscleGroup,
@@ -21,19 +25,29 @@ import {
   TextArea,
   TextField,
 } from '@wasabi-cross/ui';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { autoColon } from '../../lib/format.ts';
-import { CAPACITY_LABEL, MUSCLE_GROUP_LABEL, optionsFrom } from '../../lib/labels.ts';
-import { EXTRA_FIELD, extraFieldKindFor, MARK_FIELD, today } from '../../lib/mark-input.ts';
 import {
-  catalogMatch,
-  kindFor,
-  newExerciseSchemaFor,
-  toAddExercise,
-  EMPTY_VALUES,
-} from './form.ts';
+  CAPACITY_LABEL,
+  DISCIPLINE_LABEL,
+  EQUIPMENT_LABEL,
+  MUSCLE_GROUP_LABEL,
+  optionsFrom,
+} from '../../lib/labels.ts';
+import { EXTRA_FIELD, extraFieldKindFor, MARK_FIELD, today } from '../../lib/mark-input.ts';
 import { CatalogPicker } from './CatalogPicker.tsx';
+import {
+  catalogNameMatch,
+  definitionValuesOf,
+  isEdited,
+  kindFor,
+  newExerciseSchema,
+  toAddExercise,
+  valuesFromCatalog,
+  EMPTY_VALUES,
+  type NewExerciseValues,
+} from './form.ts';
 import './new-exercise.css';
 
 export type NewExerciseMode = 'catalogo' | 'crear';
@@ -44,12 +58,12 @@ const MODES: readonly { value: NewExerciseMode; label: string }[] = [
 ];
 
 export interface NewExercisePageProps {
-  catalog: Exercise[];
-  /** Los `exerciseId` que el usuario ya tiene, para no ofrecerlos de nuevo. */
-  owned: ReadonlySet<string>;
+  catalog: CatalogEntry[];
   /** La pestaña activa: vive en la URL, así "atrás" vuelve a la otra. */
   mode: NewExerciseMode;
   onModeChange: (mode: NewExerciseMode) => void;
+  /** El plan ya no admite más ejercicios propios: un precargado editado no entraría. */
+  customLimitReached: boolean;
   onSubmit: (input: AddExercise) => void;
   pending: boolean;
   error: unknown;
@@ -74,34 +88,46 @@ const LEVELS: readonly { value: Level; label: string }[] = [
 const SIN_CATEGORIA = { label: 'Marca', placeholder: 'Elegí primero la categoría' };
 
 /*
- * Qué entrena el ejercicio (spec §5.1). Sólo se pregunta en uno propio: el del catálogo ya
- * lo trae cargado. El segmento del cuerpo no está acá porque no se pregunta: sale de los
- * grupos musculares.
+ * Qué entrena el ejercicio (spec §5.1) y con qué se hace. El segmento del cuerpo no está
+ * acá porque no se pregunta: sale del grupo primario.
  */
 const CAPACITIES = optionsFrom(CAPACITY_LABEL);
-
 const MUSCLE_GROUPS = optionsFrom(MUSCLE_GROUP_LABEL);
+const DISCIPLINES = optionsFrom(DISCIPLINE_LABEL);
+const EQUIPMENT = optionsFrom(EQUIPMENT_LABEL);
 
 /** Nuevo ejercicio (mockup 9): uno del catálogo o uno propio, con su primera marca. */
 export function NewExercisePage({
   catalog,
-  owned,
   mode,
   onModeChange,
+  customLimitReached,
   onSubmit,
   pending,
   error,
 }: NewExercisePageProps): React.JSX.Element {
-  const catalogListId = useId();
   const [query, setQuery] = useState('');
+  const [discipline, setDiscipline] = useState<Discipline | null>(null);
 
   const form = useForm({
     defaultValues: EMPTY_VALUES,
-    validators: { onSubmit: newExerciseSchemaFor(catalog) },
+    validators: { onSubmit: newExerciseSchema },
     onSubmit: ({ value }) => {
-      onSubmit(toAddExercise(catalog, value));
+      onSubmit(toAddExercise(value));
     },
   });
+
+  /*
+   * Cargar todos los campos de una vez. Es campo por campo y no `form.reset(values)`: cuando
+   * se elige un precargado el formulario todavía no está montado (la pestaña activa es otra),
+   * y `reset` no deja los valores donde los espera el formulario cuando aparece.
+   */
+  function load(values: NewExerciseValues): void {
+    for (const key of Object.keys(values) as (keyof NewExerciseValues)[]) {
+      form.setFieldValue(key, values[key]);
+    }
+    form.setErrorMap({ onSubmit: undefined });
+  }
 
   return (
     <>
@@ -114,12 +140,13 @@ export function NewExercisePage({
         {mode === 'catalogo' ? (
           <CatalogPicker
             catalog={catalog}
-            owned={owned}
             query={query}
             onQueryChange={setQuery}
+            discipline={discipline}
+            onDisciplineChange={setDiscipline}
             onPick={(exercise) => {
-              // El formulario ya sabe qué hacer con un nombre del catálogo: categoría, campos y marca.
-              form.setFieldValue('name', exercise.name);
+              // El formulario se llena con toda su definición, y desde ahí se puede editar.
+              load(valuesFromCatalog(exercise));
               onModeChange('crear');
             }}
           />
@@ -132,118 +159,222 @@ export function NewExercisePage({
               void form.handleSubmit();
             }}
           >
-            <form.Field name="name">
-              {(field) => (
-                <>
-                  <TextField
-                    label="Nombre"
-                    list={catalogListId}
-                    autoComplete="off"
-                    placeholder="Ej: Clean, Back squat…"
-                    value={field.state.value}
-                    onChange={(event) => {
-                      field.handleChange(event.target.value);
-                    }}
-                    onBlur={field.handleBlur}
-                    error={field.state.meta.errors[0]?.message}
-                  />
-                  {/* El catálogo como sugerencias del navegador: se busca con el teclado. */}
-                  <datalist id={catalogListId}>
-                    {catalog.map((exercise) => (
-                      <option key={exercise.id} value={exercise.name} />
-                    ))}
-                  </datalist>
-                </>
-              )}
-            </form.Field>
-
-            <form.Subscribe
-              selector={(state) => [state.values.name, state.values.category] as const}
-            >
-              {([name, category]) => {
-                const match = catalogMatch(catalog, name);
-                const kind = kindFor(catalog, name, category);
-                const field = kind ? MARK_FIELD[kind] : SIN_CATEGORIA;
+            <form.Subscribe selector={(state) => state.values}>
+              {(values) => {
+                const chosen = catalog.find((exercise) => exercise.id === values.catalogId);
+                const edited = chosen !== undefined && isEdited(chosen, values);
+                const similar =
+                  chosen === undefined ? catalogNameMatch(catalog, values.name) : undefined;
+                const kind = kindFor(values.category);
+                const markField = kind ? MARK_FIELD[kind] : SIN_CATEGORIA;
                 const extraKind = kind ? extraFieldKindFor(kind) : null;
 
                 return (
                   <>
-                    {match ? (
-                      <p className="new-exercise__fixed">
-                        <span className="wc-field-label">Categoría</span>
-                        <span className="new-exercise__fixed-value">
-                          {CATEGORIES.find((option) => option.value === match.category)?.label}
-                        </span>
-                      </p>
-                    ) : (
-                      <form.Field name="category">
-                        {(categoryField) => (
-                          <RadioGroup
-                            legend="Categoría"
-                            name="category"
-                            options={CATEGORIES}
-                            value={
-                              categoryField.state.value === ''
-                                ? undefined
-                                : categoryField.state.value
-                            }
-                            onChange={(value) => {
-                              categoryField.handleChange(value);
+                    {chosen === undefined ? null : (
+                      <div className="new-exercise__notice" role="status">
+                        <p>
+                          Partís de <strong>{chosen.name}</strong> del catálogo.
+                          {edited
+                            ? ' Cambiaste su definición: se va a guardar como ejercicio propio y cuenta para tu límite de propios.'
+                            : ' Si cambiás algo de su definición, se guarda como ejercicio propio.'}
+                        </p>
+                        {edited && customLimitReached ? (
+                          <p>
+                            Tu plan no admite más ejercicios propios: volvé a los valores del
+                            catálogo para poder guardarlo.
+                          </p>
+                        ) : null}
+                        <div className="new-exercise__notice-actions">
+                          {edited ? (
+                            <Button
+                              variant="secondary"
+                              onClick={() => {
+                                const original = definitionValuesOf(chosen);
+                                form.setFieldValue('name', original.name);
+                                form.setFieldValue('category', original.category);
+                                form.setFieldValue('capacities', original.capacities);
+                                form.setFieldValue(
+                                  'primaryMuscleGroup',
+                                  original.primaryMuscleGroup,
+                                );
+                                form.setFieldValue(
+                                  'secondaryMuscleGroups',
+                                  original.secondaryMuscleGroups,
+                                );
+                                form.setFieldValue('disciplines', original.disciplines);
+                                form.setFieldValue('equipment', original.equipment);
+                              }}
+                            >
+                              Volver a los valores del catálogo
+                            </Button>
+                          ) : null}
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              load(EMPTY_VALUES);
                             }}
-                            error={categoryField.state.meta.errors[0]?.message}
-                          />
-                        )}
-                      </form.Field>
+                          >
+                            Empezar de cero
+                          </Button>
+                        </div>
+                      </div>
                     )}
 
-                    {/* Sólo en uno propio: el del catálogo ya trae lo suyo (spec §5.1). */}
-                    {match ? null : (
-                      <>
-                        <form.Field name="capacities">
-                          {(capacitiesField) => (
-                            <CheckboxGroup
-                              legend="Capacidades"
-                              options={CAPACITIES}
-                              values={capacitiesField.state.value}
-                              onChange={(values) => {
-                                capacitiesField.handleChange(
-                                  values.filter(
-                                    (value): value is Capacity =>
-                                      capacitySchema.safeParse(value).success,
-                                  ),
-                                );
-                              }}
-                              error={capacitiesField.state.meta.errors[0]?.message}
-                            />
-                          )}
-                        </form.Field>
-
-                        <form.Field name="muscleGroups">
-                          {(groupsField) => (
-                            <CheckboxGroup
-                              legend="Grupos musculares"
-                              options={MUSCLE_GROUPS}
-                              values={groupsField.state.value}
-                              onChange={(values) => {
-                                groupsField.handleChange(
-                                  values.filter(
-                                    (value): value is MuscleGroup =>
-                                      muscleGroupSchema.safeParse(value).success,
-                                  ),
-                                );
-                              }}
-                              error={groupsField.state.meta.errors[0]?.message}
-                            />
-                          )}
-                        </form.Field>
-                      </>
+                    <form.Field name="name">
+                      {(field) => (
+                        <TextField
+                          label="Nombre"
+                          autoComplete="off"
+                          placeholder="Ej: Sentadilla del garage"
+                          value={field.state.value}
+                          onChange={(event) => {
+                            field.handleChange(event.target.value);
+                          }}
+                          onBlur={field.handleBlur}
+                          error={field.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </form.Field>
+                    {similar === undefined ? null : (
+                      <p className="new-exercise__hint" role="status">
+                        Ya hay un «{similar.name}» en el catálogo. Podés crearlo igual, o elegirlo
+                        en la pestaña Catálogo.
+                      </p>
                     )}
+
+                    <form.Field name="category">
+                      {(categoryField) => (
+                        <RadioGroup
+                          legend="Categoría"
+                          name="category"
+                          options={CATEGORIES}
+                          value={
+                            categoryField.state.value === '' ? undefined : categoryField.state.value
+                          }
+                          onChange={(value) => {
+                            categoryField.handleChange(exerciseCategorySchema.parse(value));
+                          }}
+                          error={categoryField.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="capacities">
+                      {(capacitiesField) => (
+                        <CheckboxGroup
+                          legend="Capacidades"
+                          options={CAPACITIES}
+                          values={capacitiesField.state.value}
+                          onChange={(selected) => {
+                            capacitiesField.handleChange(
+                              selected.filter(
+                                (value): value is Capacity =>
+                                  capacitySchema.safeParse(value).success,
+                              ),
+                            );
+                          }}
+                          error={capacitiesField.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="primaryMuscleGroup">
+                      {(primaryField) => (
+                        <Select
+                          label="Grupo muscular primario"
+                          value={primaryField.state.value}
+                          onChange={(event) => {
+                            const primary = muscleGroupSchema.safeParse(event.target.value);
+                            primaryField.handleChange(primary.success ? primary.data : '');
+                            // El primario no puede ser también secundario.
+                            form.setFieldValue(
+                              'secondaryMuscleGroups',
+                              values.secondaryMuscleGroups.filter(
+                                (group) => !primary.success || group !== primary.data,
+                              ),
+                            );
+                          }}
+                          onBlur={primaryField.handleBlur}
+                          error={primaryField.state.meta.errors[0]?.message}
+                        >
+                          <option value="" disabled>
+                            Elegí el grupo primario
+                          </option>
+                          {MUSCLE_GROUPS.map((group) => (
+                            <option key={group.value} value={group.value}>
+                              {group.label}
+                            </option>
+                          ))}
+                        </Select>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="secondaryMuscleGroups">
+                      {(groupsField) => (
+                        <CheckboxGroup
+                          legend="Grupos musculares secundarios"
+                          options={MUSCLE_GROUPS.filter(
+                            (group) => group.value !== values.primaryMuscleGroup,
+                          )}
+                          values={groupsField.state.value}
+                          onChange={(selected) => {
+                            groupsField.handleChange(
+                              selected.filter(
+                                (value): value is MuscleGroup =>
+                                  muscleGroupSchema.safeParse(value).success,
+                              ),
+                            );
+                          }}
+                          error={groupsField.state.meta.errors[0]?.message}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="disciplines">
+                      {(disciplinesField) => (
+                        <CheckboxGroup
+                          legend="Disciplinas (opcional)"
+                          options={DISCIPLINES}
+                          values={disciplinesField.state.value}
+                          onChange={(selected) => {
+                            disciplinesField.handleChange(
+                              selected.filter(
+                                (value): value is Discipline =>
+                                  disciplineSchema.safeParse(value).success,
+                              ),
+                            );
+                          }}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="equipment">
+                      {(equipmentField) => (
+                        <Select
+                          label="Equipo (opcional)"
+                          value={equipmentField.state.value}
+                          onChange={(event) => {
+                            const equipment = equipmentSchema.safeParse(event.target.value);
+                            equipmentField.handleChange(equipment.success ? equipment.data : '');
+                          }}
+                          onBlur={equipmentField.handleBlur}
+                        >
+                          <option value="">Sin especificar</option>
+                          {EQUIPMENT.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </Select>
+                      )}
+                    </form.Field>
 
                     <form.Field name="value">
                       {(valueField) => (
                         <TextField
-                          label={field.label}
-                          placeholder={field.placeholder}
+                          label={markField.label}
+                          placeholder={markField.placeholder}
                           inputMode={kind === 'time' ? 'text' : 'decimal'}
                           value={valueField.state.value}
                           onChange={(event) => {
