@@ -47,6 +47,16 @@ const sled: ManagedExerciseSummary = {
   current: { value: 50, unit: 'm', weightKg: 152, performedAt: '2026-07-01T12:00:00.000Z' },
 };
 
+/** 10 × 80 kg: su RM estimado (Epley) es 106,67 kg, que se muestra como 106,5 (spec §5.1). */
+const pressBanca: ManagedExerciseSummary = {
+  ...backSquat,
+  id: 'mex_p4e5s6b7',
+  name: 'Press banca plano',
+  category: 'hipertrofia',
+  kind: 'weighted_reps',
+  current: { value: 10, unit: 'reps', weightKg: 80, performedAt: '2026-07-01T12:00:00.000Z' },
+};
+
 function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
   return {
     exercises,
@@ -133,6 +143,64 @@ describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
 
       expect(await screen.findByTestId('valor-actual')).toHaveTextContent('4:32');
       expect(screen.getByText('desnivel 150 m')).toBeInTheDocument();
+    });
+  });
+
+  describe('hipertrofia: la carga sale del RM estimado (F5-04)', () => {
+    it('el valor actual sigue siendo las repeticiones con su peso, y suma el RM estimado', async () => {
+      renderDetalle('/ejercicios/mex_p4e5s6b7', [pressBanca]);
+
+      expect(await screen.findByTestId('valor-actual')).toHaveTextContent('10 reps');
+      expect(screen.getByText('con 80 kg')).toBeInTheDocument();
+      expect(screen.getByTestId('rm-estimado')).toHaveTextContent('RM estimado 106,5 kg');
+    });
+
+    it('la grilla habla de RM estimado y da la carga en kg: el 80% de 106,67 es 85,5 kg', async () => {
+      renderDetalle('/ejercicios/mex_p4e5s6b7', [pressBanca]);
+
+      expect(await screen.findByRole('heading', { name: 'Elegí tu carga' })).toBeInTheDocument();
+      expect(screen.getByRole('group', { name: 'Porcentaje del RM estimado' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: '80% · 85,5 kg' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: '65% · 69,5 kg' })).toBeInTheDocument();
+    });
+
+    it('la barra fija muestra la carga calculada en kg, sobre el RM estimado', async () => {
+      renderDetalle('/ejercicios/mex_p4e5s6b7', [pressBanca]);
+
+      await userEvent.click(
+        (await screen.findByRole('radio', { name: '80% · 85,5 kg' })).closest('label') ??
+          document.body,
+      );
+
+      const barra = screen.getByRole('region', { name: 'Carga seleccionada' });
+      expect(within(barra).getByText('80% de RM estimado 106,5 kg')).toBeInTheDocument();
+      expect(within(barra).getByTestId('carga')).toHaveTextContent('85,5');
+      expect(within(barra).getByText('kg')).toBeInTheDocument();
+      expect(within(barra).getByText('Carga calculada')).toBeInTheDocument();
+    });
+
+    it('el progreso habla de RM estimado y grafica kg', async () => {
+      const { api } = renderDetalle('/ejercicios/mex_p4e5s6b7', [pressBanca]);
+      api.client.exerciseStats.mockResolvedValue({
+        id: 'mex_p4e5s6b7',
+        name: 'Press banca plano',
+        kind: 'weighted_reps',
+        unit: 'kg',
+        period: 'todo',
+        series: [
+          { performedAt: '2026-05-01T12:00:00.000Z', value: 106.5 },
+          { performedAt: '2026-07-01T12:00:00.000Z', value: 108 },
+        ],
+        summary: { current: 108, best: 108, worst: 106.5, changePercent: 1.4, records: 2 },
+      });
+
+      expect(
+        await screen.findByRole('heading', { name: 'Progreso del RM estimado' }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole('figure', { name: 'RM estimado registrado' }),
+      ).toBeInTheDocument();
+      expect(await screen.findByTestId('aumento')).toHaveTextContent('+1,5 kg');
     });
   });
 

@@ -147,6 +147,31 @@ export function createMongoRecordGateway(db: Db) {
     },
 
     best: async (managedExerciseId, kind) => {
+      // En hipertrofia, la de mayor RM estimado: 10 × 80 kg y 6 × 90 kg sólo se comparan así
+      // (spec §5.1). Con la fórmula de `estimatedOneRm`, escrita como expresión de Mongo: con
+      // una repetición el RM es el peso.
+      if (kind === 'weighted_reps') {
+        const [best] = await records
+          .aggregate<RecordDocument>([
+            { $match: { managedExerciseId } },
+            {
+              $addFields: {
+                estimatedRm: {
+                  $cond: [
+                    { $eq: ['$value', 1] },
+                    '$weightKg',
+                    { $multiply: ['$weightKg', { $add: [1, { $divide: ['$value', 30] }] }] },
+                  ],
+                },
+              },
+            },
+            { $sort: { estimatedRm: -1, performedAt: 1, createdAt: 1, _id: 1 } },
+            { $limit: 1 },
+          ])
+          .toArray();
+        return best ? toMark(best) : null;
+      }
+
       // En tiempo, menos es mejor; en el resto, más. Si la mejor se repite, cuenta la primera vez que se
       // logró. Un ejercicio tiene decenas de marcas, no miles: ordenar en memoria las de
       // uno solo, que el índice ya filtra, no justifica otro índice.

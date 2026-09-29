@@ -34,12 +34,20 @@ export interface OwnedExercisesLookup {
   listOwned: (userId: string) => Promise<StatsExerciseProfile[]>;
 }
 
+/**
+ * Una marca tal como sale de `records`: fecha, valor y, si la tiene, el peso. `stats` decide
+ * qué número grafica según lo que mide el ejercicio (en hipertrofia, el RM estimado).
+ */
+export interface RawSeriesPoint extends SeriesPoint {
+  readonly weightKg?: number | undefined;
+}
+
 export interface StatsRecordSource {
   /**
    * Las marcas del ejercicio desde `from` (inclusive), de la más vieja a la más reciente.
    * `from` en `null` es todo el historial.
    */
-  series: (managedExerciseId: string, from: Date | null) => Promise<SeriesPoint[]>;
+  series: (managedExerciseId: string, from: Date | null) => Promise<RawSeriesPoint[]>;
   /**
    * Lo mismo para varios de una vez: el resumen general mira toda la lista, y una consulta
    * por ejercicio sería una tormenta de consultas en un plan sin límite.
@@ -47,5 +55,5 @@ export interface StatsRecordSource {
   seriesFor: (
     managedExerciseIds: readonly string[],
     from: Date | null,
-  ) => Promise<Map<string, SeriesPoint[]>>;
+  ) => Promise<Map<string, RawSeriesPoint[]>>;
 }
