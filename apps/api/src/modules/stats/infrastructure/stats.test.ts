@@ -153,6 +153,46 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
     expect(body.summary).toMatchObject({ best: 270, worst: 300, changePercent: 10 });
   });
 
+  describe('en hipertrofia, el punto es el RM estimado en kg (F5-04, spec §5.1)', () => {
+    it('la serie, la unidad y el resumen salen del RM estimado, no de las repeticiones', async () => {
+      const cookie = await newUser();
+      const press = await addFromCatalog(cookie, 'Press banca plano', 10, hace(4), {
+        weightKg: 80,
+      });
+      await log(cookie, press.id, 6, hace(1), { weightKg: 90 });
+
+      const body = (await stats(cookie, press.id)).json<ExerciseStats>();
+
+      expect(body).toMatchObject({ kind: 'weighted_reps', unit: 'kg' });
+      // 10 × 80 → 106,67 → 106,5; 6 × 90 → 108.
+      expect(body.series.map((point) => point.value)).toEqual([106.5, 108]);
+      expect(body.summary).toMatchObject({ current: 108, best: 108, worst: 106.5, records: 2 });
+    });
+
+    it('menos repeticiones con más peso es una mejora, no una caída', async () => {
+      const cookie = await newUser();
+      const press = await addFromCatalog(cookie, 'Press banca plano', 10, hace(4), {
+        weightKg: 80,
+      });
+      await log(cookie, press.id, 6, hace(1), { weightKg: 90 });
+
+      const body = (await stats(cookie, press.id)).json<ExerciseStats>();
+
+      expect(body.summary?.changePercent).toBeGreaterThan(0);
+    });
+
+    it('con una repetición el punto es el peso', async () => {
+      const cookie = await newUser();
+      const press = await addFromCatalog(cookie, 'Press banca plano', 1, hace(2), {
+        weightKg: 100,
+      });
+
+      const body = (await stats(cookie, press.id)).json<ExerciseStats>();
+
+      expect(body.series.map((point) => point.value)).toEqual([100]);
+    });
+  });
+
   it('en cardio, la mejor marca es la de más metros (F5-02a)', async () => {
     const cookie = await newUser();
     const response = await harness.app.inject({

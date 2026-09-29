@@ -13,7 +13,7 @@ export type LoadBand = 'liviana' | 'media' | 'pesada';
 
 export interface PercentageRow {
   readonly percentage: number;
-  /** Kilos en fuerza, repeticiones en hipertrofia y gimnástico. */
+  /** Kilos en fuerza y en hipertrofia (sobre el RM estimado), repeticiones en gimnástico. */
   readonly target: number;
   readonly band: LoadBand;
 }
@@ -86,7 +86,12 @@ export function supportsPercentages(kind: MeasureKind): boolean {
 
 /**
  * La tabla de porcentajes del detalle de un ejercicio, en el orden que eligió el usuario.
- * `null` en tiempo, donde se muestran la mejor marca y el historial en su lugar.
+ * `null` donde no hay tabla (tiempo, cardio, distancia con carga): ahí se muestran la mejor
+ * marca y el historial.
+ *
+ * `current` es el número sobre el que se calcula, el que da `referenceValue`: el RM en fuerza, el
+ * RM estimado en hipertrofia y el máximo de repeticiones en gimnástico. En fuerza y en
+ * hipertrofia el objetivo es una carga en kg; en gimnástico, repeticiones.
  */
 export function percentageTable(
   kind: MeasureKind,
@@ -97,7 +102,7 @@ export function percentageTable(
     return null;
   }
 
-  const targetFor = kind === 'rm' ? loadFor : repsFor;
+  const targetFor = kind === 'rm' || kind === 'weighted_reps' ? loadFor : repsFor;
 
   return percentages.map((percentage) => ({
     percentage,

@@ -1,5 +1,6 @@
 import {
   periodStartFor,
+  seriesValueFor,
   summarize,
   type Capacity,
   type GeneralStats,
@@ -40,7 +41,12 @@ export async function generalStats(
 
   const changes = exercises.map((exercise) => {
     // `summarize` ya deja la variación con el signo correcto, también en tiempo.
-    const summary = summarize(exercise.kind, series.get(exercise.managedExerciseId) ?? []);
+    // En hipertrofia, sobre el RM estimado de cada marca y no sobre las repeticiones.
+    const points = (series.get(exercise.managedExerciseId) ?? []).map((point) => ({
+      performedAt: point.performedAt,
+      value: seriesValueFor(exercise.kind, point),
+    }));
+    const summary = summarize(exercise.kind, points);
     const measurable = summary !== null && summary.records >= MIN_RECORDS_FOR_CHANGE;
 
     return { exercise, changePercent: measurable ? summary.changePercent : null };

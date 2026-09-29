@@ -2,6 +2,9 @@ import {
   improvement,
   loadBandFor,
   percentageTable,
+  referenceValue,
+  roundToHalfKg,
+  seriesUnitFor,
   supportsPercentages,
   type ExerciseStats,
   type LoadBand,
@@ -95,14 +98,23 @@ const BAND_VARIANT: Record<LoadBand, TagVariant> = {
   pesada: 'danger',
 };
 
-/** Lo que dice la grilla según lo que mide el ejercicio (spec §5.2: repeticiones, no RM). */
+/**
+ * Lo que dice la grilla según lo que mide el ejercicio (spec §5.2): en gimnástico repeticiones,
+ * no RM, y en hipertrofia RM estimado, con la carga en kg.
+ */
 const LOAD_COPY = {
   rm: { title: 'Elegí tu carga', legend: 'Porcentaje del RM' },
+  weighted_reps: { title: 'Elegí tu carga', legend: 'Porcentaje del RM estimado' },
   reps: { title: 'Elegí tus reps', legend: 'Porcentaje del máximo' },
 } as const;
 
+/** ¿La grilla da una carga en kg? En fuerza y en hipertrofia sí; en gimnástico, repeticiones. */
+function targetsInKg(kind: MeasureKind): boolean {
+  return kind === 'rm' || kind === 'weighted_reps';
+}
+
 function targetText(kind: MeasureKind, target: number): string {
-  return formatMark({ value: target, unit: kind === 'rm' ? 'kg' : 'reps' });
+  return formatMark({ value: target, unit: targetsInKg(kind) ? 'kg' : 'reps' });
 }
 
 /** Detalle de un ejercicio: el diseño de `docs/design`, zona por zona (spec §5.2). */
@@ -167,7 +179,9 @@ function Detail({
   progress,
   mark,
 }: DetailProps): React.JSX.Element {
-  const rows = percentageTable(exercise.kind, exercise.current.value, percentages) ?? [];
+  const rows =
+    percentageTable(exercise.kind, referenceValue(exercise.kind, exercise.current), percentages) ??
+    [];
   const withPercentages = supportsPercentages(exercise.kind);
   // El porcentaje de la URL, o el primero de la grilla. La carga se calcula acá mismo:
   // cambiar de porcentaje no le pregunta nada a la API.
@@ -226,6 +240,11 @@ function Header({ exercise }: { exercise: ManagedExerciseSummary }): React.JSX.E
   const titleId = useId();
   const isRm = exercise.kind === 'rm';
   const value = markParts(exercise.current);
+  // En hipertrofia la marca son repeticiones con su peso; con qué se compara es el RM estimado.
+  const estimated =
+    exercise.kind === 'weighted_reps'
+      ? roundToHalfKg(referenceValue(exercise.kind, exercise.current))
+      : null;
 
   return (
     <section className="detail__head" aria-labelledby={titleId}>
@@ -277,6 +296,11 @@ function Header({ exercise }: { exercise: ManagedExerciseSummary }): React.JSX.E
             Registrado el {formatDate(exercise.current.performedAt)}
           </p>
           {value.extra ? <p className="detail__registered">{value.extra}</p> : null}
+          {estimated === null ? null : (
+            <p className="detail__registered" data-testid="rm-estimado">
+              RM estimado {formatMark({ value: estimated, unit: 'kg' })}
+            </p>
+          )}
         </div>
         <Measure
           value={value.value}
@@ -301,16 +325,22 @@ function Load({
   exercise: ManagedExerciseSummary;
   percentage: number;
 }): React.JSX.Element {
-  const target = percentageTable(exercise.kind, exercise.current.value, [percentage])?.[0];
+  const reference = referenceValue(exercise.kind, exercise.current);
+  const target = percentageTable(exercise.kind, reference, [percentage])?.[0];
   const parts = target
-    ? markParts({ value: target.target, unit: exercise.kind === 'rm' ? 'kg' : 'reps' })
+    ? markParts({ value: target.target, unit: targetsInKg(exercise.kind) ? 'kg' : 'reps' })
     : { value: '—' };
   const band = loadBandFor(percentage);
+  // Sobre qué se calcula: el RM de la marca, o el RM estimado que dejan sus repeticiones.
+  const basis =
+    exercise.kind === 'weighted_reps'
+      ? `RM estimado ${formatMark({ value: roundToHalfKg(reference), unit: 'kg' })}`
+      : formatMark(exercise.current);
 
   return (
     <div className="detail__bar-info">
       <p className="wc-kicker detail__bar-caption">
-        {percentage}% de {formatMark(exercise.current)}
+        {percentage}% de {basis}
       </p>
       <Measure
         value={parts.value}
@@ -321,7 +351,7 @@ function Load({
       />
       <p className="detail__bar-foot">
         <span className="wc-kicker">
-          {exercise.kind === 'rm' ? 'Carga calculada' : 'Reps calculadas'}
+          {targetsInKg(exercise.kind) ? 'Carga calculada' : 'Reps calculadas'}
         </span>
         <Tag variant={BAND_VARIANT[band]}>{BAND_LABEL[band]}</Tag>
       </p>
@@ -358,7 +388,9 @@ function Progress({
 }: ProgressProps & { exercise: ManagedExerciseSummary }): React.JSX.Element {
   const titleId = useId();
   const isRm = exercise.kind === 'rm';
-  const unit = stats?.unit ?? exercise.current.unit;
+  const isEstimated = exercise.kind === 'weighted_reps';
+  // En hipertrofia se grafica el RM estimado, en kg: no las repeticiones de la marca.
+  const unit = stats?.unit ?? seriesUnitFor(exercise.kind);
   // Estable: si cambia en cada render, el gráfico se arma de nuevo cada vez.
   const formatValue = useCallback((value: number) => formatMark({ value, unit }), [unit]);
   const gain = stats ? improvement(exercise.kind, stats.series) : null;
@@ -367,7 +399,7 @@ function Progress({
     <section className="detail__progress" aria-labelledby={titleId}>
       <SectionHeader
         id={titleId}
-        title={isRm ? 'Progreso del RM' : 'Progreso'}
+        title={isRm ? 'Progreso del RM' : isEstimated ? 'Progreso del RM estimado' : 'Progreso'}
         kicker={`Tendencia de ${CATEGORY_LABEL[exercise.category]}`}
         divider={false}
         meta={gain === null ? undefined : <Gain kind={exercise.kind} unit={unit} gain={gain} />}
@@ -377,7 +409,9 @@ function Progress({
       {error ? <ErrorNotice error={error} /> : null}
       {stats ? (
         <Chart
-          label={isRm ? 'RM registrado' : 'Marcas registradas'}
+          label={
+            isRm ? 'RM registrado' : isEstimated ? 'RM estimado registrado' : 'Marcas registradas'
+          }
           // Un tiempo se escribe 4:32: "UNIDAD: S" diría otra cosa que lo que se ve.
           unit={unit === 's' ? 'mm:ss' : unit}
           points={stats.series.map((point) => ({
@@ -433,7 +467,7 @@ function Percentages({ kind, rows, selected, onSelect }: PercentagesProps): Reac
   const titleId = useId();
   const [custom, setCustom] = useState('');
   const customError = custom.trim() === '' ? null : parsePercentage(custom).error;
-  const copy = kind === 'rm' ? LOAD_COPY.rm : LOAD_COPY.reps;
+  const copy = LOAD_COPY[kind === 'rm' || kind === 'weighted_reps' ? kind : 'reps'];
 
   return (
     <section className="detail__load" aria-labelledby={titleId}>

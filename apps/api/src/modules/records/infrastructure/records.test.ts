@@ -449,6 +449,126 @@ describe('marcas: cargar e historial (F1-07)', () => {
       expect(despues.best.value).toBe(12);
     });
 
+    describe('en hipertrofia, la de mayor RM estimado (F5-04, spec §5.1)', () => {
+      it('6 × 90 kg le gana a 10 × 80 kg, aunque tenga menos repeticiones', async () => {
+        const cookie = await newUser();
+        const press = await addFromCatalog(
+          cookie,
+          'Press banca plano',
+          10,
+          '2026-06-01T10:00:00.000Z',
+          {
+            weightKg: 80,
+          },
+        );
+
+        const despues = await logOk(cookie, press.id, 6, '2026-06-10T10:00:00.000Z', {
+          weightKg: 90,
+        });
+
+        // RM estimado: 10 × 80 → 106,7 y 6 × 90 → 108.
+        expect(despues.best).toMatchObject({ value: 6, weightKg: 90, unit: 'reps' });
+      });
+
+      it('más repeticiones con el mismo peso es mejor', async () => {
+        const cookie = await newUser();
+        const press = await addFromCatalog(
+          cookie,
+          'Press banca plano',
+          8,
+          '2026-06-01T10:00:00.000Z',
+          {
+            weightKg: 80,
+          },
+        );
+
+        const despues = await logOk(cookie, press.id, 10, '2026-06-10T10:00:00.000Z', {
+          weightKg: 80,
+        });
+
+        expect(despues.best).toMatchObject({ value: 10, weightKg: 80 });
+      });
+
+      it('con una repetición el RM estimado es el peso', async () => {
+        const cookie = await newUser();
+        // 1 × 105 kg (RM 105) contra 3 × 90 kg (RM 99): gana la de una repetición.
+        const press = await addFromCatalog(
+          cookie,
+          'Press banca plano',
+          3,
+          '2026-06-01T10:00:00.000Z',
+          {
+            weightKg: 90,
+          },
+        );
+
+        const despues = await logOk(cookie, press.id, 1, '2026-06-10T10:00:00.000Z', {
+          weightKg: 105,
+        });
+
+        expect(despues.best).toMatchObject({ value: 1, weightKg: 105 });
+      });
+
+      it('la mejor no es la última: una marca más floja no la desplaza', async () => {
+        const cookie = await newUser();
+        const press = await addFromCatalog(
+          cookie,
+          'Press banca plano',
+          6,
+          '2026-06-01T10:00:00.000Z',
+          {
+            weightKg: 90,
+          },
+        );
+
+        const despues = await logOk(cookie, press.id, 12, '2026-06-20T10:00:00.000Z', {
+          weightKg: 60,
+        });
+
+        // 12 × 60 → 84 contra 6 × 90 → 108.
+        expect(despues.best).toMatchObject({ value: 6, weightKg: 90 });
+        expect(despues.current).toMatchObject({ value: 12, weightKg: 60 });
+      });
+
+      it('si el RM estimado se repite, cuenta la primera vez que se logró', async () => {
+        const cookie = await newUser();
+        // 10 × 90 y 15 × 60 dan el mismo RM estimado: 120 kg.
+        const press = await addFromCatalog(
+          cookie,
+          'Press banca plano',
+          10,
+          '2026-06-01T10:00:00.000Z',
+          {
+            weightKg: 90,
+          },
+        );
+
+        const igual = await logOk(cookie, press.id, 15, '2026-06-10T10:00:00.000Z', {
+          weightKg: 60,
+        });
+
+        expect(igual.best.performedAt).toBe('2026-06-01T10:00:00.000Z');
+      });
+
+      it('lo mismo en el historial', async () => {
+        const cookie = await newUser();
+        const press = await addFromCatalog(
+          cookie,
+          'Press banca plano',
+          10,
+          '2026-06-01T10:00:00.000Z',
+          {
+            weightKg: 80,
+          },
+        );
+        await logOk(cookie, press.id, 6, '2026-06-10T10:00:00.000Z', { weightKg: 90 });
+
+        const response = await history(cookie, press.id);
+
+        expect(response.json<{ best: unknown }>().best).toMatchObject({ value: 6, weightKg: 90 });
+      });
+    });
+
     it('en tiempo, la menor: menos es mejor', async () => {
       const cookie = await newUser();
       const km = await addFromCatalog(cookie, 'Carrera 1 km', 300, '2026-06-01T10:00:00.000Z', {
