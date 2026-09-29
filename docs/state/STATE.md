@@ -9,9 +9,9 @@ la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packag
 `packages/ui`. **Fase 3 — A producción, en curso** (spec §12): ver más abajo. **Fase 4 — Rediseño Toxic Cyberpunk: en curso, 0 de 18 tareas cerradas** (F4-01, F4-02, F4-12,
 F4-03a/b/c, F4-04a/b y F4-05a a F4-11 mergeadas: el código de la fase está completo. Todas a la
 espera de que el usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
-en paralelo a lo que quede bloqueado de la Fase 3. **Fase 5 — Catálogo ampliado: en curso, con el
-código hecho salvo F5-12 (E2E de cierre)**; ninguna tarea cerrada todavía, a la
-espera del Definition of Done. Ver abajo.
+en paralelo a lo que quede bloqueado de la Fase 3. **Fase 5 — Catálogo ampliado: el código está
+completo (F5-00 a F5-12, mergeado)**; ninguna tarea cerrada todavía, a la espera del Definition
+of Done. Ver abajo.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
 - **F4-01 · Fundaciones del tema** (PR #56) y **F4-02 · Se retira la preferencia de tema** (PR
@@ -70,10 +70,8 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Fase 5: el alta con pestañas ya funciona de punta a punta (F5-00 a F5-03b y F5-05 a F5-11, en
-   `main` o en PR). Con F5-04 (hipertrofia con RM estimado, Epley) hecha, falta sólo **F5-12** (E2E y axe del
-   alta con pestañas). Después, el usuario cumple el Definition of Done de la
-   fase y sincroniza Trello (`/trello-sync`).
+1. Fase 5: no queda código (F5-00 a F5-12, en `main`). El usuario cumple el Definition of Done de
+   la fase, marca `[x]` sus tareas y sincroniza Trello (`/trello-sync`).
 2. El usuario revisa el Definition of Done de la Fase 4 (F4-01 a F4-12) y marca `[x]` y mueve
    las tarjetas a `Completadas`.
 3. Después de la fase: decidir si Login, Perfil y Estadísticas merecen un diseño propio (hoy
