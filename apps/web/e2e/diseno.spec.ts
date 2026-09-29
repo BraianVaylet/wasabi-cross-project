@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { auditar, registrarse } from './app.ts';
+import { auditar, elegirDelCatalogo, registrarse } from './app.ts';
 
 /*
  * F4-11: el tema único de punta a punta, al ancho del diseño (390px). Las pantallas que el
@@ -90,8 +90,7 @@ test('el detalle, igual al diseño @captura', async ({ page }, testInfo) => {
 
 test('el detalle de un ejercicio de tiempo, con la mejor marca en la barra', async ({ page }) => {
   await registrarse(page);
-  await page.goto('/ejercicios/nuevo?modo=crear');
-  await page.getByLabel('Nombre').fill('Carrera 1 km');
+  await elegirDelCatalogo(page, 'Carrera 1 km');
   await page.getByLabel('Tiempo (mm:ss)').fill('0432');
   await page.getByLabel('Desnivel (m)').fill('0');
   await page.getByLabel('Nivel', { exact: true }).selectOption('principiante');

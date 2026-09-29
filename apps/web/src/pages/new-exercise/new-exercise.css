@@ -4,23 +4,31 @@
   gap: var(--wc-space-4);
 }
 
-/* La categoría de un ejercicio del catálogo: se muestra, no se elige. */
-.new-exercise__fixed {
+/* De dónde se parte y qué pasa si se edita: un precargado editado se guarda como propio. */
+.new-exercise__notice {
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-1);
-  margin: 0;
-}
-
-/* El valor fijo, como un campo que no se puede tocar: la caja sin borde de foco. */
-.new-exercise__fixed-value {
+  gap: var(--wc-space-3);
   padding: var(--wc-space-3) var(--wc-space-4);
   background-color: var(--wc-surface);
   border-left: 2px solid var(--wc-border);
-  font-family: var(--wc-font-family-display);
-  font-size: var(--wc-font-size-lg);
-  letter-spacing: var(--wc-tracking-button);
-  text-transform: uppercase;
+}
+
+.new-exercise__notice p {
+  margin: 0;
+}
+
+.new-exercise__notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wc-space-2);
+}
+
+/* El aviso de un nombre parecido al del catálogo: informa, no bloquea. */
+.new-exercise__hint {
+  margin: 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
 }
 
 /* La pestaña "Catálogo": buscador y lista de tarjetas. */

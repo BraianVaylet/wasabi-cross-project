@@ -35,10 +35,20 @@ export async function registrarse(page: Page): Promise<Atleta> {
   return atleta;
 }
 
+/**
+ * Entra por la pestaña Catálogo y elige un precargado por su nombre: el formulario queda con su
+ * definición cargada, a la espera de la primera marca.
+ */
+export async function elegirDelCatalogo(page: Page, nombre: string): Promise<void> {
+  await page.goto('/ejercicios/nuevo');
+  await page.getByLabel('Buscar en el catálogo').fill(nombre);
+  await page.getByRole('button', { name: new RegExp(nombre) }).click();
+  await expect(page.getByLabel('Nombre')).toHaveValue(nombre);
+}
+
 /** Agrega un ejercicio del catálogo con su primera marca, desde el formulario del mockup 9. */
 export async function agregarDelCatalogo(page: Page, nombre: string, valor: string): Promise<void> {
-  await page.goto('/ejercicios/nuevo?modo=crear');
-  await page.getByLabel('Nombre').fill(nombre);
+  await elegirDelCatalogo(page, nombre);
   await page.getByLabel('RM (kg)').fill(valor);
   await page.getByLabel('Nivel').selectOption('intermedio');
   await page.getByRole('button', { name: 'Guardar ejercicio' }).click();

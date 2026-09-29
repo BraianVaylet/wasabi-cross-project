@@ -28,7 +28,7 @@ async function crearPropio(page: Page): Promise<string> {
   await page.getByLabel('Nombre').fill('Sentadilla del garage');
   await page.getByRole('radio', { name: 'Fuerza (RM en kg)' }).check();
   await page.getByRole('checkbox', { name: 'Fuerza', exact: true }).check();
-  await page.getByRole('checkbox', { name: 'Cuádriceps' }).check();
+  await page.getByLabel('Grupo muscular primario').selectOption('Cuádriceps');
   await page.getByLabel('RM (kg)').fill('100');
   await page.getByLabel('Fecha').fill(paraElCampo(haceMeses(5)));
   await page.getByLabel('Nivel').selectOption('intermedio');

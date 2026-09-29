@@ -1,15 +1,31 @@
-import { nameMatches, type Exercise } from '@wasabi-cross/schemas';
-import { Card, TextField } from '@wasabi-cross/ui';
-import { CATEGORY_LABEL, EQUIPMENT_LABEL, MUSCLE_GROUP_LABEL } from '../../lib/labels.ts';
+import {
+  disciplineSchema,
+  type CatalogEntry,
+  type Discipline,
+  type Exercise,
+} from '@wasabi-cross/schemas';
+import { Card, RadioGroup, TextField } from '@wasabi-cross/ui';
+import {
+  CATEGORY_LABEL,
+  DISCIPLINE_LABEL,
+  EQUIPMENT_LABEL,
+  MUSCLE_GROUP_LABEL,
+  optionsFrom,
+} from '../../lib/labels.ts';
+import { filterCatalog } from './form.ts';
 
 export interface CatalogPickerProps {
-  catalog: readonly Exercise[];
-  /** Los `exerciseId` que el usuario ya tiene: se ven, pero no se pueden volver a elegir. */
-  owned: ReadonlySet<string>;
+  catalog: readonly CatalogEntry[];
   query: string;
   onQueryChange: (query: string) => void;
-  onPick: (exercise: Exercise) => void;
+  /** `null` es todas las disciplinas. */
+  discipline: Discipline | null;
+  onDisciplineChange: (discipline: Discipline | null) => void;
+  onPick: (exercise: CatalogEntry) => void;
 }
+
+const TODAS = 'todas';
+const DISCIPLINE_OPTIONS = [{ value: TODAS, label: 'Todas' }, ...optionsFrom(DISCIPLINE_LABEL)];
 
 /** Categoría, grupo primario y equipo: lo que hace falta para reconocer el ejercicio. */
 function details(exercise: Exercise): string {
@@ -24,16 +40,19 @@ function details(exercise: Exercise): string {
 
 /**
  * La pestaña "Catálogo" de Nuevo ejercicio: los precargados para elegir de una lista, sin
- * tener que saber cómo se llaman. Elegir uno lleva al formulario con el nombre cargado.
+ * tener que saber cómo se llaman. Se busca por nombre y se filtra por disciplina. Elegir uno
+ * lleva al formulario con toda su definición cargada; los que el usuario ya tiene se ven, pero
+ * no se pueden volver a elegir.
  */
 export function CatalogPicker({
   catalog,
-  owned,
   query,
   onQueryChange,
+  discipline,
+  onDisciplineChange,
   onPick,
 }: CatalogPickerProps): React.JSX.Element {
-  const results = catalog.filter((exercise) => nameMatches(exercise.name, query));
+  const results = filterCatalog(catalog, query, discipline);
 
   return (
     <div className="catalog-picker">
@@ -48,6 +67,17 @@ export function CatalogPicker({
         }}
       />
 
+      <RadioGroup
+        legend="Disciplina"
+        name="discipline"
+        options={DISCIPLINE_OPTIONS}
+        value={discipline ?? TODAS}
+        onChange={(value) => {
+          const parsed = disciplineSchema.safeParse(value);
+          onDisciplineChange(parsed.success ? parsed.data : null);
+        }}
+      />
+
       {results.length === 0 ? (
         <p className="catalog-picker__empty" role="status">
           {catalog.length === 0
@@ -58,7 +88,7 @@ export function CatalogPicker({
         <ul className="catalog-picker__list">
           {results.map((exercise) => (
             <li key={exercise.id}>
-              {owned.has(exercise.id) ? (
+              {exercise.alreadyAdded ? (
                 <Card className="catalog-picker__item catalog-picker__item--owned">
                   <span className="catalog-picker__name">{exercise.name}</span>
                   <span className="catalog-picker__details">{details(exercise)}</span>

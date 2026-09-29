@@ -9,6 +9,7 @@ export * from './user/session.api.ts';
 export * from './user/auth.api.ts';
 export * from './exercise/exercise.schema.ts';
 export * from './exercise/names.ts';
+export * from './exercise/definition.ts';
 export * from './exercise/managed-exercise.schema.ts';
 export * from './exercise/managed-exercise.api.ts';
 export * from './record/record.schema.ts';
