@@ -88,8 +88,17 @@ export type BodySegment = z.infer<typeof bodySegmentSchema>;
 /**
  * El contexto de entrenamiento (spec §5.1). Un ejercicio puede tener más de una: el Wall
  * Ball es de crossfit y de hyrox. No cambia qué se mide: eso lo decide sólo la categoría.
+ * `hybrid` y `pilates` llegaron después del catálogo de 62 (ADR-0010).
  */
-export const disciplineSchema = z.enum(['gimnasio', 'crossfit', 'hyrox', 'funcional', 'running']);
+export const disciplineSchema = z.enum([
+  'gimnasio',
+  'crossfit',
+  'hyrox',
+  'funcional',
+  'running',
+  'hybrid',
+  'pilates',
+]);
 export type Discipline = z.infer<typeof disciplineSchema>;
 
 /** Con qué se hace. Uno por ejercicio; sirve para buscar en el catálogo (spec §5.3). */
@@ -113,6 +122,14 @@ export const equipmentSchema = z.enum([
   'sandbag',
   'trx',
   'banda_elastica',
+  'anillas',
+  'paralelas',
+  'ghd',
+  'bikeerg',
+  'colchoneta',
+  'reformer',
+  'aro_pilates',
+  'pelota_pilates',
   'sin_equipo',
 ]);
 export type Equipment = z.infer<typeof equipmentSchema>;

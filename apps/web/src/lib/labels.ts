@@ -51,6 +51,8 @@ export const DISCIPLINE_LABEL: Record<Discipline, string> = {
   hyrox: 'Hyrox',
   funcional: 'Funcional',
   running: 'Running',
+  hybrid: 'Hybrid',
+  pilates: 'Pilates',
 };
 
 export const EQUIPMENT_LABEL: Record<Equipment, string> = {
@@ -73,6 +75,14 @@ export const EQUIPMENT_LABEL: Record<Equipment, string> = {
   sandbag: 'Sandbag',
   trx: 'TRX',
   banda_elastica: 'Banda elástica',
+  anillas: 'Anillas',
+  paralelas: 'Paralelas',
+  ghd: 'GHD',
+  bikeerg: 'BikeErg',
+  colchoneta: 'Colchoneta',
+  reformer: 'Reformer',
+  aro_pilates: 'Aro de pilates',
+  pelota_pilates: 'Pelota de pilates',
   sin_equipo: 'Sin equipo',
 };
 

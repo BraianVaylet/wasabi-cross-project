@@ -20,7 +20,7 @@
 | Fase 2 — Estadísticas             |     10 |           44 |     10 |
 | Fase 3 — A producción             |     12 |           37 |      5 |
 | Fase 4 — Rediseño Toxic Cyberpunk |     18 |           75 |      0 |
-| Fase 5 — Catálogo ampliado        |     15 |           59 |      0 |
+| Fase 5 — Catálogo ampliado        |     16 |           62 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -2166,3 +2166,30 @@ F5-04 (Epley) es independiente del resto.
 - **test_plan:** `pnpm e2e` completo en CI.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+
+## [ ] F5-13 · Hybrid y Pilates: disciplinas nuevas y 58 ejercicios más
+
+- **module:** exercises
+- **description:** El usuario sumó 58 ejercicios al catálogo (de 62 a 120) y dos disciplinas nuevas,
+  Hybrid y Pilates, con el equipo que traen (colchoneta, reformer, aro y pelota de pilates, más
+  anillas, paralelas, GHD y BikeErg). `disciplineSchema` y `equipmentSchema` se amplían, las
+  etiquetas de la web suman los valores nuevos, y la spec (§5.1, §5.3) y
+  [ADR-0010](./adr/0010-hybrid-y-pilates.md) los recogen. Sin los schemas el catálogo no
+  valida: el seed falla al leer de Mongo y el catálogo responde 500.
+- **acceptance-criteria:**
+  - Dado el catálogo, cuando corre el test, entonces cada entrada valida contra el schema, no hay
+    claves ni nombres repetidos, son 120 y cubren las siete disciplinas.
+  - Dado el seed contra Mongo después de la migración del catálogo, cuando corre, entonces crea
+    las entradas nuevas y actualiza las disciplinas de las que ya existían.
+  - Dado el filtro por disciplina del catálogo, cuando se elige Pilates o Hybrid, entonces trae sus
+    ejercicios.
+- **example:** Una usuaria de pilates filtra el catálogo por Pilates y agrega "The Hundred" como
+  gimnástico, con sus repeticiones.
+- **story-points:** 3
+- **depends_on:** F5-05, F5-07
+- **risk:** low
+- **test_plan:** test del catálogo contra el schema y del seed contra `mongodb-memory-server`;
+  tests de schemas para las disciplinas y el equipo nuevos; `pnpm verify` y coverage.
+- **error-codes:** ninguno
+- **data-model-impact:** los enums de disciplina y de equipo se ensanchan; ningún documento
+  existente deja de ser válido, así que no hay migración de datos.

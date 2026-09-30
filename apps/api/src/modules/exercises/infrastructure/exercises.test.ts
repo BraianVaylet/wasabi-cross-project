@@ -72,8 +72,28 @@ describe('catálogo de ejercicios', () => {
       }
     });
 
-    it('son los 62 de la spec §5.3', () => {
-      expect(EXERCISE_CATALOG).toHaveLength(62);
+    it('son los 120 de la spec §5.3: los 62 de ADR-0009 y los 58 de ADR-0010', () => {
+      expect(EXERCISE_CATALOG).toHaveLength(120);
+    });
+
+    it('cubre las siete disciplinas, hybrid y pilates incluidas', () => {
+      const disciplines = new Set(EXERCISE_CATALOG.flatMap((exercise) => exercise.disciplines));
+
+      expect(disciplines).toEqual(
+        new Set(['gimnasio', 'crossfit', 'hyrox', 'funcional', 'running', 'hybrid', 'pilates']),
+      );
+    });
+
+    it('trae ejercicios de pilates con el equipo propio del método', () => {
+      const equipment = new Set(
+        EXERCISE_CATALOG.filter((exercise) => exercise.disciplines.includes('pilates')).map(
+          (exercise) => exercise.equipment,
+        ),
+      );
+
+      expect(equipment).toEqual(
+        new Set(['colchoneta', 'reformer', 'aro_pilates', 'pelota_pilates', 'sin_equipo']),
+      );
     });
 
     it('la hipertrofia se mide en repeticiones con su peso, como en el Home del mockup 4', () => {
@@ -107,14 +127,22 @@ describe('catálogo de ejercicios', () => {
         (exercise) => exercise.name,
       );
 
-      expect(running).toEqual([
-        'Carrera 1km (estación Hyrox)',
-        'Carrera 100 m',
-        'Carrera 400 m',
-        'Carrera 1 km',
-        'Carrera 5 km',
-        'Carrera 10 km',
-      ]);
+      expect([...running].sort()).toEqual(
+        [
+          'Carrera 1km (estación Hyrox)',
+          'Carrera 100 m',
+          'Carrera 200 m',
+          'Carrera 400 m',
+          'Carrera 800 m',
+          'Carrera 1 km',
+          'Carrera 1500 m',
+          'Carrera 3 km',
+          'Carrera 5 km',
+          'Carrera 10 km',
+          'Carrera 21 km (media maratón)',
+          'Carrera 42 km (maratón)',
+        ].sort(),
+      );
     });
 
     it('cubre las seis categorías', () => {

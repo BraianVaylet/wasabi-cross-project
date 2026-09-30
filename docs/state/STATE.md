@@ -10,8 +10,8 @@ la 2 el mismo día con F2-10. El monorepo corre: `apps/web`, `apps/api`, `packag
 F4-03a/b/c, F4-04a/b y F4-05a a F4-11 mergeadas: el código de la fase está completo. Todas a la
 espera de que el usuario cumpla el Definition of Done y las marque). 75 puntos en total. No depende de Railway/Atlas, puede avanzar
 en paralelo a lo que quede bloqueado de la Fase 3. **Fase 5 — Catálogo ampliado: el código está
-completo (F5-00 a F5-12, mergeado)**; ninguna tarea cerrada todavía, a la espera del Definition
-of Done. Ver abajo.
+completo (F5-00 a F5-12, mergeado; F5-13, Hybrid y Pilates, en PR)**; ninguna tarea cerrada
+todavía, a la espera del Definition of Done. Ver abajo.
 
 - El plan de la fase (ADR-0008, spec §11, backlog F4-01 a F4-11): PR #55, mergeada.
 - **F4-01 · Fundaciones del tema** (PR #56) y **F4-02 · Se retira la preferencia de tema** (PR
@@ -62,6 +62,13 @@ editable. Decidido con él y volcado en [ADR-0009](../adr/0009-catalogo-ampliado
   nuevos.
 - **Un precargado editado se guarda como propio** y cuenta para el límite del plan. Se retira
   `WC-EXO-409-004`.
+- **F5-13 · Hybrid y Pilates** (2026-09-30, [ADR-0010](../adr/0010-hybrid-y-pilates.md)): el usuario
+  sumó 58 ejercicios (el catálogo pasa a **120**) y dos disciplinas nuevas, **hybrid** y
+  **pilates**, con su equipo (colchoneta, reformer, aro y pelota de pilates, anillas, paralelas,
+  GHD, BikeErg). Sin ampliar los schemas el seed fallaba y el catálogo respondía 500; ahora
+  `disciplineSchema` y `equipmentSchema` los admiten. Sin migración de datos: los enums sólo se
+  ensanchan. En una base ya sembrada, `seed` crea las 58 nuevas y actualiza las disciplinas de las
+  que cambiaron.
 
 ## Bloqueado
 
@@ -70,8 +77,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Próximo paso
 
-1. Fase 5: no queda código (F5-00 a F5-12, en `main`). El usuario cumple el Definition of Done de
-   la fase, marca `[x]` sus tareas y sincroniza Trello (`/trello-sync`).
+1. Fase 5: mergear la PR de F5-13 (Hybrid y Pilates); después no queda código (F5-00 a F5-13). El
+   usuario cumple el Definition of Done de la fase, marca `[x]` sus tareas y sincroniza Trello
+   (`/trello-sync`). Falta crear la tarjeta de F5-13 (`/trello-sync`).
 2. El usuario revisa el Definition of Done de la Fase 4 (F4-01 a F4-12) y marca `[x]` y mueve
    las tarjetas a `Completadas`.
 3. Después de la fase: decidir si Login, Perfil y Estadísticas merecen un diseño propio (hoy
