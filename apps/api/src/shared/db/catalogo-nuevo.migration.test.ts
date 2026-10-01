@@ -173,7 +173,7 @@ describe('migración: fuera el catálogo viejo', () => {
   });
 
   describe('con el seed nuevo (F5-05)', () => {
-    it('migrar y sembrar deja los 62, y el que sobrevivió conserva su ID con el nombre nuevo', async () => {
+    it('migrar y sembrar deja el catálogo entero, y el que sobrevivió conserva su ID con el nombre nuevo', async () => {
       const back = EXERCISE_CATALOG.find((exercise) => exercise.catalogKey === 'back-squat');
       if (!back) throw new Error('el catálogo no tiene back-squat');
       // Un Back squat de la versión anterior: la misma clave y categoría, con el nombre viejo.

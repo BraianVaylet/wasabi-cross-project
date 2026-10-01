@@ -215,6 +215,23 @@ describe('catalogExerciseDefinitionSchema', () => {
     ).toBe(false);
   });
 
+  it('acepta Hybrid y Pilates, con el equipo propio del método (ADR-0010)', () => {
+    expect(
+      catalogExerciseDefinitionSchema.safeParse({
+        ...definition,
+        disciplines: ['hybrid', 'pilates'],
+        equipment: 'reformer',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rechaza una disciplina que no existe', () => {
+    expect(
+      catalogExerciseDefinitionSchema.safeParse({ ...definition, disciplines: ['natacion'] })
+        .success,
+    ).toBe(false);
+  });
+
   it('rechaza una clave que no es un slug', () => {
     for (const catalogKey of ['Back Squat', 'back_squat', '-back', 'back--squat']) {
       expect(catalogExerciseDefinitionSchema.safeParse({ ...definition, catalogKey }).success).toBe(

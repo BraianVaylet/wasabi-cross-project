@@ -731,6 +731,7 @@ describe('ejercicios gestionados (F1-05)', () => {
       const cookie = await newUser();
 
       expect(await search(cookie, 'SENTADILLA')).toEqual([
+        'Sentadilla búlgara',
         'Sentadilla frontal',
         'Sentadilla trasera',
       ]);
@@ -739,7 +740,10 @@ describe('ejercicios gestionados (F1-05)', () => {
     it('sin distinguir acentos', async () => {
       const cookie = await newUser();
 
-      expect(await search(cookie, 'elevacion de')).toEqual(['Elevación de gemelos']);
+      expect(await search(cookie, 'elevacion de')).toEqual([
+        'Elevación de gemelos',
+        'Elevación de piernas colgado',
+      ]);
     });
 
     it('cada ejercicio trae sus disciplinas, su equipo y su grupo primario', async () => {
@@ -787,6 +791,22 @@ describe('ejercicios gestionados (F1-05)', () => {
         expect(funcional).not.toContain('Sled Push (Hyrox)');
       });
 
+      it('Pilates y Hybrid traen sus ejercicios (ADR-0010)', async () => {
+        const cookie = await newUser();
+
+        const pilates = await entries(cookie, '?discipline=pilates');
+        const hybrid = await entries(cookie, '?discipline=hybrid');
+
+        expect(pilates.map((e) => e.name)).toEqual(
+          expect.arrayContaining(['The Hundred', 'Reformer Footwork']),
+        );
+        expect(pilates.every((e) => e.disciplines.includes('pilates'))).toBe(true);
+        expect(hybrid.map((e) => e.name)).toEqual(
+          expect.arrayContaining(['Sandbag Over Shoulder', 'Sentadilla trasera']),
+        );
+        expect(hybrid.every((e) => e.disciplines.includes('hybrid'))).toBe(true);
+      });
+
       it('con el nombre, se cumplen los dos filtros', async () => {
         const cookie = await newUser();
 
@@ -795,6 +815,7 @@ describe('ejercicios gestionados (F1-05)', () => {
         expect(names).toEqual([
           'Press banca inclinado',
           'Press banca plano',
+          'Press con mancuernas plano',
           'Press francés',
           'Press militar',
         ]);
@@ -838,9 +859,10 @@ describe('ejercicios gestionados (F1-05)', () => {
         const cookie = await newUser();
         await addFromCatalog(cookie, 'Snatch');
 
-        const [snatch] = await entries(cookie, '?q=snatch&discipline=crossfit');
+        const found = await entries(cookie, '?q=snatch&discipline=crossfit');
 
-        expect(snatch).toMatchObject({ name: 'Snatch', alreadyAdded: true });
+        expect(found.find((e) => e.name === 'Snatch')).toMatchObject({ alreadyAdded: true });
+        expect(found.filter((e) => e.alreadyAdded)).toHaveLength(1);
       });
 
       it('borrarlo de la lista lo desmarca', async () => {
