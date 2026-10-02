@@ -34,7 +34,7 @@ const catalogExercise = {
   primaryMuscleGroup: 'cuadriceps',
   muscleGroups: ['cuadriceps', 'gluteo'],
   bodySegment: 'tren_inferior',
-  disciplines: ['gimnasio'],
+  disciplines: ['musculacion'],
   equipment: 'barra',
 };
 
@@ -186,7 +186,7 @@ describe('catalogExerciseDefinitionSchema', () => {
     capacities: ['fuerza'],
     primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps', 'gluteo', 'core'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra',
   };
 

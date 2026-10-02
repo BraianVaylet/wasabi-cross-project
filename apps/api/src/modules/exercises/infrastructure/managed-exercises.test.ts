@@ -810,7 +810,7 @@ describe('ejercicios gestionados (F1-05)', () => {
       it('con el nombre, se cumplen los dos filtros', async () => {
         const cookie = await newUser();
 
-        const names = (await entries(cookie, '?q=press&discipline=gimnasio')).map((e) => e.name);
+        const names = (await entries(cookie, '?q=press&discipline=musculacion')).map((e) => e.name);
 
         expect(names).toEqual([
           'Press banca inclinado',

@@ -25,7 +25,7 @@ const sentadilla: Exercise = {
   primaryMuscleGroup: 'cuadriceps',
   muscleGroups: ['cuadriceps', 'gluteo', 'core'],
   bodySegment: 'tren_inferior',
-  disciplines: ['gimnasio'],
+  disciplines: ['musculacion'],
   equipment: 'barra',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
@@ -171,7 +171,7 @@ describe('valuesFromCatalog — elegir un precargado llena el formulario', () =>
       capacities: ['fuerza'],
       primaryMuscleGroup: 'cuadriceps',
       secondaryMuscleGroups: ['gluteo', 'core'],
-      disciplines: ['gimnasio'],
+      disciplines: ['musculacion'],
       equipment: 'barra',
     });
   });
@@ -216,7 +216,7 @@ describe('isEdited — cuándo un precargado pasa a ser propio', () => {
     ['las capacidades', { capacities: ['fuerza', 'potencia'] }],
     ['el grupo primario', { primaryMuscleGroup: 'gluteo', secondaryMuscleGroups: ['core'] }],
     ['los secundarios', { secondaryMuscleGroups: ['gluteo'] }],
-    ['las disciplinas', { disciplines: ['gimnasio', 'crossfit'] }],
+    ['las disciplinas', { disciplines: ['musculacion', 'crossfit'] }],
     ['el equipo', { equipment: 'maquina' }],
   ])('cambiar %s lo edita', (_campo, cambio) => {
     expect(isEdited(sentadilla, { ...values, ...cambio })).toBe(true);
@@ -268,7 +268,7 @@ describe('toAddExercise — lo que viaja a la API', () => {
     const input = toAddExercise({
       ...propio,
       secondaryMuscleGroups: ['gluteo'],
-      disciplines: ['gimnasio'],
+      disciplines: ['musculacion'],
       equipment: 'barra',
     });
 
@@ -279,7 +279,7 @@ describe('toAddExercise — lo que viaja a la API', () => {
       capacities: ['fuerza'],
       primaryMuscleGroup: 'cuadriceps',
       secondaryMuscleGroups: ['gluteo'],
-      disciplines: ['gimnasio'],
+      disciplines: ['musculacion'],
       equipment: 'barra',
       firstRecord: { value: 100 },
     });
@@ -308,7 +308,7 @@ describe('toAddExercise — lo que viaja a la API', () => {
         category: 'fuerza',
         primaryMuscleGroup: 'cuadriceps',
         secondaryMuscleGroups: ['gluteo', 'core'],
-        disciplines: ['gimnasio'],
+        disciplines: ['musculacion'],
         equipment: 'barra',
       },
       level: 'intermedio',
@@ -399,7 +399,7 @@ describe('filterCatalog — el buscador y el filtro de disciplina', () => {
 
   it('por disciplina', () => {
     expect(filterCatalog(catalogo, '', 'hyrox').map((e) => e.name)).toEqual(['Wall Ball']);
-    expect(filterCatalog(catalogo, '', 'gimnasio').map((e) => e.name)).toEqual([
+    expect(filterCatalog(catalogo, '', 'musculacion').map((e) => e.name)).toEqual([
       'Sentadilla trasera',
     ]);
   });

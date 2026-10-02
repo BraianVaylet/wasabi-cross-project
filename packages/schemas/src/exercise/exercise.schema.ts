@@ -91,7 +91,7 @@ export type BodySegment = z.infer<typeof bodySegmentSchema>;
  * `hybrid` y `pilates` llegaron después del catálogo de 62 (ADR-0010).
  */
 export const disciplineSchema = z.enum([
-  'gimnasio',
+  'musculacion',
   'crossfit',
   'hyrox',
   'funcional',

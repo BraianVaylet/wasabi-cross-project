@@ -46,7 +46,7 @@ export const MUSCLE_GROUP_LABEL: Record<MuscleGroup, string> = {
 };
 
 export const DISCIPLINE_LABEL: Record<Discipline, string> = {
-  gimnasio: 'Gimnasio',
+  musculacion: 'Musculación',
   crossfit: 'CrossFit',
   hyrox: 'Hyrox',
   funcional: 'Funcional',

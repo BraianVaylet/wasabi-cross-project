@@ -154,6 +154,12 @@ desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
 
+2026-10-02 — La disciplina **Gimnasio pasa a llamarse Musculación**: el valor guardado es
+`musculacion` (era `gimnasio`) en el schema, el catálogo y la web. La migración
+`20261002120000-disciplina-musculacion` convierte los ejercicios ya guardados, catálogo y propios;
+es reversible. Spec §5.1 y §5.3. Bitácora
+[2026-10-02](./bitacora/2026-10-02-disciplina-musculacion.md).
+
 2026-10-02 — Dos ajustes de texto pedidos por el usuario: las bandas de carga pasan a "esfuerzo
 bajo/medio/alto" (aplica a cualquier tipo de ejercicio) y, fuera de fuerza, el campo de la marca
 aclara que es la mejor marca (repeticiones máximas, mejor tiempo, distancia máxima), el equivalente

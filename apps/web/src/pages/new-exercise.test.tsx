@@ -22,7 +22,7 @@ const SENTADILLA: CatalogEntry = {
   primaryMuscleGroup: 'cuadriceps',
   muscleGroups: ['cuadriceps', 'gluteo', 'core'],
   bodySegment: 'tren_inferior',
-  disciplines: ['gimnasio'],
+  disciplines: ['musculacion'],
   equipment: 'barra',
   alreadyAdded: false,
 };
@@ -384,7 +384,7 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(secundarios.getByRole('checkbox', { name: 'Glúteo' })).toBeChecked();
       expect(secundarios.getByRole('checkbox', { name: 'Core' })).toBeChecked();
       expect(
-        grupo('Disciplinas (opcional)').getByRole('checkbox', { name: 'Gimnasio' }),
+        grupo('Disciplinas (opcional)').getByRole('checkbox', { name: 'Musculación' }),
       ).toBeChecked();
       expect(screen.getByLabelText('Equipo (opcional)')).toHaveValue('barra');
       expect(screen.getByLabelText('RM (kg)')).toHaveValue('');
