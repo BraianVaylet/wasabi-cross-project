@@ -19,4 +19,5 @@ export * from './calc/estimated-rm.ts';
 export * from './stats/stats.api.ts';
 export * from './stats/evolution.ts';
 export * from './stats/breakdown.api.ts';
+export * from './stats/activity.api.ts';
 export * from './exercise/body-segment.ts';
