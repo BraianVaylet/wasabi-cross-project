@@ -1,0 +1,7 @@
+/*
+ * La caja y la tabla oculta son las de `Chart` (Chart.css): mismo recorte, mismo borde,
+ * mismo encabezado. Acá sólo lo propio de las columnas.
+ */
+.wc-column-chart .wc-chart__plot text {
+  font-variant-numeric: tabular-nums;
+}
