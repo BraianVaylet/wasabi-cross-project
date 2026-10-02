@@ -22,7 +22,7 @@ const load = (
       <Measure value={65} unit="kg" size="hero" tone="accent" />
       <p style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', margin: '0.25rem 0 0' }}>
         <span className="wc-kicker">Carga calculada</span>
-        <Tag variant="success">Carga liviana</Tag>
+        <Tag variant="success">Esfuerzo bajo</Tag>
       </p>
     </div>
     <Button variant="cta" style={{ minHeight: '62px', textAlign: 'left' }}>

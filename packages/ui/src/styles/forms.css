@@ -36,6 +36,13 @@
   font-size: var(--wc-font-size-sm);
 }
 
+/* La aclaración de un campo: lo mismo que el error, pero en el color de los textos de apoyo. */
+.wc-field-hint {
+  margin: 0;
+  color: var(--wc-text-soft);
+  font-size: var(--wc-font-size-sm);
+}
+
 /*
  * La casilla y el radio, dibujados: el control nativo se ve gris y claro sobre este fondo. Sigue
  * siendo el `input` real (foco, teclado, lector de pantalla); sólo cambia cómo se pinta. El

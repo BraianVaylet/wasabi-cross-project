@@ -112,7 +112,9 @@ Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 - Login sólo con email y contraseña en la Fase 1; username y Google, afuera.
 - Los ejercicios de tiempo no tienen tabla de porcentajes.
 - Los ejercicios del catálogo cuentan para el límite de 10 del plan Free.
-- Bandas de carga: menos de 70% liviana, de 70% a 84% media, desde 85% pesada.
+- Bandas de esfuerzo: menos de 70% bajo, de 70% a 84% medio, desde 85% alto. Se llamaban "carga
+  liviana/media/pesada"; desde 2026-10-02 el tag dice "Esfuerzo bajo/medio/alto" (spec §5.1). Los
+  códigos internos (`liviana`/`media`/`pesada` en schemas) no cambian.
 - El peso es sólo en kg. La opción de lb nunca estuvo en los mockups: la había agregado F0-02.
 - Una marca no puede tener fecha futura (spec §5.1).
 
@@ -151,6 +153,11 @@ Free. Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME
 desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
+
+2026-10-02 — Dos ajustes de texto pedidos por el usuario: las bandas de carga pasan a "esfuerzo
+bajo/medio/alto" (aplica a cualquier tipo de ejercicio) y, fuera de fuerza, el campo de la marca
+aclara que es la mejor marca (repeticiones máximas, mejor tiempo, distancia máxima), el equivalente
+de un RM. Spec §5.1; bitácora [2026-10-02](./bitacora/2026-10-02-esfuerzo-y-mejor-marca.md).
 
 2026-09-28 — Se planifica la Fase 5, catálogo ampliado: el usuario trajo 61 ejercicios en JSON con
 disciplinas, equipo y grupo primario/secundarios, y pidió dos pestañas en el alta con el precargado

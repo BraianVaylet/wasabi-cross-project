@@ -161,6 +161,22 @@ describe('Cargar una marca nueva (F1-14, mockup 11)', () => {
       expect(screen.getByLabelText('Tiempo (mm:ss)')).toBeInTheDocument();
     });
 
+    it('fuera de fuerza aclara que se anota la mejor marca', async () => {
+      renderDetalle('mex_z9y8x7w6');
+      await abrirModal('Nueva marca');
+
+      expect(screen.getByLabelText('Tiempo (mm:ss)')).toHaveAccessibleDescription(
+        /tu mejor tiempo/i,
+      );
+    });
+
+    it('en fuerza no hace falta aclararlo: ya es el RM', async () => {
+      renderDetalle();
+      await abrirModal();
+
+      expect(screen.getByLabelText('RM (kg)')).not.toHaveAccessibleDescription();
+    });
+
     it('en hipertrofia pide además el peso', async () => {
       renderDetalle('mex_h1p2e3r4');
       await abrirModal('Nueva marca');

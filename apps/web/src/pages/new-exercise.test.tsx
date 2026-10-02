@@ -245,6 +245,23 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(api.client.addExercise).not.toHaveBeenCalled();
     });
 
+    it('sin RM, aclara que se anota la mejor marca: repeticiones máximas o mejor tiempo', async () => {
+      renderNuevo();
+
+      await completarPropio('Gimnástico (repeticiones)');
+      expect(screen.getByLabelText('Repeticiones')).toHaveAccessibleDescription(
+        /máximas repeticiones/i,
+      );
+
+      await userEvent.click(screen.getByRole('radio', { name: 'Running (tiempo)' }));
+      expect(screen.getByLabelText('Tiempo (mm:ss)')).toHaveAccessibleDescription(
+        /tu mejor tiempo/i,
+      );
+
+      await userEvent.click(screen.getByRole('radio', { name: 'Fuerza (RM en kg)' }));
+      expect(screen.getByLabelText('RM (kg)')).not.toHaveAccessibleDescription();
+    });
+
     it('un tiempo se escribe mm:ss y se guarda en segundos', async () => {
       const { api } = renderNuevo();
 

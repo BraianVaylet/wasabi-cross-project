@@ -44,6 +44,21 @@ describe('TextField', () => {
     expect(input).toHaveAccessibleDescription('El valor cargado no es válido.');
   });
 
+  it('la aclaración describe al input, sin ser una alerta', () => {
+    render(<TextField label="Tiempo" hint="Tu mejor tiempo." />);
+
+    expect(screen.getByLabelText('Tiempo')).toHaveAccessibleDescription('Tu mejor tiempo.');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('con aclaración y error, el input se describe con los dos', () => {
+    render(<TextField label="Tiempo" hint="Tu mejor tiempo." error="Escribilo como mm:ss." />);
+
+    expect(screen.getByLabelText('Tiempo')).toHaveAccessibleDescription(
+      'Tu mejor tiempo. Escribilo como mm:ss.',
+    );
+  });
+
   it('el error se anuncia al aparecer', () => {
     render(<TextField label="Peso" error="El valor cargado no es válido." />);
 

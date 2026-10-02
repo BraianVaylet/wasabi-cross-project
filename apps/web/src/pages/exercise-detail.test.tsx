@@ -264,29 +264,29 @@ describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
       expect(within(tabla).getByRole('radio', { name: '95% · 95 kg' })).toBeInTheDocument();
     });
 
-    it('arranca en el primero y muestra la carga y la banda, en verde', async () => {
+    it('arranca en el primero y muestra la carga y el esfuerzo, en verde', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4');
 
       expect(await screen.findByTestId('carga')).toHaveTextContent('65 kg');
-      expect(screen.getByText('Carga liviana')).toHaveClass('wc-tag--success');
+      expect(screen.getByText('Esfuerzo bajo')).toHaveClass('wc-tag--success');
     });
 
-    it('elegir otro cambia la carga y la banda, y queda en la URL — pesada, en rojo', async () => {
+    it('elegir otro cambia la carga y el esfuerzo, y queda en la URL — alto, en rojo', async () => {
       const { router } = renderDetalle('/ejercicios/mex_a1b2c3d4');
       await screen.findByTestId('carga');
 
       await userEvent.click(screen.getByRole('radio', { name: '85% · 85 kg' }));
 
       expect(screen.getByTestId('carga')).toHaveTextContent('85 kg');
-      expect(screen.getByText('Carga pesada')).toHaveClass('wc-tag--danger');
+      expect(screen.getByText('Esfuerzo alto')).toHaveClass('wc-tag--danger');
       expect(router.state.location.search).toEqual({ pct: 85 });
     });
 
-    it('un link con ?pct=80 arranca con ese porcentaje elegido — media, en ámbar', async () => {
+    it('un link con ?pct=80 arranca con ese porcentaje elegido — medio, en ámbar', async () => {
       renderDetalle('/ejercicios/mex_a1b2c3d4?pct=80');
 
       expect(await screen.findByTestId('carga')).toHaveTextContent('80 kg');
-      expect(screen.getByText('Carga media')).toHaveClass('wc-tag--warning');
+      expect(screen.getByText('Esfuerzo medio')).toHaveClass('wc-tag--warning');
       expect(screen.getByRole('radio', { name: '80% · 80 kg' })).toBeChecked();
     });
 
@@ -414,7 +414,7 @@ describe('Detalle de ejercicio (spec §5.2, docs/design)', () => {
       const barra = await screen.findByRole('region', { name: 'Carga seleccionada' });
       expect(within(barra).getByText('65% de 100 kg')).toBeInTheDocument();
       expect(within(barra).getByTestId('carga')).toHaveTextContent('65 kg');
-      expect(within(barra).getByText('Carga liviana')).toBeInTheDocument();
+      expect(within(barra).getByText('Esfuerzo bajo')).toBeInTheDocument();
       expect(within(barra).getByRole('button', { name: 'Registrar nuevo RM' })).toBeEnabled();
     });
 

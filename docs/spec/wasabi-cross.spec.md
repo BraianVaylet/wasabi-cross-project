@@ -101,12 +101,13 @@ también grafica el RM estimado.
 - **Categoría**: Fuerza, Hipertrofia, Gimnástico, Running, Cardio, Distancia con carga.
 - **Nivel**: Principiante, Intermedio, Avanzado, Elite. Del usuario sobre ese ejercicio.
 - **Con dolor**: sí o no. Del usuario. Etiqueta de UX, no registro clínico (§2).
-- **Carga**: liviana, media o pesada. **Se calcula, no se guarda**: menos de 70% es liviana, de 70% a 84% media, desde 85% pesada. Cada banda tiene su color — verde liviana, ámbar media, rojo pesada — en su tag, que va en la barra fija del detalle, al lado de la carga calculada (§5.2). No hay barra de progreso: el diseño de `../design` no la tiene, y el porcentaje ya se lee en la grilla.
+- **Esfuerzo**: bajo, medio o alto. Se llamaba "carga" (liviana, media, pesada); se cambió porque "esfuerzo" vale igual para un ejercicio de peso, de repeticiones o de distancia. **Se calcula, no se guarda**: menos de 70% es esfuerzo bajo, de 70% a 84% medio, desde 85% alto. Cada banda tiene su color — verde bajo, ámbar medio, rojo alto — en su tag ("Esfuerzo bajo", "Esfuerzo medio", "Esfuerzo alto"), que va en la barra fija del detalle, al lado de la carga calculada (§5.2). No hay barra de progreso: el diseño de `../design` no la tiene, y el porcentaje ya se lee en la grilla.
 
 **Valor actual y mejor marca:**
 
 - **Valor actual**: la marca con la fecha de realización más reciente. Sobre ella se calculan los porcentajes, porque refleja la capacidad de hoy.
 - **Mejor marca**: el máximo histórico (el mínimo, en tiempo; el mayor RM estimado, en hipertrofia). Es lo que dispara `pr.achieved`.
+- **Fuera de fuerza no hay RM, y se le dice al usuario**: al anotar una marca (el alta y "Nueva marca") el campo aclara que lo que va ahí es su mejor marca —las repeticiones máximas, su mejor tiempo, la distancia máxima—, el equivalente de un RM para esa disciplina. En fuerza no hace falta: el campo ya se llama "RM".
 
 **Redondeo:**
 
@@ -147,7 +148,7 @@ lenguaje. De arriba abajo:
    con "RM ACTUAL" ("MARCA ACTUAL" si no es RM); las anteriores, más sobrias. "Ver más" si hay más
    páginas.
 6. **Barra fija abajo**: "{porcentaje}% DE {valor actual}", la carga calculada en grande, el tag de
-   su banda de carga (§5.1) y el botón "Registrar nuevo RM" ("Registrar nueva marca" si no es RM),
+   su banda de esfuerzo (§5.1) y el botón "Registrar nuevo RM" ("Registrar nueva marca" si no es RM),
    que abre el modal de siempre. En las categorías sin porcentajes (running, cardio y distancia con
    carga) la barra muestra la mejor marca en lugar de la carga calculada. El contenido deja lugar abajo para que la barra no
    tape el final del historial.

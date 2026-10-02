@@ -9,15 +9,41 @@ import { parseDuration } from './format.ts';
 export interface MarkField {
   label: string;
   placeholder: string;
+  /** Qué se espera que se escriba, donde no es obvio: en lo que no es RM, la mejor marca. */
+  hint?: string;
 }
 
+/*
+ * Fuera de fuerza no hay RM: lo que se anota es la mejor marca de esa disciplina, el equivalente
+ * de un RM (spec §5.1). Se aclara en el campo para que no se cargue la última marca cualquiera.
+ */
 export const MARK_FIELD: Record<MeasureKind, MarkField> = {
   rm: { label: 'RM (kg)', placeholder: 'Ej: 100' },
-  reps: { label: 'Repeticiones', placeholder: 'Ej: 30' },
-  weighted_reps: { label: 'Repeticiones', placeholder: 'Ej: 12' },
-  time: { label: 'Tiempo (mm:ss)', placeholder: 'Ej: 04:32' },
-  distance: { label: 'Distancia (m)', placeholder: 'Ej: 2000' },
-  weighted_distance: { label: 'Distancia (m)', placeholder: 'Ej: 50' },
+  reps: {
+    label: 'Repeticiones',
+    placeholder: 'Ej: 30',
+    hint: '🚀 Máximas repeticiones.',
+  },
+  weighted_reps: {
+    label: 'Repeticiones',
+    placeholder: 'Ej: 12',
+    hint: '🚀 Máximas repeticiones que lograste con ese peso.',
+  },
+  time: {
+    label: 'Tiempo (mm:ss)',
+    placeholder: 'Ej: 04:32',
+    hint: '🚀 Tu mejor tiempo.',
+  },
+  distance: {
+    label: 'Distancia (m)',
+    placeholder: 'Ej: 2000',
+    hint: '🚀 Distancia máxima.',
+  },
+  weighted_distance: {
+    label: 'Distancia (m)',
+    placeholder: 'Ej: 50',
+    hint: '🚀 Distancia máxima con ese peso.',
+  },
 };
 
 /**
