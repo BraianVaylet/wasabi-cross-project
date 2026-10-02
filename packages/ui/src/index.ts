@@ -3,6 +3,7 @@ import './styles/tokens.css';
 export { Button, type ButtonProps, type ButtonVariant } from './components/button/Button.tsx';
 export { Card, type CardProps, type CardVariant } from './components/card/Card.tsx';
 export { Chart, type ChartProps, type ChartPoint } from './components/chart/Chart.tsx';
+export { Donut, type DonutProps, type DonutSlice } from './components/donut/Donut.tsx';
 export { Checkbox, type CheckboxProps } from './components/checkbox/Checkbox.tsx';
 export {
   CheckboxGroup,
