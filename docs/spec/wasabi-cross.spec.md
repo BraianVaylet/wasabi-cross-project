@@ -44,16 +44,16 @@ Los límites de plan son un **entitlement por usuario**, se validan en el módul
 
 Mockups en [`../mockup`](../mockup).
 
-| Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                               |
-| -------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                                 |
-| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                     |
-| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                        |
-| Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2).      |
-| Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                                  |
-| Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, potencia, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. |
-| Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                               |
-| Nuevo ejercicio            | `wasabi (9).png`                                    | Dos pestañas: **Catálogo** (buscar y elegir un precargado, que llena el formulario y se puede editar) y **Crear** (uno propio, campo por campo). En las dos: primera marca con su fecha, nivel, comentarios y "con dolor". Reglas en §5.3.                                                                |
+| Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                                                                                                                                               |
+| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                                                                                                                                   |
+| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                                                                                                                                      |
+| Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2).                                                                                                                    |
+| Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                                                                                                                                                |
+| Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, potencia, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. Además, constancia, récords del período, ejercicios para retestear y cómo se reparte el entrenamiento (§5.4). |
+| Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                                                                                                                                             |
+| Nuevo ejercicio            | `wasabi (9).png`                                    | Dos pestañas: **Catálogo** (buscar y elegir un precargado, que llena el formulario y se puede editar) y **Crear** (uno propio, campo por campo). En las dos: primera marca con su fecha, nivel, comentarios y "con dolor". Reglas en §5.3.                                                                                                                                                                              |
 
 Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
@@ -219,6 +219,49 @@ con los valores editados: cuenta para el límite de propios del plan (§4), y el
 antes de guardar, apenas se edita el primer campo. Si el plan ya no admite más propios, el aviso lo
 dice y ofrece volver a los valores del catálogo; quien decide igual es el backend. Nivel, comentarios, "con dolor" y la primera
 marca son del usuario y se cargan igual en los dos casos: editarlos no convierte nada.
+
+### 5.4 Estadísticas: constancia, récords y tu entrenamiento
+
+Debajo de "En general", Estadísticas suma cuatro secciones (Fase 7, pedido del usuario del
+2026-10-02). Las dos primeras miran el **período** elegido arriba; las otras dos, no, y lo dicen.
+
+**Constancia** (del período):
+
+- Cuántas marcas cargó en el período y cuántos días pasaron desde la última (ésta, sin importar
+  el período: una marca de hace un año sigue siendo la última).
+- Las marcas por mes en columnas, con los meses sin marcas en cero: un hueco es un dato. El mes es
+  el de la fecha de la marca en UTC, que coincide con el del usuario porque la marca se guarda al
+  mediodía de su zona (§5.1). En "Todo el historial", desde el mes de la primera marca.
+
+**Récords del período**:
+
+- Cuántas **mejores marcas nuevas** logró: una marca que supera a todas las anteriores de su
+  ejercicio, con la misma vara que la mejor marca (§5.1: en tiempo, menos; en hipertrofia, el RM
+  estimado). La primera marca de un ejercicio no cuenta —no superó a nada— y el empate tampoco.
+- Los **tres ejercicios que más mejoraron**: la variación del período (la misma de cada
+  ejercicio, §5), con al menos dos marcas y sólo si es mejora. Cada uno lleva al detalle.
+
+**Para retestear** (sin período): los ejercicios cuya última marca tiene **más de 8 semanas**
+(56 días), del más olvidado al más reciente, cada uno con su link al detalle para cargar una
+marca. Sin ninguno, la sección no aparece.
+
+**Tu entrenamiento** (sin período): cómo se reparten los ejercicios que el atleta tiene cargados.
+
+| Qué                 | Gráfico                             | Cómo se cuenta                                                                                                                                                                                                           |
+| ------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Disciplinas         | Dona                                | Un ejercicio **cuenta entero en cada disciplina** que tiene (el Wall Ball suma a CrossFit y a Hyrox): el porcentaje es sobre el total de menciones, no de ejercicios. Los propios sin disciplina van a "Sin disciplina". |
+| Categorías          | Dona                                | Una por ejercicio: fuerza, hipertrofia, gimnástico, running, cardio, distancia con carga.                                                                                                                                |
+| Segmento del cuerpo | Dona                                | El derivado del grupo primario (§5.1): tren superior, tren inferior, core, cuerpo completo.                                                                                                                              |
+| Grupos musculares   | Barras horizontales, de más a menos | **El primario suma 1 y cada secundario ½.** La barra muestra los dos tramos (primario lleno, secundario más claro) y el número. Catorce grupos no se leen en una torta. Sólo aparecen los que suman algo.                |
+
+- Una dona tiene **a lo sumo seis porciones**: con más, las cinco más grandes y "Otras", que
+  dice cuáles junta. "Sin disciplina" y "Otras" van en gris y al final.
+- Los porcentajes se muestran enteros y **suman 100** (se reparte el redondeo por resto mayor).
+- Ningún dato vive sólo en el color: cada porción y cada barra tiene su nombre, su cantidad y su
+  porcentaje escritos al lado (§11). El dibujo queda fuera del árbol de accesibilidad.
+- Los colores de las porciones salen de una paleta de seis validada para daltonismo y contraste
+  sobre el fondo del tema (tokens `--wc-chart-*`), asignados en orden; el gris de "Otras" no es
+  uno de ellos.
 
 ## 6. Stack
 

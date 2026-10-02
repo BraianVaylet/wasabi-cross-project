@@ -21,6 +21,7 @@
 | Fase 3 — A producción             |     12 |           37 |      5 |
 | Fase 4 — Rediseño Toxic Cyberpunk |     18 |           75 |      0 |
 | Fase 5 — Catálogo ampliado        |     16 |           62 |      0 |
+| Fase 7 — Estadísticas ampliadas   |      8 |           23 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -2193,3 +2194,188 @@ F5-04 (Epley) es independiente del resto.
 - **error-codes:** ninguno
 - **data-model-impact:** los enums de disciplina y de equipo se ensanchan; ningún documento
   existente deja de ser válido, así que no hay migración de datos.
+
+---
+
+# Fase 7 — Estadísticas ampliadas
+
+El usuario pidió (2026-10-02) gráficos de torta o dona con la proporción de disciplinas que
+practica según los ejercicios que tiene cargados, los grupos musculares más trabajados contando
+primario y secundarios, y que se evalúe qué otras métricas valen la pena. De la evaluación eligió
+las cuatro propuestas: categoría y segmento, constancia, récords del período y ejercicios para
+retestear. Las reglas —qué cuenta y cómo— están en spec §5.4: una disciplina cuenta entera en cada
+ejercicio que la tiene, el primario suma 1 y el secundario ½, a lo sumo seis porciones por dona.
+
+No depende de Railway/Atlas. Dos endpoints nuevos en el módulo `stats`, sin tocar el contrato del
+resumen existente: `GET /stats/composition` (sin período) y `GET /stats/activity` (con período).
+Camino: F7-00 → F7-01 y F7-02 (API, en paralelo con F7-03 y F7-04, componentes) → F7-05 y F7-06
+(pantalla) → F7-07.
+
+## [ ] F7-00 · Spec: constancia, récords, para retestear y tu entrenamiento
+
+- **module:** spec
+- **description:** Las decisiones del usuario volcadas en spec §5 y §5.4 (nueva): qué mira cada
+  sección, si depende del período, cómo se cuentan disciplinas (enteras en cada una, "Sin
+  disciplina" aparte) y grupos (primario 1, secundario ½), qué es una mejor marca nueva, el umbral
+  de 8 semanas para retestear, el tope de seis porciones y la paleta validada.
+- **acceptance-criteria:**
+  - Dada la spec, cuando se lee §5.4, entonces cada número nuevo de Estadísticas dice de dónde
+    sale y si lo mueve el período.
+- **example:** —
+- **story-points:** 1
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** revisión humana de la PR.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F7-01 · Schemas y API: tu entrenamiento
+
+- **module:** stats
+- **description:** `GET /api/v1/stats/composition`: cuántos ejercicios tiene el usuario y cómo se
+  reparten por disciplina (con `null` para "sin disciplina"), categoría, segmento y grupo
+  muscular (primario, secundario, puntaje y porcentaje). El contrato en `@wasabi-cross/schemas`;
+  el cálculo, puro, en el dominio de `stats`; `exercises` le pasa categoría, disciplinas y grupo
+  primario por el puerto que ya existe. Porcentajes enteros que suman 100 (resto mayor).
+- **acceptance-criteria:**
+  - Dados un Wall Ball (crossfit, hyrox) y una sentadilla (musculación, crossfit), cuando se pide
+    la composición, entonces CrossFit cuenta 2 y es el 50%, y Hyrox y Musculación el 25% cada uno.
+  - Dado un ejercicio propio sin disciplinas, entonces aparece en la porción `null`.
+  - Dada una sentadilla (cuádriceps; glúteo y core), entonces cuádriceps suma 1 y glúteo y core ½.
+  - Dado un usuario sin ejercicios, entonces responde todo vacío y `exercises: 0`.
+  - Dado un pedido sin sesión, entonces 401.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F7-00
+- **risk:** low
+- **test_plan:** unitarios del cálculo y del reparto del redondeo; integración contra
+  `mongodb-memory-server` con ejercicios del catálogo y uno propio; schema del contrato.
+- **error-codes:** ninguno nuevo (`WC-AUTH-401-001` sin sesión)
+- **data-model-impact:** ninguno: lee lo que ya guarda `exercises`.
+
+## [ ] F7-02 · Schemas y API: constancia, récords y para retestear
+
+- **module:** stats
+- **description:** `GET /api/v1/stats/activity?period=`: marcas del período, marcas por mes (con
+  los meses vacíos), última marca y días desde ella, cantidad de mejores marcas nuevas del período,
+  los tres que más mejoraron y los ejercicios sin marca hace más de 56 días. Lee toda la serie de
+  los ejercicios del usuario de una vez (`seriesFor`), porque una mejor marca nueva se compara
+  contra las anteriores al período.
+- **acceptance-criteria:**
+  - Dadas marcas en julio y septiembre, cuando se pide el período de 3 meses, entonces los meses
+    del período aparecen todos, agosto en cero.
+  - Dada una serie 100, 110, 105, 120 de un RM, entonces hay dos mejores marcas nuevas (110 y 120);
+    la primera no cuenta.
+  - Dada una carrera 300 s → 280 s, entonces 280 es mejor marca nueva (en tiempo, menos).
+  - Dada una hipertrofia, entonces la comparación es por RM estimado.
+  - Dado un ejercicio con su última marca hace 60 días, entonces está en "para retestear"; con 50,
+    no.
+  - Dados cuatro ejercicios que mejoraron y uno que empeoró, entonces vuelven los tres que más
+    mejoraron, ordenados.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F7-00
+- **risk:** medium — fechas y meses: el reloj se inyecta para que los tests no dependan de hoy.
+- **test_plan:** unitarios de cada cálculo con el reloj fijo; integración contra
+  `mongodb-memory-server`; schema del contrato.
+- **error-codes:** ninguno nuevo
+- **data-model-impact:** ninguno
+
+## [ ] F7-03 · Componente Cross: dona
+
+- **module:** ui
+- **description:** `Donut` en `@wasabi-cross/ui`, con `pie` y `radialArc` de TanStack Charts (sin
+  salir del stack): porciones con un hueco entre ellas, el total en el centro y la leyenda al lado
+  con nombre, cantidad y porcentaje. A lo sumo seis porciones: con más, las cinco más grandes y
+  "Otras". Las porciones grises (`muted`) van al final. Tokens `--wc-chart-1` a `--wc-chart-6` y
+  `--wc-chart-other`, validados. Sin lógica de negocio: recibe las porciones hechas.
+- **acceptance-criteria:**
+  - Dadas tres porciones, cuando se dibuja, entonces la leyenda lista las tres con su cantidad y su
+    porcentaje, y el dibujo está fuera del árbol de accesibilidad.
+  - Dadas ocho, entonces se ven cinco y "Otras", que dice cuáles junta.
+  - Dado axe, entonces 0 violaciones.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F7-00
+- **risk:** low — `polar` es nuevo en la librería (0.18).
+- **test_plan:** tests de componente; Storybook con 1, 3 y 8 porciones; axe.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F7-04 · Componentes Cross: barras de grupos y columnas por mes
+
+- **module:** ui
+- **description:** `RankBars`: barras horizontales ordenadas, en HTML, cada una con dos tramos
+  (lleno y claro) y su número escrito; y `ColumnChart`: columnas con TanStack Charts (`barY`), una
+  por mes, con la tabla equivalente. Los dos sin lógica de negocio.
+- **acceptance-criteria:**
+  - Dadas filas con dos tramos, cuando se dibujan, entonces el largo es proporcional a la más
+    grande y el texto dice el total.
+  - Dadas columnas con ceros, entonces el cero se ve como cero (sin columna) y la tabla lo dice.
+  - Dado axe, entonces 0 violaciones.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F7-00
+- **risk:** low
+- **test_plan:** tests de componente; Storybook; axe.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F7-05 · Pantalla: constancia, récords y para retestear
+
+- **module:** web
+- **description:** Las tres secciones de §5.4 que miran la actividad, debajo de "En general": los
+  números del período, las columnas por mes, los tres que más mejoraron y la lista para retestear
+  con link al detalle. Una consulta (`['stats', 'activity', período]`), que se invalida al cargar
+  una marca como las demás de `stats`.
+- **acceptance-criteria:**
+  - Dado un usuario con marcas, cuando abre Estadísticas, entonces ve cuántas marcas cargó en el
+    período, los días desde la última y las columnas por mes.
+  - Dado un cambio de período, entonces cambian los números del período y no los días desde la
+    última.
+  - Dado un ejercicio sin marca hace 9 semanas, entonces aparece en "Para retestear" y el link
+    lleva a su detalle.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F7-02, F7-04
+- **risk:** low
+- **test_plan:** tests de la pantalla con la API en memoria.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F7-06 · Pantalla: tu entrenamiento
+
+- **module:** web
+- **description:** La sección "Tu entrenamiento" de §5.4: tres donas (disciplinas, categorías y
+  segmento) y las barras de grupos musculares, con las etiquetas de `lib/labels.ts`. Dice que no
+  depende del período. Una consulta (`['stats', 'composition']`) que se invalida al agregar,
+  editar o borrar un ejercicio.
+- **acceptance-criteria:**
+  - Dado un usuario con ejercicios, cuando abre Estadísticas, entonces ve las tres donas y las
+    barras, con nombres en castellano.
+  - Dado un ejercicio propio sin disciplinas, entonces la dona dice "Sin disciplina".
+  - Dado un ejercicio agregado, cuando vuelve a Estadísticas, entonces la composición lo cuenta.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F7-01, F7-03, F7-04
+- **risk:** low
+- **test_plan:** tests de la pantalla con la API en memoria.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F7-07 · E2E y axe de las secciones nuevas
+
+- **module:** web
+- **description:** El E2E de Estadísticas recorre las secciones nuevas con datos reales y axe las
+  audita a 390px.
+- **acceptance-criteria:**
+  - Dado el flujo principal, cuando llega a Estadísticas, entonces ve la dona de disciplinas y las
+    barras de grupos con el ejercicio que cargó.
+  - Dado axe a 390px, entonces 0 violaciones.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F7-05, F7-06
+- **risk:** low
+- **test_plan:** `pnpm e2e` completo en CI.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
