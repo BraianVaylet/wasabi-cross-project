@@ -184,6 +184,14 @@
   margin-top: var(--wc-space-4);
 }
 
+/* "Tu entrenamiento": las donas y las barras, una abajo de la otra. */
+.stats__charts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-4);
+}
+
 /* Una fila que lleva al detalle: se ve como las otras, con el foco como anillo interior. */
 .stats__link {
   color: var(--wc-text);

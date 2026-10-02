@@ -4,6 +4,7 @@ import type {
   ManagedExerciseSummary,
   StatsPeriod,
   TrainingActivity,
+  TrainingBreakdown,
 } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
@@ -12,6 +13,7 @@ import { useCallback } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { Activity } from './Activity.tsx';
+import { Breakdown } from './Breakdown.tsx';
 import { formatChange } from './change.ts';
 import { GeneralStats } from './GeneralStats.tsx';
 import './stats.css';
@@ -27,6 +29,8 @@ export interface StatsPageProps {
   general: UseQueryResult<Summary>;
   /** Constancia, récords y para retestear (F7-05). */
   activity: UseQueryResult<TrainingActivity>;
+  /** Cómo se reparte el entrenamiento (F7-06): sin período. */
+  breakdown: UseQueryResult<TrainingBreakdown>;
   period: StatsPeriod;
   onPeriodChange: (period: StatsPeriod) => void;
 }
@@ -51,6 +55,7 @@ export function StatsPage({
   stats,
   general,
   activity,
+  breakdown,
   period,
   onPeriodChange,
 }: StatsPageProps): React.JSX.Element {
@@ -116,6 +121,7 @@ export function StatsPage({
         <>
           <GeneralStats stats={general} />
           <Activity activity={activity} />
+          <Breakdown breakdown={breakdown} />
         </>
       ) : null}
     </>
