@@ -1,3 +1,4 @@
+import { COLORES, ESCALAS, FORMAS, LADO, RADIO_ESQUINA, transformDeEscala } from './marca.ts';
 import './Logo.css';
 
 export interface LogoProps {
@@ -6,21 +7,24 @@ export interface LogoProps {
 }
 
 /**
- * El logo del diseño (`docs/design`): una "W" lima con una barra cruzada, en una caja con borde.
+ * La marca: una W blanca sobre una ficha verde. Es el mismo
+ * dibujo que el favicon y el ícono de la PWA (`apps/web/public`): los tres salen de `marca.ts`.
  * Decorativo: el nombre de la marca siempre va en texto al lado (`Wordmark`).
  */
 export function Logo({ size = 'small' }: LogoProps): React.JSX.Element {
   return (
     <span aria-hidden="true" className={`wc-logo wc-logo--${size}`}>
-      <svg className="wc-logo__mark" viewBox="0 0 40 40" fill="none" focusable="false">
-        <path
-          className="wc-logo__w"
-          d="M6 8 11.5 31 20 15 28.5 31 34 8"
-          strokeWidth="3"
-          strokeLinecap="square"
-          strokeLinejoin="miter"
-        />
-        <path className="wc-logo__bar" d="M14 24h12" strokeWidth="2" />
+      <svg
+        className="wc-logo__mark"
+        viewBox={`0 0 ${String(LADO)} ${String(LADO)}`}
+        focusable="false"
+      >
+        <rect width={LADO} height={LADO} rx={RADIO_ESQUINA} fill={COLORES.fondo} />
+        <g transform={transformDeEscala(ESCALAS.icono)}>
+          {FORMAS.map((forma) => (
+            <path key={forma.d} d={forma.d} fill={forma.relleno} />
+          ))}
+        </g>
       </svg>
     </span>
   );
