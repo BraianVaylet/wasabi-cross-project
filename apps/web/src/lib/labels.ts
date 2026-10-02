@@ -1,4 +1,5 @@
 import type {
+  BodySegment,
   Capacity,
   Discipline,
   Equipment,
@@ -42,6 +43,13 @@ export const MUSCLE_GROUP_LABEL: Record<MuscleGroup, string> = {
   cuadriceps: 'Cuádriceps',
   isquiotibiales: 'Isquiotibiales',
   gemelo: 'Gemelo',
+  cuerpo_completo: 'Cuerpo completo',
+};
+
+export const SEGMENT_LABEL: Record<BodySegment, string> = {
+  tren_superior: 'Tren superior',
+  tren_inferior: 'Tren inferior',
+  core: 'Core',
   cuerpo_completo: 'Cuerpo completo',
 };
 

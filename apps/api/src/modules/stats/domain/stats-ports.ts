@@ -1,4 +1,11 @@
-import type { Capacity, MeasureKind, MuscleGroup, SeriesPoint } from '@wasabi-cross/schemas';
+import type {
+  Capacity,
+  Discipline,
+  ExerciseCategory,
+  MeasureKind,
+  MuscleGroup,
+  SeriesPoint,
+} from '@wasabi-cross/schemas';
 
 /*
  * Puertos del módulo `stats` (F2-04). Como todo módulo, no conoce el modelo de los otros:
@@ -21,12 +28,20 @@ export interface OwnedExerciseNameLookup {
   findOwned: (userId: string, managedExerciseId: string) => Promise<StatsExercise | null>;
 }
 
-/** Un ejercicio del usuario, con lo que hace falta para agruparlo (F2-05). */
+/**
+ * Un ejercicio del usuario, con lo que hace falta para agruparlo (F2-05) y para repartir su
+ * entrenamiento (F7-01).
+ */
 export interface StatsExerciseProfile {
   readonly managedExerciseId: string;
+  readonly name: string;
   readonly kind: MeasureKind;
+  readonly category: ExerciseCategory;
   readonly capacities: readonly Capacity[];
+  readonly primaryMuscleGroup: MuscleGroup;
+  /** El primario adelante y después los secundarios (spec §5.1). */
   readonly muscleGroups: readonly MuscleGroup[];
+  readonly disciplines: readonly Discipline[];
 }
 
 /** La lista completa del usuario, para el resumen general. La cumple `exercises`. */

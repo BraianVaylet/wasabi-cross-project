@@ -78,6 +78,33 @@
 
   /* El foco del botón "Registrar" en el mockup usa el acento; mismo criterio en toda la app. */
   --wc-focus: #a7dd4f;
+
+  /*
+   * Las porciones de una dona (spec §5.4), en este orden y nunca salteadas: la del lugar 1 va
+   * siempre al lado de la 2, y la 6 vuelve a tocar a la 1. Validadas sobre `--wc-surface` con
+   * el método de la skill dataviz: lightness OKLCH entre 0,48 y 0,67, croma ≥ 0,10, ≥ 3:1 de
+   * contraste, y entre vecinas (la última con la primera incluida) ΔE ≥ 9,5 para protanopía y
+   * deuteranopía y ≥ 24 para visión normal. Son más apagados que el lima del acento a
+   * propósito: con la luminosidad del neón, la porción más clara se come a las otras.
+   */
+  --wc-chart-1: #73a402;
+  --wc-chart-2: #ef4e82;
+  --wc-chart-3: #4b8efe;
+  --wc-chart-4: #db7206;
+  --wc-chart-5: #02a6ad;
+  --wc-chart-6: #a76ef8;
+  /*
+   * "Otras" y "Sin disciplina": gris, recesivo, 3.06:1. Con el magenta queda en ΔE 7,7 bajo
+   * protanopía, legal sólo con codificación extra: el hueco entre porciones y el nombre escrito
+   * en la leyenda.
+   */
+  --wc-chart-other: #655d6f;
+  /*
+   * Barras de dos tramos (grupos musculares): el primario en el acento y el secundario en el
+   * mismo verde, más oscuro (3.54:1). Validados como rampa ordinal: un solo tono, ΔL ≥ 0,06.
+   */
+  --wc-chart-strong: #a7dd4f;
+  --wc-chart-soft: #55732a;
 }
 
 :root {

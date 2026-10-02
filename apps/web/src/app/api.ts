@@ -6,6 +6,8 @@ import {
   recordHistorySchema,
   catalogResponseSchema,
   managedExerciseSummarySchema,
+  trainingActivitySchema,
+  trainingBreakdownSchema,
   userPreferencesSchema,
   type AddExercise,
   type CatalogEntry,
@@ -17,6 +19,8 @@ import {
   type RecordHistory,
   type RecordInput,
   type StatsPeriod,
+  type TrainingActivity,
+  type TrainingBreakdown,
   type UpdateManagedExercise,
   type UpdatePreferences,
   type UserPreferences,
@@ -44,6 +48,10 @@ export interface ApiClient {
   exerciseStats: (id: string, period: StatsPeriod) => Promise<ExerciseStats>;
   /** El resumen por capacidad y grupo muscular (F2-05). */
   generalStats: (period: StatsPeriod) => Promise<GeneralStats>;
+  /** Cómo se reparten los ejercicios: disciplina, categoría, segmento y grupo (F7-01). */
+  trainingBreakdown: () => Promise<TrainingBreakdown>;
+  /** Constancia, récords y para retestear en un período (F7-02). */
+  trainingActivity: (period: StatsPeriod) => Promise<TrainingActivity>;
   preferences: () => Promise<UserPreferences>;
   savePreferences: (change: UpdatePreferences) => Promise<UserPreferences>;
 }
@@ -86,6 +94,9 @@ export function createApiClient(http: HttpClient): ApiClient {
       http.request(exerciseStatsSchema, `/api/v1/stats/exercises/${id}?period=${period}`),
     generalStats: (period) =>
       http.request(generalStatsSchema, `/api/v1/stats/summary?period=${period}`),
+    trainingBreakdown: () => http.request(trainingBreakdownSchema, '/api/v1/stats/breakdown'),
+    trainingActivity: (period) =>
+      http.request(trainingActivitySchema, `/api/v1/stats/activity?period=${period}`),
     preferences: () => http.request(userPreferencesSchema, '/api/v1/me/preferences'),
     savePreferences: (change) =>
       http.request(userPreferencesSchema, '/api/v1/me/preferences', {
@@ -185,6 +196,27 @@ export function generalStatsQueryOptions(api: ApiClient, period: StatsPeriod) {
   return queryOptions({
     queryKey: generalStatsQueryKey(period),
     queryFn: () => api.generalStats(period),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * "Tu entrenamiento" (F7-06): no tiene período. Cambia cuando se agrega, edita o borra un
+ * ejercicio, y eso invalida todo lo de `stats`.
+ */
+export function trainingBreakdownQueryOptions(api: ApiClient) {
+  return queryOptions({
+    queryKey: ['stats', 'breakdown'] as const,
+    queryFn: () => api.trainingBreakdown(),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/** Constancia, récords y para retestear (F7-05). Cargar una marca la invalida. */
+export function trainingActivityQueryOptions(api: ApiClient, period: StatsPeriod) {
+  return queryOptions({
+    queryKey: ['stats', 'activity', period] as const,
+    queryFn: () => api.trainingActivity(period),
     staleTime: 5 * 60 * 1000,
   });
 }

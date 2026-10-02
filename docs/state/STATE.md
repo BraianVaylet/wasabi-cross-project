@@ -70,6 +70,23 @@ editable. Decidido con él y volcado en [ADR-0009](../adr/0009-catalogo-ampliado
   ensanchan. En una base ya sembrada, `seed` crea las 58 nuevas y actualiza las disciplinas de las
   que cambiaron.
 
+**Fase 7 — Estadísticas ampliadas** (2026-10-02, spec §5.4): el usuario pidió donas con la
+proporción de disciplinas según sus ejercicios, los grupos musculares más trabajados contando
+primario y secundarios, y que se evaluaran otras métricas; de la evaluación eligió las cuatro
+propuestas. **El código está completo (F7-00 a F7-07, en una PR)**, ninguna tarea cerrada:
+
+- Dos endpoints nuevos en `stats`, sin tocar el resumen: `GET /stats/breakdown` (sin período:
+  disciplina, categoría, segmento, grupo) y `GET /stats/activity` (constancia, récords nuevos, los
+  tres que más mejoraron, para retestear). Se llama `breakdown` y no `composition` para no
+  confundirlo con `src/composition.ts`.
+- Una disciplina **cuenta entera en cada ejercicio** que la tiene (porcentaje sobre menciones);
+  "Sin disciplina" aparte. Grupos: **primario 1, secundario ½**. Mejor marca nueva = supera a
+  todas las anteriores (la primera y el empate no cuentan). Para retestear: **más de 56 días**.
+- Componentes Cross nuevos: `Donut` (TanStack Charts `polar`), `RankBars` (HTML) y `ColumnChart`
+  (`barY`). Paleta de gráficos `--wc-chart-*` validada con la skill dataviz sobre `--wc-surface`.
+- Agregar, editar o borrar un ejercicio invalida ahora todo `stats` (antes el resumen podía
+  quedar viejo 5 minutos).
+
 ## Bloqueado
 
 **F3-07 a F3-12**, en cadena, hasta que el usuario cree los ambientes de Railway (F3-07) y el
@@ -91,6 +108,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 6. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
    (IA-01 a IA-09) entran al plan. No dependen de Railway ni de Atlas: pueden avanzar mientras la
    Fase 3 espera.
+7. Fase 7: revisar la PR de estadísticas ampliadas (sobre todo las tres reglas de §5.4 y cómo se
+   ven las donas en el teléfono), mergear, cumplir el Definition of Done y crear las tarjetas
+   (`/trello-sync`).
 
 ## Decisiones abiertas
 
@@ -153,6 +173,10 @@ Free. Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME
 desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
+
+2026-10-02 — Fase 7, estadísticas ampliadas: spec §5.4, backlog (8 tareas, 23 puntos) y el código
+completo en una PR, un commit por tarea. Bitácoras en [bitacora](./bitacora); la última es
+[la de esta sesión](./bitacora/2026-10-02-f7-estadisticas-ampliadas.md).
 
 2026-10-02 — La disciplina **Gimnasio pasa a llamarse Musculación**: el valor guardado es
 `musculacion` (era `gimnasio`) en el schema, el catálogo y la web. La migración

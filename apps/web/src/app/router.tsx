@@ -33,6 +33,8 @@ import {
   exerciseListQueryOptions,
   exerciseStatsQueryOptions,
   generalStatsQueryOptions,
+  trainingActivityQueryOptions,
+  trainingBreakdownQueryOptions,
   historyQueryKey,
   historyQueryOptions,
   preferencesQueryOptions,
@@ -214,6 +216,8 @@ const newExerciseRoute = createRoute({
         await queryClient.invalidateQueries({ queryKey: EXERCISES_QUERY_KEY });
         // Y el catálogo: el que se acaba de agregar pasa a decir "ya lo tenés".
         await queryClient.invalidateQueries({ queryKey: CATALOG_QUERY_KEY });
+        // Y las estadísticas: el ejercicio nuevo cuenta en el reparto y en el resumen.
+        await queryClient.invalidateQueries({ queryKey: ['stats'] });
         await navigate({ to: '/' });
       },
     });
@@ -346,7 +350,12 @@ const editExerciseRoute = createRoute({
     const exercises = useQuery(exerciseListQueryOptions(api));
     const exercise = exercises.data?.exercises.find((item) => item.id === id);
 
-    const refreshList = () => queryClient.invalidateQueries({ queryKey: EXERCISES_QUERY_KEY });
+    // La lista y las estadísticas: un ejercicio borrado deja de contar en el reparto.
+    const refreshList = () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: EXERCISES_QUERY_KEY }),
+        queryClient.invalidateQueries({ queryKey: ['stats'] }),
+      ]);
 
     const save = useMutation({
       mutationFn: (change: UpdateManagedExercise) => api.updateExercise(id, change),
@@ -442,6 +451,8 @@ const statsRoute = createRoute({
       enabled: abierto !== undefined,
     });
     const general = useQuery(generalStatsQueryOptions(api, period));
+    const activity = useQuery(trainingActivityQueryOptions(api, period));
+    const breakdown = useQuery(trainingBreakdownQueryOptions(api));
 
     return (
       <StatsPage
@@ -449,6 +460,8 @@ const statsRoute = createRoute({
         open={abierto}
         stats={abierto === undefined ? null : stats}
         general={general}
+        activity={activity}
+        breakdown={breakdown}
         period={period}
         onPeriodChange={(elegido) => {
           // El período y lo abierto se escriben juntos: son toda la búsqueda de la ruta.

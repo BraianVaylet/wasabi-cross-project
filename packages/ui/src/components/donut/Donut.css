@@ -1,0 +1,134 @@
+/*
+ * La dona va en la misma caja recortada que el gráfico de progreso: superficie, borde violeta
+ * y el encabezado chico arriba. A la izquierda el dibujo con el total; a la derecha la
+ * leyenda, que es lo que se lee.
+ */
+.wc-donut {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+  margin: 0;
+  padding: var(--wc-space-2) var(--wc-space-3) var(--wc-space-3);
+
+  background-color: var(--wc-surface);
+  border: 1px solid var(--wc-border);
+  clip-path: var(--wc-plate-shape);
+}
+
+.wc-donut__caption {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-2xs);
+  line-height: 1.4;
+  letter-spacing: var(--wc-tracking-wide);
+  text-transform: uppercase;
+}
+
+.wc-donut__body {
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-4);
+}
+
+.wc-donut__ring {
+  position: relative;
+  flex: none;
+}
+
+.wc-donut__plot {
+  width: 100%;
+  height: 100%;
+}
+
+/* El total, centrado en el hueco: texto de verdad, no adentro del SVG. */
+.wc-donut__total {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  pointer-events: none;
+}
+
+.wc-donut__total-value {
+  color: var(--wc-text);
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-heading);
+  line-height: 1;
+}
+
+.wc-donut__total-caption {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-2xs);
+  letter-spacing: var(--wc-tracking-wide);
+  text-transform: uppercase;
+}
+
+.wc-donut__legend {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wc-donut__item {
+  display: grid;
+  grid-template-columns: 0.625rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--wc-space-2);
+  font-size: var(--wc-font-size-xs);
+  line-height: 1.4;
+}
+
+/*
+ * Cuadrado y sin redondear, como todo en el tema. Alineado con la primera línea del nombre:
+ * "Otras" ocupa dos y la muestra no tiene que quedar flotando entre las dos.
+ */
+.wc-donut__swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  align-self: start;
+  margin-top: 0.25em;
+}
+
+.wc-donut__name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--wc-text);
+}
+
+/* La cantidad y, en "Otras", lo que junta: es información, así que no baja de 11px (spec §11). */
+.wc-donut__detail {
+  color: var(--wc-text-muted);
+}
+
+.wc-donut__percent {
+  color: var(--wc-text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.wc-donut__empty {
+  margin: 0;
+  padding: var(--wc-space-4) 0;
+  color: var(--wc-text-muted);
+  text-align: center;
+}
+
+/* Con colores forzados el color de la muestra se pierde: queda el borde y el nombre escrito. */
+@media (forced-colors: active) {
+  .wc-donut {
+    clip-path: none;
+  }
+
+  .wc-donut__swatch {
+    border: 1px solid CanvasText;
+  }
+}

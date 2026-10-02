@@ -3,9 +3,13 @@ import {
   generalStatsSchema,
   managedExerciseIdSchema,
   statsQuerySchema,
+  trainingActivitySchema,
+  trainingBreakdownSchema,
   type ExerciseStats,
   type GeneralStats,
   type StatsPeriod,
+  type TrainingActivity,
+  type TrainingBreakdown,
 } from '@wasabi-cross/schemas';
 import type { FastifyRequest, onRequestAsyncHookHandler } from 'fastify';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
@@ -22,6 +26,8 @@ export interface StatsRoutesOptions {
     period: StatsPeriod,
   ) => Promise<ExerciseStats>;
   generalStats: (userId: string, period: StatsPeriod) => Promise<GeneralStats>;
+  trainingBreakdown: (userId: string) => Promise<TrainingBreakdown>;
+  trainingActivity: (userId: string, period: StatsPeriod) => Promise<TrainingActivity>;
 }
 
 function sessionUserId(request: FastifyRequest): string {
@@ -34,7 +40,8 @@ function sessionUserId(request: FastifyRequest): string {
 }
 
 export function statsRoutes(options: StatsRoutesOptions): FastifyPluginAsyncZod {
-  const { requireSession, exerciseStats, generalStats } = options;
+  const { requireSession, exerciseStats, generalStats, trainingBreakdown, trainingActivity } =
+    options;
 
   // eslint-disable-next-line @typescript-eslint/require-await -- la firma del plugin de Fastify es async
   return async (app) => {
@@ -73,6 +80,42 @@ export function statsRoutes(options: StatsRoutesOptions): FastifyPluginAsyncZod 
         },
       },
       async (request) => generalStats(sessionUserId(request), request.query.period),
+    );
+
+    app.get(
+      '/stats/breakdown',
+      {
+        onRequest: requireSession,
+        schema: {
+          summary: 'Cómo se reparte el entrenamiento',
+          description:
+            'Los ejercicios del usuario por disciplina, categoría, segmento y grupo muscular ' +
+            '(spec §5.4). Un ejercicio cuenta entero en cada disciplina que tiene; en los ' +
+            'grupos, el primario suma 1 y cada secundario ½. Sin período: mira la lista.',
+          tags: ['stats'],
+          response: { 200: trainingBreakdownSchema },
+        },
+      },
+      async (request) => trainingBreakdown(sessionUserId(request)),
+    );
+
+    app.get(
+      '/stats/activity',
+      {
+        onRequest: requireSession,
+        schema: {
+          summary: 'Constancia, récords y para retestear',
+          description:
+            'Las marcas del período, por mes y en total; las mejores marcas nuevas (las que ' +
+            'superaron a todas las anteriores de su ejercicio); los tres que más mejoraron; y, ' +
+            'sin mirar el período, la última marca y los ejercicios con más de 8 semanas sin ' +
+            'una (spec §5.4).',
+          tags: ['stats'],
+          querystring: statsQuerySchema,
+          response: { 200: trainingActivitySchema },
+        },
+      },
+      async (request) => trainingActivity(sessionUserId(request), request.query.period),
     );
   };
 }

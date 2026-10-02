@@ -15,6 +15,22 @@ export function formatDate(iso: string): string {
   return DATE.format(new Date(iso));
 }
 
+const MONTH = new Intl.DateTimeFormat('es-AR', { month: 'short', timeZone: 'UTC' });
+const MONTH_YEAR = new Intl.DateTimeFormat('es-AR', {
+  month: 'short',
+  year: '2-digit',
+  timeZone: 'UTC',
+});
+
+/**
+ * Un mes de la API (`2026-07`) como se lee en el eje: "jul", o "jul 26" si el gráfico abarca
+ * más de un año y hay que distinguir el octubre de uno del del otro. En UTC: así lo cuenta
+ * la API (spec §5.4).
+ */
+export function formatMonth(month: string, withYear = false): string {
+  return (withYear ? MONTH_YEAR : MONTH).format(new Date(`${month}-15T12:00:00.000Z`));
+}
+
 function pad(value: number): string {
   return String(value).padStart(2, '0');
 }
