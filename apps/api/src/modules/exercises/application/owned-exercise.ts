@@ -1,6 +1,8 @@
 import {
   measureKindFor,
   type Capacity,
+  type Discipline,
+  type ExerciseCategory,
   type MeasureKind,
   type MuscleGroup,
 } from '@wasabi-cross/schemas';
@@ -36,8 +38,9 @@ export async function findOwnedMeasure<Tx>(
 }
 
 /**
- * La lista del usuario con lo que hace falta para agruparla: qué mide, qué capacidades y
- * qué grupos musculares. Lo usa el resumen general (F2-05) sin tocar el modelo de acá.
+ * La lista del usuario con lo que hace falta para agruparla: cómo se llama, qué mide, su
+ * categoría, capacidades, grupos musculares y disciplinas. La usan el resumen general (F2-05)
+ * y el reparto del entrenamiento (F7-01) sin tocar el modelo de acá.
  */
 export async function listOwnedProfiles<Tx>(
   store: ManagedExerciseStore<Tx>,
@@ -45,9 +48,13 @@ export async function listOwnedProfiles<Tx>(
 ): Promise<
   {
     managedExerciseId: string;
+    name: string;
     kind: MeasureKind;
+    category: ExerciseCategory;
     capacities: Capacity[];
+    primaryMuscleGroup: MuscleGroup;
     muscleGroups: MuscleGroup[];
+    disciplines: Discipline[];
   }[]
 > {
   const managed = await store.listManaged(userId);
@@ -67,9 +74,13 @@ export async function listOwnedProfiles<Tx>(
 
     return {
       managedExerciseId: entry.id,
+      name: exercise.name,
       kind: measureKindFor(exercise.category),
+      category: exercise.category,
       capacities: [...exercise.capacities],
+      primaryMuscleGroup: exercise.primaryMuscleGroup,
       muscleGroups: [...exercise.muscleGroups],
+      disciplines: [...exercise.disciplines],
     };
   });
 }

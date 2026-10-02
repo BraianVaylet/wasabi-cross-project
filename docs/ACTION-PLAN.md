@@ -2207,7 +2207,7 @@ retestear. Las reglas —qué cuenta y cómo— están en spec §5.4: una discip
 ejercicio que la tiene, el primario suma 1 y el secundario ½, a lo sumo seis porciones por dona.
 
 No depende de Railway/Atlas. Dos endpoints nuevos en el módulo `stats`, sin tocar el contrato del
-resumen existente: `GET /stats/composition` (sin período) y `GET /stats/activity` (con período).
+resumen existente: `GET /stats/breakdown` (sin período) y `GET /stats/activity` (con período).
 Camino: F7-00 → F7-01 y F7-02 (API, en paralelo con F7-03 y F7-04, componentes) → F7-05 y F7-06
 (pantalla) → F7-07.
 
@@ -2232,7 +2232,7 @@ Camino: F7-00 → F7-01 y F7-02 (API, en paralelo con F7-03 y F7-04, componentes
 ## [ ] F7-01 · Schemas y API: tu entrenamiento
 
 - **module:** stats
-- **description:** `GET /api/v1/stats/composition`: cuántos ejercicios tiene el usuario y cómo se
+- **description:** `GET /api/v1/stats/breakdown`: cuántos ejercicios tiene el usuario y cómo se
   reparten por disciplina (con `null` para "sin disciplina"), categoría, segmento y grupo
   muscular (primario, secundario, puntaje y porcentaje). El contrato en `@wasabi-cross/schemas`;
   el cálculo, puro, en el dominio de `stats`; `exercises` le pasa categoría, disciplinas y grupo
@@ -2250,7 +2250,7 @@ Camino: F7-00 → F7-01 y F7-02 (API, en paralelo con F7-03 y F7-04, componentes
 - **risk:** low
 - **test_plan:** unitarios del cálculo y del reparto del redondeo; integración contra
   `mongodb-memory-server` con ejercicios del catálogo y uno propio; schema del contrato.
-- **error-codes:** ninguno nuevo (`WC-AUTH-401-001` sin sesión)
+- **error-codes:** ninguno nuevo (`WC-AUTH-401-004` sin sesión)
 - **data-model-impact:** ninguno: lee lo que ya guarda `exercises`.
 
 ## [ ] F7-02 · Schemas y API: constancia, récords y para retestear
@@ -2348,7 +2348,7 @@ Camino: F7-00 → F7-01 y F7-02 (API, en paralelo con F7-03 y F7-04, componentes
 - **module:** web
 - **description:** La sección "Tu entrenamiento" de §5.4: tres donas (disciplinas, categorías y
   segmento) y las barras de grupos musculares, con las etiquetas de `lib/labels.ts`. Dice que no
-  depende del período. Una consulta (`['stats', 'composition']`) que se invalida al agregar,
+  depende del período. Una consulta (`['stats', 'breakdown']`) que se invalida al agregar,
   editar o borrar un ejercicio.
 - **acceptance-criteria:**
   - Dado un usuario con ejercicios, cuando abre Estadísticas, entonces ve las tres donas y las

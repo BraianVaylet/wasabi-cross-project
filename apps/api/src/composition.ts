@@ -23,6 +23,7 @@ import { createMongoRecordGateway } from './modules/records/infrastructure/mongo
 import type { RecordRoutesOptions } from './modules/records/infrastructure/record.routes.ts';
 import { exerciseStats } from './modules/stats/application/exercise-stats.ts';
 import { generalStats } from './modules/stats/application/general-stats.ts';
+import { breakdownFor } from './modules/stats/application/training-breakdown.ts';
 import type {
   OwnedExerciseNameLookup,
   OwnedExercisesLookup,
@@ -120,6 +121,7 @@ export function composeStats(mongo: MongoConnection): Omit<StatsRoutesOptions, '
     exerciseStats: (userId, managedExerciseId, period) =>
       exerciseStats({ lookup, records }, { userId, managedExerciseId, period }),
     generalStats: (userId, period) => generalStats({ lookup: list, records }, { userId, period }),
+    trainingBreakdown: (userId) => breakdownFor({ lookup: list }, userId),
   };
 }
 
