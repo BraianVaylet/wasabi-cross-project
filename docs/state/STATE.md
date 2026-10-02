@@ -91,6 +91,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 6. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
    (IA-01 a IA-09) entran al plan. No dependen de Railway ni de Atlas: pueden avanzar mientras la
    Fase 3 espera.
+7. F6-01 (popup de instalación): revisar la PR y probar el diálogo nativo en un Chrome real
+   (Android o escritorio, con el build de producción). Chromium sólo ofrece instalar con el
+   manifest completo: hace falta que los íconos del logo estén en `main`.
 
 ## Decisiones abiertas
 
@@ -151,6 +154,11 @@ Free. Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME
 desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
+
+2026-10-02 — **F6-01 · Popup de instalación de la PWA** (código hecho, en PR, a la espera de
+revisión): si la app no está instalada se le propone con un popup (spec §5). Es el mismo componente
+que el aviso de versión nueva (`PwaNotice`); `PwaNotices` muestra uno solo a la vez, y gana la
+versión nueva. Bitácora [2026-10-02](./bitacora/2026-10-02-f6-01-popup-instalacion.md).
 
 2026-09-28 — Se planifica la Fase 5, catálogo ampliado: el usuario trajo 61 ejercicios en JSON con
 disciplinas, equipo y grupo primario/secundarios, y pidió dos pestañas en el alta con el precargado

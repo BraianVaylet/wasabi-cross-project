@@ -57,7 +57,12 @@ Mockups en [`../mockup`](../mockup).
 
 Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
-**PWA**: instalable en el dispositivo. Al haber una nueva versión, se notifica al usuario con un popup para actualizar.
+**PWA**: instalable en el dispositivo. Dos avisos, con el mismo popup (una franja abajo, con un mensaje, una acción y una salida):
+
+- **Instalación**: si el usuario no tiene la app instalada, se le propone con un popup. "Instalada" es que corra como app (`display-mode` de app o `navigator.standalone` en iOS); además, Chromium deja de ofrecer la instalación cuando ya está hecha. En Chromium (Android, escritorio) el popup tiene "Instalar", que abre el diálogo nativo del navegador; en iOS, que no tiene diálogo, explica cómo hacerlo ("Compartir" → "Agregar a inicio") y se cierra con "Entendido". Con "Ahora no" no vuelve a aparecer en 14 días. Desde una pestaña del navegador no se puede saber si hay otra copia instalada en el dispositivo, por eso en iOS el aviso puede aparecer aunque la tenga: de ahí el plazo.
+- **Versión nueva**: al haber una nueva versión, se notifica al usuario con un popup para actualizar. Descartarlo no lo vuelve a mostrar hasta la siguiente versión.
+
+Se muestra un solo popup a la vez: si coinciden, primero el de versión nueva, y al descartarlo sigue el de instalación.
 
 **Landing page**: fuera de esta fase de desarrollo.
 
@@ -258,7 +263,7 @@ Un solo deployable de backend, módulos aislados (`domain / application / infras
 | `stats`         | Agregaciones y análisis (por ejercicio y generales)                                                              |
 | `subscriptions` | Plan Free/Max, límites, entitlements                                                                             |
 | `billing`       | Pago de la suscripción Max                                                                                       |
-| `notifications` | Popup de nueva versión PWA, avisos                                                                               |
+| `notifications` | Popup de nueva versión PWA y de instalación, avisos                                                              |
 
 ### Eventos de dominio (in-process, cola si hace falta después)
 

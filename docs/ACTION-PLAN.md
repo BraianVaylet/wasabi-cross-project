@@ -2193,3 +2193,43 @@ F5-04 (Epley) es independiente del resto.
 - **error-codes:** ninguno
 - **data-model-impact:** los enums de disciplina y de equipo se ensanchan; ningún documento
   existente deja de ser válido, así que no hay migración de datos.
+
+---
+
+# Fase 6 — PWA instalable
+
+La app avisa de una versión nueva (F1-17) y, con el manifest y los íconos del logo, el navegador
+puede instalarla. Falta proponer la instalación a quien no la tiene. No depende de Railway/Atlas.
+
+## [ ] F6-01 · Popup de instalación de la PWA, reutilizable para la versión nueva
+
+- **module:** web
+- **description:** Detectar si el usuario tiene instalada la app y, si no, proponérselo con un
+  popup (spec §5). El popup es el mismo componente que avisa de una versión nueva: `PwaNotice`
+  (mensaje, acción opcional y salida), que usan `PwaNotices` —un solo popup a la vez, gana la versión
+  nueva— y el hook `useInstallPrompt`. "Instalada" es `display-mode` de app o `navigator.standalone`
+  (iOS) o `appinstalled`; en Chromium se captura `beforeinstallprompt` y "Instalar" abre el diálogo
+  nativo; en iOS, que no lo tiene, el popup explica "Compartir → Agregar a inicio". "Ahora no" lo
+  calla 14 días (`localStorage`; si el navegador no deja usarlo, la app sigue igual). Reemplaza a
+  `PwaUpdate`.
+- **acceptance-criteria:**
+  - Dado un navegador que ofrece instalar y una app no instalada, cuando carga, entonces aparece el
+    popup con "Instalar", y éste abre el diálogo nativo.
+  - Dada la app abierta como instalada, cuando carga, entonces no se propone nada.
+  - Dado un "Ahora no", cuando el usuario vuelve antes de 14 días, entonces el popup no aparece.
+  - Dado iOS en una pestaña del navegador, cuando carga, entonces el popup explica cómo agregarla a
+    la pantalla de inicio, sin botón de instalar.
+  - Dados una versión nueva y la propuesta de instalar a la vez, entonces se ve un solo popup, el de
+    la versión nueva.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F1-17
+- **risk:** low
+- **test_plan:** tests de `lib/install.ts` y del componente con el evento `beforeinstallprompt`
+  simulado; tres pruebas inversas (sin `preventDefault`, sin el chequeo de instalada, sin recordar
+  el descarte); probado a mano en el navegador con el evento sintético.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. Chromium no emite `beforeinstallprompt` en el
+  navegador embebido ni en Playwright sin criterios de instalabilidad: la prueba de punta a punta
+  con el diálogo nativo real queda para una prueba manual en Chrome (Android o escritorio).

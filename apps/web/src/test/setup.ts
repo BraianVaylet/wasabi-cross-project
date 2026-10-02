@@ -4,6 +4,20 @@ import { configure } from '@testing-library/react';
 // jsdom no implementa scrollTo, y el router lo llama al navegar para restaurar el scroll.
 window.scrollTo = () => undefined;
 
+// Tampoco implementa matchMedia, que el aviso de instalación consulta al montar la app. Por
+// defecto, una pestaña de navegador común: sin ningún display-mode de app instalada.
+window.matchMedia = (query) =>
+  ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    addListener: () => undefined,
+    removeListener: () => undefined,
+    dispatchEvent: () => false,
+  }) satisfies MediaQueryList;
+
 /*
  * `findBy*` y `waitFor` esperan 1000 ms por defecto, y el primer render de cada archivo
  * (la app entera, en frío) no espera a la API falsa —responde al toque— sino a la CPU.
