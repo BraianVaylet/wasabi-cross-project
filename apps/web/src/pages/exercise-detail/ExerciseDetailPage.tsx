@@ -86,12 +86,12 @@ const LEVEL_LABEL = {
 } as const;
 
 const BAND_LABEL: Record<LoadBand, string> = {
-  liviana: 'Carga liviana',
-  media: 'Carga media',
-  pesada: 'Carga pesada',
+  liviana: 'Esfuerzo bajo',
+  media: 'Esfuerzo medio',
+  pesada: 'Esfuerzo alto',
 };
 
-/** Verde para liviana, ámbar para media, rojo para pesada — semáforo de carga (spec §5.1). */
+/** Verde para esfuerzo bajo, ámbar para medio, rojo para alto — semáforo de esfuerzo (spec §5.1). */
 const BAND_VARIANT: Record<LoadBand, TagVariant> = {
   liviana: 'success',
   media: 'warning',

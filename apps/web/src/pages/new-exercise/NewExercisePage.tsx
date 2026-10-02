@@ -35,7 +35,13 @@ import {
   MUSCLE_GROUP_LABEL,
   optionsFrom,
 } from '../../lib/labels.ts';
-import { EXTRA_FIELD, extraFieldKindFor, MARK_FIELD, today } from '../../lib/mark-input.ts';
+import {
+  EXTRA_FIELD,
+  extraFieldKindFor,
+  MARK_FIELD,
+  today,
+  type MarkField,
+} from '../../lib/mark-input.ts';
 import { CatalogPicker } from './CatalogPicker.tsx';
 import {
   catalogNameMatch,
@@ -85,7 +91,7 @@ const LEVELS: readonly { value: Level; label: string }[] = [
   { value: 'elite', label: 'Elite' },
 ];
 
-const SIN_CATEGORIA = { label: 'Marca', placeholder: 'Elegí primero la categoría' };
+const SIN_CATEGORIA: MarkField = { label: 'Marca', placeholder: 'Elegí primero la categoría' };
 
 /*
  * Qué entrena el ejercicio (spec §5.1) y con qué se hace. El segmento del cuerpo no está
@@ -375,6 +381,7 @@ export function NewExercisePage({
                         <TextField
                           label={markField.label}
                           placeholder={markField.placeholder}
+                          hint={markField.hint}
                           inputMode={kind === 'time' ? 'text' : 'decimal'}
                           value={valueField.state.value}
                           onChange={(event) => {

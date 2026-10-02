@@ -11,7 +11,7 @@ const backSquat: CatalogExercise = {
   capacities: ['fuerza'],
   primaryMuscleGroup: 'cuadriceps',
   muscleGroups: ['cuadriceps', 'gluteo'],
-  disciplines: ['gimnasio'],
+  disciplines: ['musculacion'],
   equipment: 'barra',
 };
 
@@ -145,7 +145,7 @@ describe('seedCatalog', () => {
 
   it('detecta un cambio de disciplinas o de equipo', async () => {
     const cambios: CatalogExercise[] = [
-      { ...backSquat, disciplines: ['gimnasio', 'crossfit'] },
+      { ...backSquat, disciplines: ['musculacion', 'crossfit'] },
       { ...backSquat, equipment: 'maquina' },
     ];
 

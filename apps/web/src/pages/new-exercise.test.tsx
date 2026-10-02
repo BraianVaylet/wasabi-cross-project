@@ -22,7 +22,7 @@ const SENTADILLA: CatalogEntry = {
   primaryMuscleGroup: 'cuadriceps',
   muscleGroups: ['cuadriceps', 'gluteo', 'core'],
   bodySegment: 'tren_inferior',
-  disciplines: ['gimnasio'],
+  disciplines: ['musculacion'],
   equipment: 'barra',
   alreadyAdded: false,
 };
@@ -245,6 +245,23 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(api.client.addExercise).not.toHaveBeenCalled();
     });
 
+    it('sin RM, aclara que se anota la mejor marca: repeticiones máximas o mejor tiempo', async () => {
+      renderNuevo();
+
+      await completarPropio('Gimnástico (repeticiones)');
+      expect(screen.getByLabelText('Repeticiones')).toHaveAccessibleDescription(
+        /máximas repeticiones/i,
+      );
+
+      await userEvent.click(screen.getByRole('radio', { name: 'Running (tiempo)' }));
+      expect(screen.getByLabelText('Tiempo (mm:ss)')).toHaveAccessibleDescription(
+        /tu mejor tiempo/i,
+      );
+
+      await userEvent.click(screen.getByRole('radio', { name: 'Fuerza (RM en kg)' }));
+      expect(screen.getByLabelText('RM (kg)')).not.toHaveAccessibleDescription();
+    });
+
     it('un tiempo se escribe mm:ss y se guarda en segundos', async () => {
       const { api } = renderNuevo();
 
@@ -367,7 +384,7 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       expect(secundarios.getByRole('checkbox', { name: 'Glúteo' })).toBeChecked();
       expect(secundarios.getByRole('checkbox', { name: 'Core' })).toBeChecked();
       expect(
-        grupo('Disciplinas (opcional)').getByRole('checkbox', { name: 'Gimnasio' }),
+        grupo('Disciplinas (opcional)').getByRole('checkbox', { name: 'Musculación' }),
       ).toBeChecked();
       expect(screen.getByLabelText('Equipo (opcional)')).toHaveValue('barra');
       expect(screen.getByLabelText('RM (kg)')).toHaveValue('');

@@ -9,9 +9,9 @@ export interface TagProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'childre
 }
 
 /**
- * Etiqueta de contexto: "Carga liviana", "current", la categoría del ejercicio. Sólo
+ * Etiqueta de contexto: "Esfuerzo bajo", "current", la categoría del ejercicio. Sólo
  * muestra. `danger` es para el "con dolor" del detalle (mockup 5), en rojo; `success` y
- * `warning` los usa la banda de carga (verde/ámbar) del mismo detalle.
+ * `warning` los usa el esfuerzo (verde/ámbar) del mismo detalle.
  */
 export function Tag({
   variant = 'outline',

@@ -101,6 +101,7 @@ export function NewMark({ kind, open, onClose, onSave }: NewMarkProps): React.JS
         <TextField
           label={field.label}
           placeholder={field.placeholder}
+          hint={field.hint}
           inputMode={kind === 'time' ? 'text' : 'decimal'}
           value={value}
           error={valueError ?? undefined}

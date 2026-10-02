@@ -1858,7 +1858,7 @@ F5-04 (Epley) es independiente del resto.
 
 - **module:** schemas
 - **description:** En `@wasabi-cross/schemas`: la capacidad `potencia`; los grupos `espalda_baja`
-  (segmento core) y `trapecio` (tren superior); los enums de disciplina (gimnasio, crossfit,
+  (segmento core) y `trapecio` (tren superior); los enums de disciplina (musculación, crossfit,
   hyrox, funcional, running) y de equipo (los 20 de los datos); `primaryMuscleGroup` en el
   ejercicio, con la invariante de que está en `muscleGroups` y va primero; `catalogKey` en la
   definición del catálogo; `disciplines` y `equipment` (obligatorios en el catálogo, opcionales en
@@ -2049,7 +2049,7 @@ F5-04 (Epley) es independiente del resto.
   - Dado un usuario que ya tiene "Snatch", cuando pide el catálogo, entonces Snatch viene marcado
     como ya agregado.
   - Dada una disciplina inexistente, cuando se pide, entonces responde `WC-SYS-400-002`.
-- **example:** `GET /exercises/catalog?q=press&discipline=gimnasio`
+- **example:** `GET /exercises/catalog?q=press&discipline=musculacion`
 - **story-points:** 3
 - **depends_on:** F5-05
 - **risk:** low
@@ -2136,7 +2136,7 @@ F5-04 (Epley) es independiente del resto.
 - **acceptance-criteria:**
   - Dado el filtro "Hyrox", cuando se aplica, entonces sólo se ven los ejercicios de Hyrox.
   - Dado "Sentadilla trasera" elegido, cuando se abre el formulario, entonces trae fuerza de
-    categoría y de capacidad, cuádriceps de primario, glúteo y core de secundarios, gimnasio y
+    categoría y de capacidad, cuádriceps de primario, glúteo y core de secundarios, musculación y
     barra.
   - Dado un campo de la definición editado, cuando se mira el formulario, entonces avisa que se
     guarda como propio; volviendo al valor original, el aviso se va.

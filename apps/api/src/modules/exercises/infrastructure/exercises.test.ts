@@ -80,7 +80,7 @@ describe('catálogo de ejercicios', () => {
       const disciplines = new Set(EXERCISE_CATALOG.flatMap((exercise) => exercise.disciplines));
 
       expect(disciplines).toEqual(
-        new Set(['gimnasio', 'crossfit', 'hyrox', 'funcional', 'running', 'hybrid', 'pilates']),
+        new Set(['musculacion', 'crossfit', 'hyrox', 'funcional', 'running', 'hybrid', 'pilates']),
       );
     });
 

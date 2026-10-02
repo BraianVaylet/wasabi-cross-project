@@ -19,7 +19,7 @@ export type CatalogExercise = CatalogExerciseDefinition;
  * ejercicio: el Sled Push de funcional va en repeticiones y el de Hyrox, en metros.
  */
 export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
-  // --- Gimnasio ---
+  // --- Musculación ---
   {
     catalogKey: 'back-squat',
     name: 'Sentadilla trasera',
@@ -27,7 +27,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps', 'gluteo', 'core'],
-    disciplines: ['gimnasio', 'crossfit', 'hybrid'],
+    disciplines: ['musculacion', 'crossfit', 'hybrid'],
     equipment: 'barra',
   },
   {
@@ -37,7 +37,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps', 'core', 'gluteo'],
-    disciplines: ['gimnasio', 'crossfit'],
+    disciplines: ['musculacion', 'crossfit'],
     equipment: 'barra',
   },
   {
@@ -47,7 +47,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'isquiotibiales',
     muscleGroups: ['isquiotibiales', 'espalda_baja', 'gluteo', 'antebrazo'],
-    disciplines: ['gimnasio', 'crossfit', 'hybrid'],
+    disciplines: ['musculacion', 'crossfit', 'hybrid'],
     equipment: 'barra',
   },
   {
@@ -57,7 +57,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'isquiotibiales',
     muscleGroups: ['isquiotibiales', 'gluteo', 'espalda_baja'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra',
   },
   {
@@ -67,7 +67,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'pectoral',
     muscleGroups: ['pectoral', 'triceps', 'hombro'],
-    disciplines: ['gimnasio', 'crossfit'],
+    disciplines: ['musculacion', 'crossfit'],
     equipment: 'barra',
   },
   {
@@ -77,7 +77,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'pectoral',
     muscleGroups: ['pectoral', 'hombro', 'triceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra',
   },
   {
@@ -87,7 +87,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'hombro',
     muscleGroups: ['hombro', 'triceps', 'core'],
-    disciplines: ['gimnasio', 'crossfit', 'hybrid'],
+    disciplines: ['musculacion', 'crossfit', 'hybrid'],
     equipment: 'barra',
   },
   {
@@ -97,7 +97,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'espalda',
     muscleGroups: ['espalda', 'biceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra',
   },
   {
@@ -107,7 +107,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'espalda',
     muscleGroups: ['espalda', 'biceps'],
-    disciplines: ['gimnasio', 'crossfit'],
+    disciplines: ['musculacion', 'crossfit'],
     equipment: 'barra_dominadas',
   },
   {
@@ -117,7 +117,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'biceps',
     muscleGroups: ['biceps', 'antebrazo'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra',
   },
   {
@@ -127,7 +127,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'biceps',
     muscleGroups: ['biceps', 'antebrazo'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'mancuerna',
   },
   {
@@ -137,7 +137,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'triceps',
     muscleGroups: ['triceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'polea',
   },
   {
@@ -147,7 +147,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'triceps',
     muscleGroups: ['triceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra',
   },
   {
@@ -157,7 +157,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'maquina',
   },
   {
@@ -167,7 +167,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'isquiotibiales',
     muscleGroups: ['isquiotibiales'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'maquina',
   },
   {
@@ -177,7 +177,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'gemelo',
     muscleGroups: ['gemelo'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'maquina',
   },
   {
@@ -187,7 +187,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'gluteo',
     muscleGroups: ['gluteo', 'isquiotibiales'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra',
   },
   {
@@ -197,7 +197,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'hombro',
     muscleGroups: ['hombro'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'mancuerna',
   },
   {
@@ -207,7 +207,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'core',
     muscleGroups: ['core'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'sin_equipo',
   },
   {
@@ -217,7 +217,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'espalda',
     muscleGroups: ['espalda', 'biceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'polea',
   },
   {
@@ -227,7 +227,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'triceps',
     muscleGroups: ['triceps', 'pectoral', 'hombro'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'paralelas',
   },
   {
@@ -237,7 +237,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'pectoral',
     muscleGroups: ['pectoral', 'triceps', 'hombro'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'mancuerna',
   },
   {
@@ -247,7 +247,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'pectoral',
     muscleGroups: ['pectoral', 'hombro'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'mancuerna',
   },
   {
@@ -257,7 +257,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'espalda',
     muscleGroups: ['espalda', 'biceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'mancuerna',
   },
   {
@@ -267,7 +267,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'espalda',
     muscleGroups: ['espalda', 'biceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'polea',
   },
   {
@@ -277,7 +277,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps', 'gluteo', 'isquiotibiales'],
-    disciplines: ['gimnasio', 'hybrid'],
+    disciplines: ['musculacion', 'hybrid'],
     equipment: 'mancuerna',
   },
   {
@@ -287,7 +287,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps', 'gluteo'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'mancuerna',
   },
   {
@@ -297,7 +297,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'cuadriceps',
     muscleGroups: ['cuadriceps'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'maquina',
   },
   {
@@ -307,7 +307,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'hombro',
     muscleGroups: ['hombro', 'espalda', 'trapecio'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'polea',
   },
   {
@@ -317,7 +317,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'espalda_baja',
     muscleGroups: ['espalda_baja', 'gluteo', 'isquiotibiales'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'maquina',
   },
   {
@@ -327,7 +327,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'trapecio',
     muscleGroups: ['trapecio', 'antebrazo'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'mancuerna',
   },
   {
@@ -337,7 +337,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'gluteo',
     muscleGroups: ['gluteo'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'maquina',
   },
   {
@@ -347,7 +347,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'core',
     muscleGroups: ['core', 'antebrazo'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'barra_dominadas',
   },
   {
@@ -357,7 +357,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'core',
     muscleGroups: ['core'],
-    disciplines: ['gimnasio'],
+    disciplines: ['musculacion'],
     equipment: 'polea',
   },
   // --- CrossFit ---
@@ -438,7 +438,7 @@ export const EXERCISE_CATALOG: readonly CatalogExercise[] = [
     capacities: ['fuerza'],
     primaryMuscleGroup: 'espalda',
     muscleGroups: ['espalda', 'biceps'],
-    disciplines: ['crossfit', 'gimnasio', 'funcional', 'hybrid'],
+    disciplines: ['crossfit', 'musculacion', 'funcional', 'hybrid'],
     equipment: 'barra_dominadas',
   },
   {

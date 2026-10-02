@@ -6,6 +6,8 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   label: string;
   /** Mensaje de error del campo. Su presencia es lo que marca el campo como inválido. */
   error?: string | undefined;
+  /** Aclaración debajo del campo: qué se espera que se escriba. La lee el lector de pantalla. */
+  hint?: string | undefined;
   /** Unidad o símbolo a la derecha, como el "%" del porcentaje personalizado. */
   suffix?: ReactNode;
   /**
@@ -23,6 +25,7 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
 export function TextField({
   label,
   error,
+  hint,
   suffix,
   variant = 'stacked',
   className,
@@ -30,6 +33,8 @@ export function TextField({
 }: TextFieldProps): React.JSX.Element {
   const id = useId();
   const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
+  const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(' ');
 
   const classes = [
     'wc-text-field',
@@ -52,12 +57,18 @@ export function TextField({
             id={id}
             className="wc-text-field__input"
             aria-invalid={error ? true : undefined}
-            aria-describedby={error ? errorId : undefined}
+            aria-describedby={describedBy || undefined}
             {...rest}
           />
           {suffix ? <span className="wc-text-field__suffix">{suffix}</span> : null}
         </div>
       </div>
+
+      {hint ? (
+        <p id={hintId} className="wc-field-hint">
+          {hint}
+        </p>
+      ) : null}
 
       {error ? (
         // role="alert" para que el lector de pantalla lo anuncie al aparecer.

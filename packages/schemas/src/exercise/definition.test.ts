@@ -68,7 +68,7 @@ describe('sameDefinition — cuándo un precargado quedó tal cual', () => {
     ['las capacidades', { capacities: ['fuerza'] }],
     ['el grupo primario', { primaryMuscleGroup: 'hombro', secondaryMuscleGroups: ['espalda'] }],
     ['los secundarios', { secondaryMuscleGroups: ['hombro'] }],
-    ['las disciplinas', { disciplines: ['crossfit', 'gimnasio'] }],
+    ['las disciplinas', { disciplines: ['crossfit', 'musculacion'] }],
     ['el equipo', { equipment: 'mancuerna' }],
   ])('cambiar %s es una edición', (_campo, cambio) => {
     expect(sameDefinition(snatch, { ...igual, ...cambio })).toBe(false);

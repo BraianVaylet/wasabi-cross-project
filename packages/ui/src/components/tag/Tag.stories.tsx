@@ -25,9 +25,9 @@ export const Danger: Story = {
 };
 
 export const Success: Story = {
-  args: { variant: 'success', children: 'Carga liviana' },
+  args: { variant: 'success', children: 'Esfuerzo bajo' },
 };
 
 export const Warning: Story = {
-  args: { variant: 'warning', children: 'Carga media' },
+  args: { variant: 'warning', children: 'Esfuerzo medio' },
 };
