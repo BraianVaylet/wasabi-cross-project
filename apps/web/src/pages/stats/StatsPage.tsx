@@ -3,6 +3,7 @@ import type {
   GeneralStats as Summary,
   ManagedExerciseSummary,
   StatsPeriod,
+  TrainingActivity,
 } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
@@ -10,6 +11,7 @@ import { Chart, ChevronIcon, Measure, RadioGroup, Skeleton } from '@wasabi-cross
 import { useCallback } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { formatDate, formatMark, markParts } from '../../lib/format.ts';
+import { Activity } from './Activity.tsx';
 import { formatChange } from './change.ts';
 import { GeneralStats } from './GeneralStats.tsx';
 import './stats.css';
@@ -23,6 +25,8 @@ export interface StatsPageProps {
   stats: UseQueryResult<ExerciseStats> | null;
   /** El resumen por capacidad y grupo muscular (F2-08). */
   general: UseQueryResult<Summary>;
+  /** Constancia, récords y para retestear (F7-05). */
+  activity: UseQueryResult<TrainingActivity>;
   period: StatsPeriod;
   onPeriodChange: (period: StatsPeriod) => void;
 }
@@ -46,6 +50,7 @@ export function StatsPage({
   onToggle,
   stats,
   general,
+  activity,
   period,
   onPeriodChange,
 }: StatsPageProps): React.JSX.Element {
@@ -108,7 +113,10 @@ export function StatsPage({
       ) : null}
 
       {exercises.data && exercises.data.exercises.length > 0 ? (
-        <GeneralStats stats={general} />
+        <>
+          <GeneralStats stats={general} />
+          <Activity activity={activity} />
+        </>
       ) : null}
     </>
   );

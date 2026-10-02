@@ -119,6 +119,22 @@ describe('cliente de API del front', () => {
     expect(llamadas[0]).toEqual({ path: '/api/v1/stats/summary?period=todo', options: undefined });
   });
 
+  it('la constancia va a /stats/activity con su período (F7-05)', async () => {
+    const { llamadas, api } = apiEspía();
+
+    await api.trainingActivity('3m');
+
+    expect(llamadas[0]).toEqual({ path: '/api/v1/stats/activity?period=3m', options: undefined });
+  });
+
+  it('el reparto del entrenamiento va a /stats/breakdown, sin período (F7-06)', async () => {
+    const { llamadas, api } = apiEspía();
+
+    await api.trainingBreakdown();
+
+    expect(llamadas[0]).toEqual({ path: '/api/v1/stats/breakdown', options: undefined });
+  });
+
   it('las preferencias se leen y se guardan en /me/preferences', async () => {
     const { llamadas, api } = apiEspía();
 

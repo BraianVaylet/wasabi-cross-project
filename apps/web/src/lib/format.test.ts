@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { autoColon, formatDate, formatMark, markParts, parseDuration } from './format.ts';
+import {
+  autoColon,
+  formatDate,
+  formatMark,
+  formatMonth,
+  markParts,
+  parseDuration,
+} from './format.ts';
 
 describe('formatDate — es-AR (spec §11)', () => {
   it('día/mes/año, como en los mockups', () => {
@@ -134,5 +141,16 @@ describe('parseDuration — el tiempo se escribe mm:ss y se guarda en segundos',
     ['demasiadas partes', '1:2:3:4'],
   ])('%s no es un tiempo', (_caso, texto) => {
     expect(parseDuration(texto)).toBeNull();
+  });
+});
+
+describe('formatMonth — el mes del eje (F7-05)', () => {
+  it('el mes corto, en castellano', () => {
+    expect(formatMonth('2026-07')).toBe('jul');
+    expect(formatMonth('2026-01')).toBe('ene');
+  });
+
+  it('con el año, cuando el gráfico abarca más de uno', () => {
+    expect(formatMonth('2025-10', true)).toBe('oct 25');
   });
 });

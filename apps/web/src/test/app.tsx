@@ -6,6 +6,8 @@ import type {
   ManagedExerciseSummary,
   RecordHistory,
   SessionUser,
+  TrainingActivity,
+  TrainingBreakdown,
   UserPreferences,
 } from '@wasabi-cross/schemas';
 import { createMemoryHistory } from '@tanstack/react-router';
@@ -106,6 +108,25 @@ const GENERALES_VACIAS: GeneralStats = {
   insufficient: { capacities: [], muscleGroups: [] },
 };
 
+const ACTIVIDAD_VACIA: TrainingActivity = {
+  period: '12m',
+  records: 0,
+  byMonth: [],
+  lastRecordAt: null,
+  daysSinceLast: null,
+  personalBests: 0,
+  topImprovements: [],
+  stale: [],
+};
+
+const REPARTO_VACIO: TrainingBreakdown = {
+  exercises: 0,
+  byDiscipline: [],
+  byCategory: [],
+  bySegment: [],
+  byMuscleGroup: [],
+};
+
 const PREFERENCIAS: UserPreferences = {
   loadPercentages: [65, 75, 80, 85, 90, 95],
 };
@@ -131,6 +152,12 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
       ),
       generalStats: vi.fn<ApiClient['generalStats']>((period) =>
         Promise.resolve({ ...GENERALES_VACIAS, period }),
+      ),
+      trainingBreakdown: vi.fn<ApiClient['trainingBreakdown']>(() =>
+        Promise.resolve(REPARTO_VACIO),
+      ),
+      trainingActivity: vi.fn<ApiClient['trainingActivity']>((period) =>
+        Promise.resolve({ ...ACTIVIDAD_VACIA, period }),
       ),
       preferences: vi.fn<ApiClient['preferences']>(() => Promise.resolve(PREFERENCIAS)),
       savePreferences: vi.fn<ApiClient['savePreferences']>((change) =>

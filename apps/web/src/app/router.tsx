@@ -33,6 +33,7 @@ import {
   exerciseListQueryOptions,
   exerciseStatsQueryOptions,
   generalStatsQueryOptions,
+  trainingActivityQueryOptions,
   historyQueryKey,
   historyQueryOptions,
   preferencesQueryOptions,
@@ -442,6 +443,7 @@ const statsRoute = createRoute({
       enabled: abierto !== undefined,
     });
     const general = useQuery(generalStatsQueryOptions(api, period));
+    const activity = useQuery(trainingActivityQueryOptions(api, period));
 
     return (
       <StatsPage
@@ -449,6 +451,7 @@ const statsRoute = createRoute({
         open={abierto}
         stats={abierto === undefined ? null : stats}
         general={general}
+        activity={activity}
         period={period}
         onPeriodChange={(elegido) => {
           // El período y lo abierto se escriben juntos: son toda la búsqueda de la ruta.
