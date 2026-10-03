@@ -21,7 +21,6 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 | `WC-RM-422-001`    | 422  | Valor de RM/tiempo/reps inválido                                   | El valor cargado no es válido.                                     |
 | `WC-RM-404-002`    | 404  | Registro no encontrado                                             | No encontramos ese registro.                                       |
 | `WC-STATS-404-001` | 404  | Ejercicio inexistente o de otro usuario, al pedir sus estadísticas | No encontramos ese ejercicio.                                      |
-| `WC-SUBS-403-001`  | 403  | Límite de plan alcanzado                                           | Alcanzaste el máximo de {limite} de tu plan {plan}.                |
 | `WC-BILL-402-001`  | 402  | Pago rechazado                                                     | El pago fue rechazado por el emisor.                               |
 | `WC-BILL-409-002`  | 409  | Pago duplicado                                                     | Este pago ya fue registrado.                                       |
 | `WC-SYS-400-002`   | 400  | Entrada inválida (falla la validación Zod en el borde)             | Revisá los datos enviados.                                         |
@@ -33,8 +32,9 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 
 Un código retirado no se reusa: sigue acá para que nadie le asigne otro significado.
 
-| Código           | Retirado en | Por qué                                                                                                                                 |
-| ---------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `WC-EXO-409-004` | F5-08       | Un propio puede llamarse como uno del catálogo: un precargado editado conserva su nombre ([ADR-0009](./adr/0009-catalogo-ampliado.md)). |
+| Código            | Retirado en | Por qué                                                                                                                                                       |
+| ----------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `WC-EXO-409-004`  | F5-08       | Un propio puede llamarse como uno del catálogo: un precargado editado conserva su nombre ([ADR-0009](./adr/0009-catalogo-ampliado.md)).                       |
+| `WC-SUBS-403-001` | F8-01       | Era el límite de ejercicios del plan. Free y Pro cargan sin tope; lo que los separa son las estadísticas ([ADR-0011](./adr/0011-plan-pro-y-estadisticas.md)). |
 
 Reglas de logging asociadas a estos códigos: ver [docs/architecture.md](./architecture.md).

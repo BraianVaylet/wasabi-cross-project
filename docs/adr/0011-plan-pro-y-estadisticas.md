@@ -45,8 +45,11 @@ sin las generales, (c) todo lo que sale de `stats`, incluido el progreso del det
 - Se borran el serializador, el documento de lock y el contador de uso. Lo que quedaba para
   consumir cupo era la transacción: el alta usa el mismo `TransactionRunner` que editar y borrar.
   Los índices únicos siguen siendo la garantía ante una carrera de altas del mismo ejercicio.
-- Una migración convierte `plan: "max"` en `"pro"` y borra la colección `entitlement_locks`.
-  Reversible: `down` vuelve a `max`; los locks eran sólo coordinación, no se recrean.
+- Dos migraciones, las dos reversibles. Una borra la colección `entitlement_locks` (`down` la
+  repone vacía: los locks eran sólo coordinación). La otra convierte `plan: "max"` en `"pro"`
+  (`down` vuelve a `max`).
+- La entrega va en el orden en que cada paso compila: primero el límite se va de las tres capas a la
+  vez (el contrato `usage` lo leen todas), después el renombre, después la regla y las pantallas.
 - El front lee el plan de `/me` (ya lo traía). Con Free no pide estadísticas y muestra un aviso con
   link a la suscripción; con Pro muestra una etiqueta en el header.
 - **La pantalla de suscripción es sólo UI.** El botón de cambiar de plan avisa que no está

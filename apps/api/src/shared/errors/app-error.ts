@@ -8,7 +8,7 @@ import { ERROR_CATALOG, type ErrorCode } from './error-codes.ts';
  * `meta` es contexto para el log. Nunca metas ahí password, token ni datos de pago:
  * el logger los redacta por path, pero la regla es no ponerlos de entrada.
  *
- * `params` completa las variables del mensaje del catálogo (`{plan}`, `{limite}`). Una
+ * `params` completa las variables del mensaje del catálogo (`{code}`). Una
  * variable que no se pasa queda visible tal cual: mejor un `{plan}` que se note en un test
  * que un "tu plan ." que pase inadvertido.
  */

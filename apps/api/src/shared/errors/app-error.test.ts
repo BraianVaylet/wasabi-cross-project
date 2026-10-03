@@ -34,11 +34,11 @@ describe('AppError', () => {
   });
 
   it('completa las variables del mensaje al usuario', () => {
-    const error = new AppError('WC-SUBS-403-001', {
-      params: { limite: '10 ejercicios', plan: 'Free' },
-    });
+    const error = new AppError('WC-SYS-500-001', { params: { code: 'WC-SYS-500-001' } });
 
-    expect(error.userMessage).toBe('Alcanzaste el máximo de 10 ejercicios de tu plan Free.');
+    expect(error.userMessage).toBe(
+      'Ocurrió un error. Compartí el código WC-SYS-500-001 con soporte.',
+    );
   });
 
   it('sin variables, un mensaje sin llaves queda igual', () => {
@@ -46,10 +46,10 @@ describe('AppError', () => {
   });
 
   it('una variable que no se pasó queda visible en vez de desaparecer', () => {
-    // Mejor un "{plan}" que se note en un test que un mensaje que dice "tu plan ." sin avisar.
-    const error = new AppError('WC-SUBS-403-001', { params: { limite: '10 ejercicios' } });
+    // Mejor un "{code}" que se note en un test que un mensaje que dice "el código ." sin avisar.
+    const error = new AppError('WC-SYS-500-001');
 
-    expect(error.userMessage).toBe('Alcanzaste el máximo de 10 ejercicios de tu plan {plan}.');
+    expect(error.userMessage).toBe('Ocurrió un error. Compartí el código {code} con soporte.');
   });
 
   it('es reconocible con isAppError', () => {

@@ -2392,8 +2392,9 @@ quieran, así que el límite de cantidad de la Fase 1 (F1-03) se va. Alcance dec
 —la pantalla completa y el progreso del detalle—, el precio de Pro queda "a definir" y la pantalla
 de suscripción es **sólo UI**: el pago y el cambio real de plan son una segunda etapa.
 
-No depende de Railway/Atlas. Camino: F8-00 → F8-01 (schemas y migración) → F8-02 (API) → F8-03,
-F8-04 y F8-05 (web, en paralelo) → F8-06.
+No depende de Railway/Atlas. Camino: F8-00 → F8-01 (el límite se va, en las tres capas a la vez:
+quitar un campo del contrato rompe a todos los que lo leen) → F8-02 (`max` pasa a `pro`) → F8-03
+(la API gatea) → F8-04 y F8-05 (web, en paralelo) → F8-06.
 
 ## [ ] F8-00 · Spec: Free y Pro
 
@@ -2414,73 +2415,80 @@ F8-04 y F8-05 (web, en paralelo) → F8-06.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 
-## [ ] F8-01 · Schemas y migración: Free y Pro
+## [ ] F8-01 · Fuera el límite de cantidad de ejercicios
 
 - **module:** subscriptions
-- **description:** `planSchema` pasa a `free | pro`. Se retiran `PLAN_LIMITS`, `limitsFor` y
-  `PlanUsage` (y `usage` del listado de ejercicios). Se suma `canViewStats(plan)`, la regla de qué
-  plan ve estadísticas, compartida. El catálogo de errores suma `WC-SUBS-403-002` y retira
-  `WC-SUBS-403-001`. La migración convierte `plan: "max"` en `"pro"` y borra `entitlement_locks`;
-  `seed:admin` siembra Pro.
+- **description:** Free y Pro cargan sin tope. Se borran `PLAN_LIMITS`, `limitsFor` y `PlanUsage`
+  (y `usage` del listado), `decideExerciseAddition`, `withExerciseSlot`, el serializador por usuario,
+  el contador de uso y el error `WC-SUBS-403-001`. El alta usa el `TransactionRunner` de siempre.
+  En la web, Home deja de mostrar "03 / 10" y de deshabilitar "Nuevo ejercicio", y el alta deja de
+  hablar de un límite de propios. Una migración borra la colección `entitlement_locks`. Es una sola
+  tarea en las tres capas porque el contrato (`usage`) lo leen todas.
+- **acceptance-criteria:**
+  - Dado un usuario Free con 12 ejercicios, cuando agrega otro, entonces lo agrega; y con 4 propios,
+    agrega un quinto, incluso un precargado editado.
+  - Dadas dos altas simultáneas del mismo ejercicio, entonces una gana y la otra recibe
+    `WC-EXO-409-003`, sin marcas huérfanas.
+  - Dado Home con 40 ejercicios, cuando se abre, entonces "Nuevo ejercicio" está habilitado y el
+    título dice cuántos hay.
+  - Dado un precargado editado en el alta, cuando se ve el aviso, entonces dice que se guarda como
+    propio y no menciona límites.
+  - Dada la base con `entitlement_locks`, cuando corre la migración, entonces la colección no está;
+    al revertir, vuelve vacía.
+- **example:** Una atleta Free que lleva once ejercicios agrega el doceavo sin ver ningún aviso.
+- **story-points:** 5
+- **depends_on:** F8-00
+- **risk:** medium
+- **test_plan:** test de integración de la carrera de altas contra un replica set; tests de las
+  pantallas con la API en memoria; test de la migración ida y vuelta; el E2E que probaba el cupo
+  pasa a probar que ya no hay (`sin-tope-de-ejercicios.spec.ts`).
+- **error-codes:** `WC-SUBS-403-001` (retirado)
+- **data-model-impact:** se borra la colección `entitlement_locks`; `exercises` y
+  `managed_exercises` no cambian.
+
+## [ ] F8-02 · El plan Max pasa a llamarse Pro
+
+- **module:** subscriptions
+- **description:** `planSchema` pasa de `free | max` a `free | pro`. La migración convierte
+  `plan: "max"` en `"pro"` en los usuarios existentes; `seed:admin` y `dev:ephemeral` siembran Pro.
+  Sin lógica nueva: es el nombre.
 - **acceptance-criteria:**
   - Dado un usuario con `plan: "max"`, cuando corre la migración, entonces queda en `"pro"`; y al
     revertir vuelve a `"max"`. Los `free` no cambian.
   - Dado `planSchema`, cuando se parsea `"max"`, entonces falla.
-  - Dado `canViewStats`, cuando se pregunta por `free`, entonces no; por `pro`, sí.
   - Dado el seed del admin, entonces el usuario queda con plan Pro, incluso si ya existía como
     Free.
 - **example:** El admin de desarrollo, que era Max, sigue teniendo todo después de migrar.
-- **story-points:** 3
-- **depends_on:** F8-00
+- **story-points:** 2
+- **depends_on:** F8-01
 - **risk:** medium
 - **test_plan:** tests de schemas; test de la migración con `mongodb-memory-server`, ida y vuelta;
   test del seed.
-- **error-codes:** `WC-SUBS-403-002` (nuevo); `WC-SUBS-403-001` (retirado)
-- **data-model-impact:** `users.plan`: `max` → `pro`. Se borra la colección `entitlement_locks`.
+- **error-codes:** ninguno
+- **data-model-impact:** `users.plan` (colección `user` de Better Auth): `max` → `pro`.
 
-## [ ] F8-02 · API: las estadísticas son de Pro y el cupo se va
+## [ ] F8-03 · API: las estadísticas son de Pro
 
 - **module:** subscriptions
-- **description:** Un hook `onRequest` (`requirePlan`) que corre después de `requireSession` y
-  responde `WC-SUBS-403-002` a quien no tiene el plan, inyectado a las cuatro rutas de `stats` desde
-  la raíz de composición. Se borran el cupo y todo lo que lo sostenía: `decideExerciseAddition`,
-  `withExerciseSlot`, el serializador, el contador de uso y su test de integración. El alta usa
-  el `TransactionRunner` de siempre; el listado de ejercicios ya no devuelve `usage`.
+- **description:** Un hook `onRequest` que corre después de `requireSession` y responde
+  `WC-SUBS-403-002` a quien no tiene el plan, inyectado a las cuatro rutas de `stats` desde la raíz
+  de composición. La regla compartida es `canViewStats(plan)` en `@wasabi-cross/schemas`, y el
+  catálogo de errores suma el código nuevo.
 - **acceptance-criteria:**
   - Dado un usuario Free, cuando pide cualquiera de los cuatro endpoints de `stats`, entonces
     responde 403 `WC-SUBS-403-002`, también para un ejercicio ajeno o inexistente.
   - Dado un usuario sin sesión, cuando los pide, entonces responde 401, no 403.
-  - Dado un usuario Pro, cuando los pide, entonces todo sigue igual.
-  - Dado un usuario Free con 12 ejercicios, cuando agrega otro, entonces lo agrega.
-  - Dadas dos altas simultáneas del mismo ejercicio, entonces una gana y la otra recibe
-    `WC-EXO-409-003`.
+  - Dado un usuario Pro, cuando los pide, entonces todo sigue igual, incluido el 404 de un
+    ejercicio ajeno.
 - **example:** Una usuaria Free pide `/stats/summary` con un token válido: recibe 403 con el
   mensaje "Las estadísticas son parte del plan Pro."
-- **story-points:** 5
-- **depends_on:** F8-01
+- **story-points:** 3
+- **depends_on:** F8-02
 - **risk:** high
 - **test_plan:** tests de integración de las rutas con ambos planes y sin sesión; el IDOR de
-  estadísticas sigue en pie para Pro; el de carrera de altas sin lock. Un permiso mal puesto acá
-  regala la función de pago: revisión humana de la PR.
-- **error-codes:** `WC-SUBS-403-002`
-- **data-model-impact:** ninguno
-
-## [ ] F8-03 · Web: Home y alta sin cupo
-
-- **module:** web
-- **description:** Home deja de mostrar "03 / 10" y de deshabilitar "Nuevo ejercicio"; el alta
-  deja de avisar que el precargado editado "cuenta para tu límite" y de ofrecer volver al catálogo
-  por el cupo. El título sigue mostrando cuántos ejercicios hay.
-- **acceptance-criteria:**
-  - Dado un usuario con 40 ejercicios, cuando abre Home, entonces "Nuevo ejercicio" está habilitado.
-  - Dado un precargado editado en el alta, cuando se ve el aviso, entonces dice que se guarda como
-    propio y no menciona límites.
-- **example:** —
-- **story-points:** 2
-- **depends_on:** F8-02
-- **risk:** low
-- **test_plan:** tests de las pantallas con la API en memoria.
-- **error-codes:** ninguno
+  estadísticas sigue en pie para Pro. Un permiso mal puesto acá regala la función de pago:
+  revisión humana de la PR.
+- **error-codes:** `WC-SUBS-403-002` (nuevo)
 - **data-model-impact:** ninguno
 
 ## [ ] F8-04 · Web: las estadísticas, bloqueadas con Free
@@ -2498,7 +2506,7 @@ F8-04 y F8-05 (web, en paralelo) → F8-06.
   - Dado un usuario Pro, cuando abre cualquiera de las dos, entonces ve lo de siempre.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F8-02
+- **depends_on:** F8-03
 - **risk:** medium
 - **test_plan:** tests de pantalla con ambos planes; se comprueba que la API falsa no recibe
   pedidos de estadísticas con Free.
@@ -2522,7 +2530,7 @@ F8-04 y F8-05 (web, en paralelo) → F8-06.
   - Dado un usuario Pro, cuando aprieta "Pasar a Free", entonces lo mismo.
 - **example:** —
 - **story-points:** 5
-- **depends_on:** F8-01
+- **depends_on:** F8-02
 - **risk:** low
 - **test_plan:** tests de las tres pantallas con ambos planes; Storybook de lo que se agregue a
   `@wasabi-cross/ui`.
@@ -2532,9 +2540,9 @@ F8-04 y F8-05 (web, en paralelo) → F8-06.
 ## [ ] F8-06 · E2E y axe del plan
 
 - **module:** web
-- **description:** Reemplaza `cupo-del-plan.spec.ts`: un usuario Free ve el aviso donde estaría
-  Estadísticas y puede cargar más de diez ejercicios; el admin (Pro) ve las estadísticas y la
-  etiqueta en el header. axe audita la suscripción y el aviso a 390px.
+- **description:** Un usuario Free ve el aviso donde estaría Estadísticas y el Progreso del
+  detalle; el admin (Pro) ve las estadísticas y la etiqueta en el header; la suscripción avisa que
+  cambiar de plan todavía no está disponible. axe audita la suscripción y el aviso a 390px.
 - **acceptance-criteria:**
   - Dado un usuario Free con más de 10 ejercicios cargados, cuando entra a Estadísticas, entonces ve
     el aviso.
@@ -2542,7 +2550,7 @@ F8-04 y F8-05 (web, en paralelo) → F8-06.
   - Dado axe a 390px en la suscripción y en el aviso, entonces 0 violaciones.
 - **example:** —
 - **story-points:** 3
-- **depends_on:** F8-03, F8-04, F8-05
+- **depends_on:** F8-04, F8-05
 - **risk:** low
 - **test_plan:** `pnpm e2e` completo en CI.
 - **error-codes:** ninguno

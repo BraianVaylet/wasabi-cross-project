@@ -24,7 +24,7 @@ const PORT = process.env.PORT ?? '3100';
 const HOST = process.env.HOST ?? '127.0.0.1';
 
 async function main(): Promise<void> {
-  // Un solo nodo, pero replica set: el cupo del plan usa transacciones (F1-03).
+  // Un solo nodo, pero replica set: el alta de un ejercicio usa transacciones (F1-05).
   const replset = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
 
   process.env.NODE_ENV ??= 'development';

@@ -35,10 +35,6 @@ export const ERROR_CATALOG = {
   'WC-RM-422-001': { status: 422, userMessage: 'El valor cargado no es válido.' },
   'WC-RM-404-002': { status: 404, userMessage: 'No encontramos ese registro.' },
   'WC-STATS-404-001': { status: 404, userMessage: 'No encontramos ese ejercicio.' },
-  'WC-SUBS-403-001': {
-    status: 403,
-    userMessage: 'Alcanzaste el máximo de {limite} de tu plan {plan}.',
-  },
   'WC-BILL-402-001': { status: 402, userMessage: 'El pago fue rechazado por el emisor.' },
   'WC-BILL-409-002': { status: 409, userMessage: 'Este pago ya fue registrado.' },
   'WC-SYS-400-002': { status: 400, userMessage: 'Revisá los datos enviados.' },

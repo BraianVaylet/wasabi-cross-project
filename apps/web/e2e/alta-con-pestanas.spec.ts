@@ -18,15 +18,14 @@ async function guardar(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Tus ejercicios' })).toBeVisible();
 }
 
-/** Lo que dice la API de la lista del usuario: es lo que decide qué cuenta como propio (§4). */
+/** Lo que dice la API de la lista del usuario: es lo que decide qué es propio (§5.3). */
 async function miLista(page: Page) {
   const response = await page.request.get(`${API}/api/v1/exercises`);
-  const { exercises, usage } = (await response.json()) as {
+  const { exercises } = (await response.json()) as {
     exercises: { name: string; isCustom: boolean }[];
-    usage: { total: number; custom: number };
   };
 
-  return { exercises: exercises.map(({ name, isCustom }) => ({ name, isCustom })), usage };
+  return exercises.map(({ name, isCustom }) => ({ name, isCustom }));
 }
 
 test('un precargado tal cual queda como del catálogo y el catálogo lo marca como ya agregado', async ({
@@ -41,9 +40,7 @@ test('un precargado tal cual queda como del catálogo y el catálogo lo marca co
   await guardar(page);
 
   await expect(page.getByRole('link', { name: /Sentadilla trasera/ })).toBeVisible();
-  const lista = await miLista(page);
-  expect(lista.usage.custom).toBe(0);
-  expect(lista.exercises).toEqual([{ name: 'Sentadilla trasera', isCustom: false }]);
+  expect(await miLista(page)).toEqual([{ name: 'Sentadilla trasera', isCustom: false }]);
 
   // Vuelve al catálogo: se ve, pero no se puede volver a elegir.
   await page.goto('/ejercicios/nuevo');
@@ -58,17 +55,13 @@ test('un precargado editado avisa, y se guarda como propio', async ({ page }) =>
   await elegirDelCatalogo(page, 'Sentadilla trasera');
   await page.getByLabel('Equipo (opcional)').selectOption('Kettlebell');
 
-  await expect(page.getByRole('status')).toContainText(
-    'se va a guardar como ejercicio propio y cuenta para tu límite de propios',
-  );
+  await expect(page.getByRole('status')).toContainText('se va a guardar como ejercicio propio');
   await auditar(page, 'Nuevo ejercicio: precargado editado');
 
   await page.getByLabel('RM (kg)').fill('90');
   await guardar(page);
 
-  const lista = await miLista(page);
-  expect(lista.usage.custom).toBe(1);
-  expect(lista.exercises).toEqual([{ name: 'Sentadilla trasera', isCustom: true }]);
+  expect(await miLista(page)).toEqual([{ name: 'Sentadilla trasera', isCustom: true }]);
 
   // El del catálogo sigue disponible: lo que se agregó es otro ejercicio.
   await page.goto('/ejercicios/nuevo');
@@ -89,7 +82,7 @@ test('volver a los valores del catálogo quita el aviso y lo guarda como del cat
   await page.getByLabel('RM (kg)').fill('90');
   await guardar(page);
 
-  expect((await miLista(page)).usage.custom).toBe(0);
+  expect(await miLista(page)).toEqual([{ name: 'Sentadilla trasera', isCustom: false }]);
 });
 
 test('cardio pide los metros y las calorías, y Home los muestra', async ({ page }) => {

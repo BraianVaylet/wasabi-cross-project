@@ -81,6 +81,13 @@ describe('migraciones', () => {
     const reverted = await migrateDown(db, client);
 
     expect(reverted).toHaveLength(1);
+    expect(reverted[0]).toMatch(/fuera-locks-de-cupo/);
+  });
+
+  it('el siguiente down se lleva la disciplina musculación', async () => {
+    const reverted = await migrateDown(db, client);
+
+    expect(reverted).toHaveLength(1);
     expect(reverted[0]).toMatch(/disciplina-musculacion/);
   });
 
@@ -113,8 +120,8 @@ describe('migraciones', () => {
 
     expect(reverted).toHaveLength(1);
     expect(reverted[0]).toMatch(/capacidades-en-propios/);
-    // Pendientes: ésta y las cuatro que ya se habían revertido en los tests anteriores.
-    expect(await pendingMigrations(db)).toHaveLength(5);
+    // Pendientes: ésta y las cinco que ya se habían revertido en los tests anteriores.
+    expect(await pendingMigrations(db)).toHaveLength(6);
     // Las anteriores siguen aplicadas.
     expect(await indexNames(db, 'records')).toContain('managed_history');
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');

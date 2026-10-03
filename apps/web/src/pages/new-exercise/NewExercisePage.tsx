@@ -68,8 +68,6 @@ export interface NewExercisePageProps {
   /** La pestaña activa: vive en la URL, así "atrás" vuelve a la otra. */
   mode: NewExerciseMode;
   onModeChange: (mode: NewExerciseMode) => void;
-  /** El plan ya no admite más ejercicios propios: un precargado editado no entraría. */
-  customLimitReached: boolean;
   onSubmit: (input: AddExercise) => void;
   pending: boolean;
   error: unknown;
@@ -107,7 +105,6 @@ export function NewExercisePage({
   catalog,
   mode,
   onModeChange,
-  customLimitReached,
   onSubmit,
   pending,
   error,
@@ -182,15 +179,9 @@ export function NewExercisePage({
                         <p>
                           Partís de <strong>{chosen.name}</strong> del catálogo.
                           {edited
-                            ? ' Cambiaste su definición: se va a guardar como ejercicio propio y cuenta para tu límite de propios.'
+                            ? ' Cambiaste su definición: se va a guardar como ejercicio propio.'
                             : ' Si cambiás algo de su definición, se guarda como ejercicio propio.'}
                         </p>
-                        {edited && customLimitReached ? (
-                          <p>
-                            Tu plan no admite más ejercicios propios: volvé a los valores del
-                            catálogo para poder guardarlo.
-                          </p>
-                        ) : null}
                         <div className="new-exercise__notice-actions">
                           {edited ? (
                             <Button

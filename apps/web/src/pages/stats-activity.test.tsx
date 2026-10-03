@@ -45,7 +45,6 @@ const actividad: TrainingActivity = {
 function renderStats(activity: Partial<TrainingActivity> | Error = {}) {
   const api = fakeApi({
     exercises: [backSquat],
-    usage: { plan: 'free', total: 1, custom: 0, maxTotal: 10, maxCustom: 3 },
   });
   api.client.trainingActivity.mockImplementation((period) =>
     activity instanceof Error

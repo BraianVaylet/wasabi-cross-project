@@ -6,18 +6,8 @@ import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
 import { braian, fakeApi, fakeSession, fila, renderApp, type FakeApi } from '../test/app.tsx';
 
-function lista(exercises: ExerciseList['exercises'], usage?: Partial<ExerciseList['usage']>) {
-  return {
-    exercises,
-    usage: {
-      plan: 'free' as const,
-      total: exercises.length,
-      custom: 0,
-      maxTotal: 10,
-      maxCustom: 3,
-      ...usage,
-    },
-  };
+function lista(exercises: ExerciseList['exercises']): ExerciseList {
+  return { exercises };
 }
 
 const backSquat = {
@@ -162,32 +152,35 @@ describe('Home: lista de ejercicios (F1-11, mockup 4)', () => {
     });
   });
 
-  describe('cupo del plan (spec §4)', () => {
-    it('en el límite, el botón queda deshabilitado y dice por qué', async () => {
-      const diez = Array.from({ length: 10 }, (_, index) => ({
+  describe('sin tope de ejercicios (spec §4)', () => {
+    it('con más de diez, "Nuevo ejercicio" sigue habilitado y no hay aviso de límite', async () => {
+      const once = Array.from({ length: 11 }, (_, index) => ({
         ...backSquat,
-        id: `mex_a1b2c3d${String(index)}`,
+        id: `mex_a1b2c3d${String(index).padStart(2, '0')}`,
         name: `Ejercicio ${String(index)}`,
       }));
 
-      renderHome(fakeApi(lista(diez)));
-
-      expect(
-        await screen.findByText('Alcanzaste el máximo de 10 de tu plan Free.'),
-      ).toBeInTheDocument();
-      const boton = screen.getByRole('button', { name: 'Nuevo ejercicio' });
-      expect(boton).toBeDisabled();
-      expect(screen.queryByRole('link', { name: 'Nuevo ejercicio' })).not.toBeInTheDocument();
-    });
-
-    it('sin límite (plan Max), el botón sigue habilitado', async () => {
-      const api = fakeApi(
-        lista([backSquat], { plan: 'max', total: 40, maxTotal: null, maxCustom: null }),
-      );
-
-      renderHome(api);
+      renderHome(fakeApi(lista(once)));
 
       expect(await screen.findByRole('link', { name: 'Nuevo ejercicio' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Nuevo ejercicio' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/máximo/)).not.toBeInTheDocument();
+    });
+
+    it('al lado del título dice cuántos ejercicios hay, sin un tope', async () => {
+      renderHome(fakeApi(lista([backSquat, carrera])));
+
+      await screen.findAllByRole('listitem');
+
+      expect(screen.getByText('02')).toBeInTheDocument();
+      expect(screen.getByText('2 ejercicios')).toBeInTheDocument();
+      expect(screen.queryByText(/de tu plan/)).not.toBeInTheDocument();
+    });
+
+    it('con uno solo, el lector de pantalla lo dice en singular', async () => {
+      renderHome(fakeApi(lista([backSquat])));
+
+      expect(await screen.findByText('1 ejercicio')).toBeInTheDocument();
     });
   });
 

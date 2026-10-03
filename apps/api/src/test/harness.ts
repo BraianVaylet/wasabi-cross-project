@@ -19,8 +19,8 @@ export interface TestHarness {
  * Levanta la API completa contra un Mongo en memoria. Los tests de integración usan
  * esto en vez de mocks: la parte que más falla de auth es la que toca la base.
  *
- * Es un replica set, como Atlas: el cupo de ejercicios (F1-03) y el alta atómica (F1-05)
- * usan transacciones, y en un Mongo standalone no existen. Así los tests corren con las
+ * Es un replica set, como Atlas: el alta atómica (F1-05) usa transacciones, y en un Mongo
+ * standalone no existen. Así los tests corren con las
  * mismas garantías que producción, Better Auth incluido.
  */
 export async function startTestApi(): Promise<TestHarness> {

@@ -203,12 +203,6 @@ const newExerciseRoute = createRoute({
     const { modo = 'catalogo' } = newExerciseRoute.useSearch();
     const navigate = useNavigate();
     const catalog = useQuery(catalogQueryOptions(api));
-    // La misma lista de Home: si ya se pidió, no cuesta un pedido más. Dice si el plan todavía
-    // admite un ejercicio propio, que es en lo que se convierte un precargado editado.
-    const mine = useQuery(exerciseListQueryOptions(api));
-    const usage = mine.data?.usage;
-    const customLimitReached =
-      usage !== undefined && usage.maxCustom !== null && usage.custom >= usage.maxCustom;
     const add = useMutation({
       mutationFn: (input: AddExercise) => api.addExercise(input),
       onSuccess: async () => {
@@ -225,7 +219,6 @@ const newExerciseRoute = createRoute({
     return (
       <NewExercisePage
         catalog={catalog.data ?? []}
-        customLimitReached={customLimitReached}
         mode={modo}
         onModeChange={(next) => {
           void navigate({ to: '/ejercicios/nuevo', search: { modo: next } });

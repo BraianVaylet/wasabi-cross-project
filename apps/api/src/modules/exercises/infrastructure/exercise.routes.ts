@@ -11,7 +11,6 @@ import {
   type CatalogQuery,
   type ExerciseList,
   type ManagedExerciseSummary,
-  type Plan,
   type UpdateManagedExercise,
 } from '@wasabi-cross/schemas';
 import type { FastifyRequest, onRequestAsyncHookHandler } from 'fastify';
@@ -24,7 +23,6 @@ const managedExerciseParams = z.object({ id: managedExerciseIdSchema });
 
 interface SessionUser {
   id: string;
-  plan: Plan;
 }
 
 export interface ExerciseRoutesOptions {
@@ -51,8 +49,8 @@ function sessionUser(request: FastifyRequest): SessionUser {
     throw new AppError('WC-SYS-500-001', { message: 'requireSession no pobló currentUser' });
   }
 
-  // Sólo lo que el caso de uso necesita. El plan sale de la sesión, nunca del cliente.
-  return { id: user.id, plan: user.plan };
+  // Sólo lo que el caso de uso necesita: quién es, de la sesión y nunca del cliente.
+  return { id: user.id };
 }
 
 export function exerciseRoutes(options: ExerciseRoutesOptions): FastifyPluginAsyncZod {
@@ -93,7 +91,7 @@ export function exerciseRoutes(options: ExerciseRoutesOptions): FastifyPluginAsy
         onRequest: requireSession,
         schema: {
           summary: 'Mis ejercicios',
-          description: 'La lista de Home: cada ejercicio con su valor actual, y el uso del plan.',
+          description: 'La lista de Home: cada ejercicio con su valor actual.',
           tags: ['exercises'],
           response: { 200: exerciseListSchema },
         },
@@ -109,7 +107,7 @@ export function exerciseRoutes(options: ExerciseRoutesOptions): FastifyPluginAsy
           summary: 'Agregar un ejercicio',
           description:
             'Uno del catálogo o uno propio, junto con su primera marca. Todo o nada. ' +
-            'Respeta el cupo del plan (spec §4).',
+            'No hay tope de ejercicios en ningún plan (spec §4).',
           tags: ['exercises'],
           body: addExerciseSchema,
           response: { 201: managedExerciseSummarySchema },

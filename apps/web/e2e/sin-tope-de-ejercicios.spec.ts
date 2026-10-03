@@ -3,12 +3,12 @@ import { measureKindFor, type ExerciseCategory } from '@wasabi-cross/schemas';
 import { auditar, registrarse } from './app.ts';
 
 /*
- * El límite del plan Free (F1-03, spec §4): 10 ejercicios en total y 3 propios. La pantalla
- * lo refleja, pero quien decide es el backend — el E2E lo prueba por los dos lados, porque
- * un botón deshabilitado no es una regla de negocio.
+ * Sin tope de ejercicios (Fase 8, spec §4): un usuario Free carga todos los ejercicios que
+ * quiera, del catálogo y propios. Hasta la Fase 7 el plan Free llegaba a 10 (3 propios) y la
+ * API respondía 403; este E2E es el que se había escrito para eso, dado vuelta.
  *
- * Los ejercicios se cargan por la API: el formulario ya tiene sus propios tests, y diez
- * altas a mano no prueban nada que no pruebe una.
+ * Los ejercicios se cargan por la API: el formulario ya tiene sus propios tests, y once altas
+ * a mano no prueban nada que no pruebe una.
  */
 
 const API = 'http://127.0.0.1:3100';
@@ -70,45 +70,33 @@ async function llenarPlan(request: APIRequestContext, cuantos: number): Promise<
   }
 }
 
-test('el 11.º ejercicio no entra: ni por la UI ni por la API', async ({ page }) => {
+test('un usuario Free carga más de 10 ejercicios y "Nuevo ejercicio" sigue habilitado', async ({
+  page,
+}) => {
   await registrarse(page);
 
   // `page.request` comparte las cookies del navegador: es el mismo usuario.
-  await llenarPlan(page.request, 10);
+  await llenarPlan(page.request, 11);
 
   await page.goto('/');
-  await expect(page.getByText('Alcanzaste el máximo de 10 de tu plan Free.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Nuevo ejercicio' })).toBeDisabled();
-  await auditar(page, 'Home en el límite del plan');
+  await expect(page.getByRole('link', { name: 'Nuevo ejercicio' })).toBeEnabled();
+  await expect(page.getByRole('listitem')).toHaveCount(11);
+  await auditar(page, 'Home con más de 10 ejercicios');
 
-  // Y el que se saltea la pantalla, tampoco.
-  const directo = await page.request.post(`${API}/api/v1/exercises`, { data: propio(11) });
+  // Y el que se saltea la pantalla, tampoco tiene tope.
+  const directo = await page.request.post(`${API}/api/v1/exercises`, { data: propio(12) });
+  expect(directo.status()).toBe(201);
 
-  expect(directo.status()).toBe(403);
-  expect(await directo.json()).toMatchObject({
-    errorCode: 'WC-SUBS-403-001',
-    message: 'Alcanzaste el máximo de 10 ejercicios de tu plan Free.',
-  });
-
-  // El rechazo no dejó nada a medias.
   const lista = await page.request.get(`${API}/api/v1/exercises`);
   const { exercises } = (await lista.json()) as { exercises: unknown[] };
-  expect(exercises).toHaveLength(10);
+  expect(exercises).toHaveLength(12);
 });
 
-test('el cuarto ejercicio propio se rechaza aunque sobre lugar en el total', async ({ page }) => {
+test('un usuario Free crea más de 3 ejercicios propios', async ({ page }) => {
   await registrarse(page);
 
-  for (const numero of [1, 2, 3]) {
+  for (const numero of [1, 2, 3, 4]) {
     const response = await page.request.post(`${API}/api/v1/exercises`, { data: propio(numero) });
     expect(response.status(), `alta del propio ${String(numero)}`).toBe(201);
   }
-
-  const cuarto = await page.request.post(`${API}/api/v1/exercises`, { data: propio(4) });
-
-  expect(cuarto.status()).toBe(403);
-  expect(await cuarto.json()).toMatchObject({
-    errorCode: 'WC-SUBS-403-001',
-    message: 'Alcanzaste el máximo de 3 ejercicios propios de tu plan Free.',
-  });
 });

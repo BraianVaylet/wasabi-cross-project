@@ -104,17 +104,20 @@ Viven en `apps/api/src/migrations/`, en TypeScript, una por archivo, con nombre
 - Contra una misma base se usa siempre el mismo modo: `migrate` (desde `src/`) en desarrollo,
   `migrate:dist` (compilado) en los ambientes desplegados.
 
-## Transacciones y cupos del plan
+## Transacciones
 
-El cupo de ejercicios (spec §4) se controla en una transacción de Mongo, junto con el alta que
-consume el cupo. **Mongo tiene que ser un replica set**, aunque sea de un nodo: Atlas lo es; en
-local, ver `apps/api/.env.example`.
+El alta de un ejercicio crea, todo o nada, el ejercicio propio (si lo es), su entrada en la lista
+y la primera marca; editar y borrar también tocan varios documentos. Todo va en una transacción
+de Mongo (`TransactionRunner`). **Mongo tiene que ser un replica set**, aunque sea de un nodo:
+Atlas lo es; en local, ver `apps/api/.env.example`.
 
-Una transacción sola no alcanza para que dos altas simultáneas no se pasen del límite: Mongo aísla
-por snapshot, y dos transacciones que cuentan 9 e insertan documentos distintos confirman las dos.
-Por eso cada una escribe además un documento de lock por usuario (`entitlement_locks`): la segunda
-choca, se reintenta y cuenta 10. Hay un test que lo demuestra, y una prueba inversa confirmó que
-sin el lock ese test falla.
+Dos altas simultáneas del mismo ejercicio no necesitan un lock: el índice único
+`user_exercise_unique` de `managed_exercises` hace que la segunda transacción choque, se deshaga
+entera y responda `WC-EXO-409-003`. Hay un test de integración que lo demuestra.
+
+Hasta la Fase 8 había además un documento de lock por usuario (`entitlement_locks`) para que dos
+altas no se pasaran del cupo de 10 ejercicios del plan Free. El cupo se fue con
+[ADR-0011](./adr/0011-plan-pro-y-estadisticas.md) y el lock con él.
 
 ## Health checks
 

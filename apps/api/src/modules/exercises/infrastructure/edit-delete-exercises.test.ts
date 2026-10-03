@@ -254,31 +254,6 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
       expect(await records().countDocuments({ managedExerciseId: added.id })).toBe(0);
     });
 
-    it('libera el cupo: con 10, borrar uno deja agregar otro', async () => {
-      const cookie = await newUser();
-      const nombres = [
-        'Sentadilla trasera',
-        'Sentadilla frontal',
-        'Overhead Squat',
-        'Peso muerto convencional',
-        'Dominadas lastradas',
-        'Clean and Jerk',
-        'Pull-up',
-        'Burpee',
-        'Press militar',
-        'Push Press',
-      ];
-      const agregados = [];
-      for (const name of nombres) agregados.push(await addFromCatalog(cookie, name));
-      const primero = agregados[0];
-      if (!primero) throw new Error('no se agregó nada');
-
-      await remove(cookie, primero.id);
-
-      await addFromCatalog(cookie, 'Snatch');
-      expect((await list(cookie)).usage.total).toBe(10);
-    });
-
     it('borrar dos veces: la segunda responde 404', async () => {
       const cookie = await newUser();
       const added = await addFromCatalog(cookie, 'Snatch');

@@ -47,7 +47,6 @@ const reparto: TrainingBreakdown = {
 function renderStats(breakdown: TrainingBreakdown | Error = reparto) {
   const api = fakeApi({
     exercises: [backSquat],
-    usage: { plan: 'free', total: 1, custom: 0, maxTotal: 10, maxCustom: 3 },
   });
   api.client.trainingBreakdown.mockImplementation(() =>
     breakdown instanceof Error ? Promise.reject(breakdown) : Promise.resolve(breakdown),

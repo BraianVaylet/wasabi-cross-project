@@ -1,26 +1,16 @@
-import {
-  limitsFor,
-  type CatalogEntry,
-  type CatalogQuery,
-  type ExerciseList,
-  type Plan,
-} from '@wasabi-cross/schemas';
-import type {
-  ManagedExerciseStore,
-  RecordsGateway,
-  UsageCounter,
-} from '../domain/managed-exercise-ports.ts';
+import type { CatalogEntry, CatalogQuery, ExerciseList } from '@wasabi-cross/schemas';
+import type { ManagedExerciseStore, RecordsGateway } from '../domain/managed-exercise-ports.ts';
 import { nameMatches } from '../domain/names.ts';
 import type { ExerciseRepository } from '../domain/exercise-repository.ts';
 import { toSummary } from './add-managed-exercise.ts';
 
 /**
- * La lista de Home (mockup 4): cada ejercicio con su valor actual, ordenada por nombre, y
- * cuánto del plan está usado.
+ * La lista de Home (mockup 4): cada ejercicio con su valor actual, ordenada por nombre. No hay
+ * tope: los dos planes cargan todo lo que quieran (spec §4).
  */
 export async function listManagedExercises<Tx>(
-  deps: { store: ManagedExerciseStore<Tx>; records: RecordsGateway<Tx>; counter: UsageCounter },
-  user: { id: string; plan: Plan },
+  deps: { store: ManagedExerciseStore<Tx>; records: RecordsGateway<Tx> },
+  user: { id: string },
 ): Promise<ExerciseList> {
   const managed = await deps.store.listManaged(user.id);
   const exercises = new Map(
@@ -43,19 +33,7 @@ export async function listManagedExercises<Tx>(
     return toSummary(exercise, entry, current);
   });
 
-  const usage = await deps.counter.count(user.id);
-  const limits = limitsFor(user.plan);
-
-  return {
-    exercises: summaries.sort((a, b) => a.name.localeCompare(b.name, 'es')),
-    usage: {
-      plan: user.plan,
-      total: usage.total,
-      custom: usage.custom,
-      maxTotal: limits.totalExercises,
-      maxCustom: limits.customExercises,
-    },
-  };
+  return { exercises: summaries.sort((a, b) => a.name.localeCompare(b.name, 'es')) };
 }
 
 /**

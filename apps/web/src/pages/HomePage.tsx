@@ -1,14 +1,12 @@
 import {
-  ERROR_CATALOG,
   type ExerciseList,
   type ManagedExerciseSummary,
   type MeasureKind,
-  type PlanUsage,
   type SessionUser,
 } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Button, ChevronIcon, Measure, SectionHeader, Skeleton } from '@wasabi-cross/ui';
+import { ChevronIcon, Measure, SectionHeader, Skeleton } from '@wasabi-cross/ui';
 import { ErrorNotice } from '../app/ErrorNotice.tsx';
 import { formatDate, markParts } from '../lib/format.ts';
 import './home.css';
@@ -33,21 +31,15 @@ function pad(value: number): string {
 }
 
 /**
- * El cupo del plan al lado del título: "03 / 10". Para el lector de pantalla, en palabras: "3 / 10"
- * suelto no dice de qué.
+ * Cuántos ejercicios hay, al lado del título: "03". Para el lector de pantalla, en palabras: un
+ * "3" suelto no dice de qué. No hay tope en ningún plan (spec §4), así que es sólo la cuenta.
  */
-function Usage({ usage }: { usage: PlanUsage }): React.JSX.Element | null {
-  if (usage.maxTotal === null) {
-    return null;
-  }
-
+function Count({ total }: { total: number }): React.JSX.Element {
   return (
     <>
-      <span aria-hidden="true">
-        {pad(usage.total)} / {pad(usage.maxTotal)}
-      </span>
+      <span aria-hidden="true">{pad(total)}</span>
       <span className="wc-visually-hidden">
-        {usage.total} de {usage.maxTotal} ejercicios de tu plan
+        {total === 1 ? '1 ejercicio' : `${String(total)} ejercicios`}
       </span>
     </>
   );
@@ -61,7 +53,7 @@ export function HomePage({ user, exercises }: HomePageProps): React.JSX.Element 
         level={1}
         title="Tus ejercicios"
         kicker={`¡Hola, ${user.name}!`}
-        meta={exercises.data ? <Usage usage={exercises.data.usage} /> : undefined}
+        meta={exercises.data ? <Count total={exercises.data.exercises.length} /> : undefined}
       />
 
       {exercises.isPending ? <Skeleton label="Cargando tus ejercicios" count={4} /> : null}
@@ -102,7 +94,7 @@ function ExerciseList({ list }: { list: ExerciseList }): React.JSX.Element {
         ))}
       </ul>
 
-      <NewExercise usage={list.usage} />
+      <NewExercise />
     </>
   );
 }
@@ -130,33 +122,11 @@ function ExerciseRow({ exercise }: { exercise: ManagedExerciseSummary }): React.
   );
 }
 
-/**
- * "Nuevo ejercicio" (mockup 4). En el límite del plan queda deshabilitado y dice por qué:
- * quien decide igual es el backend (spec §4), esto es sólo para no hacer perder el viaje.
- */
-function NewExercise({ usage }: { usage: PlanUsage }): React.JSX.Element {
-  const full = usage.maxTotal !== null && usage.total >= usage.maxTotal;
-
-  if (!full) {
-    return (
-      <Link to="/ejercicios/nuevo" className="wc-button wc-button--primary wc-button--block">
-        Nuevo ejercicio
-      </Link>
-    );
-  }
-
-  const reason = ERROR_CATALOG['WC-SUBS-403-001'].userMessage
-    .replace('{limite}', String(usage.maxTotal))
-    .replace('{plan}', usage.plan === 'max' ? 'Max' : 'Free');
-
+/** "Nuevo ejercicio" (mockup 4). Siempre habilitado: no hay tope de ejercicios (spec §4). */
+function NewExercise(): React.JSX.Element {
   return (
-    <div className="home__full">
-      <p className="home__full-reason" id="home-plan-lleno">
-        {reason}
-      </p>
-      <Button block disabled aria-describedby="home-plan-lleno">
-        Nuevo ejercicio
-      </Button>
-    </div>
+    <Link to="/ejercicios/nuevo" className="wc-button wc-button--primary wc-button--block">
+      Nuevo ejercicio
+    </Link>
   );
 }

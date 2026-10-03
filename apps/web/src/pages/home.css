@@ -93,8 +93,7 @@
 }
 
 /* Aire entre la lista y la acción. */
-.home__list + .wc-button,
-.home__full {
+.home__list + .wc-button {
   margin-top: var(--wc-space-4);
 }
 
@@ -116,19 +115,6 @@
   color: var(--wc-text-soft);
   letter-spacing: var(--wc-tracking-button);
   text-transform: uppercase;
-}
-
-.home__full {
-  display: flex;
-  flex-direction: column;
-  gap: var(--wc-space-2);
-}
-
-.home__full-reason {
-  margin: 0;
-  color: var(--wc-text-muted);
-  font-size: var(--wc-font-size-sm);
-  text-align: center;
 }
 
 @media (forced-colors: active) {
