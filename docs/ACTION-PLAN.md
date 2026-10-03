@@ -2394,7 +2394,7 @@ de suscripción es **sólo UI**: el pago y el cambio real de plan son una segund
 
 No depende de Railway/Atlas. Camino: F8-00 → F8-01 (el límite se va, en las tres capas a la vez:
 quitar un campo del contrato rompe a todos los que lo leen) → F8-02 (`max` pasa a `pro`) → F8-03
-(la API gatea) → F8-04 y F8-05 (web, en paralelo) → F8-06.
+(la API gatea) → F8-04 (la suscripción) → F8-05 (el bloqueo, que enlaza a ella) → F8-06.
 
 ## [ ] F8-00 · Spec: Free y Pro
 
@@ -2491,29 +2491,7 @@ quitar un campo del contrato rompe a todos los que lo leen) → F8-02 (`max` pas
 - **error-codes:** `WC-SUBS-403-002` (nuevo)
 - **data-model-impact:** ninguno
 
-## [ ] F8-04 · Web: las estadísticas, bloqueadas con Free
-
-- **module:** web
-- **description:** Con plan Free, la pantalla Estadísticas y el Progreso del detalle muestran el
-  aviso de spec §5.5 ("Las estadísticas son parte del plan Pro", "Ver planes") y **no piden** los
-  datos. Con Pro, igual que hoy. Si la API igual responde `WC-SUBS-403-002` (plan que cambió en
-  otro dispositivo), el error se muestra como el mismo aviso.
-- **acceptance-criteria:**
-  - Dado un usuario Free, cuando abre Estadísticas, entonces ve el aviso y ningún pedido a `/stats`
-    sale.
-  - Dado un usuario Free, cuando abre el detalle, entonces ve el historial, la barra fija y los
-    porcentajes, y en lugar del progreso el aviso.
-  - Dado un usuario Pro, cuando abre cualquiera de las dos, entonces ve lo de siempre.
-- **example:** —
-- **story-points:** 3
-- **depends_on:** F8-03
-- **risk:** medium
-- **test_plan:** tests de pantalla con ambos planes; se comprueba que la API falsa no recibe
-  pedidos de estadísticas con Free.
-- **error-codes:** ninguno
-- **data-model-impact:** ninguno
-
-## [ ] F8-05 · Web: la suscripción, el plan en el perfil y la etiqueta Pro
+## [ ] F8-04 · Web: la suscripción, el plan en el perfil y la etiqueta Pro
 
 - **module:** web
 - **description:** Tres cosas (spec §5.5). El Perfil suma la sección "Tu plan" con la etiqueta Free
@@ -2534,6 +2512,29 @@ quitar un campo del contrato rompe a todos los que lo leen) → F8-02 (`max` pas
 - **risk:** low
 - **test_plan:** tests de las tres pantallas con ambos planes; Storybook de lo que se agregue a
   `@wasabi-cross/ui`.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F8-05 · Web: las estadísticas, bloqueadas con Free
+
+- **module:** web
+- **description:** Con plan Free, la pantalla Estadísticas y el Progreso del detalle muestran el
+  aviso de spec §5.5 ("Las estadísticas son parte del plan Pro", "Ver planes", que lleva a la
+  suscripción de F8-04) y **no piden** los
+  datos. Con Pro, igual que hoy. Si la API igual responde `WC-SUBS-403-002` (plan que cambió en
+  otro dispositivo), el error se muestra como el mismo aviso.
+- **acceptance-criteria:**
+  - Dado un usuario Free, cuando abre Estadísticas, entonces ve el aviso y ningún pedido a `/stats`
+    sale.
+  - Dado un usuario Free, cuando abre el detalle, entonces ve el historial, la barra fija y los
+    porcentajes, y en lugar del progreso el aviso.
+  - Dado un usuario Pro, cuando abre cualquiera de las dos, entonces ve lo de siempre.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F8-03, F8-04
+- **risk:** medium
+- **test_plan:** tests de pantalla con ambos planes; se comprueba que la API falsa no recibe
+  pedidos de estadísticas con Free.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
 

@@ -92,3 +92,22 @@ body {
   color: var(--wc-text-muted);
   font-size: var(--wc-font-size-sm);
 }
+
+/*
+ * La etiqueta "PRO" del header (spec §5.5): lleva a la suscripción. La etiqueta es chica; el link
+ * le da el target de 44px (spec §11) sin agrandarla.
+ */
+.app-shell__plan {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--wc-tap-target);
+  padding-inline: var(--wc-space-1);
+
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-shell__plan:focus-visible {
+  outline: 2px solid var(--wc-focus);
+  outline-offset: 2px;
+}

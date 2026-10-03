@@ -26,6 +26,7 @@ import { NewExercisePage } from '../pages/new-exercise/NewExercisePage.tsx';
 import { EditExercisePage } from '../pages/edit-exercise/EditExercisePage.tsx';
 import { ExerciseDetailPage } from '../pages/exercise-detail/ExerciseDetailPage.tsx';
 import { ProfilePage } from '../pages/profile/ProfilePage.tsx';
+import { SubscriptionPage } from '../pages/subscription/SubscriptionPage.tsx';
 import { StatsPage } from '../pages/stats/StatsPage.tsx';
 import { refreshSession } from './create-app.ts';
 import {
@@ -154,7 +155,7 @@ const appRoute = createRoute({
     return { user };
   },
   component: function ShellRoute() {
-    const { queryClient, session } = appRoute.useRouteContext();
+    const { queryClient, session, user } = appRoute.useRouteContext();
     const navigate = useNavigate();
     const signOut = useMutation({
       mutationFn: () => session.signOut(),
@@ -166,6 +167,7 @@ const appRoute = createRoute({
 
     return (
       <AppShell
+        plan={user.plan}
         onSignOut={() => {
           signOut.mutate();
         }}
@@ -389,7 +391,7 @@ const profileRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/perfil',
   component: function ProfileRoute() {
-    const { api, queryClient } = appRoute.useRouteContext();
+    const { api, queryClient, user } = appRoute.useRouteContext();
     const preferences = useQuery(preferencesQueryOptions(api));
     const savePercentages = useMutation({
       mutationFn: (loadPercentages: number[]) => api.savePreferences({ loadPercentages }),
@@ -400,6 +402,7 @@ const profileRoute = createRoute({
 
     return (
       <ProfilePage
+        plan={user.plan}
         preferences={preferences}
         saving={savePercentages.isPending}
         saved={savePercentages.isSuccess}
@@ -409,6 +412,17 @@ const profileRoute = createRoute({
         }}
       />
     );
+  },
+});
+
+/* Suscripción (F8-04, spec §5.5): sólo la UI, no hay pasarela de pago todavía. */
+const subscriptionRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/suscripcion',
+  component: function SubscriptionRoute() {
+    const { user } = appRoute.useRouteContext();
+
+    return <SubscriptionPage plan={user.plan} />;
   },
 });
 
@@ -487,6 +501,7 @@ const routeTree = rootRoute.addChildren([
     editExerciseRoute,
     statsRoute,
     profileRoute,
+    subscriptionRoute,
   ]),
 ]);
 

@@ -25,6 +25,9 @@ export const braian: SessionUser = {
   plan: 'free',
 };
 
+/** El mismo atleta con plan Pro: ve las estadísticas (spec §4). */
+export const braianPro: SessionUser = { ...braian, plan: 'pro' };
+
 export interface FakeSession {
   client: {
     [K in keyof SessionClient]: ReturnType<typeof vi.fn<SessionClient[K]>>;
