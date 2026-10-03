@@ -21,6 +21,7 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 | `WC-RM-422-001`    | 422  | Valor de RM/tiempo/reps inválido                                   | El valor cargado no es válido.                                     |
 | `WC-RM-404-002`    | 404  | Registro no encontrado                                             | No encontramos ese registro.                                       |
 | `WC-STATS-404-001` | 404  | Ejercicio inexistente o de otro usuario, al pedir sus estadísticas | No encontramos ese ejercicio.                                      |
+| `WC-SUBS-403-002`  | 403  | Estadísticas: el plan del usuario no las incluye (sólo Pro)        | Las estadísticas son parte del plan Pro.                           |
 | `WC-BILL-402-001`  | 402  | Pago rechazado                                                     | El pago fue rechazado por el emisor.                               |
 | `WC-BILL-409-002`  | 409  | Pago duplicado                                                     | Este pago ya fue registrado.                                       |
 | `WC-SYS-400-002`   | 400  | Entrada inválida (falla la validación Zod en el borde)             | Revisá los datos enviados.                                         |

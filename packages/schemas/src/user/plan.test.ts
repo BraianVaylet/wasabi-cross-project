@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planSchema } from './plan.ts';
+import { canViewStats, planSchema } from './plan.ts';
 
 describe('planes', () => {
   it('sólo existen free y pro', () => {
@@ -9,5 +9,10 @@ describe('planes', () => {
 
   it('max ya no es un plan: se llamaba así antes de la Fase 8', () => {
     expect(planSchema.safeParse('max').success).toBe(false);
+  });
+
+  it('sólo pro ve las estadísticas (spec §4)', () => {
+    expect(canViewStats('free')).toBe(false);
+    expect(canViewStats('pro')).toBe(true);
   });
 });

@@ -28,6 +28,7 @@ import type {
 } from './modules/stats/domain/stats-ports.ts';
 import { createMongoStatsSource } from './modules/stats/infrastructure/mongo-stats.source.ts';
 import type { StatsRoutesOptions } from './modules/stats/infrastructure/stats.routes.ts';
+import { requireStatsAccess } from './modules/subscriptions/infrastructure/require-stats-access.ts';
 import { getPreferences, updatePreferences } from './modules/users/application/preferences.ts';
 import { createMongoPreferencesStore } from './modules/users/infrastructure/mongo-preferences.store.ts';
 import type { PreferencesRoutesOptions } from './modules/users/infrastructure/preferences.routes.ts';
@@ -92,7 +93,8 @@ export function composeRecords(
 
 /**
  * Las estadísticas (F2-04). `stats` no conoce el modelo de nadie: `exercises` le dice de
- * quién es el ejercicio y cómo se llama, y las marcas se leen como serie.
+ * quién es el ejercicio y cómo se llama, y las marcas se leen como serie. Que sean de Pro
+ * (spec §4) lo decide `subscriptions`, y se cablea acá.
  */
 export function composeStats(mongo: MongoConnection): Omit<StatsRoutesOptions, 'requireSession'> {
   const exercises = createMongoManagedExerciseStore(mongo.db);
@@ -108,6 +110,7 @@ export function composeStats(mongo: MongoConnection): Omit<StatsRoutesOptions, '
   };
 
   return {
+    requireStatsAccess: requireStatsAccess(),
     exerciseStats: (userId, managedExerciseId, period) =>
       exerciseStats({ lookup, records }, { userId, managedExerciseId, period }),
     generalStats: (userId, period) => generalStats({ lookup: list, records }, { userId, period }),

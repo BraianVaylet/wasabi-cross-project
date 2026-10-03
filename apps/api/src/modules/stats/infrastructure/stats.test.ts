@@ -1,6 +1,6 @@
 import type { ExerciseStats, GeneralStats, ManagedExerciseSummary } from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookiesFrom, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { cookiesFrom, setPlan, startTestApi, type TestHarness } from '../../../test/harness.ts';
 import { seedCatalog } from '../../exercises/application/seed-catalog.ts';
 import { createMongoExerciseRepository } from '../../exercises/infrastructure/mongo-exercise.repository.ts';
 
@@ -24,16 +24,19 @@ describe('estadísticas de un ejercicio (F2-04)', () => {
 
   async function newUser(): Promise<string> {
     userCount += 1;
+    const email = `stats${String(userCount)}@example.com`;
     const response = await harness.app.inject({
       method: 'POST',
       url: '/api/auth/sign-up/email',
       headers: { 'content-type': 'application/json' },
       payload: JSON.stringify({
-        email: `stats${String(userCount)}@example.com`,
+        email,
         password: 'una-frase-larga-y-propia',
         name: `Stats ${String(userCount)}`,
       }),
     });
+    // Las estadísticas son de Pro (spec §4): el usuario de estos tests lo es.
+    await setPlan(harness, email, 'pro');
     return cookiesFrom(response.headers);
   }
 

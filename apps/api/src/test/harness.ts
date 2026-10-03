@@ -1,3 +1,4 @@
+import type { Plan } from '@wasabi-cross/schemas';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
@@ -56,6 +57,15 @@ export async function startTestApi(): Promise<TestHarness> {
       await replSet.stop();
     },
   };
+}
+
+/**
+ * Fija el plan de un usuario directo en la base. No hay endpoint ni pago que lo cambie todavía
+ * (spec §4): igual que `seed:admin`, es la única forma. Rige desde el pedido siguiente, porque la
+ * sesión lee el plan de la base cada vez.
+ */
+export async function setPlan(harness: TestHarness, email: string, plan: Plan): Promise<void> {
+  await harness.mongo.db.collection('user').updateOne({ email }, { $set: { plan } });
 }
 
 /** Extrae las cookies de sesión de una respuesta para reusarlas en el request siguiente. */
