@@ -1,4 +1,5 @@
 import {
+  canViewStats,
   statsPeriodSchema,
   type AddExercise,
   type RecordInput,
@@ -45,6 +46,7 @@ import {
   type ApiClient,
 } from './api.ts';
 import { ErrorScreen } from './ErrorNotice.tsx';
+import { isStatsLocked } from './StatsLocked.tsx';
 import { optimisticId, prependRecord, type HistoryPages } from './optimistic-history.ts';
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
@@ -248,15 +250,21 @@ const exerciseDetailRoute = createRoute({
   path: '/ejercicios/$id',
   validateSearch: (search) => detailSearch.parse(search),
   component: function ExerciseDetailRoute() {
-    const { api, queryClient } = appRoute.useRouteContext();
+    const { api, queryClient, user } = appRoute.useRouteContext();
     const { id } = exerciseDetailRoute.useParams();
     const { pct } = exerciseDetailRoute.useSearch();
     const navigate = useNavigate();
     const exercises = useQuery(exerciseListQueryOptions(api));
     const preferences = useQuery(preferencesQueryOptions(api));
     const history = useInfiniteQuery(historyQueryOptions(api, id));
-    // El progreso del detalle mira todo el historial, no un período (spec §5.2).
-    const progress = useQuery(exerciseStatsQueryOptions(api, id, 'todo'));
+    // El progreso del detalle mira todo el historial, no un período (spec §5.2). Es una
+    // estadística: con plan Free no se pide (spec §4).
+    const canView = canViewStats(user.plan);
+    const progress = useQuery({
+      ...exerciseStatsQueryOptions(api, id, 'todo'),
+      enabled: canView,
+    });
+    const progressLocked = !canView || isStatsLocked(progress.error);
     const exercise = exercises.data?.exercises.find((item) => item.id === id);
 
     /*
@@ -300,8 +308,10 @@ const exerciseDetailRoute = createRoute({
       <ExerciseDetailPage
         progress={{
           stats: progress.data,
-          loading: progress.isPending,
-          error: progress.error,
+          // Un pedido apagado queda "pendiente" para siempre: no es una carga.
+          loading: !progressLocked && progress.isPending,
+          error: progressLocked ? null : progress.error,
+          locked: progressLocked,
         }}
         history={{
           records: history.data?.pages.flatMap((page) => page.records) ?? [],
@@ -446,23 +456,29 @@ const statsRoute = createRoute({
   path: '/estadisticas',
   validateSearch: (search) => statsSearch.parse(search),
   component: function StatsRoute() {
-    const { api } = appRoute.useRouteContext();
+    const { api, user } = appRoute.useRouteContext();
     const { abierto, periodo } = statsRoute.useSearch();
     const period = periodo ?? DEFAULT_STATS_PERIOD;
     const navigate = useNavigate();
     const exercises = useQuery(exerciseListQueryOptions(api));
+    // Con plan Free no sale ningún pedido a las estadísticas (spec §4): el aviso ocupa su lugar.
+    const canView = canViewStats(user.plan);
 
     // Sólo la del que está abierto: en una lista de diez, nueve consultas no las mira nadie.
     const stats = useQuery({
       ...exerciseStatsQueryOptions(api, abierto ?? '', period),
-      enabled: abierto !== undefined,
+      enabled: canView && abierto !== undefined,
     });
-    const general = useQuery(generalStatsQueryOptions(api, period));
-    const activity = useQuery(trainingActivityQueryOptions(api, period));
-    const breakdown = useQuery(trainingBreakdownQueryOptions(api));
+    const general = useQuery({ ...generalStatsQueryOptions(api, period), enabled: canView });
+    const activity = useQuery({ ...trainingActivityQueryOptions(api, period), enabled: canView });
+    const breakdown = useQuery({ ...trainingBreakdownQueryOptions(api), enabled: canView });
+    // Si la API dice que el plan no las incluye (cambió en otro dispositivo), lo mismo.
+    const locked =
+      !canView || [stats, general, activity, breakdown].some((q) => isStatsLocked(q.error));
 
     return (
       <StatsPage
+        locked={locked}
         exercises={exercises}
         open={abierto}
         stats={abierto === undefined ? null : stats}

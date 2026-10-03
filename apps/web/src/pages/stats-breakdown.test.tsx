@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
-import { braian, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
+import { braianPro, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
 
 /*
  * F7-06: "Tu entrenamiento" en Estadísticas — tres donas y las barras de grupos (spec §5.4).
@@ -51,7 +51,7 @@ function renderStats(breakdown: TrainingBreakdown | Error = reparto) {
   api.client.trainingBreakdown.mockImplementation(() =>
     breakdown instanceof Error ? Promise.reject(breakdown) : Promise.resolve(breakdown),
   );
-  const app = renderApp('/estadisticas', fakeSession(braian).client, api.client);
+  const app = renderApp('/estadisticas', fakeSession(braianPro).client, api.client);
   return { api, ...app };
 }
 
