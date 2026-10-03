@@ -4,7 +4,7 @@ import { cookiesFrom, startTestApi, type TestHarness } from '../../../test/harne
 import { createAuth } from './better-auth.ts';
 import { createUserRegistrar } from './user-registrar.ts';
 
-describe('seedAdmin — el usuario fijo con plan Max de desarrollo', () => {
+describe('seedAdmin — el usuario fijo con plan Pro de desarrollo', () => {
   let harness: TestHarness;
 
   beforeAll(async () => {
@@ -24,7 +24,7 @@ describe('seedAdmin — el usuario fijo con plan Max de desarrollo', () => {
     return createUserRegistrar(auth);
   }
 
-  it('crea el usuario con plan Max, con una contraseña que sirve para entrar', async () => {
+  it('crea el usuario con plan Pro, con una contraseña que sirve para entrar', async () => {
     const result = await seedAdmin(registrar(), harness.mongo.db, {
       email: 'admin1@wasabicross.dev',
       password: 'una-frase-larga-y-propia',
@@ -49,7 +49,7 @@ describe('seedAdmin — el usuario fijo con plan Max de desarrollo', () => {
       url: '/api/v1/me',
       headers: { cookie: cookiesFrom(signIn.headers) },
     });
-    expect(me.json()).toMatchObject({ plan: 'max' });
+    expect(me.json()).toMatchObject({ plan: 'pro' });
   });
 
   it('correrlo de nuevo no falla ni duplica: la segunda vez no crea', async () => {
@@ -66,7 +66,7 @@ describe('seedAdmin — el usuario fijo con plan Max de desarrollo', () => {
     expect(segunda).toEqual({ email: options.email, created: false });
   });
 
-  it('si el usuario ya existe con plan Free, lo sube a Max sin volver a registrarlo', async () => {
+  it('si el usuario ya existe con plan Free, lo sube a Pro sin volver a registrarlo', async () => {
     const email = 'admin3@wasabicross.dev';
     await harness.app.inject({
       method: 'POST',
@@ -84,6 +84,6 @@ describe('seedAdmin — el usuario fijo con plan Max de desarrollo', () => {
 
     const users = harness.mongo.db.collection('user');
     const document = await users.findOne({ email });
-    expect(document).toMatchObject({ plan: 'max', name: 'Ya existía' });
+    expect(document).toMatchObject({ plan: 'pro', name: 'Ya existía' });
   });
 });

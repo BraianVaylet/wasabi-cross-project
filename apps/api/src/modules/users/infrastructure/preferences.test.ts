@@ -137,7 +137,7 @@ describe('preferencias del usuario (F1-08)', () => {
       const { cookie } = await newUser();
 
       expect((await update(cookie, { theme: 'dark' })).statusCode).toBe(400);
-      expect((await update(cookie, { loadPercentages: [70], plan: 'max' })).statusCode).toBe(400);
+      expect((await update(cookie, { loadPercentages: [70], plan: 'pro' })).statusCode).toBe(400);
       expect((await update(cookie, {})).statusCode).toBe(400);
     });
 

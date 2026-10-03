@@ -2,7 +2,7 @@ import type { Db } from 'mongodb';
 import type { UserRegistrar } from '../domain/user-registrar.ts';
 
 /**
- * Un usuario fijo con plan Max, para tener siempre a mano en desarrollo sin pasar por un
+ * Un usuario fijo con plan Pro, para tener siempre a mano en desarrollo sin pasar por un
  * proveedor de pago que todavía no existe (STATE.md, decisiones abiertas). La corre
  * `src/scripts/seed-admin.ts` (a mano, las veces que haga falta) y `scripts/ephemeral.ts`
  * (en cada arranque, porque ahí los datos no sobreviven un reinicio).
@@ -26,7 +26,7 @@ const DEFAULTS = {
   name: 'Admin',
 };
 
-/** Crea (si no existe) el usuario admin y le asegura el plan Max. Idempotente. */
+/** Crea (si no existe) el usuario admin y le asegura el plan Pro. Idempotente. */
 export async function seedAdmin(
   registrar: UserRegistrar,
   db: Db,
@@ -46,7 +46,7 @@ export async function seedAdmin(
     await registrar.signUp({ email, password, name });
   }
 
-  await users.updateOne({ email }, { $set: { plan: 'max' } });
+  await users.updateOne({ email }, { $set: { plan: 'pro' } });
 
   return { email, created: !existing };
 }

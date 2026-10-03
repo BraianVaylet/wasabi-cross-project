@@ -49,7 +49,7 @@ async function main(): Promise<void> {
       password: process.env.SEED_ADMIN_PASSWORD,
       name: process.env.SEED_ADMIN_NAME,
     });
-    console.info(`Usuario admin (plan Max): ${email}`);
+    console.info(`Usuario admin (plan Pro): ${email}`);
   } finally {
     await mongo.close();
   }

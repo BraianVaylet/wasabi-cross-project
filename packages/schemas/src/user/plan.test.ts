@@ -2,8 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { planSchema } from './plan.ts';
 
 describe('planes', () => {
-  it('sólo existen free y max', () => {
-    expect(planSchema.options).toEqual(['free', 'max']);
+  it('sólo existen free y pro', () => {
+    expect(planSchema.options).toEqual(['free', 'pro']);
     expect(planSchema.safeParse('premium').success).toBe(false);
+  });
+
+  it('max ya no es un plan: se llamaba así antes de la Fase 8', () => {
+    expect(planSchema.safeParse('max').success).toBe(false);
   });
 });
