@@ -130,6 +130,8 @@ Versionada (`/api/v1/...`). El spec OpenAPI se **genera** desde los schemas Zod 
 
 **Sesión antes que nada.** El guard de sesión va en el hook `onRequest` de cada ruta protegida, no en `preHandler`: en Fastify la validación del cuerpo corre antes de `preHandler`, y ahí un request sin sesión con un cuerpo inválido recibía 400 en vez de 401 — podía sondear el contrato de la API sin estar autenticado.
 
+**El plan después de la sesión.** Lo que sólo ve un plan (las estadísticas son de Pro, spec §4) se protege con un segundo guard `onRequest`, `requireStatsAccess` de `subscriptions`, que corre después de `requireSession`: sin sesión responde 401, con sesión y plan Free, 403 `WC-SUBS-403-002`, y los dos antes de validar el ejercicio o la consulta, así un usuario Free no puede sondear nada. Llega inyectado a las rutas desde `composition.ts`, como el de sesión: `stats` no importa a `subscriptions`. El plan se lee de la base en cada pedido, así que un cambio rige desde el siguiente.
+
 ## Decisiones de arquitectura
 
 Cambios estructurales relevantes (elegir una librería, cambiar un patrón, un trade-off de infra) se registran como ADR corto en [docs/adr](./adr), no acá. Este documento describe el estado actual; el ADR explica por qué se llegó a él.

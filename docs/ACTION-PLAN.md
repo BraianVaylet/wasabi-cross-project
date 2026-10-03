@@ -2542,17 +2542,24 @@ quitar un campo del contrato rompe a todos los que lo leen) → F8-02 (`max` pas
 
 - **module:** web
 - **description:** Un usuario Free ve el aviso donde estaría Estadísticas y el Progreso del
-  detalle; el admin (Pro) ve las estadísticas y la etiqueta en el header; la suscripción avisa que
-  cambiar de plan todavía no está disponible. axe audita la suscripción y el aviso a 390px.
+  detalle, y la API le niega los datos; un usuario Pro ve las estadísticas y la etiqueta en el
+  header; la suscripción avisa que cambiar de plan todavía no está disponible; un cambio de plan se
+  nota sin volver a entrar. axe audita la suscripción y el aviso a 390px. Como no hay pago ni
+  endpoint para cambiar de plan, `dev:ephemeral` levanta un control sólo para el E2E
+  (`POST 127.0.0.1:3101/plan`) y los specs de estadísticas, que corrían con un atleta nuevo (Free),
+  pasan a registrarlo como Pro. Los E2E que probaban el cupo pasan a probar que ya no hay.
 - **acceptance-criteria:**
-  - Dado un usuario Free con más de 10 ejercicios cargados, cuando entra a Estadísticas, entonces ve
-    el aviso.
-  - Dado el admin Pro, cuando entra a Estadísticas, entonces ve las estadísticas.
-  - Dado axe a 390px en la suscripción y en el aviso, entonces 0 violaciones.
+  - Dado un usuario Free, cuando entra a Estadísticas o al detalle, entonces ve el aviso, y un
+    pedido directo a `/stats/summary` responde 403 `WC-SUBS-403-002`.
+  - Dado un usuario Pro, cuando entra a Estadísticas, entonces ve las estadísticas, y el header
+    muestra la etiqueta PRO.
+  - Dado un plan que cambió en otro dispositivo, cuando la pantalla pide las estadísticas, entonces
+    ve el aviso y no un error.
+  - Dado axe a 390px en la suscripción, el Perfil y el aviso, entonces 0 violaciones.
 - **example:** —
 - **story-points:** 3
 - **depends_on:** F8-04, F8-05
 - **risk:** low
-- **test_plan:** `pnpm e2e` completo en CI.
+- **test_plan:** `pnpm e2e` y `pnpm e2e:prod` completos, en CI.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno

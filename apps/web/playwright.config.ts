@@ -14,6 +14,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 
 const API_PORT = 3100;
+/** El control del plan del script `dev:ephemeral` (e2e/app.ts, `fijarPlan`). */
+const CONTROL_PORT = 3101;
 const WEB_PORT = 5174;
 const API_URL = `http://127.0.0.1:${String(API_PORT)}`;
 const WEB_URL = `http://127.0.0.1:${String(WEB_PORT)}`;
@@ -34,6 +36,7 @@ const apiEnv = {
   PORT: String(API_PORT),
   HOST: '127.0.0.1',
   AUTH_RATE_LIMIT: 'off',
+  EPHEMERAL_CONTROL_PORT: String(CONTROL_PORT),
 };
 
 function servidoresPara(target: E2eTarget) {
