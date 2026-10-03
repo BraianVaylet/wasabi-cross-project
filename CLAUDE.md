@@ -11,7 +11,7 @@ Instrucciones para Claude (y cualquier LLM — ver `AGENT.md`, copia de este arc
 
 ## Qué es este proyecto
 
-Webapp (+ API) para que un atleta gestione sus ejercicios y RMs (repetición máxima), calcule porcentajes de carga y vea su evolución en el tiempo. Monetización por suscripción Free/Max. Ver spec para el detalle completo.
+Webapp (+ API) para que un atleta gestione sus ejercicios y RMs (repetición máxima), calcule porcentajes de carga y vea su evolución en el tiempo. Monetización por suscripción Free/Pro (las estadísticas son de Pro). Ver spec para el detalle completo.
 
 **No es** un producto multi-tenant para gimnasios — ver [spec §2 "Qué NO es Wasabi Cross"](docs/spec/wasabi-cross.spec.md#2-qué-no-es-wasabi-cross) antes de proponer conceptos como bookings, membresías, clubes o CRM. Si algo así aparece en una sugerencia, es señal de contaminación de otra spec.
 
@@ -63,7 +63,7 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 | `pnpm --filter @wasabi-cross/api migrate up`      | Aplica las migraciones pendientes (`down`, `status`)             |
 | `pnpm --filter @wasabi-cross/api migrate:dist up` | Lo mismo, compilado: para los ambientes desplegados              |
 | `pnpm --filter @wasabi-cross/api seed`            | Carga el catálogo de ejercicios (idempotente; pide migrar antes) |
-| `pnpm --filter @wasabi-cross/api seed:admin`      | Usuario admin fijo con plan Max (idempotente); ver STATE.md      |
+| `pnpm --filter @wasabi-cross/api seed:admin`      | Usuario admin fijo con plan Pro (idempotente); ver STATE.md      |
 | `pnpm --filter @wasabi-cross/api dev:ephemeral`   | La API contra un Mongo que nace y muere con el proceso           |
 | `pnpm --filter @wasabi-cross/ui storybook`        | Storybook en el puerto 6006                                      |
 

@@ -11,7 +11,7 @@ Instrucciones para Claude (y cualquier LLM — ver `AGENT.md`, copia de este arc
 
 ## Qué es este proyecto
 
-Webapp (+ API) para que un atleta gestione sus ejercicios y RMs (repetición máxima), calcule porcentajes de carga y vea su evolución en el tiempo. Monetización por suscripción Free/Max. Ver spec para el detalle completo.
+Webapp (+ API) para que un atleta gestione sus ejercicios y RMs (repetición máxima), calcule porcentajes de carga y vea su evolución en el tiempo. Monetización por suscripción Free/Pro (las estadísticas son de Pro). Ver spec para el detalle completo.
 
 **No es** un producto multi-tenant para gimnasios — ver [spec §2 "Qué NO es Wasabi Cross"](docs/spec/wasabi-cross.spec.md#2-qué-no-es-wasabi-cross) antes de proponer conceptos como bookings, membresías, clubes o CRM. Si algo así aparece en una sugerencia, es señal de contaminación de otra spec.
 

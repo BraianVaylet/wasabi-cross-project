@@ -22,6 +22,7 @@
 | Fase 4 — Rediseño Toxic Cyberpunk |     18 |           75 |      0 |
 | Fase 5 — Catálogo ampliado        |     16 |           62 |      0 |
 | Fase 7 — Estadísticas ampliadas   |      8 |           23 |      0 |
+| Fase 8 — Plan Pro                 |      7 |           22 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -2375,6 +2376,173 @@ Camino: F7-00 → F7-01 y F7-02 (API, en paralelo con F7-03 y F7-04, componentes
 - **example:** —
 - **story-points:** 2
 - **depends_on:** F7-05, F7-06
+- **risk:** low
+- **test_plan:** `pnpm e2e` completo en CI.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+---
+
+# Fase 8 — Plan Pro
+
+El usuario cambió la monetización (2026-10-03): dos planes, **Free y Pro**, y lo único que los
+diferencia es **ver las estadísticas**. Los dos cargan todos los ejercicios y todas las marcas que
+quieran, así que el límite de cantidad de la Fase 1 (F1-03) se va. Alcance decidido con él
+([ADR-0011](./adr/0011-plan-pro-y-estadisticas.md)): "estadísticas" es todo lo que sale de `stats`
+—la pantalla completa y el progreso del detalle—, el precio de Pro queda "a definir" y la pantalla
+de suscripción es **sólo UI**: el pago y el cambio real de plan son una segunda etapa.
+
+No depende de Railway/Atlas. Camino: F8-00 → F8-01 (schemas y migración) → F8-02 (API) → F8-03,
+F8-04 y F8-05 (web, en paralelo) → F8-06.
+
+## [ ] F8-00 · Spec: Free y Pro
+
+- **module:** spec
+- **description:** Las decisiones del usuario volcadas en spec §1, §4, §5 y §5.5 (nueva), y en
+  [ADR-0011](./adr/0011-plan-pro-y-estadisticas.md): qué diferencia a los planes, qué es "ver las
+  estadísticas", que el límite de cantidad desaparece, que bajar de plan no borra nada, qué muestra
+  la suscripción mientras no hay pago y dónde se ve el plan (perfil, header, avisos).
+- **acceptance-criteria:**
+  - Dada la spec, cuando se lee §4, entonces dice qué ve cada plan, que el backend lo valida y que
+    el precio está a definir.
+  - Dada la spec, cuando se lee §5.5, entonces cada pantalla que cambia con el plan dice cómo.
+- **example:** —
+- **story-points:** 1
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** revisión humana de la PR.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F8-01 · Schemas y migración: Free y Pro
+
+- **module:** subscriptions
+- **description:** `planSchema` pasa a `free | pro`. Se retiran `PLAN_LIMITS`, `limitsFor` y
+  `PlanUsage` (y `usage` del listado de ejercicios). Se suma `canViewStats(plan)`, la regla de qué
+  plan ve estadísticas, compartida. El catálogo de errores suma `WC-SUBS-403-002` y retira
+  `WC-SUBS-403-001`. La migración convierte `plan: "max"` en `"pro"` y borra `entitlement_locks`;
+  `seed:admin` siembra Pro.
+- **acceptance-criteria:**
+  - Dado un usuario con `plan: "max"`, cuando corre la migración, entonces queda en `"pro"`; y al
+    revertir vuelve a `"max"`. Los `free` no cambian.
+  - Dado `planSchema`, cuando se parsea `"max"`, entonces falla.
+  - Dado `canViewStats`, cuando se pregunta por `free`, entonces no; por `pro`, sí.
+  - Dado el seed del admin, entonces el usuario queda con plan Pro, incluso si ya existía como
+    Free.
+- **example:** El admin de desarrollo, que era Max, sigue teniendo todo después de migrar.
+- **story-points:** 3
+- **depends_on:** F8-00
+- **risk:** medium
+- **test_plan:** tests de schemas; test de la migración con `mongodb-memory-server`, ida y vuelta;
+  test del seed.
+- **error-codes:** `WC-SUBS-403-002` (nuevo); `WC-SUBS-403-001` (retirado)
+- **data-model-impact:** `users.plan`: `max` → `pro`. Se borra la colección `entitlement_locks`.
+
+## [ ] F8-02 · API: las estadísticas son de Pro y el cupo se va
+
+- **module:** subscriptions
+- **description:** Un hook `onRequest` (`requirePlan`) que corre después de `requireSession` y
+  responde `WC-SUBS-403-002` a quien no tiene el plan, inyectado a las cuatro rutas de `stats` desde
+  la raíz de composición. Se borran el cupo y todo lo que lo sostenía: `decideExerciseAddition`,
+  `withExerciseSlot`, el serializador, el contador de uso y su test de integración. El alta usa
+  el `TransactionRunner` de siempre; el listado de ejercicios ya no devuelve `usage`.
+- **acceptance-criteria:**
+  - Dado un usuario Free, cuando pide cualquiera de los cuatro endpoints de `stats`, entonces
+    responde 403 `WC-SUBS-403-002`, también para un ejercicio ajeno o inexistente.
+  - Dado un usuario sin sesión, cuando los pide, entonces responde 401, no 403.
+  - Dado un usuario Pro, cuando los pide, entonces todo sigue igual.
+  - Dado un usuario Free con 12 ejercicios, cuando agrega otro, entonces lo agrega.
+  - Dadas dos altas simultáneas del mismo ejercicio, entonces una gana y la otra recibe
+    `WC-EXO-409-003`.
+- **example:** Una usuaria Free pide `/stats/summary` con un token válido: recibe 403 con el
+  mensaje "Las estadísticas son parte del plan Pro."
+- **story-points:** 5
+- **depends_on:** F8-01
+- **risk:** high
+- **test_plan:** tests de integración de las rutas con ambos planes y sin sesión; el IDOR de
+  estadísticas sigue en pie para Pro; el de carrera de altas sin lock. Un permiso mal puesto acá
+  regala la función de pago: revisión humana de la PR.
+- **error-codes:** `WC-SUBS-403-002`
+- **data-model-impact:** ninguno
+
+## [ ] F8-03 · Web: Home y alta sin cupo
+
+- **module:** web
+- **description:** Home deja de mostrar "03 / 10" y de deshabilitar "Nuevo ejercicio"; el alta
+  deja de avisar que el precargado editado "cuenta para tu límite" y de ofrecer volver al catálogo
+  por el cupo. El título sigue mostrando cuántos ejercicios hay.
+- **acceptance-criteria:**
+  - Dado un usuario con 40 ejercicios, cuando abre Home, entonces "Nuevo ejercicio" está habilitado.
+  - Dado un precargado editado en el alta, cuando se ve el aviso, entonces dice que se guarda como
+    propio y no menciona límites.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F8-02
+- **risk:** low
+- **test_plan:** tests de las pantallas con la API en memoria.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F8-04 · Web: las estadísticas, bloqueadas con Free
+
+- **module:** web
+- **description:** Con plan Free, la pantalla Estadísticas y el Progreso del detalle muestran el
+  aviso de spec §5.5 ("Las estadísticas son parte del plan Pro", "Ver planes") y **no piden** los
+  datos. Con Pro, igual que hoy. Si la API igual responde `WC-SUBS-403-002` (plan que cambió en
+  otro dispositivo), el error se muestra como el mismo aviso.
+- **acceptance-criteria:**
+  - Dado un usuario Free, cuando abre Estadísticas, entonces ve el aviso y ningún pedido a `/stats`
+    sale.
+  - Dado un usuario Free, cuando abre el detalle, entonces ve el historial, la barra fija y los
+    porcentajes, y en lugar del progreso el aviso.
+  - Dado un usuario Pro, cuando abre cualquiera de las dos, entonces ve lo de siempre.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F8-02
+- **risk:** medium
+- **test_plan:** tests de pantalla con ambos planes; se comprueba que la API falsa no recibe
+  pedidos de estadísticas con Free.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F8-05 · Web: la suscripción, el plan en el perfil y la etiqueta Pro
+
+- **module:** web
+- **description:** Tres cosas (spec §5.5). El Perfil suma la sección "Tu plan" con la etiqueta Free
+  o Pro y el link a la suscripción. La página `/suscripcion` muestra el plan actual, lo que se paga
+  ($0 en Free, "A definir" en Pro) y las tarjetas de los dos planes con "Pasar a Pro" / "Pasar a
+  Free"; el botón avisa que todavía no está disponible y no llama a la API. El header muestra una
+  etiqueta "PRO" que lleva a la suscripción cuando el plan es Pro.
+- **acceptance-criteria:**
+  - Dado un usuario Free, cuando abre el Perfil, entonces ve "Free" y el link a la suscripción; el
+    header no tiene etiqueta.
+  - Dado un usuario Pro, cuando abre cualquier pantalla, entonces el header muestra "PRO".
+  - Dado un usuario Free, cuando aprieta "Pasar a Pro", entonces ve el aviso de que todavía no está
+    disponible y el plan no cambia.
+  - Dado un usuario Pro, cuando aprieta "Pasar a Free", entonces lo mismo.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F8-01
+- **risk:** low
+- **test_plan:** tests de las tres pantallas con ambos planes; Storybook de lo que se agregue a
+  `@wasabi-cross/ui`.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F8-06 · E2E y axe del plan
+
+- **module:** web
+- **description:** Reemplaza `cupo-del-plan.spec.ts`: un usuario Free ve el aviso donde estaría
+  Estadísticas y puede cargar más de diez ejercicios; el admin (Pro) ve las estadísticas y la
+  etiqueta en el header. axe audita la suscripción y el aviso a 390px.
+- **acceptance-criteria:**
+  - Dado un usuario Free con más de 10 ejercicios cargados, cuando entra a Estadísticas, entonces ve
+    el aviso.
+  - Dado el admin Pro, cuando entra a Estadísticas, entonces ve las estadísticas.
+  - Dado axe a 390px en la suscripción y en el aviso, entonces 0 violaciones.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F8-03, F8-04, F8-05
 - **risk:** low
 - **test_plan:** `pnpm e2e` completo en CI.
 - **error-codes:** ninguno

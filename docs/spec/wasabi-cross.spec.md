@@ -9,7 +9,7 @@
 | Nombre                     | Wasabi Cross                                                                 |
 | Qué es                     | Webapp para gestionar ejercicios y RMs (repetición máxima) de un atleta      |
 | Alcance de este desarrollo | Webapp + API. La landing page queda fuera de esta fase.                      |
-| Monetización               | Suscripción Free / Max                                                       |
+| Monetización               | Suscripción Free / Pro                                                       |
 | Origen                     | Evolución (v2) de bv-cross, para uso personal, amigos y algunos suscriptores |
 
 ## 2. Qué NO es Wasabi Cross
@@ -31,29 +31,50 @@ Webapp donde el usuario carga sus ejercicios (o los elige de un listado pre-carg
 
 ## 4. Monetización
 
-| Plan                 | Ejercicios pre-cargados | Ejercicios nuevos (custom) | Ejercicios gestionados en total |
-| -------------------- | ----------------------- | -------------------------- | ------------------------------- |
-| **Free**             | Todos                   | Hasta 3                    | Hasta 10                        |
-| **Max** (pago anual) | Todos                   | Ilimitados                 | Ilimitado                       |
+Dos planes, Free y Pro. **Lo único que los diferencia es poder ver las estadísticas**: cargar es igual de libre en los dos.
 
-Los límites de plan son un **entitlement por usuario**, se validan en el módulo `subscriptions` en el backend — nunca solo en el frontend.
+| Plan     | Ejercicios (catálogo y propios) | Marcas por ejercicio | Estadísticas |
+| -------- | ------------------------------- | -------------------- | ------------ |
+| **Free** | Los que quiera                  | Todas las que quiera | No           |
+| **Pro**  | Los que quiera                  | Todas las que quiera | Sí           |
 
-**Qué cuenta como "gestionado"**: todo ejercicio que el usuario tiene en su lista, venga del catálogo o lo haya creado él. Un usuario Free puede elegir cualquier ejercicio del catálogo, pero su lista completa no pasa de 10, y de esos, como máximo 3 son propios. El límite se controla al agregar; qué pasa con un usuario que baja de Max a Free con más de 10 se define en la fase de suscripción.
+Antes de la Fase 8 el plan limitaba la cantidad de ejercicios (Free: 10, de ellos 3 propios; Max:
+ilimitado). Ese límite **ya no existe** ([ADR-0011](../adr/0011-plan-pro-y-estadisticas.md)).
+
+**Qué es "ver las estadísticas".** Todo lo que sale de los endpoints de `stats`: la pantalla
+Estadísticas completa —por ejercicio y generales, con constancia, récords, para retestear y tu
+entrenamiento (§5, §5.4)— y el **progreso del detalle de ejercicio** con su aumento (§5.2). Un
+usuario Free sigue viendo lo que carga: el valor actual, la mejor marca, la tabla de porcentajes y
+el historial de marcas (§5.1, §5.2).
+
+**El plan es un entitlement por usuario** y se valida en el backend —nunca sólo en el frontend—:
+los endpoints de estadísticas responden **403 `WC-SUBS-403-002`** a un usuario Free, sin mirar si el
+ejercicio existe. El front además no los pide y muestra el aviso de §5.5, pero eso es cortesía, no
+la regla.
+
+**Quien baja de Pro a Free no pierde nada de lo que cargó**: ejercicios y marcas quedan, y vuelve
+a verlos en cuanto sube de nuevo. Sólo deja de ver las estadísticas.
+
+**Precio y pago.** El monto de Pro está **a definir**, y la pasarela de pago es una segunda etapa
+(proveedor: decisión abierta). Mientras tanto la app tiene la pantalla de suscripción (§5.5) pero
+no cambia el plan: el plan de un usuario lo fija el seed de desarrollo o la base, no el usuario.
 
 ## 5. Páginas y componentes
 
 Mockups en [`../mockup`](../mockup).
 
-| Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                                                                                                                                             |
-| -------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                                                                                                                                               |
-| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                                                                                                                                   |
-| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                                                                                                                                      |
-| Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2).                                                                                                                    |
-| Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise" si el plan lo permite.                                                                                                                                                                                                                                                                                |
-| Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, potencia, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. Además, constancia, récords del período, ejercicios para retestear y cómo se reparte el entrenamiento (§5.4). |
-| Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                                                                                                                                             |
-| Nuevo ejercicio            | `wasabi (9).png`                                    | Dos pestañas: **Catálogo** (buscar y elegir un precargado, que llena el formulario y se puede editar) y **Crear** (uno propio, campo por campo). En las dos: primera marca con su fecha, nivel, comentarios y "con dolor". Reglas en §5.3.                                                                                                                                                                              |
+| Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                                                                                                                                                                                       |
+| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                                                                                                                                                                                          |
+| Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Con plan Pro, una etiqueta "PRO" al lado del botón de menú (§5.5). Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2).                                                                                                     |
+| Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise".                                                                                                                                                                                                                                                                                                                                                          |
+| Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación; **sólo Pro** (§4), con Free se ve el aviso de §5.5. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, potencia, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. Además, constancia, récords del período, ejercicios para retestear y cómo se reparte el entrenamiento (§5.4). |
+| Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                                                                                                                                                                                                 |
+| Nuevo ejercicio            | `wasabi (9).png`                                    | Dos pestañas: **Catálogo** (buscar y elegir un precargado, que llena el formulario y se puede editar) y **Crear** (uno propio, campo por campo). En las dos: primera marca con su fecha, nivel, comentarios y "con dolor". Reglas en §5.3.                                                                                                                                                                                                                                  |
+| Perfil                     | —                                                   | Porcentajes de carga por defecto y **tu plan**: la etiqueta Free o Pro y un link a la suscripción. Reglas en §5.5.                                                                                                                                                                                                                                                                                                                                                          |
+| Suscripción                | —                                                   | `/suscripcion`: el plan actual, lo que se paga y los dos planes con el botón para pasar de uno al otro. **Sólo la UI** hasta que haya pasarela de pago (§4). Reglas en §5.5.                                                                                                                                                                                                                                                                                                |
 
 Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
@@ -143,7 +164,8 @@ lenguaje. De arriba abajo:
 4. **Progreso**: la evolución de todo el historial, con el valor de cada punto y su fecha, y al lado
    del título el aumento — el valor actual menos la primera marca; en tiempo, la mejora es hacia
    abajo. Debajo del gráfico, "Ver estadísticas ›", que abre Estadísticas con este ejercicio
-   desplegado.
+   desplegado. **Es una estadística (§4): con plan Free el bloque se reemplaza por el aviso de §5.5**
+   —el título "Progreso" y el link a los planes— y no se pide nada a la API.
 5. **Historial**, con la cantidad de registros al lado del título. La marca actual va resaltada y
    con "RM ACTUAL" ("MARCA ACTUAL" si no es RM); las anteriores, más sobrias. "Ver más" si hay más
    páginas.
@@ -215,9 +237,9 @@ atrás vuelven a la misma.
 **Un precargado editado pasa a ser propio.** Si el usuario elige uno del catálogo y guarda sin
 tocar la definición, se agrega el del catálogo. Si cambió cualquier campo de la definición
 (nombre, categoría, capacidades, grupos, disciplinas o equipo), se guarda como **ejercicio propio**
-con los valores editados: cuenta para el límite de propios del plan (§4), y el formulario lo avisa
-antes de guardar, apenas se edita el primer campo. Si el plan ya no admite más propios, el aviso lo
-dice y ofrece volver a los valores del catálogo; quien decide igual es el backend. Nivel, comentarios, "con dolor" y la primera
+con los valores editados, y el formulario lo avisa antes de guardar, apenas se edita el primer
+campo. (Hasta la Fase 8 esto contaba contra un límite de propios del plan y el aviso lo mencionaba;
+el límite ya no existe, §4.) Nivel, comentarios, "con dolor" y la primera
 marca son del usuario y se cargan igual en los dos casos: editarlos no convierte nada.
 
 ### 5.4 Estadísticas: constancia, récords y tu entrenamiento
@@ -263,6 +285,35 @@ marca. Sin ninguno, la sección no aparece.
   sobre el fondo del tema (tokens `--wc-chart-*`), asignados en orden; el gris de "Otras" no es
   uno de ellos.
 
+### 5.5 Perfil, suscripción y el plan en la interfaz
+
+El plan es lo único que separa a Free de Pro (§4). Esta sección dice dónde se ve y qué hace la
+pantalla de suscripción mientras no haya pasarela de pago.
+
+**Perfil.** Arriba de los porcentajes, la sección **Tu plan**: el plan en una etiqueta ("Free" o
+"Pro"), una línea de lo que incluye y el link "Administrar suscripción" a `/suscripcion`.
+
+**Etiqueta en el header.** Con plan Pro, al lado del botón de menú va una etiqueta **"PRO"** —lima,
+con el recorte de esquina— que lleva a la suscripción. Con Free no hay etiqueta: no se marca lo que
+no se tiene. Para el lector de pantalla dice "Plan Pro", no sólo "Pro".
+
+**Suscripción** (`/suscripcion`). Una página aparte, sin entrada en el menú: se llega desde el
+Perfil, desde la etiqueta del header y desde los avisos de lo bloqueado. De arriba abajo:
+
+1. **Tu plan actual**: el nombre del plan y **lo que pagás**, en filas de "etiqueta · valor". En
+   Free, `$0`. En Pro, "A definir" mientras no haya precio (§4): la app no inventa un monto.
+2. **Los dos planes**, una tarjeta por cada uno: nombre, precio, qué incluye y su acción. Los dos
+   incluyen cargar sin límite ejercicios y marcas; **Pro suma las estadísticas**. La tarjeta del plan
+   actual dice "Tu plan actual" y no tiene botón; la otra tiene "Pasar a Pro" o "Pasar a Free".
+3. **Cambiar de plan todavía no hace nada**: el botón muestra un aviso (`role="status"`) —"Cambiar de
+   plan todavía no está disponible: se habilita junto con el pago"— y no llama a la API, que no
+   tiene endpoint para eso. La lógica llega con la pasarela (segunda etapa, §4).
+
+**Lo bloqueado con Free.** En la pantalla Estadísticas y en el Progreso del detalle (§5.2) se
+muestra un aviso en lugar del contenido: el título de la sección, "Las estadísticas son parte del
+plan Pro" y un link "Ver planes" a la suscripción. El front no pide los datos —ahorra el viaje y
+no depende de que alguien mire el 403—, pero la regla está en el backend (§4).
+
 ## 6. Stack
 
 - React
@@ -300,13 +351,13 @@ Un solo deployable de backend, módulos aislados (`domain / application / infras
 | `exercises`     | Catálogo pre-cargado, ejercicios propios y la lista de ejercicios gestionados de cada usuario (nivel, con dolor) |
 | `records`       | Carga y evolución de RM / tiempos / repeticiones / distancias, cálculo de porcentajes                            |
 | `stats`         | Agregaciones y análisis (por ejercicio y generales)                                                              |
-| `subscriptions` | Plan Free/Max, límites, entitlements                                                                             |
-| `billing`       | Pago de la suscripción Max                                                                                       |
+| `subscriptions` | Plan Free/Pro y qué puede ver cada uno (entitlements)                                                            |
+| `billing`       | Pago de la suscripción Pro                                                                                       |
 | `notifications` | Popup de nueva versión PWA, avisos                                                                               |
 
 ### Eventos de dominio (in-process, cola si hace falta después)
 
-`exercise.created`, `record.logged`, `pr.achieved` (nuevo RM/tiempo/reps supera el anterior), `subscription.upgraded`, `subscription.expiring`, `plan.limit_reached`, `payment.received`.
+`exercise.created`, `record.logged`, `pr.achieved` (nuevo RM/tiempo/reps supera el anterior), `subscription.upgraded`, `subscription.expiring`, `subscription.downgraded`, `payment.received`.
 
 ### Packages compartidos
 
@@ -387,7 +438,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - Headers: CSP, HSTS, X-Content-Type-Options, Referrer-Policy. CORS restrictivo por origen.
 - Subida de archivos (si aplica a media de ejercicios): mime real, tamaño máximo, nombre aleatorio, sin ejecución.
 - Dependencias: `npm audit` + Dependabot en CI.
-- **Nunca** datos de tarjeta en la base — el pago de la suscripción Max pasa por el proveedor de pago, nunca se guarda el número de tarjeta.
+- **Nunca** datos de tarjeta en la base — el pago de la suscripción Pro pasa por el proveedor de pago, nunca se guarda el número de tarjeta.
 - Contraseñas: hashing gestionado por Better Auth; política mínima + verificación contra listas de filtradas.
 
 ## 14. Observabilidad, logs y códigos de error
