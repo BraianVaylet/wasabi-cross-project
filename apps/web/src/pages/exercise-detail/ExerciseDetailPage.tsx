@@ -30,6 +30,7 @@ import {
 } from '@wasabi-cross/ui';
 import { useCallback, useId, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
+import { StatsLocked } from '../../app/StatsLocked.tsx';
 import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { CATEGORY_LABEL } from '../../lib/labels.ts';
 import { History, type HistoryProps } from './History.tsx';
@@ -67,6 +68,8 @@ export interface ProgressProps {
   stats: ExerciseStats | undefined;
   loading: boolean;
   error: unknown;
+  /** Con plan Free el progreso es una estadística y no se ve (spec §4, §5.5). */
+  locked: boolean;
 }
 
 export type DetailHistory = HistoryProps & { best: Mark | undefined };
@@ -385,6 +388,7 @@ function Progress({
   stats,
   loading,
   error,
+  locked,
 }: ProgressProps & { exercise: ManagedExerciseSummary }): React.JSX.Element {
   const titleId = useId();
   const isRm = exercise.kind === 'rm';
@@ -405,6 +409,7 @@ function Progress({
         meta={gain === null ? undefined : <Gain kind={exercise.kind} unit={unit} gain={gain} />}
       />
 
+      {locked ? <StatsLocked /> : null}
       {loading ? <Skeleton label="Cargando el progreso" /> : null}
       {error ? <ErrorNotice error={error} /> : null}
       {stats ? (
@@ -422,9 +427,11 @@ function Progress({
         />
       ) : null}
 
-      <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__more">
-        Ver estadísticas<span aria-hidden="true"> ›</span>
-      </Link>
+      {locked ? null : (
+        <Link to="/estadisticas" search={{ abierto: exercise.id }} className="detail__more">
+          Ver estadísticas<span aria-hidden="true"> ›</span>
+        </Link>
+      )}
     </section>
   );
 }

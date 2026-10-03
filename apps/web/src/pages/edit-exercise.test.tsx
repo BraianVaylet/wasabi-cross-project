@@ -31,10 +31,7 @@ const propio: ManagedExerciseSummary = {
 };
 
 function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
-  return {
-    exercises,
-    usage: { plan: 'free', total: exercises.length, custom: 1, maxTotal: 10, maxCustom: 3 },
-  };
+  return { exercises };
 }
 
 function renderEdicion(id: string, exercises = [delCatalogo, propio]) {

@@ -39,7 +39,6 @@ const sled: ManagedExerciseSummary = {
 function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
   return {
     exercises,
-    usage: { plan: 'free', total: exercises.length, custom: 0, maxTotal: 10, maxCustom: 3 },
   };
 }
 

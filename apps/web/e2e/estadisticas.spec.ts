@@ -52,7 +52,7 @@ async function cargarMarca(page: Page, id: string, value: number, meses: number)
 }
 
 test('la evolución de un ejercicio y el resumen general, con lo que se cargó', async ({ page }) => {
-  await registrarse(page);
+  await registrarse(page, { plan: 'pro' });
   const id = await crearPropio(page);
   await cargarMarca(page, id, 110, 4);
   await cargarMarca(page, id, 125, 1);
@@ -86,7 +86,7 @@ test('la evolución de un ejercicio y el resumen general, con lo que se cargó',
 test('el período recorta: en tres meses queda una sola marca y no hay con qué comparar', async ({
   page,
 }) => {
-  await registrarse(page);
+  await registrarse(page, { plan: 'pro' });
   const id = await crearPropio(page);
   await cargarMarca(page, id, 110, 4);
   await cargarMarca(page, id, 125, 1);
@@ -107,7 +107,7 @@ test('el período recorta: en tres meses queda una sola marca y no hay con qué 
 });
 
 test('desde el menú y desde el detalle se llega a Estadísticas', async ({ page }) => {
-  await registrarse(page);
+  await registrarse(page, { plan: 'pro' });
   const id = await crearPropio(page);
 
   await page.getByRole('button', { name: 'Abrir menú' }).click();

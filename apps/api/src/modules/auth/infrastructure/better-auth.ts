@@ -41,8 +41,8 @@ export function createAuth({ env, db, client, transactions = true }: CreateAuthO
     user: {
       additionalFields: {
         /**
-         * `input: false` es lo que impide que alguien se auto-otorgue el plan Max
-         * mandando `plan: "max"` en el registro. El plan lo cambia `subscriptions`,
+         * `input: false` es lo que impide que alguien se auto-otorgue el plan Pro
+         * mandando `plan: "pro"` en el registro. El plan lo cambia `subscriptions`,
          * nunca el cliente.
          */
         plan: { type: 'string', defaultValue: 'free', input: false, required: false },

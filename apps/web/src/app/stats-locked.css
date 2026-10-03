@@ -1,0 +1,26 @@
+/* El aviso de las estadísticas con plan Free (F8-05): una caja punteada, como el estado vacío. */
+.stats-locked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  padding: var(--wc-space-4);
+
+  background-color: var(--wc-surface);
+  border: 1px dashed var(--wc-border);
+}
+
+.stats-locked__title {
+  margin: 0;
+  color: var(--wc-text);
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-lg);
+  letter-spacing: var(--wc-tracking-wide);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.stats-locked__hint {
+  margin: 0;
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-sm);
+}

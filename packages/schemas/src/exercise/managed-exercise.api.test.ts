@@ -193,7 +193,7 @@ describe('addExerciseSchema — lo que manda "Nuevo ejercicio" (mockup 9)', () =
 });
 
 describe('exerciseListSchema — lo que muestra Home (mockup 4)', () => {
-  it('acepta la lista con el uso del plan', () => {
+  it('acepta la lista de ejercicios', () => {
     expect(
       exerciseListSchema.safeParse({
         exercises: [
@@ -209,18 +209,17 @@ describe('exerciseListSchema — lo que muestra Home (mockup 4)', () => {
             current: { value: 100, unit: 'kg', performedAt: '2026-06-23T10:00:00.000Z' },
           },
         ],
-        usage: { plan: 'free', total: 1, custom: 0, maxTotal: 10, maxCustom: 3 },
       }).success,
     ).toBe(true);
   });
 
-  it('en Max, los máximos son null: no hay límite', () => {
-    expect(
-      exerciseListSchema.safeParse({
-        exercises: [],
-        usage: { plan: 'max', total: 40, custom: 20, maxTotal: null, maxCustom: null },
-      }).success,
-    ).toBe(true);
+  it('no lleva el uso del plan: no hay tope (spec §4)', () => {
+    const parsed = exerciseListSchema.parse({
+      exercises: [],
+      usage: { plan: 'free', total: 40, custom: 20, maxTotal: 10, maxCustom: 3 },
+    });
+
+    expect(parsed).toEqual({ exercises: [] });
   });
 });
 

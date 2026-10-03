@@ -1,3 +1,4 @@
+import type { Plan } from '@wasabi-cross/schemas';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
@@ -19,8 +20,8 @@ export interface TestHarness {
  * Levanta la API completa contra un Mongo en memoria. Los tests de integración usan
  * esto en vez de mocks: la parte que más falla de auth es la que toca la base.
  *
- * Es un replica set, como Atlas: el cupo de ejercicios (F1-03) y el alta atómica (F1-05)
- * usan transacciones, y en un Mongo standalone no existen. Así los tests corren con las
+ * Es un replica set, como Atlas: el alta atómica (F1-05) usa transacciones, y en un Mongo
+ * standalone no existen. Así los tests corren con las
  * mismas garantías que producción, Better Auth incluido.
  */
 export async function startTestApi(): Promise<TestHarness> {
@@ -56,6 +57,15 @@ export async function startTestApi(): Promise<TestHarness> {
       await replSet.stop();
     },
   };
+}
+
+/**
+ * Fija el plan de un usuario directo en la base. No hay endpoint ni pago que lo cambie todavía
+ * (spec §4): igual que `seed:admin`, es la única forma. Rige desde el pedido siguiente, porque la
+ * sesión lee el plan de la base cada vez.
+ */
+export async function setPlan(harness: TestHarness, email: string, plan: Plan): Promise<void> {
+  await harness.mongo.db.collection('user').updateOne({ email }, { $set: { plan } });
 }
 
 /** Extrae las cookies de sesión de una respuesta para reusarlas en el request siguiente. */

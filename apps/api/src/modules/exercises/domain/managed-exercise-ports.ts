@@ -9,24 +9,15 @@ import type {
   MuscleGroup,
   ManagedExercise,
   MeasureKind,
-  Plan,
 } from '@wasabi-cross/schemas';
 
 /*
  * Puertos del alta y la lista de ejercicios gestionados (F1-05). `Tx` es la transacción,
  * genérica: ni el dominio ni la aplicación saben que del otro lado hay Mongo.
  *
- * Dos de estos puertos los cumplen otros módulos, y se conectan en la raíz de composición:
- * `ExerciseSlots` lo cumple `subscriptions` (el cupo del plan) y `RecordsGateway` lo cumple
- * `records` (las marcas). Ningún módulo importa a otro.
+ * `RecordsGateway` lo cumple `records` (las marcas) y se conecta en la raíz de composición:
+ * ningún módulo importa a otro.
  */
-
-export interface ExerciseSlots<Tx> {
-  withSlot: <T>(
-    request: { userId: string; plan: Plan; isCustom: boolean },
-    work: (tx: Tx) => Promise<T>,
-  ) => Promise<T>;
-}
 
 export interface CurrentValue {
   readonly value: number;
@@ -58,7 +49,7 @@ export interface RecordsGateway<Tx> {
   deleteAllFor: (tx: Tx, managedExerciseId: string) => Promise<number>;
 }
 
-/** Corre algo todo o nada. Para operaciones de varios documentos que no consumen cupo. */
+/** Corre algo todo o nada. Para operaciones de varios documentos: el alta, editar, borrar. */
 export interface TransactionRunner<Tx> {
   run: <T>(work: (tx: Tx) => Promise<T>) => Promise<T>;
 }
@@ -118,8 +109,4 @@ export interface ManagedExerciseStore<Tx> {
   deleteManaged: (tx: Tx, id: string, userId: string) => Promise<void>;
   /** Sólo propios: filtra por dueño, así nunca puede borrar uno del catálogo. */
   deleteCustom: (tx: Tx, exerciseId: string, ownerId: string) => Promise<void>;
-}
-
-export interface UsageCounter {
-  count: (userId: string) => Promise<{ total: number; custom: number }>;
 }

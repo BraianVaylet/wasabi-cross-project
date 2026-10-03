@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
-import { braian, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
+import { braianPro, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
 
 /*
  * F7-05: constancia, récords y para retestear en Estadísticas (spec §5.4).
@@ -45,14 +45,13 @@ const actividad: TrainingActivity = {
 function renderStats(activity: Partial<TrainingActivity> | Error = {}) {
   const api = fakeApi({
     exercises: [backSquat],
-    usage: { plan: 'free', total: 1, custom: 0, maxTotal: 10, maxCustom: 3 },
   });
   api.client.trainingActivity.mockImplementation((period) =>
     activity instanceof Error
       ? Promise.reject(activity)
       : Promise.resolve({ ...actividad, ...activity, period }),
   );
-  const app = renderApp('/estadisticas', fakeSession(braian).client, api.client);
+  const app = renderApp('/estadisticas', fakeSession(braianPro).client, api.client);
   return { api, ...app };
 }
 

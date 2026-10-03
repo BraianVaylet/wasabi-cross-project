@@ -1,12 +1,15 @@
-import type { UserPreferences } from '@wasabi-cross/schemas';
+import type { Plan, UserPreferences } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { Button, SectionHeader, Skeleton, TextField } from '@wasabi-cross/ui';
+import { Link } from '@tanstack/react-router';
+import { Button, SectionHeader, Skeleton, Tag, TextField } from '@wasabi-cross/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
+import { PLAN_INFO } from '../../lib/plans.ts';
 import { validatePercentages } from './percentages.ts';
 import './profile.css';
 
 export interface ProfilePageProps {
+  plan: Plan;
   preferences: UseQueryResult<UserPreferences>;
   onSave: (percentages: number[]) => void;
   saving: boolean;
@@ -14,8 +17,9 @@ export interface ProfilePageProps {
   saveError: unknown;
 }
 
-/** Perfil (F1-16): los porcentajes de carga que el usuario ve por defecto. */
+/** Perfil (F1-16): el plan y los porcentajes de carga que el usuario ve por defecto. */
 export function ProfilePage({
+  plan,
   preferences,
   onSave,
   saving,
@@ -25,6 +29,8 @@ export function ProfilePage({
   return (
     <>
       <h1 className="page__title">Perfil</h1>
+
+      <PlanSection plan={plan} />
 
       <section className="profile__section" aria-labelledby="profile-porcentajes">
         <SectionHeader id="profile-porcentajes" title="Porcentajes por defecto" />
@@ -52,6 +58,25 @@ export function ProfilePage({
         ) : null}
       </section>
     </>
+  );
+}
+
+/** Qué plan tiene el usuario y el camino a su suscripción (spec §5.5). */
+function PlanSection({ plan }: { plan: Plan }): React.JSX.Element {
+  const info = PLAN_INFO[plan];
+
+  return (
+    <section className="profile__section" aria-labelledby="profile-plan">
+      <SectionHeader
+        id="profile-plan"
+        title="Tu plan"
+        meta={<Tag variant={plan === 'pro' ? 'solid' : 'neutral'}>{info.name}</Tag>}
+      />
+      <p className="profile__hint">{info.summary}</p>
+      <Link to="/suscripcion" className="wc-button wc-button--secondary wc-button--block">
+        Administrar suscripción
+      </Link>
+    </section>
   );
 }
 

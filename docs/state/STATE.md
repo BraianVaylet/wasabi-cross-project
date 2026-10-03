@@ -60,8 +60,8 @@ editable. Decidido con él y volcado en [ADR-0009](../adr/0009-catalogo-ampliado
 - Capacidad **potencia**; grupos **espalda baja** y **trapecio**; grupo **primario** más
   secundarios, y el segmento del cuerpo sale sólo del primario. Disciplinas y equipo como campos
   nuevos.
-- **Un precargado editado se guarda como propio** y cuenta para el límite del plan. Se retira
-  `WC-EXO-409-004`.
+- **Un precargado editado se guarda como propio** (hasta la Fase 8 contaba para el límite del
+  plan). Se retira `WC-EXO-409-004`.
 - **F5-13 · Hybrid y Pilates** (2026-09-30, [ADR-0010](../adr/0010-hybrid-y-pilates.md)): el usuario
   sumó 58 ejercicios (el catálogo pasa a **120**) y dos disciplinas nuevas, **hybrid** y
   **pilates**, con su equipo (colchoneta, reformer, aro y pelota de pilates, anillas, paralelas,
@@ -87,6 +87,28 @@ propuestas. **El código está completo (F7-00 a F7-07, en una PR)**, ninguna ta
 - Agregar, editar o borrar un ejercicio invalida ahora todo `stats` (antes el resumen podía
   quedar viejo 5 minutos).
 
+**Fase 8 — Plan Pro** (2026-10-03, [ADR-0011](../adr/0011-plan-pro-y-estadisticas.md), spec §4 y
+§5.5): el usuario cambió la monetización. Dos planes, **Free y Pro**, y lo único que los
+diferencia es **ver las estadísticas**; los dos cargan todos los ejercicios y marcas que quieran.
+**El código está completo (F8-00 a F8-06, en una PR)**, ninguna tarea cerrada:
+
+- **Se fue el límite de cantidad** (10 ejercicios, 3 propios) y todo lo que lo sostenía: el
+  serializador con su lock, el contador, `WC-SUBS-403-001` (retirado) y la colección
+  `entitlement_locks` (una migración la borra). El alta corre en el `TransactionRunner`; dos altas
+  simultáneas del mismo ejercicio las resuelve el índice único.
+- **`max` pasa a `pro`** (migración reversible; `seed:admin` siembra Pro).
+- **Las estadísticas son de Pro, y lo hace cumplir la API**: un guard `onRequest` después de la
+  sesión responde 403 `WC-SUBS-403-002` en los cuatro endpoints de `stats`, sin mirar si el
+  ejercicio existe. "Estadísticas" es todo lo de `stats`: la pantalla completa y el progreso del
+  detalle. Con Free el front muestra un aviso con "Ver planes" y ni pide los datos; si la API
+  igual dice 403 (plan cambiado en otro dispositivo), el mismo aviso y no un error.
+- **Pantalla `/suscripcion`, sólo UI**: plan actual, lo que se paga ($0 en Free; Pro, **"A
+  definir"**) y las dos tarjetas. "Pasar a Pro/Free" avisa que todavía no está disponible y no
+  llama a la API: no hay endpoint de cambio de plan a propósito (sin cobro regalaría Pro). El
+  Perfil suma "Tu plan" y, con Pro, el header muestra una etiqueta **PRO** que lleva ahí.
+- Los E2E fijan el plan de sus atletas con un control que sólo existe en `dev:ephemeral`
+  (`POST :3101/plan`, nunca en la API que se despliega).
+
 ## Bloqueado
 
 **F3-07 a F3-12**, en cadena, hasta que el usuario cree los ambientes de Railway (F3-07) y el
@@ -111,10 +133,19 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 7. Fase 7: revisar la PR de estadísticas ampliadas (sobre todo las tres reglas de §5.4 y cómo se
    ven las donas en el teléfono), mergear, cumplir el Definition of Done y crear las tarjetas
    (`/trello-sync`).
+8. Fase 8: revisar la PR del plan Pro (sobre todo el alcance de "estadísticas" y el guard de la
+   API, que es lo que regala o no la función de pago), mergear, correr las migraciones
+   `fuera-locks-de-cupo` y `plan-pro` en cada ambiente antes de desplegar, cumplir el Definition
+   of Done y crear las tarjetas (`/trello-sync`).
+9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
+   cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
+   los botones esperando esa lógica.
 
 ## Decisiones abiertas
 
-- **Proveedor de pago** para la suscripción Max (Mercado Pago / Stripe / otro).
+- **Proveedor de pago** para la suscripción Pro (Mercado Pago / Stripe / otro).
+- **Precio de Pro** y su período (mensual o anual): a definir. La UI dice "A definir" y el texto
+  vive en `apps/web/src/lib/plans.ts`.
 - **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
   Queda fuera de la Fase 1 hasta que se decida.
 - **TypeScript 7.** Hoy el monorepo está en 6.0.3 (PR #8) porque `typescript-eslint@8` declara
@@ -131,7 +162,8 @@ Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 
 - Login sólo con email y contraseña en la Fase 1; username y Google, afuera.
 - Los ejercicios de tiempo no tienen tabla de porcentajes.
-- Los ejercicios del catálogo cuentan para el límite de 10 del plan Free.
+- Los ejercicios del catálogo cuentan para el límite de 10 del plan Free. **Reemplazada el
+  2026-10-03 (Fase 8): ya no hay límite de cantidad** (spec §4, ADR-0011).
 - Bandas de esfuerzo: menos de 70% bajo, de 70% a 84% medio, desde 85% alto. Se llamaban "carga
   liviana/media/pesada"; desde 2026-10-02 el tag dice "Esfuerzo bajo/medio/alto" (spec §5.1). Los
   códigos internos (`liviana`/`media`/`pesada` en schemas) no cambian.
@@ -162,17 +194,22 @@ pnpm --filter @wasabi-cross/api dev:ephemeral   # API en :3100, Mongo efímero
 # lo leen solos), MONGODB_URI tiene que ser un replica set, y antes de levantar:
 pnpm --filter @wasabi-cross/api migrate up      # sin esto, /ready responde no-listo
 pnpm --filter @wasabi-cross/api seed            # catálogo de ejercicios
-pnpm --filter @wasabi-cross/api seed:admin      # usuario admin con plan Max
+pnpm --filter @wasabi-cross/api seed:admin      # usuario admin con plan Pro
 pnpm dev                                        # API en :3000, web en :5173
 ```
 
 **Usuario admin de desarrollo** (`seed:admin`, y de nuevo en cada arranque de `dev:ephemeral`):
-`admin@wasabicross.dev` / `wasabi-cross-admin-dev`, plan Max fijo — no hay proveedor de pago
-todavía (ver "Decisiones abiertas"), así que es la única forma de probar sin el límite del plan
-Free. Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME`. Sólo de
+`admin@wasabicross.dev` / `wasabi-cross-admin-dev`, plan Pro fijo — no hay proveedor de pago
+todavía (ver "Decisiones abiertas"), así que es la única forma de ver las estadísticas sin que
+se puedan pagar. Un usuario que se registra nace Free. Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME`. Sólo de
 desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
+
+2026-10-03 — **Fase 8, plan Pro**: spec §4 y §5.5, ADR-0011, backlog (7 tareas, 22 puntos) y el
+código completo en una PR, un commit por tarea (F8-01 a F8-03 en tres capas a la vez porque el
+contrato `usage` lo leían todas). Bitácora
+[2026-10-03](./bitacora/2026-10-03-f8-plan-pro.md).
 
 2026-10-02 — Fase 7, estadísticas ampliadas: spec §5.4, backlog (8 tareas, 23 puntos) y el código
 completo en una PR, un commit por tarea. Bitácoras en [bitacora](./bitacora); la última es

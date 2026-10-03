@@ -20,8 +20,32 @@ export function atletaNuevo(): Atleta {
   };
 }
 
-/** Registro por la pantalla (mockup 3): deja la sesión abierta y devuelve al atleta. */
-export async function registrarse(page: Page): Promise<Atleta> {
+/** El control del plan que levanta `dev:ephemeral` (apps/api/scripts/ephemeral.ts). */
+const CONTROL = 'http://127.0.0.1:3101';
+
+/**
+ * Fija el plan de un atleta, directo en la base descartable: todavía no hay forma de pagar (spec
+ * §4), así que no hay otra. La API lo lee en el pedido siguiente; la pantalla, al recargar.
+ */
+export async function fijarPlan(email: string, plan: 'free' | 'pro'): Promise<void> {
+  const response = await fetch(`${CONTROL}/plan`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email, plan }),
+  });
+
+  expect(response.status, `fijar el plan ${plan} de ${email}`).toBe(204);
+}
+
+/**
+ * Registro por la pantalla (mockup 3): deja la sesión abierta y devuelve al atleta. Nace con plan
+ * Free, como cualquiera; con `plan: 'pro'` se lo sube después y se recarga para que la pantalla lo
+ * sepa.
+ */
+export async function registrarse(
+  page: Page,
+  opciones: { plan?: 'free' | 'pro' } = {},
+): Promise<Atleta> {
   const atleta = atletaNuevo();
 
   await page.goto('/registro');
@@ -32,6 +56,15 @@ export async function registrarse(page: Page): Promise<Atleta> {
   await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
   await expect(page.getByRole('heading', { name: 'Tus ejercicios' })).toBeVisible();
+
+  if (opciones.plan === 'pro') {
+    await fijarPlan(atleta.email, 'pro');
+    await page.reload();
+    await expect(
+      page.getByRole('link', { name: 'Plan Pro: administrar suscripción' }),
+    ).toBeVisible();
+  }
+
   return atleta;
 }
 
@@ -64,8 +97,12 @@ export async function agregarDelCatalogo(page: Page, nombre: string, valor: stri
  * pestaña recién elegida a mitad de camino entre dos colores falla un contraste que no tiene.
  */
 export async function auditar(page: Page, pantalla: string): Promise<void> {
+  // Una animación que se cancela mientras se espera (la pantalla se redibuja con los datos que
+  // llegan) rechaza `finished` con AbortError: ya no está corriendo, que es lo que se quiere.
   await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((animation) => animation.finished)),
+    Promise.all(
+      document.getAnimations().map((animation) => animation.finished.catch(() => undefined)),
+    ),
   );
 
   const { violations } = await new AxeBuilder({ page })

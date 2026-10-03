@@ -24,7 +24,7 @@ describe('updatePreferencesSchema', () => {
   });
 
   it('rechaza un campo que no es una preferencia, en vez de descartarlo (ADR-0008: theme ya no existe)', () => {
-    expect(updatePreferencesSchema.safeParse({ theme: 'light', plan: 'max' }).success).toBe(false);
+    expect(updatePreferencesSchema.safeParse({ theme: 'light', plan: 'pro' }).success).toBe(false);
   });
 
   it('valida los porcentajes con las mismas reglas que el perfil', () => {

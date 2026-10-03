@@ -9,22 +9,21 @@ import {
   type ExerciseDefinitionInput,
   type ManagedExercise,
   type ManagedExerciseSummary,
-  type Plan,
 } from '@wasabi-cross/schemas';
 import { AppError } from '../../../shared/errors/app-error.ts';
 import { sameDefinition } from '../domain/definition.ts';
 import type {
   CurrentValue,
-  ExerciseSlots,
   ManagedExerciseStore,
   NewCustomExercise,
   RecordsGateway,
+  TransactionRunner,
 } from '../domain/managed-exercise-ports.ts';
 import { sameName } from '../domain/names.ts';
 
 export interface AddManagedExerciseDeps<Tx> {
   store: ManagedExerciseStore<Tx>;
-  slots: ExerciseSlots<Tx>;
+  transactions: TransactionRunner<Tx>;
   records: RecordsGateway<Tx>;
 }
 
@@ -143,22 +142,21 @@ function customFrom(userId: string, definition: ExerciseDefinitionInput): NewCus
  * Agrega un ejercicio a la lista del usuario —uno del catálogo o uno propio— junto con su
  * primera marca, todo o nada (F1-05).
  *
- * Los chequeos de existencia y de duplicado van antes del cupo, para que quien está en el
- * límite y repite un ejercicio lea "ya lo tenés" y no "llegaste al máximo". Los índices
- * únicos siguen siendo la garantía ante una carrera; estos chequeos son para el mensaje.
+ * Los chequeos de existencia y de duplicado van antes de abrir la transacción: son para el
+ * mensaje. Los índices únicos son la garantía ante una carrera de dos altas del mismo
+ * ejercicio: la segunda choca, la transacción se deshace y responde "ya lo tenés".
  */
 export async function addManagedExercise<Tx>(
   deps: AddManagedExerciseDeps<Tx>,
-  request: { userId: string; plan: Plan; input: AddExercise },
+  request: { userId: string; input: AddExercise },
 ): Promise<ManagedExerciseSummary> {
-  const { userId, plan, input } = request;
-  const { store, slots, records } = deps;
+  const { userId, input } = request;
+  const { store, transactions, records } = deps;
 
   // Qué se agrega: un ejercicio que ya existe, o uno propio nuevo que se crea en la
   // transacción. Los dos caminos quedan explícitos en el tipo.
   const target = await resolveTarget(store, userId, input);
   const category = 'existing' in target ? target.existing.category : target.definition.category;
-  const isCustom = 'definition' in target;
 
   const kind = measureKindFor(category);
 
@@ -185,9 +183,7 @@ export async function addManagedExercise<Tx>(
 
   const performedAt = input.firstRecord.performedAt ?? new Date().toISOString();
 
-  // Un precargado editado cuenta como propio para el plan (spec §4): el cupo lo mira el
-  // backend, no el formulario.
-  return slots.withSlot({ userId, plan, isCustom }, async (tx) => {
+  return transactions.run(async (tx) => {
     const exercise =
       'existing' in target
         ? target.existing

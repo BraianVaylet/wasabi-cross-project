@@ -1,0 +1,132 @@
+/* Suscripción (F8-04): el plan actual y los dos planes. */
+
+.subscription__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin-top: var(--wc-space-5);
+}
+
+.subscription__hint,
+.subscription__notice {
+  margin: 0;
+  font-size: var(--wc-font-size-sm);
+}
+
+.subscription__hint {
+  color: var(--wc-text-muted);
+}
+
+/* El aviso de "todavía no": se ve, no se pierde entre las tarjetas. */
+.subscription__notice {
+  padding: var(--wc-space-3);
+
+  background-color: var(--wc-surface);
+  border-left: 2px solid var(--wc-warning);
+  color: var(--wc-text);
+}
+
+/* Filas de "etiqueta · valor", como las del detalle. */
+.subscription__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin: 0;
+}
+
+.subscription__fact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-3);
+}
+
+.subscription__fact > dt {
+  color: var(--wc-text-muted);
+  font-size: var(--wc-font-size-caption);
+  letter-spacing: var(--wc-tracking-kicker);
+  text-transform: uppercase;
+}
+
+.subscription__fact > dd {
+  margin: 0;
+}
+
+.subscription__amount {
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-lg);
+  letter-spacing: var(--wc-tracking-wide);
+  text-transform: uppercase;
+}
+
+.subscription__plans {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.subscription__plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-3);
+  padding: var(--wc-space-4);
+}
+
+.subscription__plan-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wc-space-2);
+}
+
+.subscription__plan-name {
+  margin: 0;
+  font-size: var(--wc-font-size-heading);
+}
+
+.subscription__price {
+  margin: 0;
+  color: var(--wc-accent-text);
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-xl);
+  letter-spacing: var(--wc-tracking-wide);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.subscription__features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.subscription__feature {
+  display: flex;
+  gap: var(--wc-space-2);
+  font-size: var(--wc-font-size-sm);
+}
+
+.subscription__feature--no {
+  color: var(--wc-text-muted);
+}
+
+.subscription__mark {
+  flex-shrink: 0;
+  width: 1rem;
+  text-align: center;
+}
+
+.subscription__feature--yes .subscription__mark {
+  color: var(--wc-accent-text);
+}
+
+.subscription__feature--no .subscription__mark {
+  color: var(--wc-text-muted);
+}

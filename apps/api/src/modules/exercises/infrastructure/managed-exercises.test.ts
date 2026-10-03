@@ -17,7 +17,7 @@ describe('ejercicios gestionados (F1-05)', () => {
     await harness.stop();
   });
 
-  /** Un usuario nuevo por test: así el cupo del plan de uno no contamina al siguiente. */
+  /** Un usuario nuevo por test: así la lista de uno no contamina al siguiente. */
   async function newUser(): Promise<string> {
     userCount += 1;
     const response = await harness.app.inject({
@@ -257,7 +257,7 @@ describe('ejercicios gestionados (F1-05)', () => {
       const added = response.json<ManagedExerciseSummary>();
       expect(added).toMatchObject({ name: 'Sentadilla trasera', isCustom: false });
       expect(added.exerciseId).toBe(await catalogId('Sentadilla trasera'));
-      expect((await list(cookie)).usage.custom).toBe(0);
+      expect((await list(cookie)).exercises.filter((entry) => entry.isCustom)).toHaveLength(0);
     });
 
     it('con otro grupo primario se crea un propio con esa definición, y cuenta como propio', async () => {
@@ -274,7 +274,7 @@ describe('ejercicios gestionados (F1-05)', () => {
       const added = response.json<ManagedExerciseSummary>();
       expect(added).toMatchObject({ name: 'Sentadilla trasera', isCustom: true, kind: 'rm' });
       expect(added.exerciseId).not.toBe(await catalogId('Sentadilla trasera'));
-      expect((await list(cookie)).usage.custom).toBe(1);
+      expect((await list(cookie)).exercises.filter((entry) => entry.isCustom)).toHaveLength(1);
       // El del catálogo no se toca: el propio es una copia aparte.
       expect((await definitionOf('Sentadilla trasera')).primaryMuscleGroup).toBe('cuadriceps');
     });
@@ -327,9 +327,9 @@ describe('ejercicios gestionados (F1-05)', () => {
       expect(response.json()).toMatchObject({ errorCode: 'WC-EXO-409-003' });
     });
 
-    it('un Free con 3 propios no puede agregar un precargado editado, y no se crea nada', async () => {
+    it('con varios propios ya cargados, un precargado editado entra igual: no hay tope', async () => {
       const cookie = await newUser();
-      for (const name of ['Propio 1', 'Propio 2', 'Propio 3']) {
+      for (const name of ['Propio 1', 'Propio 2', 'Propio 3', 'Propio 4']) {
         expect((await addCustom(cookie, name)).statusCode).toBe(201);
       }
       const definition = await definitionOf('Sentadilla trasera');
@@ -339,30 +339,9 @@ describe('ejercicios gestionados (F1-05)', () => {
         capacities: ['fuerza', 'potencia'],
       });
 
-      expect(response.statusCode).toBe(403);
-      expect(response.json()).toMatchObject({ errorCode: 'WC-SUBS-403-001' });
-      expect((await list(cookie)).exercises).toHaveLength(3);
-      // Ningún propio con lo editado: la transacción no dejó nada a medias.
-      expect(
-        await harness.mongo.db
-          .collection('exercises')
-          .countDocuments({ name: 'Sentadilla trasera', capacities: 'potencia' }),
-      ).toBe(0);
-    });
-
-    it('el mismo Free sí puede agregar el precargado sin editar: no es propio', async () => {
-      const cookie = await newUser();
-      for (const name of ['Propio 1', 'Propio 2', 'Propio 3']) {
-        expect((await addCustom(cookie, name)).statusCode).toBe(201);
-      }
-
-      const response = await addEdited(
-        cookie,
-        await catalogId('Sentadilla trasera'),
-        await definitionOf('Sentadilla trasera'),
-      );
-
       expect(response.statusCode).toBe(201);
+      expect(response.json<ManagedExerciseSummary>()).toMatchObject({ isCustom: true });
+      expect((await list(cookie)).exercises).toHaveLength(5);
     });
 
     it('editado con el nombre de otro propio suyo responde WC-EXO-409-003', async () => {
@@ -643,22 +622,15 @@ describe('ejercicios gestionados (F1-05)', () => {
     });
   });
 
-  describe('cupo del plan Free', () => {
-    it('la lista informa el uso del plan', async () => {
+  describe('sin tope de ejercicios (spec §4)', () => {
+    it('la lista no informa un uso del plan: no hay nada que usar', async () => {
       const cookie = await newUser();
       await addFromCatalog(cookie, 'Sentadilla trasera');
-      await addCustom(cookie, 'Wall ball');
 
-      expect((await list(cookie)).usage).toEqual({
-        plan: 'free',
-        total: 2,
-        custom: 1,
-        maxTotal: 10,
-        maxCustom: 3,
-      });
+      expect(Object.keys(await list(cookie))).toEqual(['exercises']);
     });
 
-    it('el 11.º ejercicio no entra, y el mensaje dice por qué', async () => {
+    it('un usuario Free agrega más de 10 ejercicios', async () => {
       const cookie = await newUser();
       const nombres = [
         'Sentadilla trasera',
@@ -671,32 +643,22 @@ describe('ejercicios gestionados (F1-05)', () => {
         'Burpee',
         'Press militar',
         'Push Press',
+        'Snatch',
       ];
       for (const name of nombres) {
         expect((await addFromCatalog(cookie, name)).statusCode, name).toBe(201);
       }
 
-      const response = await addFromCatalog(cookie, 'Snatch');
-
-      expect(response.statusCode).toBe(403);
-      expect(response.json()).toMatchObject({
-        errorCode: 'WC-SUBS-403-001',
-        message: 'Alcanzaste el máximo de 10 ejercicios de tu plan Free.',
-      });
+      expect((await list(cookie)).exercises).toHaveLength(11);
     });
 
-    it('el 4.º propio no entra aunque sobre lugar en el total', async () => {
+    it('un usuario Free crea más de 3 propios', async () => {
       const cookie = await newUser();
-      for (const name of ['Propio uno', 'Propio dos', 'Propio tres']) {
+      for (const name of ['Propio uno', 'Propio dos', 'Propio tres', 'Propio cuatro']) {
         expect((await addCustom(cookie, name)).statusCode, name).toBe(201);
       }
 
-      const response = await addCustom(cookie, 'Propio cuatro');
-
-      expect(response.statusCode).toBe(403);
-      expect(response.json()).toMatchObject({
-        message: 'Alcanzaste el máximo de 3 ejercicios propios de tu plan Free.',
-      });
+      expect((await list(cookie)).exercises).toHaveLength(4);
     });
   });
 

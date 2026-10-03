@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { exerciseIdSchema, managedExerciseIdSchema } from '../common/ids.ts';
 import { plainText } from '../common/text.ts';
-import { planSchema } from '../user/plan.ts';
 import {
   exerciseCategorySchema,
   exerciseDefinitionInputSchema,
@@ -97,23 +96,9 @@ export const managedExerciseSummarySchema = z.object({
 
 export type ManagedExerciseSummary = z.infer<typeof managedExerciseSummarySchema>;
 
-/**
- * Cuánto del plan está usado. El front lo necesita para deshabilitar "New Exercise" y
- * explicar por qué; quien decide igual es el backend (spec §4). `null` es sin límite.
- */
-export const planUsageSchema = z.object({
-  plan: planSchema,
-  total: z.number().int().nonnegative(),
-  custom: z.number().int().nonnegative(),
-  maxTotal: z.number().int().positive().nullable(),
-  maxCustom: z.number().int().positive().nullable(),
-});
-
-export type PlanUsage = z.infer<typeof planUsageSchema>;
-
+/** La lista de Home. Sin tope: los dos planes cargan todos los ejercicios que quieran (spec §4). */
 export const exerciseListSchema = z.object({
   exercises: z.array(managedExerciseSummarySchema),
-  usage: planUsageSchema,
 });
 
 export type ExerciseList = z.infer<typeof exerciseListSchema>;

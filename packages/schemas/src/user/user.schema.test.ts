@@ -93,7 +93,7 @@ describe('updateUserProfileSchema', () => {
   it('no deja cambiar el plan ni el email desde el perfil', () => {
     const parsed = updateUserProfileSchema.parse({
       name: 'Bra',
-      plan: 'max',
+      plan: 'pro',
       email: 'otro@example.com',
     });
 

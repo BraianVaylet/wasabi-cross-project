@@ -1,5 +1,9 @@
 import { randomBytes } from 'node:crypto';
+import { createServer, type Server } from 'node:http';
+import { planSchema } from '@wasabi-cross/schemas';
+import type { Db } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import { z } from 'zod';
 import { seedAdmin } from '../src/modules/auth/application/seed-admin.ts';
 import { createAuth } from '../src/modules/auth/infrastructure/better-auth.ts';
 import { createUserRegistrar } from '../src/modules/auth/infrastructure/user-registrar.ts';
@@ -22,9 +26,61 @@ import { connectMongo } from '../src/shared/db/mongo.ts';
 
 const PORT = process.env.PORT ?? '3100';
 const HOST = process.env.HOST ?? '127.0.0.1';
+const CONTROL_PORT = Number(process.env.EPHEMERAL_CONTROL_PORT ?? '3101');
+
+const planChange = z.object({ email: z.email(), plan: planSchema });
+
+/**
+ * Un control sólo para el E2E: fija el plan de un usuario (spec §4). No hay endpoint del producto que
+ * lo haga —sin pasarela de pago, uno así regalaría Pro (ADR-0011)— y los E2E necesitan atletas
+ * nuevos de un plan y del otro. Vive acá, en el script de la base descartable, y escucha sólo en
+ * 127.0.0.1: nunca forma parte de la API que se despliega.
+ *
+ *   POST /plan   { "email": "…", "plan": "pro" }   →  204, o 404 si no hay ese usuario
+ */
+function startPlanControl(db: Db): Server {
+  const server = createServer((request, response) => {
+    if (request.method !== 'POST' || request.url !== '/plan') {
+      response.writeHead(404).end();
+      return;
+    }
+
+    const chunks: Buffer[] = [];
+    request.on('data', (chunk: Buffer) => chunks.push(chunk));
+    request.on('end', () => {
+      void (async () => {
+        let body: unknown;
+        try {
+          body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+        } catch {
+          body = undefined;
+        }
+
+        const change = planChange.safeParse(body);
+        if (!change.success) {
+          response.writeHead(400).end();
+          return;
+        }
+
+        const { matchedCount } = await db
+          .collection('user')
+          .updateOne({ email: change.data.email }, { $set: { plan: change.data.plan } });
+        response.writeHead(matchedCount === 0 ? 404 : 204).end();
+      })();
+    });
+  });
+
+  server.listen(CONTROL_PORT, HOST);
+  return server;
+}
 
 async function main(): Promise<void> {
-  // Un solo nodo, pero replica set: el cupo del plan usa transacciones (F1-03).
+  // Como `seed:admin`: un control que cambia planes no corre contra datos de verdad.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('dev:ephemeral no corre con NODE_ENV=production.');
+  }
+
+  // Un solo nodo, pero replica set: el alta de un ejercicio usa transacciones (F1-05).
   const replset = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
 
   process.env.NODE_ENV ??= 'development';
@@ -49,15 +105,21 @@ async function main(): Promise<void> {
       password: process.env.SEED_ADMIN_PASSWORD,
       name: process.env.SEED_ADMIN_NAME,
     });
-    console.info(`Usuario admin (plan Max): ${email}`);
+    console.info(`Usuario admin (plan Pro): ${email}`);
   } finally {
     await mongo.close();
   }
+
+  // Su propia conexión: la de arriba se cerró al terminar el seed.
+  const control = await connectMongo(env);
+  const planControl = startPlanControl(control.db);
 
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     // Antes que el handler del server, que termina el proceso: sin esto, el mongod hijo
     // puede quedar vivo después de que el padre se fue.
     process.once(signal, () => {
+      planControl.close();
+      void control.close();
       void replset.stop();
     });
   }

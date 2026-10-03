@@ -104,17 +104,20 @@ Viven en `apps/api/src/migrations/`, en TypeScript, una por archivo, con nombre
 - Contra una misma base se usa siempre el mismo modo: `migrate` (desde `src/`) en desarrollo,
   `migrate:dist` (compilado) en los ambientes desplegados.
 
-## Transacciones y cupos del plan
+## Transacciones
 
-El cupo de ejercicios (spec §4) se controla en una transacción de Mongo, junto con el alta que
-consume el cupo. **Mongo tiene que ser un replica set**, aunque sea de un nodo: Atlas lo es; en
-local, ver `apps/api/.env.example`.
+El alta de un ejercicio crea, todo o nada, el ejercicio propio (si lo es), su entrada en la lista
+y la primera marca; editar y borrar también tocan varios documentos. Todo va en una transacción
+de Mongo (`TransactionRunner`). **Mongo tiene que ser un replica set**, aunque sea de un nodo:
+Atlas lo es; en local, ver `apps/api/.env.example`.
 
-Una transacción sola no alcanza para que dos altas simultáneas no se pasen del límite: Mongo aísla
-por snapshot, y dos transacciones que cuentan 9 e insertan documentos distintos confirman las dos.
-Por eso cada una escribe además un documento de lock por usuario (`entitlement_locks`): la segunda
-choca, se reintenta y cuenta 10. Hay un test que lo demuestra, y una prueba inversa confirmó que
-sin el lock ese test falla.
+Dos altas simultáneas del mismo ejercicio no necesitan un lock: el índice único
+`user_exercise_unique` de `managed_exercises` hace que la segunda transacción choque, se deshaga
+entera y responda `WC-EXO-409-003`. Hay un test de integración que lo demuestra.
+
+Hasta la Fase 8 había además un documento de lock por usuario (`entitlement_locks`) para que dos
+altas no se pasaran del cupo de 10 ejercicios del plan Free. El cupo se fue con
+[ADR-0011](./adr/0011-plan-pro-y-estadisticas.md) y el lock con él.
 
 ## Health checks
 
@@ -126,6 +129,8 @@ sin el lock ese test falla.
 Versionada (`/api/v1/...`). El spec OpenAPI se **genera** desde los schemas Zod de `@wasabi-cross/schemas` — nunca se escribe a mano, porque se desactualiza siempre. Documentación servida con Swagger.
 
 **Sesión antes que nada.** El guard de sesión va en el hook `onRequest` de cada ruta protegida, no en `preHandler`: en Fastify la validación del cuerpo corre antes de `preHandler`, y ahí un request sin sesión con un cuerpo inválido recibía 400 en vez de 401 — podía sondear el contrato de la API sin estar autenticado.
+
+**El plan después de la sesión.** Lo que sólo ve un plan (las estadísticas son de Pro, spec §4) se protege con un segundo guard `onRequest`, `requireStatsAccess` de `subscriptions`, que corre después de `requireSession`: sin sesión responde 401, con sesión y plan Free, 403 `WC-SUBS-403-002`, y los dos antes de validar el ejercicio o la consulta, así un usuario Free no puede sondear nada. Llega inyectado a las rutas desde `composition.ts`, como el de sesión: `stats` no importa a `subscriptions`. El plan se lee de la base en cada pedido, así que un cambio rige desde el siguiente.
 
 ## Decisiones de arquitectura
 

@@ -3,7 +3,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { describe, expect, it } from 'vitest';
-import { braian, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
+import { braianPro, fakeApi, fakeSession, renderApp } from '../test/app.tsx';
 
 const backSquat: ManagedExerciseSummary = {
   id: 'mex_a1b2c3d4',
@@ -60,13 +60,12 @@ const pressBanca: ManagedExerciseSummary = {
 function lista(exercises: ManagedExerciseSummary[]): ExerciseList {
   return {
     exercises,
-    usage: { plan: 'free', total: exercises.length, custom: 0, maxTotal: 10, maxCustom: 3 },
   };
 }
 
 function renderDetalle(url: string, exercises = [backSquat, carrera]) {
   const api = fakeApi(lista(exercises));
-  const app = renderApp(url, fakeSession(braian).client, api.client);
+  const app = renderApp(url, fakeSession(braianPro).client, api.client);
   return { api, ...app };
 }
 

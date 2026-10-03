@@ -57,12 +57,12 @@ describe('auth', () => {
       expect(me.json()).toMatchObject({ email: 'free@example.com', plan: 'free' });
     });
 
-    it('no deja auto-asignarse el plan max desde el registro', async () => {
+    it('no deja auto-asignarse el plan pro desde el registro', async () => {
       const signUpResponse = await signUp({
         email: 'vivo@example.com',
         password: PASSWORD,
         name: 'Vivo',
-        plan: 'max',
+        plan: 'pro',
       });
 
       const me = await harness.app.inject({

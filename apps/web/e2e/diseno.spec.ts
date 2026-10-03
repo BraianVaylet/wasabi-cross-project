@@ -71,7 +71,8 @@ test('el detalle, igual al diseño @captura', async ({ page }, testInfo) => {
     'falta la captura de referencia: la genera el job de E2E del CI y se commitea',
   );
 
-  await registrarse(page);
+  // Con el progreso a la vista: es una estadística, y es de Pro (spec §4).
+  await registrarse(page, { plan: 'pro' });
   const id = await backSquatDelDiseno(page, testInfo);
   await page.goto(`/ejercicios/${id}`);
 

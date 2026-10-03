@@ -2,14 +2,12 @@ import type { ClientSession, Db, MongoClient } from 'mongodb';
 import { MongoClient as Client } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { isAppError } from '../../../shared/errors/app-error.ts';
 import { createMongoRecordGateway } from '../../records/infrastructure/mongo-record.gateway.ts';
-import { withExerciseSlot } from '../../subscriptions/application/with-exercise-slot.ts';
-import { createMongoUserSerializer } from '../../subscriptions/infrastructure/mongo-user-serializer.ts';
 import { migrateUp } from '../../../shared/db/migrations.ts';
-import type { ExerciseSlots, RecordsGateway } from '../domain/managed-exercise-ports.ts';
+import type { RecordsGateway } from '../domain/managed-exercise-ports.ts';
 import { createMongoExerciseRepository } from './mongo-exercise.repository.ts';
 import { createMongoManagedExerciseStore } from './mongo-managed-exercise.store.ts';
-import { createMongoExerciseUsageCounter } from './mongo-usage-counter.ts';
 import { addManagedExercise } from '../application/add-managed-exercise.ts';
 import { deleteManagedExercise } from '../application/edit-managed-exercise.ts';
 import { createMongoTransactionRunner } from '../../../shared/db/transactions.ts';
@@ -41,13 +39,11 @@ describe('alta de ejercicio: atomicidad', () => {
   });
 
   function deps(records: RecordsGateway<ClientSession>) {
-    const counter = createMongoExerciseUsageCounter(db);
-    const serializer = createMongoUserSerializer(client, db);
-    const slots: ExerciseSlots<ClientSession> = {
-      withSlot: (request, work) => withExerciseSlot({ serializer, counter }, request, work),
+    return {
+      store: createMongoManagedExerciseStore(db),
+      transactions: createMongoTransactionRunner(client),
+      records,
     };
-
-    return { store: createMongoManagedExerciseStore(db), slots, records };
   }
 
   /** Una marca que falla después de que el ejercicio gestionado ya se insertó. */
@@ -64,7 +60,6 @@ describe('alta de ejercicio: atomicidad', () => {
     await expect(
       addManagedExercise(deps(failingRecords()), {
         userId: 'usr_atomico0001',
-        plan: 'free',
         input: {
           source: 'custom',
           name: 'Wall ball',
@@ -93,7 +88,6 @@ describe('alta de ejercicio: atomicidad', () => {
     await expect(
       addManagedExercise(deps(failingRecords()), {
         userId: 'usr_atomico0002',
-        plan: 'free',
         input: {
           source: 'catalog',
           exerciseId: snatch?.id ?? 'exo_inexistente0',
@@ -112,7 +106,6 @@ describe('alta de ejercicio: atomicidad', () => {
   it('con la marca funcionando, quedan las tres cosas', async () => {
     const summary = await addManagedExercise(deps(createMongoRecordGateway(db)), {
       userId: 'usr_atomico0003',
-      plan: 'free',
       input: {
         source: 'custom',
         name: 'Sled push',
@@ -138,11 +131,42 @@ describe('alta de ejercicio: atomicidad', () => {
     expect(await db.collection('records').countDocuments({ userId: 'usr_atomico0003' })).toBe(1);
   });
 
+  it('dos altas simultáneas del mismo ejercicio: entra una, la otra responde WC-EXO-409-003 y no deja marcas', async () => {
+    const snatch = await createMongoExerciseRepository(db).findCatalogByName('Snatch');
+    const records = createMongoRecordGateway(db);
+    const add = () =>
+      addManagedExercise(deps(records), {
+        userId: 'usr_atomico0005',
+        input: {
+          source: 'catalog',
+          exerciseId: snatch?.id ?? 'exo_inexistente0',
+          level: 'intermedio',
+          withPain: false,
+          firstRecord: { value: 60 },
+        },
+      });
+
+    const results = await Promise.allSettled([add(), add()]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((result) => result.status === 'rejected');
+    expect(rejected).toHaveLength(1);
+    expect(
+      rejected.every(
+        (result) => isAppError(result.reason) && result.reason.errorCode === 'WC-EXO-409-003',
+      ),
+    ).toBe(true);
+    expect(
+      await db.collection('managed_exercises').countDocuments({ userId: 'usr_atomico0005' }),
+    ).toBe(1);
+    // La que perdió deshizo todo: ninguna marca huérfana.
+    expect(await db.collection('records').countDocuments({ userId: 'usr_atomico0005' })).toBe(1);
+  });
+
   it('borrar: si falla a mitad de camino, no se pierde ninguna marca', async () => {
     const records = createMongoRecordGateway(db);
     const created = await addManagedExercise(deps(records), {
       userId: 'usr_atomico0004',
-      plan: 'free',
       input: {
         source: 'custom',
         name: 'Yoke carry',

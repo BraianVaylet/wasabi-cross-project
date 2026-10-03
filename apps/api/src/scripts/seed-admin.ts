@@ -5,7 +5,7 @@ import { parseEnv } from '../config/env.ts';
 import { connectMongo } from '../shared/db/mongo.ts';
 
 /**
- * Siembra el usuario admin de desarrollo (plan Max). Se puede correr las veces que haga
+ * Siembra el usuario admin de desarrollo (plan Pro). Se puede correr las veces que haga
  * falta: `pnpm --filter @wasabi-cross/api seed:admin`.
  *
  * Nunca en producción: ahí no hay `.env` y las credenciales de este usuario son conocidas
@@ -28,7 +28,7 @@ async function main(): Promise<void> {
       name: process.env.SEED_ADMIN_NAME,
     });
 
-    console.info(`Usuario admin listo: ${email} (plan max)${created ? ', recién creado' : ''}.`);
+    console.info(`Usuario admin listo: ${email} (plan pro)${created ? ', recién creado' : ''}.`);
   } finally {
     await mongo.close();
   }

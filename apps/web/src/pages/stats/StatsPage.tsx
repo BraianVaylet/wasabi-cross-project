@@ -11,6 +11,7 @@ import { Link } from '@tanstack/react-router';
 import { Chart, ChevronIcon, Measure, RadioGroup, Skeleton } from '@wasabi-cross/ui';
 import { useCallback } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
+import { StatsLocked } from '../../app/StatsLocked.tsx';
 import { formatDate, formatMark, markParts } from '../../lib/format.ts';
 import { Activity } from './Activity.tsx';
 import { Breakdown } from './Breakdown.tsx';
@@ -19,6 +20,11 @@ import { GeneralStats } from './GeneralStats.tsx';
 import './stats.css';
 
 export interface StatsPageProps {
+  /**
+   * Con plan Free las estadísticas no se ven (spec §4): el aviso ocupa el lugar de todo y las
+   * consultas ni salen. También si la API lo dice (el plan cambió en otro dispositivo).
+   */
+  locked: boolean;
   exercises: UseQueryResult<{ exercises: ManagedExerciseSummary[] }>;
   /** Cuál está abierto, o `undefined` si están todos cerrados. Vive en la URL. */
   open: string | undefined;
@@ -48,7 +54,20 @@ function isPeriod(value: string): value is StatsPeriod {
 }
 
 /** Tus estadísticas (mockup 10): un acordeón de ejercicios con su evolución. */
-export function StatsPage({
+export function StatsPage({ locked, ...content }: StatsPageProps): React.JSX.Element {
+  return (
+    <>
+      <Link to="/" className="page__back">
+        <span aria-hidden="true">‹</span> Ejercicios
+      </Link>
+      <h1 className="page__title">Tus estadísticas</h1>
+
+      {locked ? <StatsLocked /> : <StatsContent {...content} />}
+    </>
+  );
+}
+
+function StatsContent({
   exercises,
   open,
   onToggle,
@@ -58,14 +77,9 @@ export function StatsPage({
   breakdown,
   period,
   onPeriodChange,
-}: StatsPageProps): React.JSX.Element {
+}: Omit<StatsPageProps, 'locked'>): React.JSX.Element {
   return (
     <>
-      <Link to="/" className="page__back">
-        <span aria-hidden="true">‹</span> Ejercicios
-      </Link>
-      <h1 className="page__title">Tus estadísticas</h1>
-
       {/* En casilleros y no en un desplegable: son cuatro, y se ven todos de un vistazo. */}
       <div className="stats__period">
         <RadioGroup

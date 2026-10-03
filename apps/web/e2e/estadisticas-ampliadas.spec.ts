@@ -43,7 +43,7 @@ async function cargarMarca(page: Page, id: string, value: number, meses: number)
 }
 
 test('constancia, récords y tu entrenamiento con lo que se cargó', async ({ page }) => {
-  await registrarse(page);
+  await registrarse(page, { plan: 'pro' });
   const id = await crearPropio(page);
   // 100 → 110 → 125: dos mejores marcas nuevas en el último año.
   await cargarMarca(page, id, 110, 4);

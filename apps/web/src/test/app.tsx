@@ -25,6 +25,9 @@ export const braian: SessionUser = {
   plan: 'free',
 };
 
+/** El mismo atleta con plan Pro: ve las estadísticas (spec §4). */
+export const braianPro: SessionUser = { ...braian, plan: 'pro' };
+
 export interface FakeSession {
   client: {
     [K in keyof SessionClient]: ReturnType<typeof vi.fn<SessionClient[K]>>;
@@ -131,10 +134,7 @@ const PREFERENCIAS: UserPreferences = {
   loadPercentages: [65, 75, 80, 85, 90, 95],
 };
 
-const LISTA_VACIA: ExerciseList = {
-  exercises: [],
-  usage: { plan: 'free', total: 0, custom: 0, maxTotal: 10, maxCustom: 3 },
-};
+const LISTA_VACIA: ExerciseList = { exercises: [] };
 
 /** La API del front, en memoria: devuelve lo que le pasa el test. */
 export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {

@@ -1,4 +1,5 @@
 import {
+  canViewStats,
   statsPeriodSchema,
   type AddExercise,
   type RecordInput,
@@ -26,6 +27,7 @@ import { NewExercisePage } from '../pages/new-exercise/NewExercisePage.tsx';
 import { EditExercisePage } from '../pages/edit-exercise/EditExercisePage.tsx';
 import { ExerciseDetailPage } from '../pages/exercise-detail/ExerciseDetailPage.tsx';
 import { ProfilePage } from '../pages/profile/ProfilePage.tsx';
+import { SubscriptionPage } from '../pages/subscription/SubscriptionPage.tsx';
 import { StatsPage } from '../pages/stats/StatsPage.tsx';
 import { refreshSession } from './create-app.ts';
 import {
@@ -44,6 +46,7 @@ import {
   type ApiClient,
 } from './api.ts';
 import { ErrorScreen } from './ErrorNotice.tsx';
+import { isStatsLocked } from './StatsLocked.tsx';
 import { optimisticId, prependRecord, type HistoryPages } from './optimistic-history.ts';
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
 import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
@@ -154,7 +157,7 @@ const appRoute = createRoute({
     return { user };
   },
   component: function ShellRoute() {
-    const { queryClient, session } = appRoute.useRouteContext();
+    const { queryClient, session, user } = appRoute.useRouteContext();
     const navigate = useNavigate();
     const signOut = useMutation({
       mutationFn: () => session.signOut(),
@@ -166,6 +169,7 @@ const appRoute = createRoute({
 
     return (
       <AppShell
+        plan={user.plan}
         onSignOut={() => {
           signOut.mutate();
         }}
@@ -203,12 +207,6 @@ const newExerciseRoute = createRoute({
     const { modo = 'catalogo' } = newExerciseRoute.useSearch();
     const navigate = useNavigate();
     const catalog = useQuery(catalogQueryOptions(api));
-    // La misma lista de Home: si ya se pidió, no cuesta un pedido más. Dice si el plan todavía
-    // admite un ejercicio propio, que es en lo que se convierte un precargado editado.
-    const mine = useQuery(exerciseListQueryOptions(api));
-    const usage = mine.data?.usage;
-    const customLimitReached =
-      usage !== undefined && usage.maxCustom !== null && usage.custom >= usage.maxCustom;
     const add = useMutation({
       mutationFn: (input: AddExercise) => api.addExercise(input),
       onSuccess: async () => {
@@ -225,7 +223,6 @@ const newExerciseRoute = createRoute({
     return (
       <NewExercisePage
         catalog={catalog.data ?? []}
-        customLimitReached={customLimitReached}
         mode={modo}
         onModeChange={(next) => {
           void navigate({ to: '/ejercicios/nuevo', search: { modo: next } });
@@ -253,15 +250,21 @@ const exerciseDetailRoute = createRoute({
   path: '/ejercicios/$id',
   validateSearch: (search) => detailSearch.parse(search),
   component: function ExerciseDetailRoute() {
-    const { api, queryClient } = appRoute.useRouteContext();
+    const { api, queryClient, user } = appRoute.useRouteContext();
     const { id } = exerciseDetailRoute.useParams();
     const { pct } = exerciseDetailRoute.useSearch();
     const navigate = useNavigate();
     const exercises = useQuery(exerciseListQueryOptions(api));
     const preferences = useQuery(preferencesQueryOptions(api));
     const history = useInfiniteQuery(historyQueryOptions(api, id));
-    // El progreso del detalle mira todo el historial, no un período (spec §5.2).
-    const progress = useQuery(exerciseStatsQueryOptions(api, id, 'todo'));
+    // El progreso del detalle mira todo el historial, no un período (spec §5.2). Es una
+    // estadística: con plan Free no se pide (spec §4).
+    const canView = canViewStats(user.plan);
+    const progress = useQuery({
+      ...exerciseStatsQueryOptions(api, id, 'todo'),
+      enabled: canView,
+    });
+    const progressLocked = !canView || isStatsLocked(progress.error);
     const exercise = exercises.data?.exercises.find((item) => item.id === id);
 
     /*
@@ -305,8 +308,10 @@ const exerciseDetailRoute = createRoute({
       <ExerciseDetailPage
         progress={{
           stats: progress.data,
-          loading: progress.isPending,
-          error: progress.error,
+          // Un pedido apagado queda "pendiente" para siempre: no es una carga.
+          loading: !progressLocked && progress.isPending,
+          error: progressLocked ? null : progress.error,
+          locked: progressLocked,
         }}
         history={{
           records: history.data?.pages.flatMap((page) => page.records) ?? [],
@@ -396,7 +401,7 @@ const profileRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/perfil',
   component: function ProfileRoute() {
-    const { api, queryClient } = appRoute.useRouteContext();
+    const { api, queryClient, user } = appRoute.useRouteContext();
     const preferences = useQuery(preferencesQueryOptions(api));
     const savePercentages = useMutation({
       mutationFn: (loadPercentages: number[]) => api.savePreferences({ loadPercentages }),
@@ -407,6 +412,7 @@ const profileRoute = createRoute({
 
     return (
       <ProfilePage
+        plan={user.plan}
         preferences={preferences}
         saving={savePercentages.isPending}
         saved={savePercentages.isSuccess}
@@ -416,6 +422,17 @@ const profileRoute = createRoute({
         }}
       />
     );
+  },
+});
+
+/* Suscripción (F8-04, spec §5.5): sólo la UI, no hay pasarela de pago todavía. */
+const subscriptionRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/suscripcion',
+  component: function SubscriptionRoute() {
+    const { user } = appRoute.useRouteContext();
+
+    return <SubscriptionPage plan={user.plan} />;
   },
 });
 
@@ -439,23 +456,29 @@ const statsRoute = createRoute({
   path: '/estadisticas',
   validateSearch: (search) => statsSearch.parse(search),
   component: function StatsRoute() {
-    const { api } = appRoute.useRouteContext();
+    const { api, user } = appRoute.useRouteContext();
     const { abierto, periodo } = statsRoute.useSearch();
     const period = periodo ?? DEFAULT_STATS_PERIOD;
     const navigate = useNavigate();
     const exercises = useQuery(exerciseListQueryOptions(api));
+    // Con plan Free no sale ningún pedido a las estadísticas (spec §4): el aviso ocupa su lugar.
+    const canView = canViewStats(user.plan);
 
     // Sólo la del que está abierto: en una lista de diez, nueve consultas no las mira nadie.
     const stats = useQuery({
       ...exerciseStatsQueryOptions(api, abierto ?? '', period),
-      enabled: abierto !== undefined,
+      enabled: canView && abierto !== undefined,
     });
-    const general = useQuery(generalStatsQueryOptions(api, period));
-    const activity = useQuery(trainingActivityQueryOptions(api, period));
-    const breakdown = useQuery(trainingBreakdownQueryOptions(api));
+    const general = useQuery({ ...generalStatsQueryOptions(api, period), enabled: canView });
+    const activity = useQuery({ ...trainingActivityQueryOptions(api, period), enabled: canView });
+    const breakdown = useQuery({ ...trainingBreakdownQueryOptions(api), enabled: canView });
+    // Si la API dice que el plan no las incluye (cambió en otro dispositivo), lo mismo.
+    const locked =
+      !canView || [stats, general, activity, breakdown].some((q) => isStatsLocked(q.error));
 
     return (
       <StatsPage
+        locked={locked}
         exercises={exercises}
         open={abierto}
         stats={abierto === undefined ? null : stats}
@@ -494,6 +517,7 @@ const routeTree = rootRoute.addChildren([
     editExerciseRoute,
     statsRoute,
     profileRoute,
+    subscriptionRoute,
   ]),
 ]);
 

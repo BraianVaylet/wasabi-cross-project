@@ -1,24 +1,14 @@
 import { z } from 'zod';
 
-export const planSchema = z.enum(['free', 'max']);
+export const planSchema = z.enum(['free', 'pro']);
 export type Plan = z.infer<typeof planSchema>;
 
 /**
- * Límites por plan (spec §4). Viven acá, compartidos, porque el front los necesita para
- * mostrar "3 de 10" y el back para decidir si deja crear. Son datos, no la regla: quien
- * decide si se puede crear un ejercicio es el módulo `subscriptions` en el backend —
- * nunca el frontend.
- *
- * `null` es sin límite.
+ * Qué plan puede ver las estadísticas (spec §4): lo único que separa a Free de Pro. Vive acá,
+ * compartida, porque el front la necesita para decidir si pide los datos o muestra el aviso y
+ * el back para decidir si los entrega. Es el dato, no la garantía: quien hace cumplir la regla
+ * es el módulo `subscriptions` en el backend — nunca el frontend.
  */
-export const PLAN_LIMITS = {
-  free: { customExercises: 3, totalExercises: 10 },
-  max: { customExercises: null, totalExercises: null },
-} as const satisfies Record<
-  Plan,
-  { customExercises: number | null; totalExercises: number | null }
->;
-
-export function limitsFor(plan: Plan): (typeof PLAN_LIMITS)[Plan] {
-  return PLAN_LIMITS[plan];
+export function canViewStats(plan: Plan): boolean {
+  return plan === 'pro';
 }

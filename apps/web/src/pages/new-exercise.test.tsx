@@ -72,8 +72,6 @@ const SENTADILLA_GESTIONADA: ManagedExerciseSummary = {
 
 const CATALOGO = [SENTADILLA, CARRERA, WALL_BALL];
 
-const PLAN_FREE = { plan: 'free', total: 0, custom: 0, maxTotal: 10, maxCustom: 3 } as const;
-
 function renderNuevo(
   api: FakeApi = fakeApi(),
   path = '/ejercicios/nuevo?modo=crear',
@@ -470,31 +468,21 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       });
     });
 
-    it('con el cupo de propios lleno, lo dice y ofrece volver a los valores del catálogo', async () => {
-      const api = fakeApi({
-        exercises: [],
-        usage: { ...PLAN_FREE, total: 3, custom: 3 },
-      });
-      await elegir(/Sentadilla trasera/, api);
+    it('editado, ofrece volver a los valores del catálogo, y no habla de límites', async () => {
+      await elegir(/Sentadilla trasera/);
 
       await userEvent.selectOptions(screen.getByLabelText('Grupo muscular primario'), 'Glúteo');
 
-      expect(await screen.findByText(/no admite más ejercicios propios/)).toBeInTheDocument();
+      expect(screen.getByRole('status')).not.toHaveTextContent(/límite|no admite/);
 
       await userEvent.click(
         screen.getByRole('button', { name: 'Volver a los valores del catálogo' }),
       );
 
       expect(screen.getByLabelText('Grupo muscular primario')).toHaveValue('cuadriceps');
-      expect(screen.queryByText(/no admite más ejercicios propios/)).not.toBeInTheDocument();
-    });
-
-    it('con el cupo libre, no avisa del límite', async () => {
-      await elegir(/Sentadilla trasera/);
-
-      await userEvent.selectOptions(screen.getByLabelText('Grupo muscular primario'), 'Glúteo');
-
-      expect(screen.queryByText(/no admite más ejercicios propios/)).not.toBeInTheDocument();
+      expect(screen.getByRole('status')).not.toHaveTextContent(
+        'se va a guardar como ejercicio propio',
+      );
     });
 
     it('"Empezar de cero" vacía el formulario y lo vuelve un propio', async () => {
@@ -518,10 +506,7 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
       await screen.findByText('Todavía no tenés ejercicios');
 
       api.client.addExercise.mockImplementation(() => {
-        api.client.listExercises.mockResolvedValue({
-          exercises: [SENTADILLA_GESTIONADA],
-          usage: { ...PLAN_FREE, total: 1 },
-        });
+        api.client.listExercises.mockResolvedValue({ exercises: [SENTADILLA_GESTIONADA] });
         return Promise.resolve(SENTADILLA_GESTIONADA);
       });
 
@@ -558,26 +543,6 @@ describe('Nuevo ejercicio (F1-12, mockup 9)', () => {
   });
 
   describe('errores de la API', () => {
-    it('el límite del plan se explica, no se muestra un error genérico', async () => {
-      const { api } = await elegir(/Sentadilla trasera/);
-      api.client.addExercise.mockRejectedValueOnce(
-        new ApiError(
-          403,
-          'WC-SUBS-403-001',
-          'Alcanzaste el máximo de 10 de tu plan Free.',
-          'req-1',
-        ),
-      );
-
-      await userEvent.type(screen.getByLabelText('RM (kg)'), '100');
-      await completarComun();
-      await userEvent.click(screen.getByRole('button', { name: 'Guardar ejercicio' }));
-
-      expect(await screen.findByRole('alert')).toHaveTextContent(
-        'Alcanzaste el máximo de 10 de tu plan Free.',
-      );
-    });
-
     it('un ejercicio repetido lo dice con el mensaje de la API', async () => {
       const { api } = await elegir(/Sentadilla trasera/);
       api.client.addExercise.mockRejectedValueOnce(

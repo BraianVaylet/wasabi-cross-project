@@ -1,10 +1,13 @@
+import type { Plan } from '@wasabi-cross/schemas';
 import { Link } from '@tanstack/react-router';
-import { AppHeader, Drawer, IconButton, Logo, MenuIcon, Wordmark } from '@wasabi-cross/ui';
+import { AppHeader, Drawer, IconButton, Logo, MenuIcon, Tag, Wordmark } from '@wasabi-cross/ui';
 import { useState, type ReactNode } from 'react';
 import { ErrorNotice } from '../ErrorNotice.tsx';
 
 export interface AppShellProps {
   children: ReactNode;
+  /** Con Pro, el header lo dice (spec §5.5). */
+  plan: Plan;
   onSignOut: () => void;
   signingOut: boolean;
   signOutError: unknown;
@@ -16,6 +19,7 @@ export const BRAND_SUBTITLE = 'Fuerza · Registro de RM';
 /** Header y menú, presentes en todas las páginas con sesión (spec §5). */
 export function AppShell({
   children,
+  plan,
   onSignOut,
   signingOut,
   signOutError,
@@ -36,6 +40,15 @@ export function AppShell({
         }
         actions={
           <>
+            {plan === 'pro' ? (
+              <Link
+                to="/suscripcion"
+                className="app-shell__plan"
+                aria-label="Plan Pro: administrar suscripción"
+              >
+                <Tag variant="solid">Pro</Tag>
+              </Link>
+            ) : null}
             <IconButton
               label="Abrir menú"
               aria-haspopup="dialog"
