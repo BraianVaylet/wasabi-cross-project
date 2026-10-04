@@ -3288,6 +3288,10 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** revisión humana de la PR.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** hecha, a la espera de revisión. Spec §1, §5, §5.7 nueva, §6, §7, §11, §12 y §13, y
+  [ADR-0013](./adr/0013-la-landing-es-un-sitio-estatico-aparte.md); `docs/architecture.md` suma
+  `apps/landing`. STATE.md ya tenía el dominio como decisión abierta. Una frase del ADR dice, para
+  no prometer de más, que "un cambio de copy no reinicia la API" depende de los watch paths.
 
 ## [ ] F10-01 · Workspace `apps/landing` con Astro
 
