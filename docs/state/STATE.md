@@ -115,11 +115,15 @@ diferencia es **ver las estadísticas**; los dos cargan todos los ejercicios y m
 actuales (no hay producción), que se sume Outlook y que el Perfil muestre la foto. Wasabi Cross es
 **cliente** OIDC con un módulo `oauth` sobre Better Auth; entrar por primera vez crea la cuenta Free.
 **F9-00 está hecha y mergeada** (PR #94: spec §5.6 nueva y §5, §5.5, §6, §7, §12 y §13 al día,
-[ADR-0012](../adr/0012-ingreso-solo-con-oauth.md)). **F9-01 y F9-02 tienen el código hecho, en una
-PR**, ninguna cerrada: los contratos y los códigos `WC-OAUTH-*` en schemas, y el módulo `oauth` con
+[ADR-0012](../adr/0012-ingreso-solo-con-oauth.md)). **F9-01 y F9-02 están mergeadas** (PR #95): los
+contratos y los códigos `WC-OAUTH-*` en schemas, y el módulo `oauth` con
 `GET /api/v1/oauth/providers` y las variables de entorno (`GOOGLE_*`, `MICROSOFT_*`,
-`OAUTH_DEV_IDP`, `MICROSOFT_AUTHORITY`) con sus guardas. Nada de esto cambia todavía cómo se entra:
-sigue siendo email y contraseña hasta F9-05. El usuario confirmó los seis
+`OAUTH_DEV_IDP`, `MICROSOFT_AUTHORITY`) con sus guardas. **F9-03 tiene el código hecho, en una PR**,
+a la espera de la revisión humana de sus tests: el IdP falso de desarrollo (`apps/api/dev-support/`,
+dos caras: genérica y Microsoft), `startServer` en `src/bootstrap.ts` con los plugins de Better Auth
+inyectados, `scripts/dev.ts` (que ahora corre `pnpm dev`) y el cableado en `dev:ephemeral`, con
+cuatro guardas probadas con pruebas inversas. Nada de esto cambia todavía cómo se entra: sigue siendo
+email y contraseña hasta F9-05. El usuario confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -174,13 +178,18 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00 (mergeada, PR #94) y revisar la PR de F9-01 y
-    F9-02; después F9-03 (IdP falso). F9-10 necesita que el usuario cree el cliente OAuth en Google
-    Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y prod esperan a F3-07.
-11. **Tests de `apps/web` bajo carga:** corridos todos juntos (`pnpm verify`, `pnpm test:coverage`)
-    fallan por `Test timed out in 5000ms`, y cada corrida un conjunto distinto (19 y 14 tests, los de
-    axe y los formularios); solos pasan 392 de 392. Falta ver si el CI, con menos carga, lo repite,
-    y si hace falta subir el `testTimeout` de `apps/web`.
+10. **Fase 9:** cumplir el Definition of Done de F9-00, F9-01 y F9-02 (mergeadas) y revisar la PR de
+    F9-03 —**es de riesgo alto: un IdP que acepta a cualquiera en producción sería un bypass; los
+    tests de las cuatro guardas necesitan ojo humano (spec §9)**—. Después F9-04 (tests y seed sin
+    contraseña). F9-05 tiene que envolver el `getUserInfo` de Microsoft con un chequeo propio del
+    `tid` (Better Auth no lo hace en el flujo con `code`). F9-10 necesita que el usuario cree el
+    cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
+    prod esperan a F3-07.
+11. **Tests de `apps/web` bajo carga:** corridos todos juntos en local (`pnpm verify`,
+    `pnpm test:coverage`) fallan por `Test timed out in 5000ms`, y cada corrida un conjunto distinto
+    (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
+    (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
+    de `apps/web`.
 12. **Fase 10 (landing):** el usuario revisa el plan y arranca por F10-00 (spec y ADR-0013);
     crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
@@ -260,8 +269,13 @@ desarrollo: el script se niega a correr con `NODE_ENV=production`.
 planificación. Decididos con el usuario: sitio aparte, la landing lleva a la app, voseo y
 Free/Pro según la spec. Bitácora [2026-10-04](./bitacora/2026-10-04-plan-landing.md).
 
+2026-10-04 — **Fase 9, F9-03**: el IdP falso de desarrollo, el arranque con plugins inyectados y las
+cuatro guardas, en una PR. Se descubrió que Better Auth no chequea el `tid` de Microsoft en el flujo
+con `code`: va a F9-05. Bitácora
+[2026-10-04](./bitacora/2026-10-04-f9-03-idp-falso.md).
+
 2026-10-04 — **Fase 9, F9-01 y F9-02**: contratos de OAuth en schemas y el módulo `oauth` (proveedores
-habilitados y entorno), en una PR, un commit por tarea. Bitácora
+habilitados y entorno), mergeados en la PR #95. Bitácora
 [2026-10-04](./bitacora/2026-10-04-f9-01-02-contratos-y-modulo-oauth.md).
 
 2026-10-04 — **Fase 9, ingreso sólo con OAuth 2.0 (Google y Microsoft)**: backlog (11 tareas, 42

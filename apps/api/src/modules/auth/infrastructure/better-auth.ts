@@ -1,5 +1,5 @@
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '@wasabi-cross/schemas';
-import { betterAuth } from 'better-auth';
+import { betterAuth, type BetterAuthOptions, type BetterAuthPlugin } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import type { Db, MongoClient } from 'mongodb';
@@ -15,12 +15,33 @@ export interface CreateAuthOptions {
    * replica set, quedan activadas.
    */
   transactions?: boolean;
+  /**
+   * Plugins que se suman a los de siempre. Hoy sólo uno tiene sentido: el IdP falso de desarrollo
+   * (F9-03), que lo arma `dev-support/` y lo inyecta `scripts/dev.ts`. Con `NODE_ENV=production`
+   * `createAuth` se niega: ese IdP aceptaría a cualquiera (ADR-0012).
+   */
+  plugins?: readonly BetterAuthPlugin[];
+  /** Los proveedores sociales (Google, Microsoft) que arma el módulo `oauth` (F9-05). */
+  socialProviders?: BetterAuthOptions['socialProviders'];
 }
 
 export const AUTH_BASE_PATH = '/api/auth';
 
-export function createAuth({ env, db, client, transactions = true }: CreateAuthOptions) {
+export function createAuth({
+  env,
+  db,
+  client,
+  transactions = true,
+  plugins: extraPlugins = [],
+  socialProviders,
+}: CreateAuthOptions) {
   const isTest = env.NODE_ENV === 'test';
+
+  if (env.NODE_ENV === 'production' && extraPlugins.length > 0) {
+    throw new Error(
+      'createAuth no admite plugins extra en producción (NODE_ENV=production): son del IdP de desarrollo, que aceptaría a cualquiera (ADR-0012).',
+    );
+  }
 
   return betterAuth({
     appName: 'Wasabi Cross',
@@ -86,14 +107,19 @@ export function createAuth({ env, db, client, transactions = true }: CreateAuthO
     // spec §13: verificación de la contraseña contra listas de filtradas.
     // Sólo manda los primeros cinco caracteres del hash SHA-1 (k-anonimato).
     // Apagado en test: un test no debería depender de una API externa.
-    plugins: isTest
-      ? []
-      : [
-          haveIBeenPwned({
-            customPasswordCompromisedMessage:
-              'Esa contraseña apareció en filtraciones conocidas. Elegí otra.',
-          }),
-        ],
+    plugins: [
+      ...(isTest
+        ? []
+        : [
+            haveIBeenPwned({
+              customPasswordCompromisedMessage:
+                'Esa contraseña apareció en filtraciones conocidas. Elegí otra.',
+            }),
+          ]),
+      ...extraPlugins,
+    ],
+
+    ...(socialProviders ? { socialProviders } : {}),
   });
 }
 
