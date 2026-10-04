@@ -35,3 +35,5 @@ pnpm-debug.log*
 # Caches de tooling
 .eslintcache
 .vite/
+# Tipos que genera `astro sync` en apps/landing
+.astro/

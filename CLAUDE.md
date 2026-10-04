@@ -17,7 +17,7 @@ Webapp (+ API) para que un atleta gestione sus ejercicios y RMs (repetición má
 
 ## Stack
 
-React · Node · TypeScript · MongoDB · Better Auth · Zod · Temporal · Tanstack (Table/Form/Charts/Query/Router) · Motion · Fontsource · Zustand · pragmatic-drag-and-drop · Nuqs · Swagger
+React · Node · TypeScript · MongoDB · Better Auth · Zod · Temporal · Tanstack (Table/Form/Charts/Query/Router) · Motion · Fontsource · Zustand · pragmatic-drag-and-drop · Nuqs · Swagger · Astro (landing)
 
 Detalle completo: [spec §6](docs/spec/wasabi-cross.spec.md#6-stack).
 
@@ -27,6 +27,7 @@ Detalle completo: [spec §6](docs/spec/wasabi-cross.spec.md#6-stack).
 wasabi-cross/
 ├── apps/
 │   ├── web/            # React PWA
+│   ├── landing/        # Landing page (Astro, estática)
 │   └── api/              # Node API REST
 ├── packages/
 │   ├── schemas/          # @wasabi-cross/schemas — Zod compartido
@@ -50,15 +51,15 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 
 | Comando                                           | Qué hace                                                         |
 | ------------------------------------------------- | ---------------------------------------------------------------- |
-| `pnpm install`                                    | Instala los cuatro workspaces                                    |
-| `pnpm dev`                                        | Levanta API y web en paralelo                                    |
+| `pnpm install`                                    | Instala los cinco workspaces                                     |
+| `pnpm dev`                                        | Levanta API y web en paralelo (la landing, aparte)               |
 | `pnpm verify`                                     | lint + typecheck + test + build — lo mismo que corre CI          |
 | `pnpm lint` / `pnpm lint:fix`                     | ESLint sobre todo el monorepo                                    |
 | `pnpm typecheck`                                  | `tsc --noEmit` por workspace                                     |
 | `pnpm test` / `pnpm test:coverage`                | Vitest; el coverage falla por debajo de 90%                      |
 | `pnpm e2e`                                        | Playwright: el flujo principal y la auditoría axe (F1-18)        |
 | `pnpm e2e:prod`                                   | Lo mismo contra el build de producción servido por la API (CI)   |
-| `pnpm build`                                      | Compila los cuatro workspaces en orden de dependencia            |
+| `pnpm build`                                      | Compila los cinco workspaces en orden de dependencia             |
 | `pnpm format` / `pnpm format:check`               | Prettier                                                         |
 | `pnpm --filter @wasabi-cross/api migrate up`      | Aplica las migraciones pendientes (`down`, `status`)             |
 | `pnpm --filter @wasabi-cross/api migrate:dist up` | Lo mismo, compilado: para los ambientes desplegados              |
@@ -66,6 +67,7 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 | `pnpm --filter @wasabi-cross/api seed:admin`      | Usuario admin fijo con plan Pro (idempotente); ver STATE.md      |
 | `pnpm --filter @wasabi-cross/api dev:ephemeral`   | La API contra un Mongo que nace y muere con el proceso           |
 | `pnpm --filter @wasabi-cross/ui storybook`        | Storybook en el puerto 6006                                      |
+| `pnpm --filter @wasabi-cross/landing dev`         | La landing en el puerto 4321 (`preview` sirve el build)          |
 
 Antes de levantar la API hace falta un `.env` —copiar de `apps/api/.env.example`; `dev`, `migrate`
 y `seed` lo leen solos— y las migraciones corridas, porque sin ellas `/ready` responde no-listo. En

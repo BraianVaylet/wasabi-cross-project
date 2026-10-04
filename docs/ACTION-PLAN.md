@@ -3327,6 +3327,20 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** `pnpm verify` y CI; las pruebas inversas de arriba.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `apps/landing` con Astro 7.3.5
+  (`output: 'static'`, `inlineStylesheets: 'never'`), `astro` y `@astrojs/check` en el `catalog:`,
+  `eslint-plugin-astro` con las reglas de accesibilidad de JSX y `prettier-plugin-astro`. **`pnpm dev`
+  de la raíz no levanta la landing** (filtro `!@wasabi-cross/landing`): se corre con
+  `pnpm --filter @wasabi-cross/landing dev`. Un test de build real, a un directorio temporal y con la
+  CLI de Astro en otro proceso (la API programática no anda dentro de Vitest), comprueba el
+  `index.html`, que no haya ningún `.js`, `lang="es-AR"` y ningún `<style>` ni `<script>` dentro del
+  HTML. Pruebas inversas hechas a mano con un `.astro` roto: ESLint marca el `any` y el `<img>` sin
+  `alt`, `astro check` el tipo, y Prettier **sólo con el plugin** (sin él lo salteaba). Una sola Vite
+  (8.3.1) y un solo TypeScript (6.0.3) en el lockfile; ningún permiso nuevo en `allowBuilds`, y
+  `sharp` instalado para `astro:assets` (F10-03). **`pnpm audit` falló** por `http-cache-semantics`
+  ≤4.2.0 (alta, vía `astro`): se resolvió con el override y una excepción a `minimumReleaseAge` para
+  la 4.3.0, decisión del usuario, anotada en STATE.md. AGENT.md se sincronizó con CLAUDE.md (le
+  faltaba una fila).
 
 ## [ ] F10-02 · Tokens, fuentes y estilos base
 
