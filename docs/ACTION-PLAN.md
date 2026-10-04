@@ -2739,6 +2739,13 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   completar el ingreso) y `WC-OAUTH-409-003` (ya hay una cuenta con ese email: entrá con el otro
   proveedor)
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `oauth.api.ts` en schemas: el enum de
+  proveedores suma `fake-idp` (el IdP de desarrollo de F9-03), porque F9-02 lo lista con
+  `OAUTH_DEV_IDP=on` y el front tiene que poder tipar esa respuesta; la API no lo lista nunca en
+  producción. La respuesta es `{ providers: [{ id, label }] }`, estricta. `oauthErrorFor` recibe un
+  `unknown` (el parámetro viene de la URL) y cualquier cosa que no sea `access_denied` o
+  `account_not_linked` es el genérico, incluido `email_not_verified`, que Better Auth sí manda.
+  Los tres códigos, en el catálogo y en el diccionario.
 
 ## [ ] F9-02 · API: módulo `oauth`, configuración y proveedores habilitados
 

@@ -7,6 +7,7 @@ export * from './user/user.schema.ts';
 export * from './user/preferences.api.ts';
 export * from './user/session.api.ts';
 export * from './user/auth.api.ts';
+export * from './oauth/oauth.api.ts';
 export * from './exercise/exercise.schema.ts';
 export * from './exercise/names.ts';
 export * from './exercise/definition.ts';
