@@ -15,6 +15,8 @@ export interface Choice {
   photo?: boolean;
   tenant?: 'consumers' | 'organization';
   accountId?: string;
+  /** Claims de más para el ID token (un perfil hostil, por ejemplo con un plan inventado). */
+  extraClaims?: Record<string, unknown>;
 }
 
 /**
@@ -44,6 +46,7 @@ export async function chooseAtIdp(authorizeUrl: string, choice: Choice): Promise
   if (choice.photo) fields.photo = 'on';
   if (choice.tenant) fields.tenant = choice.tenant;
   if (choice.accountId) fields.account_id = choice.accountId;
+  if (choice.extraClaims) fields.extra_claims = JSON.stringify(choice.extraClaims);
 
   return fetch(new URL(authorizeUrl).origin + new URL(authorizeUrl).pathname, {
     method: 'POST',

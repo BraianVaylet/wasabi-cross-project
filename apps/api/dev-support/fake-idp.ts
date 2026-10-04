@@ -75,6 +75,8 @@ interface Chosen {
   photo: boolean;
   accountId: string;
   tenant: 'consumers' | 'organization';
+  /** Claims de más que se suman al ID token, para probar a un proveedor hostil. Nunca pisan los propios. */
+  extraClaims: Record<string, unknown>;
 }
 
 interface AuthorizeRequest {
@@ -126,6 +128,21 @@ function uuidFrom(label: string): string {
  */
 export function fakeIdpSubjectFor(accountId: string): string {
   return uuidFrom(`sub:${accountId}`);
+}
+
+/**
+ * Los claims extra que se escribieron en la pantalla. Cualquier cosa que no sea un objeto JSON se
+ * ignora: es una herramienta de prueba, no un lugar donde fallar.
+ */
+function parseExtraClaims(raw: string | undefined): Record<string, unknown> {
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+    return Object.fromEntries(Object.entries(parsed));
+  } catch {
+    return {};
+  }
 }
 
 function escapeHtml(value: string): string {
@@ -277,6 +294,8 @@ export async function startFakeIdp(options: FakeIdpOptions): Promise<FakeIdp> {
         </select>
         <label for="account_id">Id de la cuenta (opcional: fija la identidad aunque cambie el email)</label>
         <input id="account_id" name="account_id" type="text">
+        <label for="extra_claims">Claims extra (JSON): se suman al ID token, sin pisar los del IdP</label>
+        <input id="extra_claims" name="extra_claims" type="text" placeholder='{"plan":"pro"}'>
       </details>
       <button type="submit" name="action" value="approve">Entrar</button>
       <button type="submit" name="action" value="deny">Cancelar</button>
@@ -338,6 +357,7 @@ export async function startFakeIdp(options: FakeIdpOptions): Promise<FakeIdp> {
         photo: body.photo !== undefined,
         accountId: (body.account_id ?? '').trim() || email,
         tenant: body.tenant === 'organization' ? 'organization' : 'consumers',
+        extraClaims: parseExtraClaims(body.extra_claims),
       };
 
       const code = randomBytes(24).toString('base64url');
@@ -392,6 +412,7 @@ export async function startFakeIdp(options: FakeIdpOptions): Promise<FakeIdp> {
     if (record.face === 'microsoft') {
       const tid = chosen.tenant === 'organization' ? ORGANIZATION_TENANT_ID : CONSUMER_TENANT_ID;
       return signJwt({
+        ...chosen.extraClaims,
         ...common,
         iss: `${origin}/${tid}/v2.0`,
         sub: fakeIdpSubjectFor(chosen.accountId),
@@ -406,6 +427,7 @@ export async function startFakeIdp(options: FakeIdpOptions): Promise<FakeIdp> {
     }
 
     return signJwt({
+      ...chosen.extraClaims,
       ...common,
       iss: origin,
       sub: fakeIdpSubjectFor(chosen.accountId),

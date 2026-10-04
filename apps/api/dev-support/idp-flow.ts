@@ -48,6 +48,8 @@ export interface FlowOptions {
   choice: Choice;
   /** Para alterar el callback antes de que vuelva a la API (un `state` cambiado, por ejemplo). */
   mutateCallback?: (url: URL) => void;
+  /** Se espera antes de volver a la API: sirve para soltar dos callbacks en el mismo instante. */
+  beforeCallback?: () => Promise<void>;
 }
 
 /** Cualquier cosa con el `handler` de Better Auth. */
@@ -57,7 +59,7 @@ export interface HasHandler {
 
 /** Recorre el ingreso entero: empieza, elige en el IdP y vuelve al callback de la API. */
 export async function signInVia(auth: HasHandler, options: FlowOptions): Promise<Attempt> {
-  const { base, webOrigin, provider, choice, mutateCallback } = options;
+  const { base, webOrigin, provider, choice, mutateCallback, beforeCallback } = options;
   const jar = new Jar();
 
   const start = await auth.handler(
@@ -74,6 +76,7 @@ export async function signInVia(auth: HasHandler, options: FlowOptions): Promise
   const atIdp = await chooseAtIdp(url, choice);
   const callback = new URL(atIdp.headers.get('location') ?? '');
   mutateCallback?.(callback);
+  await beforeCallback?.();
 
   const back = await auth.handler(new Request(callback, { headers: { cookie: jar.header() } }));
   jar.absorb(back);

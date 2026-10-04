@@ -1,5 +1,7 @@
 import type { BetterAuthOptions, BetterAuthPlugin } from 'better-auth';
 import { genericOAuth } from 'better-auth/plugins';
+import { profileName } from '../src/modules/oauth/domain/profile.ts';
+import { socialProvidersFor } from '../src/modules/oauth/infrastructure/social-providers.ts';
 import { FAKE_IDP_CLIENT_ID, FAKE_IDP_CLIENT_SECRET, type FakeIdp } from './fake-idp.ts';
 
 /*
@@ -13,6 +15,9 @@ export const FAKE_IDP_PROVIDER_ID = 'fake-idp';
  * La cara genérica, registrada con `genericOAuth` como el proveedor `fake-idp`. En Better Auth 1.7
  * un proveedor genérico se usa con los mismos `/sign-in/social` y `/callback/<id>` que los de
  * verdad, así que el front no necesita un caso aparte.
+ *
+ * Con las mismas reglas que Google y Microsoft (F9-05): el nombre es el del perfil o, sin él, la
+ * parte local del email, y se refresca en cada ingreso. Nada más del perfil pasa al usuario.
  */
 export function fakeIdpAuthPlugin(idp: Pick<FakeIdp, 'origin'>): BetterAuthPlugin {
   return genericOAuth({
@@ -24,6 +29,8 @@ export function fakeIdpAuthPlugin(idp: Pick<FakeIdp, 'origin'>): BetterAuthPlugi
         clientSecret: FAKE_IDP_CLIENT_SECRET,
         scopes: ['openid', 'profile', 'email'],
         pkce: true,
+        overrideUserInfo: true,
+        mapProfileToUser: (profile) => ({ name: profileName(profile) }),
       },
     ],
   });
@@ -32,19 +39,15 @@ export function fakeIdpAuthPlugin(idp: Pick<FakeIdp, 'origin'>): BetterAuthPlugi
 type SocialProviders = NonNullable<BetterAuthOptions['socialProviders']>;
 
 /**
- * La cara de Microsoft: el proveedor `microsoft` real de Better Auth, con las opciones que
- * tendrá en producción (tenant `consumers`), pero con la `authority` apuntando al IdP falso. La
- * llamada a Graph para la foto está fija a `graph.microsoft.com` y no se puede desviar, así que
- * acá se apaga: la foto de Microsoft se prueba a mano (F9-10).
+ * La cara de Microsoft: el proveedor `microsoft` **de producción** —armado por el mismo
+ * `socialProvidersFor` que usa `startServer`—, con las credenciales del IdP falso y la `authority`
+ * apuntando a él. Así lo que se prueba es la configuración real: tenant `consumers`, el chequeo del
+ * `tid`, los scopes, la foto apagada (Graph no se puede desviar: se prueba a mano en F9-10).
  */
-export function fakeIdpMicrosoftProvider(
-  idp: Pick<FakeIdp, 'origin'>,
-): NonNullable<SocialProviders['microsoft']> {
-  return {
-    clientId: FAKE_IDP_CLIENT_ID,
-    clientSecret: FAKE_IDP_CLIENT_SECRET,
-    tenantId: 'consumers',
-    authority: idp.origin,
-    disableProfilePhoto: true,
-  };
+export function fakeIdpSocialProviders(idp: Pick<FakeIdp, 'origin'>): SocialProviders {
+  return socialProvidersFor({
+    MICROSOFT_CLIENT_ID: FAKE_IDP_CLIENT_ID,
+    MICROSOFT_CLIENT_SECRET: FAKE_IDP_CLIENT_SECRET,
+    MICROSOFT_AUTHORITY: idp.origin,
+  });
 }

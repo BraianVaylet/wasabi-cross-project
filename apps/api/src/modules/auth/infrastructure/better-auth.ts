@@ -1,8 +1,6 @@
-import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '@wasabi-cross/schemas';
 import { betterAuth, type BetterAuthOptions, type BetterAuthPlugin } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
 import { testUtils } from 'better-auth/plugins';
-import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import type { Db, MongoClient } from 'mongodb';
 import type { Env } from '../../../config/env.ts';
 import { generateId } from '../../../shared/ids.ts';
@@ -28,6 +26,15 @@ export interface CreateAuthOptions {
 
 export const AUTH_BASE_PATH = '/api/auth';
 
+/** Los campos de la cuenta que guardarían un token del proveedor, pisados con null. */
+const NO_TOKENS = {
+  accessToken: null,
+  refreshToken: null,
+  idToken: null,
+  accessTokenExpiresAt: null,
+  refreshTokenExpiresAt: null,
+} as const;
+
 export function createAuth({
   env,
   db,
@@ -52,13 +59,42 @@ export function createAuth({
     database: mongodbAdapter(db, { client, transaction: transactions }),
     trustedOrigins: [env.WEB_ORIGIN],
 
-    emailAndPassword: {
-      enabled: true,
-      // Los mismos largos que valida el formulario del front (@wasabi-cross/schemas):
-      // una sola fuente, para que el registro no falle recién en la API.
-      minPasswordLength: PASSWORD_MIN_LENGTH,
-      maxPasswordLength: PASSWORD_MAX_LENGTH,
+    // Sin `emailAndPassword` (F9-05, ADR-0012): todo el ingreso y el registro pasan por un proveedor
+    // OAuth. No hay contraseñas que guardar, hashear ni recuperar, y esos endpoints ni siquiera se
+    // exponen (`auth-route-policy.ts`).
+
+    account: {
+      // Un email que ya tiene cuenta con otro proveedor no se vincula solo: recibe un aviso para
+      // entrar con ese (spec §5.6). Vincular con email verificado en los dos lados queda como una
+      // función aparte, con sesión iniciada.
+      accountLinking: { enabled: false },
+      // Los tokens del proveedor no se guardan, ni en el alta (hook de abajo) ni al volver a
+      // entrar: sin esto Better Auth reescribe los de la cuenta en cada ingreso.
+      updateAccountOnSignIn: false,
     },
+
+    databaseHooks: {
+      user: {
+        create: {
+          // Un email que el proveedor no verificó no crea usuario: con la vinculación apagada, el
+          // email sólo importa para que nadie se adelante con el de otro, y eso lo impide pedirlo
+          // verificado. Tampoco se fuerza a verificado (ADR-0012).
+          before: (user) => Promise.resolve(user.emailVerified ? { data: {} } : false),
+        },
+      },
+      account: {
+        // Wasabi sólo necesita saber quién entra: el proveedor y su id. Los tokens se guardarían
+        // en la base en claro, y no hay nada que hacer con ellos después del ingreso (la foto de
+        // Microsoft se baja durante el ingreso). El `data` se mezcla sobre el original, así que se
+        // pisan con null en vez de omitirlos.
+        create: { before: () => Promise.resolve({ data: NO_TOKENS }) },
+        update: { before: () => Promise.resolve({ data: NO_TOKENS }) },
+      },
+    },
+
+    // Los errores del callback (cancelar, un state vencido, un email sin verificar) vuelven al
+    // /login del front con `?error=`; si no, Better Auth mostraría su propia página de error.
+    onAPIError: { errorURL: `${env.WEB_ORIGIN}/login` },
 
     user: {
       additionalFields: {
@@ -98,31 +134,20 @@ export function createAuth({
       window: 60,
       max: 100,
       customRules: {
-        // spec §13: login 5/min/IP. Registro y recupero, lo mismo.
-        '/sign-in/email': { window: 60, max: 5 },
-        '/sign-up/email': { window: 60, max: 5 },
-        '/forget-password': { window: 60, max: 5 },
+        // spec §13: el ingreso, 5/min/IP. Empezarlo y la vuelta del proveedor (la clave del límite
+        // incluye el path, así que cada proveedor lleva su propia cuenta en el callback).
+        '/sign-in/social': { window: 60, max: 5 },
+        '/callback/*': { window: 60, max: 5 },
       },
     },
 
-    // spec §13: verificación de la contraseña contra listas de filtradas.
-    // Sólo manda los primeros cinco caracteres del hash SHA-1 (k-anonimato).
-    // Apagado en test: un test no debería depender de una API externa.
-    //
-    // En test, en su lugar, `testUtils` (F9-04): helpers que crean usuarios y sesiones sin pasar
+    // Sin `haveIBeenPwned` (no hay contraseñas, F9-05). En test, `testUtils` (F9-04): helpers que crean usuarios y sesiones sin pasar
     // por ningún formulario ni proveedor (`ctx.test`). No registra rutas HTTP, pero crea sesiones
     // sin credenciales, así que **sólo** está con NODE_ENV=test: ni en desarrollo ni en producción.
     plugins: [
-      ...(isTest
-        ? // El tipo de `testUtils` (su `init` devuelve `ctx.test`) no encaja en `BetterAuthPlugin[]`,
-          // y mezclarlo en este arreglo deja a `Auth` sin tipos. En runtime es un plugin más.
-          [testUtils() as unknown as BetterAuthPlugin]
-        : [
-            haveIBeenPwned({
-              customPasswordCompromisedMessage:
-                'Esa contraseña apareció en filtraciones conocidas. Elegí otra.',
-            }),
-          ]),
+      // El tipo de `testUtils` (su `init` devuelve `ctx.test`) no encaja en `BetterAuthPlugin[]`, y
+      // mezclarlo en este arreglo deja a `Auth` sin tipos. En runtime es un plugin más.
+      ...(isTest ? [testUtils() as unknown as BetterAuthPlugin] : []),
       ...extraPlugins,
     ],
 

@@ -483,6 +483,62 @@ describe('IdP falso de desarrollo', () => {
     });
   });
 
+  describe('claims extra: lo que un proveedor hostil podría mandar (F9-05)', () => {
+    it.each(['generic', 'microsoft'] as const)(
+      'en la cara %s, se suman al id_token',
+      async (face) => {
+        const token = await signIn(
+          idp,
+          { email: 'ana@example.com', name: 'Ana', extra_claims: JSON.stringify({ plan: 'pro' }) },
+          { face },
+        );
+
+        expect(token.claims.plan).toBe('pro');
+      },
+    );
+
+    it('no pisan los claims del propio IdP: ni el emisor, ni la audiencia, ni la identidad, ni el email', async () => {
+      const token = await signIn(idp, {
+        email: 'ana@example.com',
+        name: 'Ana',
+        extra_claims: JSON.stringify({
+          iss: 'https://evil.example.com',
+          aud: 'otra-app',
+          sub: 'sub-falso',
+          email: 'otra@example.com',
+          email_verified: false,
+          exp: 1,
+        }),
+      });
+
+      expect(token.claims).toMatchObject({
+        iss: idp.origin,
+        aud: FAKE_IDP_CLIENT_ID,
+        sub: fakeIdpSubjectFor('ana@example.com'),
+        email: 'ana@example.com',
+        email_verified: true,
+      });
+      expect(Number(token.claims.exp)).toBeGreaterThan(1);
+    });
+
+    it.each([
+      ['un JSON roto', '{no es json'],
+      ['un JSON que no es un objeto', '"texto"'],
+      ['una lista', '["a"]'],
+      ['null', 'null'],
+      ['vacío', ''],
+    ])('%s se ignora: el ingreso sale igual', async (_case, extra) => {
+      const token = await signIn(idp, {
+        email: 'ana@example.com',
+        name: 'Ana',
+        extra_claims: extra,
+      });
+
+      expect(token.claims.email).toBe('ana@example.com');
+      expect(token.claims).not.toHaveProperty('plan');
+    });
+  });
+
   describe('lo que no acepta en /authorize', () => {
     it('PKCE es obligatorio: sin desafío, o con `plain`, vuelve con invalid_request', async () => {
       for (const options of [{ challenge: null }, { challengeMethod: 'plain' }]) {
