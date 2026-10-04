@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 /*
  * Lo que comparten los E2E: un atleta nuevo por test (la base es una sola y no se limpia
@@ -9,14 +9,12 @@ import { expect, type Page } from '@playwright/test';
 export interface Atleta {
   email: string;
   nombre: string;
-  password: string;
 }
 
 export function atletaNuevo(): Atleta {
   return {
     email: `e2e-${crypto.randomUUID()}@example.com`,
     nombre: 'Braian',
-    password: 'contrasena-larga-1',
   };
 }
 
@@ -38,9 +36,14 @@ export async function fijarPlan(email: string, plan: 'free' | 'pro'): Promise<vo
 }
 
 /**
- * Registro por la pantalla (mockup 3): deja la sesión abierta y devuelve al atleta. Nace con plan
+ * Entra por el IdP falso de desarrollo (F9-05, ADR-0012) con un atleta nuevo: deja la sesión
+ * abierta y lo devuelve. Con el ingreso sólo por OAuth no hay formulario de registro. Nace con plan
  * Free, como cualquiera; con `plan: 'pro'` se lo sube después y se recarga para que la pantalla lo
  * sepa.
+ *
+ * Todavía no hay botón en la pantalla de ingreso (llega en F9-07): se le pide a la API la URL del IdP
+ * desde el navegador, con el mismo `fetch` que hará el botón, y se sigue el camino de verdad —la
+ * pantalla del IdP, el callback de la API, la cookie— hasta Home.
  */
 export async function registrarse(
   page: Page,
@@ -48,12 +51,34 @@ export async function registrarse(
 ): Promise<Atleta> {
   const atleta = atletaNuevo();
 
-  await page.goto('/registro');
-  await page.getByLabel('Email').fill(atleta.email);
-  await page.getByLabel('Nombre').fill(atleta.nombre);
-  await page.getByLabel('Contraseña', { exact: true }).fill(atleta.password);
-  await page.getByLabel('Repetir contraseña').fill(atleta.password);
-  await page.getByRole('button', { name: 'Crear cuenta' }).click();
+  await page.goto('/login');
+  const origen = new URL(page.url()).origin;
+  // La API: otro origen en desarrollo (el front lo sirve Vite), el mismo en el build de producción.
+  const api = String(test.info().config.metadata.apiURL);
+  const urlDelIdp = await page.evaluate(
+    async ({ api: apiUrl, origin }) => {
+      const respuesta = await fetch(`${apiUrl}/api/auth/sign-in/social`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          provider: 'fake-idp',
+          callbackURL: `${origin}/`,
+          errorCallbackURL: `${origin}/login`,
+        }),
+      });
+      const cuerpo = (await respuesta.json()) as { url: string };
+      return cuerpo.url;
+    },
+    { api, origin: origen },
+  );
+
+  // La pantalla del IdP falso: elegir quién entra. `exact`, porque "Email verificado por el
+  // proveedor" también contiene la palabra.
+  await page.goto(urlDelIdp);
+  await page.getByLabel('Email', { exact: true }).fill(atleta.email);
+  await page.getByLabel('Nombre', { exact: true }).fill(atleta.nombre);
+  await page.getByRole('button', { name: 'Entrar' }).click();
 
   await expect(page.getByRole('heading', { name: 'Tus ejercicios' })).toBeVisible();
 

@@ -37,7 +37,7 @@ const envSchema = z.object({
   BETTER_AUTH_URL: httpUrl,
 
   /*
-   * El límite de intentos de login y registro (spec §13: 5 por minuto por IP). Sólo se apaga
+   * El límite de intentos de ingreso (spec §13: 5 por minuto por IP en /sign-in/social y en los callbacks). Sólo se apaga
    * para el E2E, que registra un atleta por test desde la misma IP. En producción, no: el
    * refine de abajo no deja levantar el proceso.
    */

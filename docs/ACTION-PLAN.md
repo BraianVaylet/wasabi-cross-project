@@ -2969,6 +2969,41 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
 - **data-model-impact:** índice único `(providerId, accountId)` en `account`; `user` y `account`
   sin contraseña ni tokens. No hay migración de datos: las bases de desarrollo con cuentas viejas se
   borran.
+- **estado:** código hecho, a la espera de **revisión humana de los tests** (spec §9). `createAuth`
+  sin `emailAndPassword` ni `haveIBeenPwned`, con la vinculación apagada, `updateAccountOnSignIn:
+false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un hook se mezcla
+  sobre el original, no lo reemplaza) y otro que no crea al usuario si el email no vino verificado;
+  límite de 5 por minuto para `/sign-in/social` y `/callback/*`; errores al `/login` del front.
+  Google y Microsoft los arma `socialProvidersFor` (`oauth/infrastructure`), con el `getUserInfo` de
+  Microsoft envuelto en el chequeo de `tid`, `iss` y `aud` (`oauth/domain/microsoft-claims`).
+  `startServer` los inyecta y se niega a arrancar sin ningún proveedor. Migración
+  `20261005100000-indices-de-identidad`: los dos índices únicos. Cosas que no estaban en el plan y
+  salieron de probarlo:
+  - **Un bug que ya existía:** el 429 del límite de intentos respondía **500**. Better Auth lo manda
+    como `text/plain`, `auth.routes.ts` copiaba ese header y Fastify no serializa un objeto con ese
+    content-type. Nadie lo había visto: ningún test pasaba el límite por Fastify. Arreglado, con test.
+  - **Los endpoints de Better Auth no dan 404 solos:** con `emailAndPassword` apagado siguen
+    montados y responden con otro error. Y Better Auth trae muchos más de cuenta (cambiar el email,
+    borrar al usuario, vincular, listar sesiones) que Wasabi no usa. `isExposedAuthRoute` deja
+    pasar **sólo** `sign-in/social`, `callback/*`, `sign-out` y `get-session`; todo lo demás es un 404
+    del catálogo antes de llegar a Better Auth.
+  - **`user.email` no era único** (el plan decía "revisar"): la migración lo agrega.
+  - **`translateAuthError` ya no repite el texto de Better Auth** (en inglés, de callbacks y
+    proveedores): siempre el mensaje del catálogo, con el status de su código; el 404 mapea a
+    `WC-SYS-404-003`.
+  - El IdP falso pasó a usar `socialProvidersFor` (la configuración de producción) en vez de una
+    copia, e `fake-idp` aplica las mismas reglas de nombre; acepta claims extra para probar un
+    perfil hostil (un `plan: "pro"`).
+  - **`registrarse()` del E2E ya no usa el formulario** —sin esto el CI se caía—: pide la URL del IdP
+    desde el navegador y sigue el camino de verdad hasta Home. El spec nuevo del ingreso y axe quedan
+    en F9-08.
+  - **El service worker se comía el callback, y el E2E de producción lo mostró** (22 tests caídos): la
+    PWA activa contestaba con `index.html` a la navegación de vuelta del proveedor, así que nunca se
+    abría la sesión. Estaba previsto para F9-07; se adelantó porque F9-05 lo vuelve real y el CI
+    corre `e2e:prod`. `NAVIGATE_FALLBACK_DENYLIST` (`src/pwa/pwa-config.ts`, con test) excluye `/api/` y
+    `/docs`, y se comprobó en el `sw.js` generado.
+  - **Las pantallas `/login` y `/registro` quedan sin funcionar hasta F9-07** (la API les responde
+    404). Está dicho en STATE, con cómo entrar mientras tanto.
 
 ## [ ] F9-06 · Logs y headers: nada del flujo OAuth se filtra
 
@@ -3006,9 +3041,8 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   pasa por `oauthErrorFor` (F9-01), se muestra con el mensaje del catálogo y sale de la URL. Se
   borran los formularios con contraseña, `session.signIn` y `signUp`, `signInSchema`,
   `signUpSchema`, `passwordSchema` y `auth.api.ts` de schemas, y sus tests; `WC-AUTH-401-001` se
-  retira del catálogo y del diccionario. La configuración de la PWA se extrae a `pwa.config.ts` y
-  suma `workbox.navigateFallbackDenylist: [/^\/api\//, /^\/docs/]`, para que el service worker no
-  responda `index.html` al callback.
+  retira del catálogo y del diccionario. (Que el service worker no responda `index.html` al callback
+  —`workbox.navigateFallbackDenylist`— **se adelantó a F9-05**: el E2E de producción lo mostró.)
 - **acceptance-criteria:**
   - Dado `/login`, cuando se abre, entonces hay un botón por proveedor habilitado y ningún campo de
     email ni de contraseña.
@@ -3022,9 +3056,6 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
     sin reflejarlo; y el parámetro sale de la URL.
   - Dado `/oauth/providers` vacío o caído, entonces se avisa que el ingreso no está disponible, con
     "Reintentar": no hay otra forma de entrar.
-  - Dada la configuración de la PWA, cuando se evalúa la exclusión contra
-    `/api/auth/callback/google`, `/api/auth/callback/microsoft` y
-    `/api/auth/callback/fake-idp`, entonces coincide; contra `/ejercicios`, no.
   - Dado el repo, cuando se busca `passwordSchema`, `signInSchema` y `signUpSchema`, entonces no
     aparecen.
 - **example:** —
@@ -3032,7 +3063,7 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
 - **depends_on:** F9-01, F9-02, F9-05
 - **risk:** medium
 - **test_plan:** tests de componentes con el cliente de sesión simulado, uno por criterio; test de
-  `pwa.config.ts`; Storybook del botón. axe va en F9-09.
+  Storybook del botón. axe va en F9-09.
 - **error-codes:** consume `WC-OAUTH-400-001`, `WC-OAUTH-400-002`, `WC-OAUTH-409-003`; retira
   `WC-AUTH-401-001`
 - **data-model-impact:** ninguno

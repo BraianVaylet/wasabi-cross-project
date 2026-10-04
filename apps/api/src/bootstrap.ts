@@ -9,6 +9,9 @@ import {
 } from './composition.ts';
 import { parseEnv } from './config/env.ts';
 import { createAuth, type CreateAuthOptions } from './modules/auth/infrastructure/better-auth.ts';
+import { requireEnabledProviders } from './modules/oauth/application/require-providers.ts';
+import { enabledProviders } from './modules/oauth/infrastructure/oauth-settings.ts';
+import { socialProvidersFor } from './modules/oauth/infrastructure/social-providers.ts';
 import { migrationsProbe } from './shared/db/migrations.ts';
 import { connectMongo } from './shared/db/mongo.ts';
 
@@ -29,12 +32,21 @@ export async function startServer({
   authPlugins,
 }: StartServerOptions = {}): Promise<FastifyInstance> {
   const env = parseEnv();
+
+  // Con el ingreso sólo por OAuth (ADR-0012), una API sin ningún proveedor no deja entrar a nadie:
+  // mejor que no arranque. Va acá y no en `parseEnv`: `migrate` y `seed` leen el mismo entorno y no
+  // necesitan ningún proveedor.
+  requireEnabledProviders(enabledProviders(env));
+
   const mongo = await connectMongo(env);
 
   const auth = createAuth({
     env,
     db: mongo.db,
     client: mongo.client,
+    // Google y Microsoft, con las credenciales del entorno. El IdP falso de desarrollo entra por
+    // `authPlugins`, nunca por acá.
+    socialProviders: socialProvidersFor(env),
     ...(authPlugins ? { plugins: authPlugins } : {}),
   });
 

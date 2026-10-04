@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { NAVIGATE_FALLBACK_DENYLIST } from './src/pwa/pwa-config.ts';
 
 export default defineConfig({
   plugins: [
@@ -9,6 +10,11 @@ export default defineConfig({
       // spec §5: al haber una versión nueva se le avisa al usuario con un popup.
       // `prompt` es lo que habilita ese popup; `autoUpdate` actualizaría a espaldas suyas.
       registerType: 'prompt',
+      workbox: {
+        // El service worker contesta toda navegación con el shell de la app. El callback de OAuth
+        // (`/api/auth/callback/<id>`) y `/docs` son de la API: tienen que llegar a la red (F9-05).
+        navigateFallbackDenylist: NAVIGATE_FALLBACK_DENYLIST,
+      },
       // Para que también estén en el service worker, y la app instalada los tenga sin conexión.
       includeAssets: ['favicon.ico', 'logo.svg', 'apple-touch-icon.png'],
       manifest: {

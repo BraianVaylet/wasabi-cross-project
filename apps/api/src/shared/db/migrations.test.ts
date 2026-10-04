@@ -49,6 +49,8 @@ describe('migraciones', () => {
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');
     expect(await indexNames(db, 'managed_exercises')).toContain('user_exercise_unique');
     expect(await indexNames(db, 'records')).toContain('managed_history');
+    expect(await indexNames(db, 'account')).toContain('account_provider_account');
+    expect(await indexNames(db, 'user')).toContain('user_email');
   });
 
   it('con todo migrado, la instancia está lista', async () => {
@@ -78,6 +80,15 @@ describe('migraciones', () => {
   });
 
   it('down revierte sólo la última migración', async () => {
+    const reverted = await migrateDown(db, client);
+
+    expect(reverted).toHaveLength(1);
+    expect(reverted[0]).toMatch(/indices-de-identidad/);
+    expect(await indexNames(db, 'account')).not.toContain('account_provider_account');
+    expect(await indexNames(db, 'user')).not.toContain('user_email');
+  });
+
+  it('el siguiente down se lleva el plan Pro', async () => {
     const reverted = await migrateDown(db, client);
 
     expect(reverted).toHaveLength(1);
@@ -127,8 +138,8 @@ describe('migraciones', () => {
 
     expect(reverted).toHaveLength(1);
     expect(reverted[0]).toMatch(/capacidades-en-propios/);
-    // Pendientes: ésta y las seis que ya se habían revertido en los tests anteriores.
-    expect(await pendingMigrations(db)).toHaveLength(7);
+    // Pendientes: ésta y las siete que ya se habían revertido en los tests anteriores.
+    expect(await pendingMigrations(db)).toHaveLength(8);
     // Las anteriores siguen aplicadas.
     expect(await indexNames(db, 'records')).toContain('managed_history');
     expect(await indexNames(db, 'exercises')).toContain('owner_name_unique');

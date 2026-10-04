@@ -121,12 +121,16 @@ contratos y los códigos `WC-OAUTH-*` en schemas, y el módulo `oauth` con
 `OAUTH_DEV_IDP`, `MICROSOFT_AUTHORITY`) con sus guardas. **F9-03 está mergeada** (PR #96): el IdP falso
 de desarrollo (`apps/api/dev-support/`, dos caras: genérica y Microsoft), `startServer` en
 `src/bootstrap.ts` con los plugins de Better Auth inyectados, `scripts/dev.ts` (que corre `pnpm dev`)
-y el cableado en `dev:ephemeral`, con cuatro guardas probadas con pruebas inversas. **F9-04 tiene el
-código hecho, en una PR**: los tests de la API abren sesión con `createTestSession` (el plugin
-`testUtils`, sólo con `NODE_ENV=test`), el admin sembrado queda **sin contraseña** y ligado a la cuenta
-del IdP falso, y se fue `UserRegistrar`. Nada de esto cambia todavía cómo se entra por la web: sigue
-siendo email y contraseña hasta F9-05, y **hasta F9-07 el admin sembrado no puede entrar por la web**
-(sin contraseña y sin botón del IdP). El usuario confirmó los seis
+y el cableado en `dev:ephemeral`, con cuatro guardas probadas con pruebas inversas. **F9-04 está
+mergeada** (PR #99): los tests de la API abren sesión con `createTestSession` (el plugin `testUtils`,
+sólo con `NODE_ENV=test`), el admin sembrado queda **sin contraseña** y ligado a la cuenta del IdP
+falso, y se fue `UserRegistrar`. **F9-05 tiene el código hecho, en una PR** (la puerta de entrada,
+de riesgo alto): **el email y la contraseña dejaron de existir** —Better Auth sin
+`emailAndPassword`, y sólo cuatro de sus rutas llegan a la red—, las cuentas no se vinculan solas,
+los tokens del proveedor no se guardan, un email sin verificar no crea usuario, el `tid` de Microsoft
+se chequea, y la API no arranca sin ningún proveedor. **Desde F9-05 y hasta F9-07 las pantallas
+`/login` y `/registro` no funcionan** (la API les responde 404): en local se entra como se explica
+abajo, en "Cómo correrlo". El usuario confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -134,8 +138,8 @@ tests de la API, `registrarse()` del E2E y `seed:admin`), así que el IdP falso 
 de desarrollo —con guardas, porque en producción sería un bypass—; el email de Microsoft no es
 confiable según su documentación, y F9-10 tiene que comprobar con una cuenta real si trae los _claims_
 de verificación antes de dar por buena su cuenta; la foto hay que servirla desde la API porque la CSP
-bloquearía la URL de Google; y el service worker de la PWA devolvería `index.html` al callback (no
-excluye `/api/`). **Después de la fase:** un modal para promocionar Pro (sin tareas todavía).
+bloquearía la URL de Google; y el service worker de la PWA contestaba con `index.html` al callback
+(no excluía `/api/`): **arreglado en F9-05**, porque el E2E de producción lo mostró. **Después de la fase:** un modal para promocionar Pro (sin tareas todavía).
 
 **Fase 10 — Landing page con Astro** (2026-10-04, **planificada, F10-00 hecha**, 14 tareas y 40 puntos en el
 [backlog](../ACTION-PLAN.md)): el usuario trajo el diseño en `docs/landing/` (un HTML y su PNG, más
@@ -183,10 +187,11 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-03 (mergeadas; en F9-03 conviene mirar
-    los tests de las cuatro guardas: un IdP que acepta a cualquiera en producción sería un bypass) y
-    revisar la PR de F9-04. Después F9-05 (Better Auth sólo con OAuth), que tiene que envolver el `getUserInfo` de Microsoft con un chequeo propio del
-    `tid` (Better Auth no lo hace en el flujo con `code`). F9-10 necesita que el usuario cree el
+10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-04 (mergeadas) y **revisar la PR de F9-05,
+    que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los tests de
+    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Después
+    F9-06 (logs) y F9-07 (la pantalla de ingreso: con ella vuelven a andar `/login` y la web). F9-10
+    necesita que el usuario cree el
     cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
     prod esperan a F3-07.
 11. **Tests de `apps/web` bajo carga:** corridos todos juntos en local (`pnpm verify`,
@@ -272,9 +277,28 @@ del IdP falso, que lo ofrece cargado por defecto, así que entrar como él es un
 IdP (`OAUTH_DEV_IDP=on`). No hay proveedor de pago todavía (ver "Decisiones abiertas"): es la única
 forma de ver las estadísticas sin que se puedan pagar. Un usuario que se registra nace Free.
 Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_NAME`. Sólo de desarrollo: el script se niega a correr
-con `NODE_ENV=production`. **Hasta F9-07** (el botón del IdP en la pantalla de ingreso) el admin sembrado
-no puede entrar por la web: sin contraseña y sin botón. Para ver las estadísticas en local, registrar
-un usuario y subirle el plan con el control de `dev:ephemeral` (`POST :3101/plan`).
+con `NODE_ENV=production`.
+
+**Cómo entrar a la web en local hasta F9-07** (la pantalla de ingreso todavía no tiene el botón del IdP, y
+el formulario de email y contraseña ya no existe): abrir `/login`, y en la consola del navegador
+pedirle a la API la URL del IdP y seguirla:
+
+```js
+const r = await fetch('/api/auth/sign-in/social', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({
+    provider: 'fake-idp',
+    callbackURL: location.origin + '/',
+    errorCallbackURL: location.origin + '/login',
+  }),
+});
+location.href = (await r.json()).url;
+```
+
+La pantalla del IdP muestra al admin Pro cargado: un clic y se entra como él. Para entrar como un
+usuario Free, cambiar el email y el nombre antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on`
+(el `.env.example` ya lo trae): sin ningún proveedor, no arranca.
 
 ## Última actualización
 
@@ -289,8 +313,13 @@ Bitácora [2026-10-04](./bitacora/2026-10-04-f10-00-spec-landing.md).
 planificación. Decididos con el usuario: sitio aparte, la landing lleva a la app, voseo y
 Free/Pro según la spec. Bitácora [2026-10-04](./bitacora/2026-10-04-plan-landing.md).
 
+2026-10-04 — **Fase 9, F9-05**: Better Auth sólo con OAuth, en una PR. Se fue el email y la
+contraseña; sólo cuatro rutas de Better Auth llegan a la red; el `tid` de Microsoft se chequea; una
+migración con los índices únicos de la identidad. De paso, el 429 del límite de intentos respondía 500.
+Bitácora [2026-10-04](./bitacora/2026-10-04-f9-05-better-auth-solo-oauth.md).
+
 2026-10-04 — **Fase 9, F9-04**: tests y seed sin contraseña: `createTestSession`, el admin ligado al
-IdP falso, fuera `UserRegistrar`, en una PR. Bitácora
+IdP falso, fuera `UserRegistrar`, mergeado en la PR #99. Bitácora
 [2026-10-04](./bitacora/2026-10-04-f9-04-tests-y-seed-sin-contrasena.md).
 
 2026-10-04 — **Fase 9, F9-03**: el IdP falso de desarrollo, el arranque con plugins inyectados y las

@@ -5,7 +5,7 @@ import { connectMongo, type MongoConnection } from '../src/shared/db/mongo.ts';
 import { testEnv } from '../src/test/env.ts';
 import { chooseAtIdp, type Choice } from './fake-idp-client.ts';
 import { startFakeIdp, type FakeIdp } from './fake-idp.ts';
-import { fakeIdpAuthPlugin, fakeIdpMicrosoftProvider } from './fake-idp-auth.ts';
+import { fakeIdpAuthPlugin, fakeIdpSocialProviders } from './fake-idp-auth.ts';
 import { Jar, signInVia as runFlow, type Attempt } from './idp-flow.ts';
 
 /*
@@ -47,7 +47,7 @@ describe('el IdP falso con Better Auth (F9-03)', () => {
       client: mongo.client,
       transactions: false,
       ...(extra.plugin ? { plugins: [fakeIdpAuthPlugin(idp)] } : {}),
-      ...(extra.microsoft ? { socialProviders: { microsoft: fakeIdpMicrosoftProvider(idp) } } : {}),
+      ...(extra.microsoft ? { socialProviders: fakeIdpSocialProviders(idp) } : {}),
     });
   }
 
@@ -256,32 +256,38 @@ describe('el IdP falso con Better Auth (F9-03)', () => {
       expect(user?.emailVerified).toBe(true);
     });
 
-    it('sin verified_primary_email, el email queda sin verificar: Better Auth no lo da por hecho', async () => {
+    it('sin verified_primary_email, Better Auth no da el email por verificado y no se crea el usuario (F9-05)', async () => {
       const auth = authWith({ microsoft: true });
 
-      await signInVia(auth, 'microsoft', {
+      const attempt = await signInVia(auth, 'microsoft', {
         action: 'approve',
         email: 'beto@outlook.com',
         name: 'Beto',
         emailVerified: false,
       });
 
-      const user = await mongo.db.collection('user').findOne({ email: 'beto@outlook.com' });
-      expect(user?.emailVerified).toBe(false);
+      expect(attempt.jar.hasSession()).toBe(false);
+      expect(new URL(attempt.finalLocation, BASE).searchParams.has('error')).toBe(true);
+      expect(await countUsers()).toBe(0);
     });
 
-    /*
-     * Lo que este test iba a probar no lo hace Better Auth: su `verifyClaims` (el chequeo de que el
-     * `tid` sea el de las cuentas personales) sólo corre cuando llega un ID token suelto, no en el
-     * flujo con `code`, donde `getUserInfo` apenas decodifica el token. En producción lo que deja
-     * afuera a las cuentas de trabajo es el endpoint `/consumers` de Microsoft, que no las emite;
-     * pero el rechazo propio —por si alguien cambia el tenant o el servidor responde cualquier
-     * cosa— lo tiene que escribir Wasabi: F9-05 envuelve `getUserInfo`. La cara de Microsoft ya
-     * emite el token de organización (ver `fake-idp.test.ts`) para poder probarlo.
-     */
-    it.todo(
-      'F9-05: rechaza un token con el tid de una organización aunque llegue por el endpoint `consumers`',
-    );
+    it('rechaza una cuenta de trabajo o escuela aunque el token llegue por el endpoint consumers: el tid lo chequea Wasabi', async () => {
+      const auth = authWith({ microsoft: true });
+
+      const attempt = await signInVia(auth, 'microsoft', {
+        action: 'approve',
+        email: 'ana@empresa.com',
+        name: 'Ana',
+        tenant: 'organization',
+      });
+
+      expect(attempt.jar.hasSession()).toBe(false);
+      expect(new URL(attempt.finalLocation, BASE).searchParams.get('error')).toBe(
+        'unable_to_get_user_info',
+      );
+      expect(await countUsers()).toBe(0);
+      expect(await mongo.db.collection('account').countDocuments()).toBe(0);
+    });
 
     it('cancelar vuelve con access_denied', async () => {
       const auth = authWith({ microsoft: true });
