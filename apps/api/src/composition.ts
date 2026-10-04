@@ -1,3 +1,4 @@
+import type { Env } from './config/env.ts';
 import { addManagedExercise } from './modules/exercises/application/add-managed-exercise.ts';
 import {
   deleteManagedExercise,
@@ -14,6 +15,9 @@ import {
 import type { ExerciseRoutesOptions } from './modules/exercises/infrastructure/exercise.routes.ts';
 import { createMongoExerciseRepository } from './modules/exercises/infrastructure/mongo-exercise.repository.ts';
 import { createMongoManagedExerciseStore } from './modules/exercises/infrastructure/mongo-managed-exercise.store.ts';
+import { listProviders } from './modules/oauth/application/list-providers.ts';
+import { enabledProviders } from './modules/oauth/infrastructure/oauth-settings.ts';
+import type { OauthRoutesOptions } from './modules/oauth/infrastructure/oauth.routes.ts';
 import { logRecord, recordHistory } from './modules/records/application/records.ts';
 import type { OwnedExerciseLookup } from './modules/records/domain/record-ports.ts';
 import { createMongoRecordGateway } from './modules/records/infrastructure/mongo-record.gateway.ts';
@@ -118,6 +122,16 @@ export function composeStats(mongo: MongoConnection): Omit<StatsRoutesOptions, '
     trainingActivity: (userId, period) =>
       activityFor({ lookup: list, records, now: () => new Date() }, { userId, period }),
   };
+}
+
+/**
+ * El ingreso por proveedores (F9-02). `oauth` sólo necesita saber qué proveedores tienen
+ * credenciales: lo lee del entorno, una vez, al arrancar.
+ */
+export function composeOauth(env: Env): OauthRoutesOptions {
+  const enabled = enabledProviders(env);
+
+  return { listProviders: () => listProviders(enabled) };
 }
 
 /** Las preferencias (F1-08). `users` no necesita nada de otro módulo. */
