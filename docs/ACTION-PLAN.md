@@ -3376,6 +3376,23 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   Storybook sin cambios; axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `@wasabi-cross/ui` exporta `./tokens.css`
+  **directo desde `src/styles/`** y no desde `dist/` como decía el plan: es CSS plano, no pasa por
+  el build de la librería y no depende de que ésta se compile antes. El archivo es más que
+  tokens (trae `.wc-root`, el foco visible, los titulares en la condensada, `.wc-visually-hidden`
+  y `.wc-plate-cut`), y es justo lo que la landing aprovecha. Los ocho tokens que la app no
+  tiene (la banda, la tarjeta Pro, las líneas, el texto del cuerpo y el atenuado, el rosa de Pro
+  con sus dos bordes y la tipografía del cuerpo) viven en `apps/landing/src/styles/tokens.css`
+  con la tabla diseño → token. **El contraste lo cuida `test/contraste.test.ts`**, no sólo el
+  comentario: todo texto sobre toda superficie ≥ 4,5:1 (el peor, 5,2:1) y el foco ≥ 3:1.
+  Tipografías por Fontsource, sólo `latin`, todas con `font-display: swap`; la de los titulares
+  se precarga (hoy en `index.astro`, pasa al layout en F10-03). Los tests miran la salida de un
+  build real que corre una sola vez (`globalSetup`): `@font-face` por familia y peso, `src` del
+  propio origen, ningún recurso de otro host, ningún color suelto fuera de los tokens. Cinco
+  mutaciones a mano (un color suelto, un token oscurecido, un `@import` de Google Fonts, sin la
+  precarga y sin un peso) las atrapa un test cada una. Verificado en un navegador: fondo
+  `#0f041c`, texto `#d7efef`, `h1` en Staatliches, 0 recursos de otro origen. El rosa de Pro
+  sigue como lo trae el diseño (la etiqueta PRO de la app es lima).
 
 ## [ ] F10-03 · Estructura de la página: layout, header, footer, 404 y `Screenshot`
 

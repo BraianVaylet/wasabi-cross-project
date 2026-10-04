@@ -10,10 +10,12 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./styles.css": "./dist/wasabi-cross-ui.css"
+    "./styles.css": "./dist/wasabi-cross-ui.css",
+    "./tokens.css": "./src/styles/tokens.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "src/styles/tokens.css"
   ],
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json",

@@ -1,0 +1,62 @@
+/*
+ * Estilos base de la landing (F10-02). Se importan una vez desde el layout.
+ *
+ * Los `@import` van primero y en este orden: la marca de la app, lo que sólo tiene la landing y las
+ * tipografías.
+ */
+
+/* La marca: tokens, `.wc-root` (fondo, color, foco visible, titulares en la condensada),
+   `.wc-visually-hidden`, `.wc-kicker` y `.wc-plate-cut`. */
+@import '@wasabi-cross/ui/tokens.css';
+@import './tokens.css';
+
+/*
+ * Tipografías por Fontsource (spec §6, ADR-0008), del propio origen, nunca de un CDN: la CSP no
+ * deja pedir fuentes afuera (spec §13). Sólo `latin`, que alcanza para el español, y sólo los
+ * pesos que usa el diseño. Todas con `font-display: swap`: el texto se ve enseguida, con la
+ * fuente de respaldo, y cambia cuando baja la propia.
+ */
+@import '@fontsource/staatliches/latin-400.css';
+@import '@fontsource/share-tech-mono/latin-400.css';
+@import '@fontsource/figtree/latin-400.css';
+@import '@fontsource/figtree/latin-500.css';
+@import '@fontsource/figtree/latin-600.css';
+@import '@fontsource/figtree/latin-700.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Que el ancla de la nav no quede pegada al borde de arriba al saltar. */
+[id] {
+  scroll-margin-top: var(--wc-space-5);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+/* La base de la app (`.wc-root`) usa la mono; el texto corrido de la landing, Figtree. */
+.wc-root {
+  font-family: var(--wc-font-family-body);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}

@@ -150,8 +150,8 @@ diseño pasa AA; el diseño nombra 5 de las 7 disciplinas; y que un cambio de co
 depende de los _watch paths_ de Railway, que el IaC no documenta (F10-12 lo comprueba). **El dominio
 hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth llevan el host de la
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
-está mergeada (PR #98) y F10-01, el workspace `apps/landing` con Astro, hecha en una PR**;
-ninguna tarea cerrada.
+está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro) también (PR #100) y
+F10-02 (tokens, fuentes y estilos base) está hecha en una PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -194,9 +194,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-01 (el workspace con Astro; trae una excepción a
-    la antigüedad mínima de pnpm, ver "Decisiones abiertas"); después F10-02 (tokens y
-    fuentes). Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-02 (tokens, fuentes y estilos base; toca
+    `packages/ui`: un export nuevo); después F10-03 (layout, header, footer, 404 y
+    `Screenshot`). Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -277,6 +277,10 @@ no puede entrar por la web: sin contraseña y sin botón. Para ver las estadíst
 un usuario y subirle el plan con el control de `dev:ephemeral` (`POST :3101/plan`).
 
 ## Última actualización
+
+2026-10-04 — **Fase 10, F10-02**: la landing usa los tokens de la app (`@wasabi-cross/ui/tokens.css`),
+sus propios tokens y las tres tipografías de Fontsource, con el contraste cuidado por un test, en
+una PR. Bitácora [2026-10-04](./bitacora/2026-10-04-f10-02-tokens-fuentes.md).
 
 2026-10-04 — **Fase 10, F10-01**: el workspace `apps/landing` con Astro 7, ESLint y Prettier para
 `.astro` y un test de build real, en una PR. Bitácora

@@ -1,0 +1,60 @@
+/*
+ * Lo que la landing tiene y la app no (spec §11, F10-02). Todo lo demás —fondo, superficie, lima,
+ * texto, foco, el recorte de esquina— sale de los tokens de la app (`@wasabi-cross/ui/tokens.css`):
+ * ningún color se escribe a mano fuera de estos dos archivos (lo cuida test/estilos.test.ts).
+ *
+ * De colores del diseño (docs/landing) a tokens:
+ *
+ *   #0F041C fondo               → --wc-bg            (igual)
+ *   #160824 tarjeta             → --wc-surface       (igual)
+ *   #A6DA4B lima                → --wc-accent        (#A7DD4F)
+ *   #E9F2F0 texto               → --wc-text          (#D7EFEF)
+ *   #6CB5B4 etiqueta            → --wc-text-muted    (igual)
+ *   #8BCBC9 #91D2D0 #9ACBC8
+ *   #B9D5D3 verdes azulados     → --wc-text-soft     (#9ACBC8: cuatro tonos casi iguales en uno)
+ *   #D0CBD8 #C9C4D2 párrafos    → --wc-text-body     (nuevo, #C9C4D2)
+ *   #8D8798 el guion de la tabla → --wc-text-dim     (nuevo, igual)
+ *   #13071F banda               → --wc-bg-band       (nuevo, igual)
+ *   #1C102A tarjeta Pro         → --wc-surface-pro   (nuevo, igual)
+ *   #3C3349 líneas              → --wc-line          (nuevo, igual)
+ *   #32989A al 45 %             → --wc-divider       (de la app, al 40 %)
+ *   #C15EA7 #D989C0 Pro         → --wc-pro, --wc-pro-text (nuevos, iguales)
+ *
+ * Contraste (spec §11: texto ≥ 4,5:1, lo que no es texto ≥ 3:1). Lo recalcula
+ * test/contraste.test.ts sobre todo texto y toda superficie; si un token se mueve y un par baja,
+ * el test falla. El peor caso de cada texto, sobre la tarjeta Pro (la superficie más clara):
+ *
+ *   --wc-text 15,1 · --wc-text-body 10,6 · --wc-text-soft 10,2 · --wc-text-muted 7,7
+ *   --wc-accent 11,3 · --wc-pro-text 7,2 · --wc-text-dim 5,2
+ *   el botón (--wc-text-on-accent sobre --wc-accent) 12,4 · la etiqueta Pro (sobre --wc-pro) 5,15
+ *   el foco (--wc-focus) sobre cualquier superficie, 11,3
+ *
+ * `--wc-line` da 1,67:1 sobre el fondo y no pasa 3:1: es a propósito, porque sólo separa secciones
+ * y encuadra capturas que ya tienen su propio borde; no transmite nada que otro elemento no diga.
+ * `--wc-pro` es un borde y el relleno de una etiqueta: como texto se usa --wc-pro-text.
+ *
+ * El rosa de Pro es del diseño de la landing; la etiqueta PRO de la app es lima. Unificarlos es
+ * cambiar --wc-pro y --wc-pro-text (spec §11, decisión abierta).
+ */
+
+:root {
+  /* Superficies */
+  --wc-bg-band: #13071f;
+  --wc-surface-pro: #1c102a;
+
+  /* Líneas: decorativas */
+  --wc-line: #3c3349;
+
+  /* Texto */
+  --wc-text-body: #c9c4d2;
+  --wc-text-dim: #8d8798;
+
+  /* Pro */
+  --wc-pro: #c15ea7;
+  --wc-pro-text: #d989c0;
+  --wc-pro-border: rgb(193 94 167 / 70%);
+  --wc-pro-border-soft: rgb(193 94 167 / 40%);
+
+  /* El texto corrido de la landing. La mono y la condensada son las de la app. */
+  --wc-font-family-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
