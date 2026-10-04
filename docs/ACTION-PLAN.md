@@ -24,6 +24,7 @@
 | Fase 7 — Estadísticas ampliadas   |      8 |           23 |      0 |
 | Fase 8 — Plan Pro                 |      7 |           22 |      0 |
 | Fase 9 — Ingreso con OAuth 2.0    |     11 |           42 |      0 |
+| Fase 10 — Landing page            |     14 |           40 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -3135,5 +3136,540 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
 - **depends_on:** F9-05 (staging y prod: F3-07)
 - **risk:** medium
 - **test_plan:** prueba manual guiada, con el resultado en la bitácora.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+---
+
+# Fase 10 — Landing page (Astro)
+
+El usuario trajo (2026-10-04) el diseño de la landing —`docs/landing/Landing · Columna de prueba.html`
+y su PNG, más 16 capturas de la app en `docs/landing/capturas/`— y pidió que se desarrolle con
+**Astro**. La spec la dejaba afuera ("la landing page queda fuera de esta fase", §1 y §5): F10-00 la
+mete. Es una sola página larga, estática, sin JavaScript, sin formularios y sin cookies: header →
+hero → registro → funciones → estadísticas Pro → planes → footer. **El PNG del diseño se renderizó
+con las 11 imágenes rotas** (el HTML las busca en `../../docs/landing/capturas/`, una ruta que no
+resolvía desde donde se sacó), así que la referencia completa es el HTML; las capturas, que sí
+están, se miran en su carpeta.
+
+**Decisiones del usuario, 2026-10-04** (F10-00 las vuelca en la spec y en el ADR):
+
+1. **Sitio aparte.** `apps/landing` es un workspace nuevo, con su propio servicio estático en
+   Railway: la landing en el dominio raíz y la app en `app.`. No toca la API, el service worker ni
+   el router. Descartadas: que la API la sirva en `/` (obligaba a mover el Home de la app a
+   `/ejercicios` y a tocar `start_url`, el service worker, los redirects y el E2E, justo donde la
+   Fase 9 está trabajando) y un solo servicio que rutee por _host_.
+2. **La landing lleva a la app.** El diseño no tiene forma de entrar: "Ver la app en acción" ancla a
+   la captura del hero, que en escritorio ya está a la vista. Se suma "Entrar" en el header y
+   "Empezar gratis" como CTA principal, los dos al ingreso de la app (`/login`); "Ver la app en
+   acción" queda como enlace secundario. La URL de la app es una variable de build
+   (`PUBLIC_APP_URL`): sin ella —hoy no hay producción— los dos botones no se muestran.
+3. **Voseo es-AR**, como la app y la spec §11 ("Entrenás", "Registrá", "Elegí"). El diseño está en
+   español neutro ("Entrenas", "Registra", "Elige"); se reescribe el texto con el mismo contenido.
+4. **Free y Pro como dice la spec §4**, no como el diseño. La tarjeta Pro dice "Suscripción anual":
+   el período es una decisión abierta (STATE.md), así que la landing dice sólo "Suscripción · precio
+   por definir". Las secciones Registro y Funciones prometen "tendencia del RM" y "evolución del
+   tiempo", pero con Free el progreso es un aviso de "Ver planes": hablan del **historial de
+   marcas** y el progreso se muestra como lo que es, de Pro. Se suman al bloque de planes las
+   capturas 09 (suscripción) y 11 (el aviso que ve Free), que el diseño no usa.
+
+**Hallazgos del repo y del diseño**, comprobados al armar el plan:
+
+- **`/` ya está ocupada.** El Home de la app es `/` (`router.tsx`), la API sirve el front desde ahí
+  (ADR-0007) y el service worker de la PWA contesta `index.html` a toda navegación. Es lo que
+  decidió el sitio aparte. Con él, la landing no es una PWA: ni manifest ni service worker.
+- **El HTML del diseño no sirve tal cual.** Trae Tailwind desde un CDN (no está en el stack, spec §6,
+  y es un script de otro host que la CSP de spec §13 no deja correr) y las fuentes desde Google
+  Fonts (ADR-0008 ya eligió Fontsource). Se traduce a CSS propio sobre los tokens de la app.
+- **Una tipografía nueva:** Staatliches y Share Tech Mono ya están en el monorepo; el diseño suma
+  **Figtree** para el cuerpo (`@fontsource/figtree` 5.3.0). Es sólo de la landing.
+- **El contraste del diseño pasa AA.** Calculado sobre cada fondo que usa (`#0F041C`, `#13071F`,
+  `#160824`, `#1C102A`): el peor texto da 5,2:1 (el guion gris de la tabla sobre la tarjeta Pro);
+  los botones, 12,1:1; la etiqueta PRO (oscuro sobre rosa), 5,15:1. Los bordes `#3C3349` dan 1,67:1,
+  pero son decorativos. No hace falta apartarse del diseño como en F4 con el magenta.
+- **La paleta no es la de los tokens, por poco.** Lima `#A6DA4B` contra `--wc-accent` `#A7DD4F`,
+  texto `#E9F2F0` contra `--wc-text` `#D7EFEF`, y cinco verdes azulados donde los tokens tienen
+  tres. Y hay dos colores que la app no tiene: la banda `#13071F` y el **rosa de Pro**
+  (`#C15EA7` / `#D989C0`) — **en la app, la etiqueta PRO es lima**. F10-02 los mapea y deja el rosa
+  como lo trae el diseño; si el usuario prefiere unificar con el lima de la app, es cambiar un token.
+- **El diseño nombra cinco disciplinas de las siete** del catálogo (`disciplineSchema`: faltan
+  `hybrid` y `pilates`, F5-13). Se agregan o se dejan afuera con el usuario en F10-05; cada nombre
+  tiene que existir en el enum.
+- **Las imágenes del diseño están todas en `loading="lazy"`**, también la del hero (que atrasa el
+  LCP), y sin ancho ni alto (salto de layout). Los PNG son de 780px de ancho y pesan 1,4 MB entre
+  las 16: pasan por `astro:assets`. Tres son muy altas (780×2320, ×2740 y ×3120).
+- **Las capturas son de un usuario Pro** y envejecen con la UI: 04, 09 y 10 muestran la etiqueta PRO,
+  y 04 el progreso. Un script que las regenere queda afuera de esta fase (abajo).
+- **En móvil el diseño oculta la nav** (`hidden md:flex`) y no hay menú: quedan el logo y "Entrar".
+  Con las anclas de una sola página, alcanza.
+- **La tabla de planes mide 560px como mínimo** dentro de un contenedor con scroll horizontal: a
+  390px se desplaza, y axe exige que ese scroll se alcance con el teclado
+  (`scrollable-region-focusable`).
+- **Google y Microsoft piden una política de privacidad** para publicar la app (F9-10 ya lo anota
+  para Google). La landing es el lugar natural, y con dominio propio: F10-09.
+- **El dominio decide las redirect URIs de OAuth.** Con la app en `app.`, los callbacks son
+  `https://app.<dominio>/api/auth/callback/<proveedor>`: el dominio hay que fijarlo **antes de F9-10
+  en staging y prod**, o se rehacen los clientes de Google y Microsoft. Hoy no hay dominio.
+- **Astro 7.3.5** es la última estable al armar el plan: pide Node ≥ 22.12 (el repo, 24) y su Vite es
+  `^8.0.13`, la misma del catálogo (`^8.3.1`), así que no se duplica. `@astrojs/check` acepta
+  TypeScript 6 (el repo, 6.0.3) y `eslint-plugin-astro` 3.2.1 pide ESLint ≥ 10 (el repo, `^10.11`).
+  **Falta `prettier-plugin-astro`:** sin él `format:check` no abre los `.astro` y no avisa.
+- **Dos servicios del mismo repo se redeployan juntos** salvo que se configuren _watch paths_.
+  Railway los tiene por servicio, pero la referencia del IaC (`service()`) no los menciona. Por eso
+  "un cambio de copy no reinicia la API" es una ventaja **condicionada**: F10-12 comprueba si se
+  pueden declarar en `.railway/railway.ts`; si no, se cargan en el panel o se acepta el redeploy
+  conjunto (el arranque de la API tarda segundos, ADR-0007).
+
+**Fuera de la Fase 10**, para que no se cuele:
+
+- Analytics, cookies y banner de consentimiento: la landing no los lleva (y por eso no hace falta
+  el banner).
+- Formulario de contacto, newsletter, blog, changelog, varios idiomas.
+- PWA, manifest o service worker en la landing; JavaScript de cliente (y Motion): el build no emite
+  ningún `.js`, y si algún día hace falta es una decisión.
+- Tailwind: no está en el stack. Tampoco un tema claro (ADR-0008).
+- El precio, el período y la pasarela de pago de Pro: la landing dice "por definir" hasta que se
+  decida (STATE.md, decisiones abiertas).
+- El modal para promocionar Pro dentro de la app (de la Fase 9).
+- Un script que regenere las capturas desde la app con datos sembrados. Se arma cuando la UI cambie
+  lo bastante como para que las del repo queden viejas.
+
+**Camino:** F10-00 → F10-01 → F10-02 → F10-03 → F10-04 a F10-09 en paralelo (cada una su sección o
+su página) → F10-10 (E2E y axe) → F10-12 → F10-13 (🔑). F10-11 (el servidor de producción) sólo
+necesita F10-01 y F10-03 y puede ir en paralelo con las secciones. **No comparte código con la
+Fase 9:** toca `apps/landing`, `.railway/`, `packages/ui` (un export), `pnpm-workspace.yaml`,
+`eslint.config.js`, `ci.yml` y CLAUDE.md; los conflictos posibles son de esos archivos, no de la
+entrada a la app. **Revisión humana:** el copy en voseo de F10-05 a F10-08 y los textos legales de
+F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público); F10-11 pasa por
+`/security-review` y `aikido:scan` (headers y CSP).
+
+## [ ] F10-00 · Spec y ADR: la landing
+
+- **module:** spec
+- **description:** Las cuatro decisiones de arriba, volcadas en la spec: §1 (el alcance incluye la
+  landing, un sitio estático aparte; se va "queda fuera de esta fase"), §5 (se va el párrafo
+  "Landing page: fuera de esta fase" y entra §5.7 nueva: qué secciones tiene, qué promete de cada
+  plan —sólo lo de §4—, a dónde lleva "Entrar", la variable `PUBLIC_APP_URL`, el voseo, y que no
+  lleva cookies ni analytics), §6 (Astro; Figtree como tipografía del cuerpo de la landing; Tailwind
+  no), §7 (`apps/landing` no es un módulo de dominio y no importa de la API; sí lee
+  `@wasabi-cross/schemas`), §11 (la landing usa el ancho completo y no la columna de 430px; la tabla
+  diseño → token; el rosa de Pro), §12 (un servicio estático más; la landing en el dominio raíz y la
+  app en `app.`; `WEB_ORIGIN`, `BETTER_AUTH_URL` y las redirect URIs de OAuth llevan el host de la
+  app) y §13 (CSP estricta de la landing, sin cookies, staging con `noindex`). ADR-0013: las tres
+  opciones de hosting (sitio aparte, la API en `/` con el Home en `/ejercicios`, un servicio con
+  ruteo por host), por qué la primera, y lo que cuesta: un servicio y dos hostnames más, y el
+  redeploy conjunto si los watch paths no se pueden declarar (hallazgo de arriba). STATE.md: pasa a
+  "decisión abierta" el dominio. `docs/architecture.md`: el árbol suma `apps/landing`.
+- **acceptance-criteria:**
+  - Dada la spec, cuando se leen §1 y §5, entonces ya no dice que la landing queda fuera, y §5.7
+    dice qué secciones tiene y qué promete de cada plan.
+  - Dado el ADR, cuando se lee, entonces dice qué se eligió, qué se descartó y por qué, y qué haría
+    falta para servirla desde la API.
+  - Dada la spec §12, cuando se lee, entonces dice en qué host vive la landing y en cuál la app, y
+    que las redirect URIs de OAuth usan el de la app.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** revisión humana de la PR.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-01 · Workspace `apps/landing` con Astro
+
+- **module:** landing
+- **description:** Workspace nuevo `@wasabi-cross/landing` con Astro 7, `output: 'static'`,
+  TypeScript `strict` y `build.inlineStylesheets: 'never'` (todo el CSS en archivos: es lo que deja
+  una CSP sin `unsafe-inline`, F10-11). `astro` y `@astrojs/check` entran al `catalog:` de
+  `pnpm-workspace.yaml`. Scripts: `dev` (4321), `build`, `preview`, `typecheck` (`astro check`),
+  `test` y `test:coverage` (Vitest con `getViteConfig` de Astro). Tooling del monorepo:
+  `eslint-plugin-astro` en `eslint.config.js`, `prettier-plugin-astro` en `.prettierrc.json`,
+  `apps/landing/dist` y `.astro/` en `.gitignore` y en los ignores de ESLint y Prettier, y
+  `@wasabi-cross/schemas` como dependencia (sólo lectura: la tabla de planes y los tests). Una
+  `index.astro` mínima. Documentación: CLAUDE.md y AGENT.md (la estructura, "los cuatro workspaces"
+  pasa a cinco y los comandos `pnpm --filter @wasabi-cross/landing dev` y `build`) y STATE.md. Si
+  pnpm rechaza una versión por `minimumReleaseAge`, se usa la anterior: no se suma nada a
+  `minimumReleaseAgeExclude` sin decidirlo. Si `pnpm install` pide un permiso nuevo en `allowBuilds`
+  (`sharp` no debería: trae sus binarios como dependencias opcionales, a verificar), se decide y se
+  comenta en `pnpm-workspace.yaml`.
+- **acceptance-criteria:**
+  - Dado un clon limpio, cuando se corre `pnpm install --frozen-lockfile && pnpm verify`, entonces
+    pasa con el workspace nuevo incluido: build, formato, lint, typecheck y tests.
+  - Dado un `.astro` mal formateado o con un tipo roto en su frontmatter, cuando corren
+    `format:check`, `lint` y `typecheck`, entonces los tres lo marcan (prueba inversa: sin los
+    plugins pasaría en silencio).
+  - Dado el lockfile, cuando se revisa, entonces hay una sola versión de Vite y de TypeScript.
+  - Dado `pnpm --filter @wasabi-cross/landing build`, cuando termina, entonces `dist/` tiene
+    `index.html` y ningún `.js`.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-00
+- **risk:** medium (toolchain nueva en un monorepo con ESLint 10, TypeScript 6 y pnpm 11: los peers
+  y los permisos de instalación son los puntos donde se rompe)
+- **test_plan:** `pnpm verify` y CI; las pruebas inversas de arriba.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-02 · Tokens, fuentes y estilos base
+
+- **module:** landing
+- **description:** La landing usa la marca de la app desde la misma fuente. `@wasabi-cross/ui`
+  exporta `./tokens.css` (hoy sólo exporta `./styles.css`, el CSS completo de la librería, con
+  todos los componentes React que la landing no usa) y la landing lo importa: no copia colores. La
+  tabla **diseño → token**: lo que se funde en un token de la app (lima, texto, los cinco verdes
+  azulados en `--wc-text-muted` y `--wc-text-soft`, la superficie `#160824` que ya es
+  `--wc-surface`) y lo nuevo (la banda `#13071F` y el rosa de Pro, `#C15EA7` como borde y relleno,
+  `#D989C0` como texto). El contraste se recalcula sobre cada par con los tokens finales (≥ 4,5:1 en
+  texto, ≥ 3:1 en lo que no es texto salvo lo decorativo) y la tabla queda comentada en el CSS, como
+  en `tokens.css`. Tipografía por Fontsource (spec §6, ADR-0008): Staatliches y Share Tech Mono, y
+  `@fontsource/figtree` (400, 500, 600 y 700, sólo `latin`, que alcanza para el español), con
+  `font-display: swap` y la de los titulares precargada. CSS base: reset, foco visible
+  (`--wc-focus`), `color-scheme: dark`, `scroll-behavior: smooth` con `scroll-margin-top` para las
+  anclas y `prefers-reduced-motion`. El recorte "plate-cut" usa el token (10px; el diseño, 12px).
+  Sin Tailwind.
+- **acceptance-criteria:**
+  - Dado el build, cuando se inspeccionan los estilos, entonces ningún color está escrito a mano
+    fuera de los tokens, y ninguna fuente ni script se pide a otro host.
+  - Dado cada par texto/fondo que usa la landing, cuando se calcula el contraste con los tokens
+    finales, entonces cumple la spec §11 y el resultado está en el comentario del CSS.
+  - Dada la página, cuando carga, entonces las tipografías salen del propio origen y el texto se ve
+    antes de que terminen de bajar.
+  - Dado `@wasabi-cross/ui`, cuando se importa `./styles.css`, entonces anda igual: el export nuevo
+    no rompe la web ni Storybook.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-01
+- **risk:** medium (toca `packages/ui`, que usa la web: su build y sus tests siguen en verde)
+- **test_plan:** test de que `dist/tokens.css` existe y trae los `--wc-*`; build de web y de
+  Storybook sin cambios; axe en F10-10.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-03 · Estructura de la página: layout, header, footer, 404 y `Screenshot`
+
+- **module:** landing
+- **description:** `BaseLayout.astro` con los landmarks `header` / `main` / `footer`,
+  `lang="es-AR"` y un enlace "Saltar al contenido" que aparece con el foco. `Header` con el logo (la
+  "W" y el nombre "WASABI // CROSS", que un lector de pantalla lee "Wasabi Cross", como el
+  `Wordmark` de la app) y la nav de anclas del diseño (Registro, Funciones, Free / PRO; bajo 768px
+  se oculta, como en el diseño, y quedan el logo y "Entrar"). `Footer` con su CTA. `404.astro` con la
+  marca y un enlace al inicio. `AppLink`: "Entrar" y "Empezar gratis" leen `PUBLIC_APP_URL` y
+  apuntan a su `/login`; sin la variable no renderizan nada (decisión 2). `Screenshot.astro`:
+  `<figure>` con `astro:assets` (formato moderno, `width` y `height` reales para que no haya salto
+  de layout, `sizes` según la grilla), `alt` obligatorio **por tipo** y pie; `loading="lazy"` por
+  defecto (el hero lo pisa en F10-05). Las 13 capturas que se usan (las 11 del diseño y las nuevas 09 y 11) se **copian** de
+  `docs/landing/capturas/` a `apps/landing/src/assets/capturas/`: `docs/landing` queda como el
+  diseño original y lo que se publica sale de `src/assets`. Quedan sin usar
+  `05-catalogo-busqueda`, `08-perfil` y `10-menu`.
+- **acceptance-criteria:**
+  - Dada la página sin `PUBLIC_APP_URL`, cuando se renderiza, entonces no hay "Entrar" ni "Empezar
+    gratis"; con `PUBLIC_APP_URL=https://app.ejemplo.test`, entonces ambos apuntan a
+    `https://app.ejemplo.test/login` y a ninguna otra parte.
+  - Dado un `Screenshot` sin `alt`, cuando se corre el typecheck, entonces falla.
+  - Dada una captura, cuando se renderiza, entonces la imagen trae `width` y `height`, y lo que se
+    sirve pesa menos que el PNG de origen.
+  - Dado el teclado, cuando se aprieta Tab una vez, entonces el foco cae en "Saltar al contenido".
+  - Dado `dist/`, cuando se lista, entonces está `404.html`.
+- **example:** `PUBLIC_APP_URL=https://app.ejemplo.test` → "Entrar" lleva a
+  `https://app.ejemplo.test/login`.
+- **story-points:** 3
+- **depends_on:** F10-02
+- **risk:** low
+- **test_plan:** Vitest con el Container API de Astro para `AppLink`, `Header` y `Screenshot` (los
+  `.astro` se cubren por ahí y por el E2E; el coverage mide los `.ts`); typecheck del `alt`
+  obligatorio; axe en F10-10.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-04 · SEO y compartir
+
+- **module:** landing
+- **description:** El `<head>` completo: `<title>` y `description`, `canonical`, `og:*` y
+  `twitter:card` con una imagen de 1200×630 (la marca, el titular y una captura: se arma una vez con
+  un script de Playwright sobre una página interna `/og` que no entra al build, y el PNG se
+  commitea), `theme-color` `#0f041c`, `favicon.ico`, `logo.svg` y `apple-touch-icon` (copias de los
+  de `apps/web/public`, que genera `pnpm --filter @wasabi-cross/web icons`). **Indexable sólo si el
+  build trae `PUBLIC_SITE_URL` y `LANDING_INDEXABLE=1`** (producción): sin eso —CI, desarrollo,
+  staging— sale `noindex`, un `robots.txt` con `Disallow: /` y ninguna URL absoluta inventada. En
+  producción, `robots.txt` apunta a un `sitemap.xml` (un endpoint estático con la home y las páginas
+  legales). Sin manifest ni service worker, sin JSON-LD, sin analytics.
+- **acceptance-criteria:**
+  - Dado un build con `PUBLIC_SITE_URL` y `LANDING_INDEXABLE=1`, cuando se lee el HTML, entonces
+    trae `canonical`, `og:url`, una `og:image` absoluta e `index,follow`, y el sitemap lista las
+    páginas.
+  - Dado un build sin esas variables (staging, CI), cuando se lee, entonces trae `noindex`,
+    `robots.txt` bloquea todo y no hay `canonical`.
+  - Dado el enlace pegado en un chat, cuando se despliega la vista previa, entonces muestra título,
+    descripción e imagen (prueba manual en staging).
+  - Dado `dist/`, cuando se lista, entonces no hay `manifest` ni `sw.js`.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F10-03
+- **risk:** low
+- **test_plan:** Vitest sobre el `<head>` del HTML construido en los dos modos; un test de que
+  `og.png` mide 1200×630.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-05 · Hero
+
+- **module:** landing
+- **description:** El hero del diseño: el h1 "Entrenás en varias disciplinas." con "Tus marcas, en
+  un solo lugar." en el acento, el párrafo, la línea de ejercicios (SENTADILLA · BURPEES · CARRERA ·
+  ERGÓMETRO · SLED), "Empezar gratis" (la placa con recorte) con "Ver la app en acción" como enlace
+  secundario al ancla de la captura, la franja KG / REPS / MM:SS y la captura 01 con su pie. Una
+  columna y, desde `md`, el texto y una columna de 430px (la de la app). **La captura del hero es la
+  imagen del LCP**: `loading="eager"` y `fetchpriority="high"` (el diseño la deja `lazy`). Las
+  disciplinas que nombra el texto salen de datos tipados en `src/content/` y se verifican contra
+  `disciplineSchema`: el diseño nombra cinco de las siete (faltan `hybrid` y `pilates`); se agregan
+  o se dejan afuera con el usuario en la PR. El copy, en voseo (decisión 3).
+- **acceptance-criteria:**
+  - Dado un ancho de 390px, cuando carga, entonces el hero se lee en una columna, sin scroll
+    horizontal, y el CTA se toca (≥ 44×44px).
+  - Dado un ancho de 1280px, cuando carga, entonces el texto y la captura quedan lado a lado, con la
+    captura en 430px.
+  - Dada la página, cuando se mide, entonces el LCP es la captura del hero y no es `lazy`.
+  - Dado el texto, cuando lo lee el usuario en la PR, entonces está en voseo y lo aprueba.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-03
+- **risk:** low
+- **test_plan:** Container API del hero; test de contenido: cada disciplina nombrada existe en
+  `disciplineSchema`; E2E y axe en F10-10.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-06 · Registro y Funciones
+
+- **module:** landing
+- **description:** La sección Registro ("Registrá ahora. Consultá el historial cuando quieras.", la
+  nota "EL PORCENTAJE DE CARGA Y EL HISTORIAL NO SE BLOQUEAN EN FREE", capturas 02 y 03) y la de
+  Funciones (catálogo y marcas por tiempo, capturas 05 y 04, y los tres resúmenes CATÁLOGO / MARCAS /
+  HISTORIAL). Por la decisión 4, los textos y los pies hablan de **historial de marcas**, no de
+  "tendencia del RM" ni de "evolución del tiempo": el progreso es de Pro (spec §4). Y como 03 y 04
+  son capturas de un usuario Pro (04 trae la etiqueta PRO y el progreso a la vista), el pie lo dice
+  o se reemplazan por capturas con un usuario Free (se decide con el usuario en la PR). El copy, en
+  voseo.
+- **acceptance-criteria:**
+  - Dada la sección Registro, cuando se lee, entonces afirma sólo lo que un usuario Free puede hacer
+    (spec §4): cargar sin límite, porcentajes e historial de marcas.
+  - Dadas las capturas 03 y 04, cuando se muestran en una sección sin marca de Pro, entonces el pie
+    aclara qué parte es de Pro, o se usa una captura de Free.
+  - Dadas las imágenes, cuando se revisan, entonces cada una tiene un `alt` propio que describe lo
+    que se ve, no una copia del pie.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-03
+- **risk:** low
+- **test_plan:** Container API; test de contenido: las secciones sin marca de Pro no usan las
+  palabras "tendencia" ni "evolución"; E2E y axe en F10-10.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-07 · Estadísticas Pro
+
+- **module:** landing
+- **description:** La sección "Pro suma estadísticas a tus registros" con la etiqueta "PRO ·
+  ESTADÍSTICAS" en el rosa de Pro y las seis capturas: 06 (el período), 07-ejercicio, 07-general,
+  07-entrenamiento, 07-constancia y 07-retestear; y el bloque "Constancia y ejercicios para volver a
+  testear". Lo que dice que incluye es lo de spec §5.4 (por ejercicio y generales, constancia,
+  récords, para retestear y tu entrenamiento); "más de ocho semanas" son los 56 días de la spec. Dos
+  capturas son muy altas (780×2320 y ×2740) y una es más chica que las demás (700×686): cómo se
+  muestran —completas, como el diseño, o con una altura máxima— se decide con el usuario en la PR.
+  El copy, en voseo.
+- **acceptance-criteria:**
+  - Dada la sección, cuando se lee, entonces dice que las estadísticas son de Pro y nombra lo que
+    incluye (spec §5.4).
+  - Dado "más de ocho semanas", cuando se compara con spec §5.4, entonces coincide con los 56 días.
+  - Dadas las seis capturas, cuando carga la página, entonces ninguna produce salto de layout y las
+    que están bajo el pliegue son `lazy`.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-03
+- **risk:** low
+- **test_plan:** Container API; E2E y axe en F10-10.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-08 · Planes
+
+- **module:** landing
+- **description:** La sección "Registro completo en Free. Estadísticas extra en Pro.": la tabla
+  comparativa de cinco filas (las tres primeras "Sí" y "Sí"; las dos de estadísticas "—" e
+  "Incluidas"), como `<table>` de verdad, con `<caption>` y `scope`, dentro de un contenedor con
+  scroll horizontal (a 390px la tabla mide 560px como mínimo) **alcanzable por teclado**
+  (`tabindex="0"` y `role="region"` con nombre). Las dos tarjetas, la de Pro con el recorte y el
+  rosa. Por la decisión 4, el precio dice "Suscripción · precio por definir", sin período, y se
+  suman las capturas 09 y 11 como lo que ve cada plan. **La fila de estadísticas sale de
+  `canViewStats`** de `@wasabi-cross/schemas`, la misma regla que hace cumplir la API: si la spec
+  cambiara qué plan ve las estadísticas, la landing no puede seguir diciendo otra cosa. Los textos
+  comerciales (el precio) viven en `src/content/plans.ts`, que **duplica** a
+  `apps/web/src/lib/plans.ts` (los dos dicen "a definir"): cuando haya precio hay que cambiar los
+  dos, y queda anotado en ambos archivos. El copy, en voseo.
+- **acceptance-criteria:**
+  - Dada la tabla, cuando se arma, entonces la fila de estadísticas dice "Incluidas" sólo en el plan
+    para el que `canViewStats` da `true`.
+  - Dada la tarjeta Pro, cuando se lee, entonces no dice "anual", "mensual" ni un monto.
+  - Dado un ancho de 390px, cuando se navega con el teclado, entonces el contenedor de la tabla se
+    enfoca y se desplaza.
+  - Dada la tabla, cuando la lee un lector de pantalla, entonces cada celda se asocia a su fila y a
+    su plan.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-03
+- **risk:** medium (es lo que se promete sobre el plan pago: si dice lo que la app no hace, es
+  publicidad engañosa)
+- **test_plan:** test de contenido contra `canViewStats` (con prueba inversa: invertir la regla hace
+  fallar el test); Container API; revisión humana del texto de los planes (spec §9: lo que toca
+  planes y permisos lo mira una persona); E2E y axe en F10-10.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-09 · Privacidad y términos — 🔑 el texto lo aprueba el usuario
+
+- **module:** landing
+- **description:** Dos páginas, `/privacidad` y `/terminos`, enlazadas desde el footer. **No están
+  en el diseño**: se suman porque la pantalla de consentimiento de Google pide una política de
+  privacidad para publicarse (F9-10) y Microsoft la pide en el registro de la app. La IA redacta un
+  **borrador** con lo que la spec ya dice (§5.6, §13): qué se guarda (email, nombre, foto e id del
+  proveedor; ejercicios y marcas; ningún token ni contraseña), la foto como dato personal, la
+  cookie de sesión como única cookie, que no hay analytics, quién responde y cómo se pide que se
+  borre la cuenta (la app no lo permite todavía, Fase 9 lo deja afuera: el texto dice cómo se pide),
+  y términos mínimos (uso personal, Free y Pro, precio por definir, sin garantías). **El texto legal
+  lo revisa y lo da por bueno el usuario**; la IA no lo hace. Si prefiere no tenerlas, se saca la
+  tarea y los enlaces del footer.
+- **acceptance-criteria:**
+  - Dada la política, cuando se compara con spec §5.6 y §13, entonces lo que dice que se guarda
+    coincide con lo que la API guarda y no menciona nada que no exista (analytics, tokens).
+  - Dado el footer, cuando se recorre, entonces enlaza las dos páginas, y las dos están en el
+    sitemap de producción.
+  - Dado el borrador, cuando lo revisa el usuario, entonces lo aprueba o lo corrige antes de
+    mergear.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F10-03
+- **risk:** medium (texto legal; la URL va a quedar cargada en las consolas de Google y Microsoft)
+- **test_plan:** revisión humana del texto; Container API de las páginas; axe en F10-10.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-10 · E2E, axe y presupuesto de peso en CI
+
+- **module:** landing
+- **description:** Playwright en `apps/landing`, contra el build servido por `astro preview` (y,
+  cuando exista F10-11, contra el servidor de producción), a 390px y a 1280px. axe de WCAG 2.2 AA
+  sin violaciones en los dos anchos; el recorrido por teclado (enlace de salto → nav → CTA → tabla
+  desplazable) con el foco siempre visible; **ninguna imagen rota** (`naturalWidth > 0` en todas:
+  el PNG del diseño se sacó con las 11 rotas y nadie lo vio); consola sin errores ni quejas de CSP;
+  cada ancla de la nav (`#registro`, `#funciones`, `#planes`, `#demo`) con su destino; sin scroll
+  horizontal; los dos modos de `PUBLIC_APP_URL` (con y sin). **Presupuesto:** `dist/` sin ningún
+  `.js`, y el peso de la primera vista y de la página entera, medidos y fijados en un test con el
+  número real más un margen (propuesta de partida: hero ≤ 150 KB y página con todas las capturas
+  ≤ 1,5 MB, a ajustar con la medición). Un job nuevo en `ci.yml` que reusa el caché de Chromium.
+- **acceptance-criteria:**
+  - Dado el build, cuando corre el E2E, entonces hay 0 violaciones de axe a 390px y a 1280px.
+  - Dada una captura que falta o un PNG corrupto, cuando corre el E2E, entonces falla y dice cuál
+    (prueba inversa).
+  - Dado el build, cuando se pasa del presupuesto, entonces el test falla con las medidas.
+  - Dado un PR que sólo toca `apps/landing`, cuando corre el CI, entonces corre el job de la landing
+    y pasa.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F10-04, F10-05, F10-06, F10-07, F10-08, F10-09
+- **risk:** medium
+- **test_plan:** es el test; las pruebas inversas de arriba.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-11 · Servidor estático de producción
+
+- **module:** infra
+- **description:** Lo que Railway corre para la landing: un servidor Fastify mínimo en
+  `apps/landing/server/` (`node server/server.ts`: Node 24 corre TypeScript sin compilar, como ya
+  hace `pnpm icons`) con `@fastify/static` sobre `dist/` y `@fastify/helmet`, las mismas
+  dependencias que la API (pasan al `catalog:` para tener una sola versión). Los headers de spec §13
+  —HSTS, `X-Content-Type-Options`, `Referrer-Policy`— y una **CSP estricta**: `default-src 'self'`,
+  `script-src 'none'` (la landing no tiene JS), `object-src 'none'`, `frame-ancestors 'none'`,
+  `form-action 'none'`, y sin `unsafe-inline` en estilos (F10-01 dejó todo el CSS en archivos).
+  Caché: `/_astro/*` (lleva hash) un año e `immutable`; el HTML y lo demás sin hash, a revalidar, de
+  modo que un cambio de copy se ve al recargar (como el `index.html` de la app, F3-05). `/health` para
+  el chequeo de Railway; una ruta que no existe responde `404.html` con status 404, sin fallback de
+  SPA. Sin cookies, sin Mongo y sin `.env` obligatorio (`PORT` y `HOST`).
+- **acceptance-criteria:**
+  - Dada cualquier respuesta, cuando se inspecciona, entonces trae los headers y la CSP no admite
+    `unsafe-inline` ni scripts.
+  - Dado un asset de `/_astro/`, cuando se pide, entonces va con caché de un año; el HTML y `og.png`,
+    con revalidación.
+  - Dada una ruta que no existe, cuando se pide, entonces responde 404 con la página de la marca.
+  - Dado el build servido, cuando corre el E2E de F10-10 contra él, entonces pasa y la consola no
+    trae quejas de CSP.
+  - Dado el servidor, cuando arranca sin `.env`, entonces anda con los defaults.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-01, F10-03
+- **risk:** medium
+- **test_plan:** `fastify.inject` por regla, con pruebas inversas (sacar helmet, cambiar la caché);
+  `/security-review` y `aikido:scan`.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-12 · Railway: el segundo servicio, como código
+
+- **module:** infra
+- **description:** `.railway/railway.ts` suma el servicio de la landing (`wasabi-cross-landing`):
+  `build` con `--filter` sobre la landing y sus dependencias (`@wasabi-cross/ui` por los tokens y
+  `@wasabi-cross/schemas`), `start: 'node apps/landing/server/server.ts'`, `healthcheck: '/health'` y
+  las variables `PUBLIC_SITE_URL`, `PUBLIC_APP_URL` y `LANDING_INDEXABLE` (`1` sólo en production).
+  Son **de build**: Astro las inlinea al compilar, así que tienen que estar cuando se construye, y
+  como son públicas no llevan ningún secreto. El servicio de la app deja de compilar todo el
+  monorepo: su `build` también pasa a `--filter` (hoy es `pnpm build`, que con la landing sumaría su
+  build al deploy de la API). **Watch paths:** la tarea comprueba si `service()` los acepta. Si sí,
+  se declaran (`apps/landing/**`, `packages/**` y `.railway/**` para la landing; lo suyo para la
+  API); si no, quedan para el panel (F10-13) y el runbook lo anota; sin ellos, un cambio de copy
+  también redeploya la API.
+- **acceptance-criteria:**
+  - Dado `.railway/railway.ts`, cuando se evalúa para `staging` y `production`, entonces cada
+    ambiente tiene los dos servicios, `LANDING_INDEXABLE` es `1` sólo en production y la landing no
+    declara `MONGODB_URI` ni ningún secreto.
+  - Dados los dos servicios, cuando se leen sus `build`, entonces el de la app no compila la landing
+    y el de la landing no compila la API.
+  - Dada la comprobación de los watch paths, cuando se cierra la tarea, entonces su resultado está
+    escrito en el ADR-0013 y en `.railway/README.md` (declarados en el IaC o a mano).
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F10-11
+- **risk:** medium (cambia el build del servicio que ya existe)
+- **test_plan:** los tests de invariantes de `apps/api/src/deploy/railway-config.test.ts` (rama,
+  comandos, healthcheck, secretos con `preserve()`, base por ambiente) se adaptan a dos servicios,
+  no se borran, con sus pruebas inversas; a mano, el build de cada servicio por separado.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F10-13 · Dominio, ambientes y smoke — 🔑 necesita al usuario
+
+- **module:** infra
+- **description:** Lo que toca la cuenta real. **Usuario:** decide y registra el dominio (hoy no hay;
+  el plan asume la landing en la raíz y la app en `app.`); crea el servicio de la landing en
+  staging y production con `railway config plan` / `apply` (después de F3-07); carga las variables;
+  configura los dominios (el IaC acepta `domains`) y el DNS; y fija los watch paths si F10-12 no
+  pudo declararlos. **Cambio en la app al pasar a `app.`:** `WEB_ORIGIN` y `BETTER_AUTH_URL` pasan
+  al host de la app y las redirect URIs de OAuth se crean con él (F9-10), así que **el dominio se
+  decide antes de F9-10 en staging y prod**. **IA:** el runbook `docs/runbooks/landing.md` (variables,
+  dominios, watch paths, cómo se despublica) y el smoke contra staging, que se suma al de F3-12;
+  confirma con el usuario cada paso que toque la cuenta antes de ejecutarlo.
+- **acceptance-criteria:**
+  - Dado staging, cuando se abre la landing, entonces responde 200 con los headers de F10-11,
+    `noindex`, y "Entrar" lleva al `/login` de la app de staging.
+  - Dado production, cuando se abre, entonces es indexable con `canonical` al dominio real, y la app
+    sigue andando en `app.` con su sesión y el ingreso por OAuth.
+  - Dado `www`, cuando se pide, entonces redirige al dominio raíz (o al revés, lo que decida el
+    usuario).
+  - Dado el runbook, cuando se despublica la landing, entonces la app no se entera.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F10-10, F10-12, F3-07
+- **risk:** medium (DNS, dominios y redirect URIs de OAuth)
+- **test_plan:** smoke contra staging; prueba manual guiada en production, con el resultado en la
+  bitácora.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno

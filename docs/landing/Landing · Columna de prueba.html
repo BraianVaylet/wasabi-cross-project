@@ -1,0 +1,1013 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="kombai-design-canvas" content="true" />
+
+    <script
+      src="https://unpkg.com/@tailwindcss/browser@4.3.3/dist/index.global.js"
+      integrity="sha384-2ql948lIdLcGEE0/qxNiudyTjgauA3RDJERu5xW75kFCvSl5a9odyQYCb6tEjnmB"
+      crossorigin="anonymous"
+    ></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #root {
+        display: contents;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Share+Tech+Mono&family=Staatliches&display=swap');
+        .plate-cut {
+          clip-path: polygon(
+            0 0,
+            calc(100% - 12px) 0,
+            100% 12px,
+            100% 100%,
+            12px 100%,
+            0 calc(100% - 12px)
+          );
+        }
+      </style>
+      <div
+        class="min-h-screen overflow-x-clip bg-[#0F041C] font-['Figtree'] text-[#E9F2F0]"
+        data-kid="1"
+        data-name="page layout container"
+      >
+        <header
+          class="mx-auto flex max-w-[1280px] items-center justify-between border-b border-[#32989A]/50 px-5 py-5 sm:px-8 lg:px-12"
+          data-kid="1-1"
+          data-name="header navigation bar"
+        >
+          <a
+            aria-label="Wasabi Cross, inicio"
+            class="flex items-center gap-3"
+            data-kid="1-1-1"
+            data-name="website logo and home link"
+            href="#inicio"
+          >
+            <span
+              class="grid size-11 shrink-0 place-items-center bg-[#A6DA4B] font-['Staatliches'] text-3xl leading-none text-[#0F041C] md:size-12 md:text-4xl"
+              data-kid="1-1-1-1"
+              data-name="website logo icon"
+            >
+              W
+            </span>
+            <span data-kid="1-1-1-2" data-name="brand name and subtitle container">
+              <span
+                class="block font-['Staatliches'] text-[22px] leading-none tracking-[.09em] sm:text-[25px]"
+                data-kid="1-1-1-2-1"
+                data-name="brand name text"
+              >
+                WASABI
+                <span
+                  class="text-[#A6DA4B]"
+                  data-kid="1-1-1-2-1-1"
+                  data-name="brand name separator"
+                >
+                  //
+                </span>
+                CROSS
+              </span>
+              <span
+                class="mt-1 block font-['Share_Tech_Mono'] text-[10px] tracking-[.18em] text-[#6CB5B4] sm:text-xs"
+                data-kid="1-1-1-2-2"
+                data-name="subtitle text"
+              >
+                FUERZA · REGISTRO DE RM
+              </span>
+            </span>
+          </a>
+          <nav
+            aria-label="Secciones"
+            class="hidden items-center gap-8 font-['Share_Tech_Mono'] text-sm text-[#B9D5D3] md:flex"
+            data-kid="1-1-2"
+            data-name="navigation menu links"
+          >
+            <a
+              class="hover:text-[#A6DA4B]"
+              data-kid="1-1-2-1"
+              data-name="registration section link"
+              href="#registro"
+            >
+              Registro
+            </a>
+            <a
+              class="hover:text-[#A6DA4B]"
+              data-kid="1-1-2-2"
+              data-name="features section link"
+              href="#funciones"
+            >
+              Funciones
+            </a>
+            <a
+              class="hover:text-[#A6DA4B]"
+              data-kid="1-1-2-3"
+              data-name="plans section link"
+              href="#planes"
+            >
+              Free / PRO
+            </a>
+          </nav>
+        </header>
+        <main data-kid="1-2" data-name="main content area" id="inicio">
+          <section
+            class="mx-auto grid max-w-[1280px] items-start gap-9 border-b border-[#3C3349] px-5 pb-12 pt-9 sm:px-8 md:grid-cols-[minmax(0,1fr)_minmax(300px,430px)] md:gap-12 md:pb-16 md:pt-12 lg:grid-cols-[minmax(0,1fr)_430px] lg:gap-20 lg:px-12"
+            data-kid="1-2-1"
+            data-name="hero section"
+          >
+            <div class="pt-1 md:pt-8" data-kid="1-2-1-1" data-name="hero text content container">
+              <h1
+                class="max-w-[660px] font-['Staatliches'] text-[46px] leading-[.94] tracking-[.035em] sm:text-6xl lg:text-[76px]"
+                data-kid="1-2-1-1-1"
+                data-name="hero headline text"
+              >
+                Entrenas en varias disciplinas.
+                <br data-kid="1-2-1-1-1-1" data-name="line break" />
+                <span
+                  class="text-[#A6DA4B]"
+                  data-kid="1-2-1-1-1-2"
+                  data-name="hero headline emphasis text"
+                >
+                  Tus marcas, en un solo lugar.
+                </span>
+              </h1>
+              <p
+                class="mt-5 max-w-[590px] text-base leading-7 text-[#D0CBD8] sm:text-lg sm:leading-8"
+                data-kid="1-2-1-1-2"
+                data-name="hero description text"
+              >
+                Registra marcas de fuerza, repeticiones, distancia y tiempos de CrossFit,
+                musculación, Hyrox, running y entrenamiento funcional.
+              </p>
+              <p
+                class="mt-5 max-w-[560px] font-['Share_Tech_Mono'] text-sm leading-6 text-[#8BCBC9] sm:text-base"
+                data-kid="1-2-1-1-3"
+                data-name="hero exercise list text"
+              >
+                SENTADILLA · BURPEES · CARRERA · ERGÓMETRO · SLED
+              </p>
+              <a
+                class="plate-cut mt-7 inline-flex min-h-14 items-center justify-center gap-5 bg-[#A6DA4B] px-6 font-['Staatliches'] text-xl tracking-[.04em] text-[#0F041C] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A6DA4B]"
+                data-kid="1-2-1-1-4"
+                data-name="call-to-action button"
+                href="#demo"
+              >
+                Ver la app en acción
+                <span
+                  aria-hidden="true"
+                  class="text-2xl"
+                  data-kid="1-2-1-1-4-1"
+                  data-name="arrow icon"
+                >
+                  ↘
+                </span>
+              </a>
+              <div
+                class="mt-8 grid max-w-[540px] grid-cols-3 border-y border-[#3C3349] py-4 font-['Share_Tech_Mono'] text-xs text-[#9ACBC8] sm:text-sm"
+                data-kid="1-2-1-1-5"
+                data-name="stats display container"
+              >
+                <div class="pr-2" data-kid="1-2-1-1-5-1" data-name="weight stat container">
+                  <span
+                    class="block font-['Staatliches'] text-2xl text-[#E9F2F0] sm:text-3xl"
+                    data-kid="1-2-1-1-5-1-1"
+                    data-name="weight label text"
+                  >
+                    KG
+                  </span>
+                  FUERZA
+                </div>
+                <div
+                  class="border-l border-[#3C3349] px-3"
+                  data-kid="1-2-1-1-5-2"
+                  data-name="reps stat container"
+                >
+                  <span
+                    class="block font-['Staatliches'] text-2xl text-[#E9F2F0] sm:text-3xl"
+                    data-kid="1-2-1-1-5-2-1"
+                    data-name="reps label text"
+                  >
+                    REPS
+                  </span>
+                  REPETICIONES
+                </div>
+                <div
+                  class="border-l border-[#3C3349] pl-3"
+                  data-kid="1-2-1-1-5-3"
+                  data-name="time stat container"
+                >
+                  <span
+                    class="block font-['Staatliches'] text-2xl text-[#E9F2F0] sm:text-3xl"
+                    data-kid="1-2-1-1-5-3-1"
+                    data-name="time label text"
+                  >
+                    MM:SS
+                  </span>
+                  TIEMPO
+                </div>
+              </div>
+            </div>
+            <figure
+              class="w-full justify-self-center border border-[#3C3349] bg-[#160824] md:max-w-[430px]"
+              data-kid="1-2-1-2"
+              data-name="app demonstration image container"
+              id="demo"
+            >
+              <img
+                alt="Pantalla de inicio de Wasabi Cross: ejercicios de fuerza, burpees, carrera, remo ergómetro y sled con sus marcas"
+                class="block h-auto w-full"
+                data-kid="1-2-1-2-1"
+                data-name="app screenshot image"
+                decoding="async"
+                loading="lazy"
+                src="../../docs/landing/capturas/01-home.png"
+              />
+              <figcaption
+                class="border-t border-[#32989A]/45 px-4 py-3 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                data-kid="1-2-1-2-2"
+                data-name="image caption text"
+              >
+                INICIO — Burpee en repeticiones, carrera en tiempo, peso muerto en kg y ergómetro o
+                sled en distancia: distintas marcas en una misma vista.
+              </figcaption>
+            </figure>
+          </section>
+          <section
+            class="mx-auto max-w-[1280px] px-5 py-14 sm:px-8 md:py-20 lg:px-12"
+            data-kid="1-2-2"
+            data-name="registration features section"
+            id="registro"
+          >
+            <div
+              class="grid items-start gap-8 lg:grid-cols-[.78fr_1.22fr] lg:gap-14"
+              data-kid="1-2-2-1"
+              data-name="registration feature row container"
+            >
+              <div
+                class="max-w-[470px]"
+                data-kid="1-2-2-1-1"
+                data-name="registration text content container"
+              >
+                <h2
+                  class="font-['Staatliches'] text-4xl leading-[.98] tracking-[.04em] sm:text-5xl lg:text-6xl"
+                  data-kid="1-2-2-1-1-1"
+                  data-name="section headline text"
+                >
+                  Registra ahora.
+                  <br data-kid="1-2-2-1-1-1-1" data-name="line break" />
+                  Consulta el historial cuando quieras.
+                </h2>
+                <p
+                  class="mt-5 text-base leading-7 text-[#C9C4D2]"
+                  data-kid="1-2-2-1-1-2"
+                  data-name="section description text"
+                >
+                  Free incluye registro ilimitado de ejercicios y marcas, porcentajes de carga desde
+                  tu RM e historial por ejercicio. El análisis estadístico se suma con PRO.
+                </p>
+                <div
+                  class="mt-7 border-t border-[#3C3349] pt-4 font-['Share_Tech_Mono'] text-sm leading-6 text-[#8BCBC9]"
+                  data-kid="1-2-2-1-1-3"
+                  data-name="feature notice text"
+                >
+                  EL PORCENTAJE DE CARGA Y EL HISTORIAL NO SE BLOQUEAN EN FREE.
+                </div>
+              </div>
+              <div
+                class="grid items-start gap-5 sm:grid-cols-2 lg:gap-6"
+                data-kid="1-2-2-1-2"
+                data-name="screenshots container"
+              >
+                <figure
+                  class="border border-[#3C3349] bg-[#160824]"
+                  data-kid="1-2-2-1-2-1"
+                  data-name="percentages feature screenshot container"
+                >
+                  <img
+                    alt="Detalle de sentadilla trasera con RM actual y selector de porcentajes de carga"
+                    class="block h-auto w-full"
+                    data-kid="1-2-2-1-2-1-1"
+                    data-name="percentages feature image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/02-detalle-porcentajes.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-3 py-3 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-2-1-2-1-2"
+                    data-name="image caption text"
+                  >
+                    PORCENTAJES — Elige un porcentaje del RM y consulta la carga calculada.
+                  </figcaption>
+                </figure>
+                <figure
+                  class="border border-[#3C3349] bg-[#160824]"
+                  data-kid="1-2-2-1-2-2"
+                  data-name="history feature screenshot container"
+                >
+                  <img
+                    alt="Evolución y registros históricos del RM de sentadilla trasera"
+                    class="block h-auto w-full"
+                    data-kid="1-2-2-1-2-2-1"
+                    data-name="history feature image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/03-detalle-completo.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-3 py-3 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-2-1-2-2-2"
+                    data-name="image caption text"
+                  >
+                    HISTORIAL — Tendencia del RM y registros anteriores del ejercicio.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </section>
+          <section
+            class="border-y border-[#3C3349] bg-[#13071F]"
+            data-kid="1-2-3"
+            data-name="features explanation section"
+            id="funciones"
+          >
+            <div
+              class="mx-auto max-w-[1280px] px-5 py-14 sm:px-8 md:py-20 lg:px-12"
+              data-kid="1-2-3-1"
+              data-name="features explanation content container"
+            >
+              <div
+                class="grid items-end gap-5 border-b border-[#3C3349] pb-6 md:grid-cols-[1fr_.8fr] md:gap-12"
+                data-kid="1-2-3-1-1"
+                data-name="section header container"
+              >
+                <h2
+                  class="max-w-[660px] font-['Staatliches'] text-4xl leading-[.98] tracking-[.04em] sm:text-5xl lg:text-6xl"
+                  data-kid="1-2-3-1-1-1"
+                  data-name="section headline text"
+                >
+                  Encuentra el ejercicio. Guarda la marca que toca.
+                </h2>
+                <p
+                  class="max-w-[480px] text-base leading-7 text-[#C9C4D2]"
+                  data-kid="1-2-3-1-1-2"
+                  data-name="section description text"
+                >
+                  Busca en el catálogo por nombre y filtra por disciplina. En los ejercicios de
+                  tiempo, registra la marca y vuelve a consultar su evolución.
+                </p>
+              </div>
+              <div
+                class="mt-8 grid items-start gap-6 md:grid-cols-2 md:gap-8"
+                data-kid="1-2-3-1-2"
+                data-name="features showcase images container"
+              >
+                <figure
+                  class="border border-[#3C3349] bg-[#0F041C]"
+                  data-kid="1-2-3-1-2-1"
+                  data-name="catalog feature screenshot container"
+                >
+                  <img
+                    alt="Catálogo de ejercicios con campo de búsqueda y filtros por disciplina"
+                    class="block h-auto w-full"
+                    data-kid="1-2-3-1-2-1-1"
+                    data-name="catalog feature image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/05-catalogo.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-4 py-4 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-3-1-2-1-2"
+                    data-name="image caption text"
+                  >
+                    CATÁLOGO — Búsqueda por nombre y filtros de disciplinas: CrossFit, musculación,
+                    Hyrox, funcional y running.
+                  </figcaption>
+                </figure>
+                <figure
+                  class="border border-[#3C3349] bg-[#0F041C]"
+                  data-kid="1-2-3-1-2-2"
+                  data-name="running tracking feature screenshot container"
+                >
+                  <img
+                    alt="Detalle de carrera de 5 kilómetros con marca actual, evolución e historial por tiempo"
+                    class="block h-auto w-full"
+                    data-kid="1-2-3-1-2-2-1"
+                    data-name="running tracking feature image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/04-detalle-running.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-4 py-4 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-3-1-2-2-2"
+                    data-name="image caption text"
+                  >
+                    CARRERA 5 KM — Marcas en mm:ss, evolución del tiempo e historial del ejercicio.
+                  </figcaption>
+                </figure>
+              </div>
+              <div
+                class="mt-6 grid gap-x-6 gap-y-4 border-t border-[#3C3349] pt-5 sm:grid-cols-3"
+                data-kid="1-2-3-1-3"
+                data-name="features summary list container"
+              >
+                <p
+                  class="font-['Share_Tech_Mono'] text-sm leading-6 text-[#D0CBD8]"
+                  data-kid="1-2-3-1-3-1"
+                  data-name="catalog feature summary"
+                >
+                  <span
+                    class="block text-[#8BCBC9]"
+                    data-kid="1-2-3-1-3-1-1"
+                    data-name="summary title"
+                  >
+                    CATÁLOGO
+                  </span>
+                  Busca ejercicios por nombre y disciplina.
+                </p>
+                <p
+                  class="font-['Share_Tech_Mono'] text-sm leading-6 text-[#D0CBD8]"
+                  data-kid="1-2-3-1-3-2"
+                  data-name="marks feature summary"
+                >
+                  <span
+                    class="block text-[#8BCBC9]"
+                    data-kid="1-2-3-1-3-2-1"
+                    data-name="summary title"
+                  >
+                    MARCAS
+                  </span>
+                  Registra RM, repeticiones, distancia o tiempo.
+                </p>
+                <p
+                  class="font-['Share_Tech_Mono'] text-sm leading-6 text-[#D0CBD8]"
+                  data-kid="1-2-3-1-3-3"
+                  data-name="history feature summary"
+                >
+                  <span
+                    class="block text-[#8BCBC9]"
+                    data-kid="1-2-3-1-3-3-1"
+                    data-name="summary title"
+                  >
+                    HISTORIAL
+                  </span>
+                  Consulta marcas anteriores por ejercicio.
+                </p>
+              </div>
+            </div>
+          </section>
+          <section
+            class="mx-auto max-w-[1280px] px-5 py-14 sm:px-8 md:py-20 lg:px-12"
+            data-kid="1-2-4"
+            data-name="statistics section"
+          >
+            <div
+              class="grid items-start gap-8 border-b border-[#3C3349] pb-8 md:grid-cols-[.8fr_1.2fr] md:gap-14"
+              data-kid="1-2-4-1"
+              data-name="statistics header row"
+            >
+              <div data-kid="1-2-4-1-1" data-name="statistics description container">
+                <h2
+                  class="font-['Staatliches'] text-4xl leading-[.98] tracking-[.04em] sm:text-5xl lg:text-6xl"
+                  data-kid="1-2-4-1-1-1"
+                  data-name="section headline text"
+                >
+                  PRO añade estadísticas a tus registros.
+                </h2>
+                <p
+                  class="mt-5 max-w-[490px] text-base leading-7 text-[#C9C4D2]"
+                  data-kid="1-2-4-1-1-2"
+                  data-name="section description text"
+                >
+                  Revisa la evolución de cada ejercicio y consulta una lectura general de tu
+                  actividad, capacidades y grupos musculares.
+                </p>
+                <span
+                  class="mt-6 inline-flex border border-[#C15EA7]/70 px-3 py-1 font-['Share_Tech_Mono'] text-sm text-[#D989C0]"
+                  data-kid="1-2-4-1-1-3"
+                  data-name="feature tag text"
+                >
+                  PRO · ESTADÍSTICAS
+                </span>
+              </div>
+              <div
+                class="grid items-start gap-5 sm:grid-cols-2"
+                data-kid="1-2-4-1-2"
+                data-name="screenshots grid"
+              >
+                <figure
+                  class="border border-[#3C3349] bg-[#160824]"
+                  data-kid="1-2-4-1-2-1"
+                  data-name="statistics overview screenshot container"
+                >
+                  <img
+                    alt="Pantalla de estadísticas PRO con selector de periodo y lista de ejercicios"
+                    class="block h-auto w-full"
+                    data-kid="1-2-4-1-2-1-1"
+                    data-name="statistics overview image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/06-estadisticas.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-3 py-3 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-4-1-2-1-2"
+                    data-name="image caption text"
+                  >
+                    ESTADÍSTICAS — Elige un periodo y revisa los ejercicios registrados.
+                  </figcaption>
+                </figure>
+                <figure
+                  class="border border-[#3C3349] bg-[#160824]"
+                  data-kid="1-2-4-1-2-2"
+                  data-name="exercise detail screenshot container"
+                >
+                  <img
+                    alt="Estadística de sentadilla trasera con gráfico de evolución, valor actual, mejor, peor y variación"
+                    class="block h-auto w-full"
+                    data-kid="1-2-4-1-2-2-1"
+                    data-name="exercise detail image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/07-estadisticas-ejercicio.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-3 py-3 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-4-1-2-2-2"
+                    data-name="image caption text"
+                  >
+                    POR EJERCICIO — Evolución del RM junto a valores actual, mejor, peor y
+                    variación.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+            <div
+              class="grid items-start gap-6 pt-8 md:grid-cols-2 md:gap-8"
+              data-kid="1-2-4-2"
+              data-name="statistics lower screenshots grid"
+            >
+              <figure
+                class="border border-[#3C3349] bg-[#160824]"
+                data-kid="1-2-4-2-1"
+                data-name="general stats screenshot container"
+              >
+                <img
+                  alt="Estadísticas generales de variación por capacidad y grupo muscular"
+                  class="block h-auto w-full"
+                  data-kid="1-2-4-2-1-1"
+                  data-name="general stats image"
+                  decoding="async"
+                  loading="lazy"
+                  src="../../docs/landing/capturas/07-estadisticas-general.png"
+                />
+                <figcaption
+                  class="border-t border-[#32989A]/45 px-4 py-4 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                  data-kid="1-2-4-2-1-2"
+                  data-name="image caption text"
+                >
+                  EN GENERAL — Variación del periodo por capacidad y por grupo muscular.
+                </figcaption>
+              </figure>
+              <figure
+                class="border border-[#3C3349] bg-[#160824]"
+                data-kid="1-2-4-2-2"
+                data-name="training breakdown screenshot container"
+              >
+                <img
+                  alt="Distribución de disciplinas, categorías, segmentos corporales y grupos musculares del entrenamiento"
+                  class="block h-auto w-full"
+                  data-kid="1-2-4-2-2-1"
+                  data-name="training breakdown image"
+                  decoding="async"
+                  loading="lazy"
+                  src="../../docs/landing/capturas/07-estadisticas-entrenamiento.png"
+                />
+                <figcaption
+                  class="border-t border-[#32989A]/45 px-4 py-4 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                  data-kid="1-2-4-2-2-2"
+                  data-name="image caption text"
+                >
+                  TU ENTRENAMIENTO — Distribución por disciplinas, categorías, segmentos corporales
+                  y grupos musculares.
+                </figcaption>
+              </figure>
+            </div>
+            <div
+              class="mt-10 grid items-start gap-6 border-t border-[#3C3349] pt-8 md:grid-cols-[.8fr_1.2fr] md:gap-10"
+              data-kid="1-2-4-3"
+              data-name="statistics additional content"
+            >
+              <div
+                class="max-w-[420px]"
+                data-kid="1-2-4-3-1"
+                data-name="additional features description"
+              >
+                <h3
+                  class="font-['Staatliches'] text-3xl leading-none tracking-[.04em] sm:text-4xl"
+                  data-kid="1-2-4-3-1-1"
+                  data-name="sub-headline text"
+                >
+                  Constancia y ejercicios para volver a testear.
+                </h3>
+                <p
+                  class="mt-4 text-base leading-7 text-[#C9C4D2]"
+                  data-kid="1-2-4-3-1-2"
+                  data-name="description text"
+                >
+                  Las estadísticas incluyen marcas y récords del periodo, una lista de ejercicios
+                  cuya última marca tiene más de ocho semanas y la opción de re-testearlos en el
+                  momento.
+                </p>
+              </div>
+              <div
+                class="grid items-start gap-5 sm:grid-cols-2"
+                data-kid="1-2-4-3-2"
+                data-name="additional screenshots container"
+              >
+                <figure
+                  class="border border-[#3C3349] bg-[#160824]"
+                  data-kid="1-2-4-3-2-1"
+                  data-name="constancy screenshot container"
+                >
+                  <img
+                    alt="Constancia con marcas, récords nuevos, fecha de última marca y gráfico de marcas por mes"
+                    class="block h-auto w-full"
+                    data-kid="1-2-4-3-2-1-1"
+                    data-name="constancy image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/07-estadisticas-constancia.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-3 py-3 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-4-3-2-1-2"
+                    data-name="image caption text"
+                  >
+                    CONSTANCIA — Marcas, récords nuevos, última marca y marcas por mes.
+                  </figcaption>
+                </figure>
+                <figure
+                  class="border border-[#3C3349] bg-[#160824]"
+                  data-kid="1-2-4-3-2-2"
+                  data-name="retest list screenshot container"
+                >
+                  <img
+                    alt="Lista para re-testear con ejercicios y fecha de la última marca"
+                    class="block h-auto w-full"
+                    data-kid="1-2-4-3-2-2-1"
+                    data-name="retest list image"
+                    decoding="async"
+                    loading="lazy"
+                    src="../../docs/landing/capturas/07-estadisticas-retestear.png"
+                  />
+                  <figcaption
+                    class="border-t border-[#32989A]/45 px-3 py-3 font-['Share_Tech_Mono'] text-[13px] leading-5 text-[#91D2D0]"
+                    data-kid="1-2-4-3-2-2-2"
+                    data-name="image caption text"
+                  >
+                    PARA RETESTEAR — Wall ball y burpee con fecha de su última marca.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </section>
+          <section
+            class="border-y border-[#3C3349] bg-[#13071F]"
+            data-kid="1-2-5"
+            data-name="pricing plans section"
+            id="planes"
+          >
+            <div
+              class="mx-auto max-w-[1120px] px-5 py-14 sm:px-8 md:py-20 lg:px-12"
+              data-kid="1-2-5-1"
+              data-name="pricing plans content container"
+            >
+              <div
+                class="max-w-[680px]"
+                data-kid="1-2-5-1-1"
+                data-name="pricing headline container"
+              >
+                <h2
+                  class="font-['Staatliches'] text-4xl leading-[.98] tracking-[.04em] sm:text-5xl lg:text-6xl"
+                  data-kid="1-2-5-1-1-1"
+                  data-name="section headline text"
+                >
+                  Registro completo en Free. Estadísticas extra en PRO.
+                </h2>
+                <p
+                  class="mt-5 text-base leading-7 text-[#C9C4D2]"
+                  data-kid="1-2-5-1-1-2"
+                  data-name="section description text"
+                >
+                  Ambos planes permiten registrar ejercicios y marcas, calcular porcentajes de carga
+                  y consultar el historial. PRO añade el análisis estadístico.
+                </p>
+              </div>
+              <div
+                class="mt-8 overflow-x-auto border-y border-[#3C3349]"
+                data-kid="1-2-5-1-2"
+                data-name="comparison table container"
+              >
+                <table
+                  aria-label="Comparación de funciones Free y PRO"
+                  class="w-full min-w-[560px] border-collapse text-left"
+                  data-kid="1-2-5-1-2-1"
+                  data-name="comparison table"
+                >
+                  <thead data-kid="1-2-5-1-2-1-1" data-name="table header">
+                    <tr
+                      class="border-b border-[#3C3349] font-['Share_Tech_Mono'] text-sm text-[#8BCBC9]"
+                      data-kid="1-2-5-1-2-1-1-1"
+                      data-name="table header row"
+                    >
+                      <th
+                        class="py-4 pr-5 font-normal"
+                        data-kid="1-2-5-1-2-1-1-1-1"
+                        data-name="table header column title"
+                        scope="col"
+                      >
+                        FUNCIONES
+                      </th>
+                      <th
+                        class="px-4 py-4 font-normal"
+                        data-kid="1-2-5-1-2-1-1-1-2"
+                        data-name="table header column title"
+                        scope="col"
+                      >
+                        FREE
+                      </th>
+                      <th
+                        class="px-4 py-4 font-normal"
+                        data-kid="1-2-5-1-2-1-1-1-3"
+                        data-name="table header column title"
+                        scope="col"
+                      >
+                        <span
+                          class="bg-[#C15EA7] px-2 py-1 text-[#0F041C]"
+                          data-kid="1-2-5-1-2-1-1-1-3-1"
+                          data-name="pro tag"
+                        >
+                          PRO
+                        </span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    class="divide-y divide-[#3C3349] text-sm sm:text-base"
+                    data-kid="1-2-5-1-2-1-2"
+                    data-name="table body"
+                  >
+                    <tr data-kid="1-2-5-1-2-1-2-1" data-name="table row">
+                      <th
+                        class="py-5 pr-5 font-medium"
+                        data-kid="1-2-5-1-2-1-2-1-1"
+                        data-name="table row title"
+                        scope="row"
+                      >
+                        Registrar ejercicios y marcas sin límite
+                      </th>
+                      <td
+                        class="px-4 py-5 text-[#A6DA4B]"
+                        data-kid="1-2-5-1-2-1-2-1-2"
+                        data-name="table cell content"
+                      >
+                        Sí
+                      </td>
+                      <td
+                        class="px-4 py-5 text-[#A6DA4B]"
+                        data-kid="1-2-5-1-2-1-2-1-3"
+                        data-name="table cell content"
+                      >
+                        Sí
+                      </td>
+                    </tr>
+                    <tr data-kid="1-2-5-1-2-1-2-2" data-name="table row">
+                      <th
+                        class="py-5 pr-5 font-medium"
+                        data-kid="1-2-5-1-2-1-2-2-1"
+                        data-name="table row title"
+                        scope="row"
+                      >
+                        Porcentaje de carga desde el RM
+                      </th>
+                      <td
+                        class="px-4 py-5 text-[#A6DA4B]"
+                        data-kid="1-2-5-1-2-1-2-2-2"
+                        data-name="table cell content"
+                      >
+                        Sí
+                      </td>
+                      <td
+                        class="px-4 py-5 text-[#A6DA4B]"
+                        data-kid="1-2-5-1-2-1-2-2-3"
+                        data-name="table cell content"
+                      >
+                        Sí
+                      </td>
+                    </tr>
+                    <tr data-kid="1-2-5-1-2-1-2-3" data-name="table row">
+                      <th
+                        class="py-5 pr-5 font-medium"
+                        data-kid="1-2-5-1-2-1-2-3-1"
+                        data-name="table row title"
+                        scope="row"
+                      >
+                        Historial por ejercicio
+                      </th>
+                      <td
+                        class="px-4 py-5 text-[#A6DA4B]"
+                        data-kid="1-2-5-1-2-1-2-3-2"
+                        data-name="table cell content"
+                      >
+                        Sí
+                      </td>
+                      <td
+                        class="px-4 py-5 text-[#A6DA4B]"
+                        data-kid="1-2-5-1-2-1-2-3-3"
+                        data-name="table cell content"
+                      >
+                        Sí
+                      </td>
+                    </tr>
+                    <tr data-kid="1-2-5-1-2-1-2-4" data-name="table row">
+                      <th
+                        class="py-5 pr-5 font-medium"
+                        data-kid="1-2-5-1-2-1-2-4-1"
+                        data-name="table row title"
+                        scope="row"
+                      >
+                        Estadísticas de cada ejercicio
+                      </th>
+                      <td
+                        class="px-4 py-5 text-[#8D8798]"
+                        data-kid="1-2-5-1-2-1-2-4-2"
+                        data-name="table cell content"
+                      >
+                        —
+                      </td>
+                      <td
+                        class="px-4 py-5 text-[#D989C0]"
+                        data-kid="1-2-5-1-2-1-2-4-3"
+                        data-name="table cell content"
+                      >
+                        Incluidas
+                      </td>
+                    </tr>
+                    <tr data-kid="1-2-5-1-2-1-2-5" data-name="table row">
+                      <th
+                        class="py-5 pr-5 font-medium"
+                        data-kid="1-2-5-1-2-1-2-5-1"
+                        data-name="table row title"
+                        scope="row"
+                      >
+                        Estadísticas generales
+                      </th>
+                      <td
+                        class="px-4 py-5 text-[#8D8798]"
+                        data-kid="1-2-5-1-2-1-2-5-2"
+                        data-name="table cell content"
+                      >
+                        —
+                      </td>
+                      <td
+                        class="px-4 py-5 text-[#D989C0]"
+                        data-kid="1-2-5-1-2-1-2-5-3"
+                        data-name="table cell content"
+                      >
+                        Incluidas
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div
+                class="mt-7 grid gap-5 md:grid-cols-2 md:gap-6"
+                data-kid="1-2-5-1-3"
+                data-name="pricing cards container"
+              >
+                <div
+                  class="border border-[#3C3349] bg-[#160824] p-5 sm:p-7"
+                  data-kid="1-2-5-1-3-1"
+                  data-name="free plan card"
+                >
+                  <div
+                    class="flex items-center justify-between border-b border-[#3C3349] pb-4"
+                    data-kid="1-2-5-1-3-1-1"
+                    data-name="plan header container"
+                  >
+                    <h3
+                      class="font-['Staatliches'] text-3xl tracking-wide"
+                      data-kid="1-2-5-1-3-1-1-1"
+                      data-name="plan name"
+                    >
+                      FREE
+                    </h3>
+                    <span
+                      class="font-['Share_Tech_Mono'] text-xs text-[#8BCBC9]"
+                      data-kid="1-2-5-1-3-1-1-2"
+                      data-name="plan badge"
+                    >
+                      REGISTRO SIN LÍMITE
+                    </span>
+                  </div>
+                  <p
+                    class="mt-4 text-sm leading-6 text-[#C9C4D2]"
+                    data-kid="1-2-5-1-3-1-2"
+                    data-name="plan description"
+                  >
+                    Ejercicios, marcas, porcentajes de carga e historial.
+                  </p>
+                </div>
+                <div
+                  class="plate-cut border border-[#C15EA7]/70 bg-[#1C102A] p-5 sm:p-7"
+                  data-kid="1-2-5-1-3-2"
+                  data-name="pro plan card"
+                >
+                  <div
+                    class="flex items-center justify-between border-b border-[#C15EA7]/40 pb-4"
+                    data-kid="1-2-5-1-3-2-1"
+                    data-name="plan header container"
+                  >
+                    <h3
+                      class="font-['Staatliches'] text-3xl tracking-wide text-[#D989C0]"
+                      data-kid="1-2-5-1-3-2-1-1"
+                      data-name="plan name"
+                    >
+                      PRO
+                    </h3>
+                    <span
+                      class="font-['Share_Tech_Mono'] text-xs text-[#D989C0]"
+                      data-kid="1-2-5-1-3-2-1-2"
+                      data-name="plan badge"
+                    >
+                      ESTADÍSTICAS
+                    </span>
+                  </div>
+                  <p
+                    class="mt-4 font-['Share_Tech_Mono'] text-sm leading-6 text-[#C9C4D2]"
+                    data-kid="1-2-5-1-3-2-2"
+                    data-name="plan description"
+                  >
+                    Suscripción anual
+                    <br data-kid="1-2-5-1-3-2-2-1" data-name="line break" />
+                    <span class="text-[#E9F2F0]" data-kid="1-2-5-1-3-2-2-2" data-name="price text">
+                      Precio por definir
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+        <footer
+          class="mx-auto flex max-w-[1280px] flex-col gap-6 px-5 py-9 sm:px-8 md:flex-row md:items-end md:justify-between md:py-12 lg:px-12"
+          data-kid="1-3"
+          data-name="footer area"
+        >
+          <div data-kid="1-3-1" data-name="footer branding container">
+            <div
+              class="font-['Staatliches'] text-2xl tracking-[.08em]"
+              data-kid="1-3-1-1"
+              data-name="brand name text"
+            >
+              WASABI
+              <span class="text-[#A6DA4B]" data-kid="1-3-1-1-1" data-name="brand name separator">
+                //
+              </span>
+              CROSS
+            </div>
+            <p
+              class="mt-2 max-w-[500px] font-['Share_Tech_Mono'] text-xs leading-5 text-[#6CB5B4]"
+              data-kid="1-3-1-2"
+              data-name="footer description text"
+            >
+              REGISTRA MARCAS DE FUERZA, TIEMPO, REPETICIONES Y DISTANCIA EN UN SOLO LUGAR.
+            </p>
+          </div>
+          <a
+            class="plate-cut inline-flex min-h-14 items-center justify-center gap-5 bg-[#A6DA4B] px-6 font-['Staatliches'] text-xl tracking-[.04em] text-[#0F041C] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#A6DA4B]"
+            data-kid="1-3-2"
+            data-name="footer call-to-action button"
+            href="#demo"
+          >
+            Ver la app en acción
+            <span aria-hidden="true" class="text-2xl" data-kid="1-3-2-1" data-name="arrow icon">
+              ↗
+            </span>
+          </a>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>
