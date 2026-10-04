@@ -4,6 +4,9 @@ import { planSchema } from '@wasabi-cross/schemas';
 import type { Db } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { z } from 'zod';
+import { startFakeIdp } from '../dev-support/fake-idp.ts';
+import { fakeIdpAuthPlugin } from '../dev-support/fake-idp-auth.ts';
+import { startServer } from '../src/bootstrap.ts';
 import { seedAdmin } from '../src/modules/auth/application/seed-admin.ts';
 import { createAuth } from '../src/modules/auth/infrastructure/better-auth.ts';
 import { createUserRegistrar } from '../src/modules/auth/infrastructure/user-registrar.ts';
@@ -92,6 +95,10 @@ async function main(): Promise<void> {
   process.env.WEB_ORIGIN ??= 'http://127.0.0.1:5174';
   process.env.BETTER_AUTH_SECRET = randomBytes(32).toString('base64');
   process.env.BETTER_AUTH_URL ??= `http://${HOST}:${PORT}`;
+  // Sin contraseñas no hay otra forma de abrir una sesión: el IdP falso (F9-03) es el ingreso del
+  // E2E. Siempre prendido acá; `parseEnv` lo rechazaría con NODE_ENV=production, que arriba ya
+  // cortó.
+  process.env.OAUTH_DEV_IDP = 'on';
 
   const env = parseEnv();
   const mongo = await connectMongo(env);
@@ -114,17 +121,25 @@ async function main(): Promise<void> {
   const control = await connectMongo(env);
   const planControl = startPlanControl(control.db);
 
+  // El IdP falso, en su propio puerto (3102 por defecto, como en `scripts/dev.ts`).
+  const idp = await startFakeIdp({
+    port: Number(process.env.FAKE_IDP_PORT ?? '3102'),
+    host: HOST,
+    allowedRedirectOrigin: env.BETTER_AUTH_URL,
+  });
+
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     // Antes que el handler del server, que termina el proceso: sin esto, el mongod hijo
     // puede quedar vivo después de que el padre se fue.
     process.once(signal, () => {
       planControl.close();
+      void idp.close();
       void control.close();
       void replset.stop();
     });
   }
 
-  await import('../src/server.ts');
+  await startServer({ authPlugins: [fakeIdpAuthPlugin(idp)] });
 }
 
 main().catch((error: unknown) => {

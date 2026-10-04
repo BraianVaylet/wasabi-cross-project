@@ -95,6 +95,11 @@ email User.Read`, sin `offline_access`, que Better Auth agrega por defecto. `Use
 - **El IdP falso es un riesgo nuevo** y tiene tres guardas con su test.
 - **El service worker de la PWA** responde `index.html` a toda navegación sin exclusión, y el
   callback de OAuth es una navegación: hay que excluir `/api/` de su `navigateFallback` (F9-07).
+- **El tenant `consumers` lo hace cumplir Microsoft, y Wasabi lo vuelve a chequear.** El endpoint
+  `/consumers` no emite tokens para cuentas de trabajo o escuela. Pero Better Auth sólo aplica su
+  `verifyClaims` (tenant, `iss`, `aud`) cuando llega un ID token suelto, no en el flujo con `code`,
+  que es el nuestro: se comprobó corriendo el proveedor real contra el IdP falso (F9-03). Por eso
+  F9-05 envuelve el `getUserInfo` de Microsoft con un chequeo propio del `tid`.
 - **Los secretos de cliente de Microsoft vencen** (hasta 24 meses): el runbook anota la fecha.
 - **Un email de Microsoft sin claims de verificación** impediría crear cuentas con Microsoft. Es
   preferible a forzar la verificación: con la vinculación apagada el email sólo importa para que
