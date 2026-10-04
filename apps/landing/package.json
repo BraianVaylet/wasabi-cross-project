@@ -1,0 +1,26 @@
+{
+  "name": "@wasabi-cross/landing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Landing page de Wasabi Cross: sitio estático con Astro, sin JavaScript de cliente (spec §5.7, ADR-0013).",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "typecheck": "astro check",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@wasabi-cross/schemas": "workspace:*"
+  },
+  "devDependencies": {
+    "@astrojs/check": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "astro": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

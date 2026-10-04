@@ -3,6 +3,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
+import astro from 'eslint-plugin-astro';
 
 export default tseslint.config(
   {
@@ -11,6 +12,8 @@ export default tseslint.config(
       '**/coverage/**',
       '**/node_modules/**',
       '**/storybook-static/**',
+      // Los tipos que Astro genera en `apps/landing` (`astro sync`): no se escriben a mano.
+      '**/.astro/**',
       '**/*.d.ts',
       // Se sirven tal cual, sin pasar por el build: JS a mano, fuera de todo tsconfig. Hoy
       // es sólo el bootstrap del tema, que el test de theme-bootstrap ya ejecuta y compara.
@@ -105,6 +108,24 @@ export default tseslint.config(
     files: ['**/*.config.{js,ts,mjs}', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
     ...tseslint.configs.disableTypeChecked,
+  },
+
+  // La landing (spec §5.7, ADR-0013): los `.astro` con el parser de Astro, que por dentro usa el de
+  // TypeScript, y las reglas de accesibilidad de JSX aplicadas a sus plantillas (spec §11, WCAG 2.2
+  // AA). Es una primera barrera: la que cuenta es axe en el E2E (F10-10).
+  ...astro.configs['flat/jsx-a11y-recommended'],
+  {
+    files: ['**/*.astro'],
+    languageOptions: {
+      // `astro-eslint-parser` no soporta `projectService`: lo convertiría a `project: true` y
+      // avisaría en cada corrida. Se pide directo.
+      parserOptions: {
+        projectService: false,
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+        extraFileExtensions: ['.astro'],
+      },
+    },
   },
 
   prettier,

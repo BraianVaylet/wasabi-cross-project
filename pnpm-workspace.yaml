@@ -42,7 +42,21 @@ catalog:
   vite: ^8.3.1
   '@vitejs/plugin-react': ^6.1.1
 
+  # Landing (ADR-0013). Astro 7 usa la misma Vite 8 que la web: no se duplica.
+  astro: ^7.3.5
+  '@astrojs/check': ^0.9.10
+
+# `astro` trae `http-cache-semantics` <=4.2.0, que `pnpm audit` marca como alta
+# (GHSA-ch52-4w7c-c8xp: max-stale puede devolver respuestas cacheadas de otro usuario). El parche
+# es la 4.3.0, y `astro` la admite (`^4.2.0`) pero el lockfile quedaba en la 4.2.0 por la antigüedad
+# mínima. Se fuerza acá. Sacar el override cuando `astro` pida `^4.3.0` por su cuenta.
+overrides:
+  http-cache-semantics: ^4.3.0
+
 minimumReleaseAgeExclude:
   - '@tanstack/react-router@1.170.38'
   - '@tanstack/router-core@1.171.32'
   - jsdom@30.1.0
+  # Parche de seguridad de arriba, publicado el 2026-10-04 (mismo publicador que la 4.2.0, firmada
+  # en el registro). Sacar cuando cumpla la antigüedad mínima.
+  - http-cache-semantics@4.3.0

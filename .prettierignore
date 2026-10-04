@@ -7,3 +7,5 @@ docs/mockup
 docs/design
 # Worktrees de Claude Code: checkouts anidados, no pertenecen al proyecto raíz.
 .claude/worktrees
+# Tipos que Astro genera en apps/landing (`astro sync`).
+.astro

@@ -149,8 +149,9 @@ Tailwind y Google Fonts por CDN (se reescribe sobre los tokens, con Fontsource);
 diseño pasa AA; el diseño nombra 5 de las 7 disciplinas; y que un cambio de copy no reinicie la API
 depende de los _watch paths_ de Railway, que el IaC no documenta (F10-12 lo comprueba). **El dominio
 hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth llevan el host de la
-app. **F10-00 está hecha, en una PR** (spec §1, §5, §5.7 nueva, §6, §7, §11, §12 y §13, y
-[ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md)); ninguna tarea cerrada.
+app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
+está mergeada (PR #98) y F10-01, el workspace `apps/landing` con Astro, hecha en una PR**;
+ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -193,8 +194,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-00 (spec §5.7 y ADR-0013); después F10-01 (el
-    workspace con Astro). Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-01 (el workspace con Astro; trae una excepción a
+    la antigüedad mínima de pnpm, ver "Decisiones abiertas"); después F10-02 (tokens y
+    fuentes). Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -203,6 +205,10 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 - **Proveedor de pago** para la suscripción Pro (Mercado Pago / Stripe / otro).
 - **Precio de Pro** y su período (mensual o anual): a definir. La UI dice "A definir" y el texto
   vive en `apps/web/src/lib/plans.ts`.
+- **Excepción a `minimumReleaseAge` en `pnpm-workspace.yaml`** (F10-01): `http-cache-semantics@4.3.0`,
+  el parche de una vulnerabilidad alta que entra por `astro`, y un `overrides` que lo fuerza. Es
+  una versión de 19 h al decidirla (mismo publicador que la anterior, firmada). Sacar las dos
+  líneas cuando la versión cumpla la antigüedad y Astro suba su rango a `^4.3.0`.
 - **Dominio** de Wasabi Cross: no hay. El plan de la landing asume la landing en la raíz y la
   app en `app.`, y de eso dependen el host de las redirect URIs de OAuth (F9-10) y el de
   `WEB_ORIGIN` y `BETTER_AUTH_URL`.
@@ -271,6 +277,10 @@ no puede entrar por la web: sin contraseña y sin botón. Para ver las estadíst
 un usuario y subirle el plan con el control de `dev:ephemeral` (`POST :3101/plan`).
 
 ## Última actualización
+
+2026-10-04 — **Fase 10, F10-01**: el workspace `apps/landing` con Astro 7, ESLint y Prettier para
+`.astro` y un test de build real, en una PR. Bitácora
+[2026-10-04](./bitacora/2026-10-04-f10-01-workspace-astro.md).
 
 2026-10-04 — **Fase 10, F10-00**: spec §5.7 (la landing) y ADR-0013 (sitio aparte), en una PR.
 Bitácora [2026-10-04](./bitacora/2026-10-04-f10-00-spec-landing.md).

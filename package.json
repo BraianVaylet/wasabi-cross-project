@@ -11,7 +11,7 @@
     "pnpm": ">=11.0.0"
   },
   "scripts": {
-    "dev": "pnpm -r --parallel dev",
+    "dev": "pnpm -r --parallel --filter \"!@wasabi-cross/landing\" dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "test:coverage": "pnpm -r test:coverage",
@@ -29,8 +29,11 @@
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
+    "eslint-plugin-astro": "^3.2.1",
+    "eslint-plugin-jsx-a11y-x": "^0.2.0",
     "globals": "^17.12.0",
     "prettier": "catalog:",
+    "prettier-plugin-astro": "^1.1.0",
     "railway": "^3.11.0",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
