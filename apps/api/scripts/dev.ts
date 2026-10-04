@@ -3,6 +3,7 @@ import { startFakeIdp } from '../dev-support/fake-idp.ts';
 import { fakeIdpAuthPlugin } from '../dev-support/fake-idp-auth.ts';
 import { startServer } from '../src/bootstrap.ts';
 import { parseEnv } from '../src/config/env.ts';
+import { assertDevelopmentOnly } from '../src/shared/dev-only.ts';
 
 /**
  * La API para desarrollar:
@@ -18,9 +19,7 @@ import { parseEnv } from '../src/config/env.ts';
  */
 async function main(): Promise<void> {
   const env = parseEnv();
-  if (env.NODE_ENV === 'production') {
-    throw new Error('scripts/dev.ts es sólo para desarrollo: no corre con NODE_ENV=production.');
-  }
+  assertDevelopmentOnly(env, 'scripts/dev.ts');
 
   const authPlugins: BetterAuthPlugin[] = [];
 

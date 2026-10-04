@@ -4,7 +4,8 @@ import {
   type TrainingActivity,
 } from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookiesFrom, setPlan, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { createTestSession } from '../../../test/session.ts';
 import { seedCatalog } from '../../exercises/application/seed-catalog.ts';
 import { createMongoExerciseRepository } from '../../exercises/infrastructure/mongo-exercise.repository.ts';
 
@@ -30,19 +31,13 @@ describe('constancia, récords y para retestear (F7-02)', () => {
   async function newUser(): Promise<string> {
     userCount += 1;
     const email = `actividad${String(userCount)}@example.com`;
-    const response = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-up/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({
-        email,
-        password: 'una-frase-larga-y-propia',
-        name: `Actividad ${String(userCount)}`,
-      }),
-    });
     // Las estadísticas son de Pro (spec §4): el usuario de estos tests lo es.
-    await setPlan(harness, email, 'pro');
-    return cookiesFrom(response.headers);
+    const session = await createTestSession(harness, {
+      email,
+      name: `Actividad ${String(userCount)}`,
+      plan: 'pro',
+    });
+    return session.cookie;
   }
 
   /** Hace `dias` días, al mediodía UTC. */

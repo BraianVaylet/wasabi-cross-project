@@ -1,6 +1,7 @@
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '@wasabi-cross/schemas';
 import { betterAuth, type BetterAuthOptions, type BetterAuthPlugin } from 'better-auth';
 import { mongodbAdapter } from 'better-auth/adapters/mongodb';
+import { testUtils } from 'better-auth/plugins';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
 import type { Db, MongoClient } from 'mongodb';
 import type { Env } from '../../../config/env.ts';
@@ -107,9 +108,15 @@ export function createAuth({
     // spec §13: verificación de la contraseña contra listas de filtradas.
     // Sólo manda los primeros cinco caracteres del hash SHA-1 (k-anonimato).
     // Apagado en test: un test no debería depender de una API externa.
+    //
+    // En test, en su lugar, `testUtils` (F9-04): helpers que crean usuarios y sesiones sin pasar
+    // por ningún formulario ni proveedor (`ctx.test`). No registra rutas HTTP, pero crea sesiones
+    // sin credenciales, así que **sólo** está con NODE_ENV=test: ni en desarrollo ni en producción.
     plugins: [
       ...(isTest
-        ? []
+        ? // El tipo de `testUtils` (su `init` devuelve `ctx.test`) no encaja en `BetterAuthPlugin[]`,
+          // y mezclarlo en este arreglo deja a `Auth` sin tipos. En runtime es un plugin más.
+          [testUtils() as unknown as BetterAuthPlugin]
         : [
             haveIBeenPwned({
               customPasswordCompromisedMessage:

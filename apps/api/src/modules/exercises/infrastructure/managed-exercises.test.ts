@@ -1,6 +1,7 @@
 import type { ExerciseList, ManagedExerciseSummary } from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookiesFrom, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { createTestSession } from '../../../test/session.ts';
 import { seedCatalog } from '../application/seed-catalog.ts';
 import { createMongoExerciseRepository } from './mongo-exercise.repository.ts';
 
@@ -20,18 +21,11 @@ describe('ejercicios gestionados (F1-05)', () => {
   /** Un usuario nuevo por test: así la lista de uno no contamina al siguiente. */
   async function newUser(): Promise<string> {
     userCount += 1;
-    const response = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-up/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({
-        email: `atleta${String(userCount)}@example.com`,
-        password: 'una-frase-larga-y-propia',
-        name: `Atleta ${String(userCount)}`,
-      }),
+    const session = await createTestSession(harness, {
+      email: `atleta${String(userCount)}@example.com`,
+      name: `Atleta ${String(userCount)}`,
     });
-
-    return cookiesFrom(response.headers);
+    return session.cookie;
   }
 
   async function catalogId(name: string): Promise<string> {

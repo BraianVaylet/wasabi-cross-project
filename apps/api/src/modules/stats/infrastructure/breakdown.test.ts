@@ -1,6 +1,7 @@
 import { trainingBreakdownSchema, type TrainingBreakdown } from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookiesFrom, setPlan, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { createTestSession } from '../../../test/session.ts';
 import { seedCatalog } from '../../exercises/application/seed-catalog.ts';
 import { createMongoExerciseRepository } from '../../exercises/infrastructure/mongo-exercise.repository.ts';
 
@@ -25,19 +26,13 @@ describe('cómo se reparte el entrenamiento (F7-01)', () => {
   async function newUser(): Promise<string> {
     userCount += 1;
     const email = `reparto${String(userCount)}@example.com`;
-    const response = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-up/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({
-        email,
-        password: 'una-frase-larga-y-propia',
-        name: `Reparto ${String(userCount)}`,
-      }),
-    });
     // Las estadísticas son de Pro (spec §4): el usuario de estos tests lo es.
-    await setPlan(harness, email, 'pro');
-    return cookiesFrom(response.headers);
+    const session = await createTestSession(harness, {
+      email,
+      name: `Reparto ${String(userCount)}`,
+      plan: 'pro',
+    });
+    return session.cookie;
   }
 
   async function add(cookie: string, body: Record<string, unknown>): Promise<void> {

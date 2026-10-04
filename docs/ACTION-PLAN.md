@@ -2859,9 +2859,10 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
 - **module:** auth
 - **description:** El plugin `testUtils` de Better Auth (`createUser`, `login`) en la configuración de
   `NODE_ENV=test` y **nunca** en la que se despliega, y un helper `createTestSession` (recibe el
-  _harness_ y el plan) que devuelve la cookie. Los once archivos de test de la API que hoy se registran
-  por `/api/auth/sign-up/email` pasan al helper. `seed:admin` y `dev:ephemeral` siembran al admin con
-  una cuenta del IdP falso (`providerId: "fake-idp"`, `accountId` fijo) y plan Pro, **sin
+  _harness_ y el plan) que devuelve la cookie. Los nueve archivos de test de la API que se registran
+  por `/api/auth/sign-up/email` pasan al helper (el décimo, `auth.test.ts`, se reescribe en F9-05; el
+  de `seed:admin`, acá). `seed:admin` y `dev:ephemeral` siembran al admin con una cuenta del IdP falso
+  (`providerId: "fake-idp"`, `accountId` igual al `sub` que el IdP da a ese email) y plan Pro, **sin
   contraseña**: el IdP falso lo ofrece por defecto, así que entrar en desarrollo es un clic. Se van
   `UserRegistrar` (el puerto y su implementación) y `SEED_ADMIN_PASSWORD`. Lo que hace la API no
   cambia: el email y la contraseña siguen andando hasta F9-05.
@@ -2873,8 +2874,11 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   - Dado `seed:admin` corrido dos veces, entonces hay un solo admin con plan Pro, ligado al IdP
     falso, sin cuenta `credential` ni hash de contraseña.
   - Dado `seed:admin` con `NODE_ENV=production`, entonces se niega, como hoy.
-  - Dada la configuración de `createAuth` con `NODE_ENV=production`, cuando se listan sus
-    endpoints, entonces no hay ninguno de `testUtils`.
+  - Dada la configuración de `createAuth` con `NODE_ENV=development` o `production`, cuando se
+    listan sus plugins, entonces `testUtils` no está (no registra rutas HTTP, pero crea sesiones sin
+    credenciales: por eso se comprueba el plugin y no los endpoints).
+  - Dado el seed y el IdP falso, cuando se entra con un clic (sin elegir nada en su pantalla),
+    entonces se abre la sesión del admin sembrado, con plan Pro, y no se crea otro usuario.
 - **example:** —
 - **story-points:** 3
 - **depends_on:** F9-03
@@ -2883,6 +2887,16 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   `pnpm test:coverage` sigue ≥90% de ramas (el CI lo exige).
 - **error-codes:** ninguno
 - **data-model-impact:** el admin sembrado tiene una `account` de `fake-idp` y ninguna `credential`.
+- **estado:** código hecho, a la espera de revisión. `createTestSession` y `openSession` (otra sesión
+  del mismo usuario: reemplaza al login por contraseña de "otro dispositivo") en `src/test/session.ts`.
+  `IdentityStore` (puerto) + implementación sobre el adaptador interno de Better Auth reemplazan a
+  `UserRegistrar`; `seedAdmin` queda genérico y recibe el proveedor y la cuenta. El seed y el IdP
+  comparten `seedDevAdmin`, `DEV_ADMIN` y `fakeIdpSubjectFor` en `dev-support/`; **`seed-admin.ts` se
+  mudó de `src/scripts/` a `scripts/`** (usa el IdP, que `src/` no puede importar, y deja de ir al
+  `dist/`). `assertDevelopmentOnly` (con test) reemplaza las guardas copiadas a mano. Pruebas
+  inversas: se rompió cada protección (nueve) y un test falló. **Hasta F9-07 el admin sembrado no
+  puede entrar por la web:** no tiene contraseña y todavía no hay botón del IdP; en local se registra
+  un usuario y se le sube el plan con el control de `dev:ephemeral`.
 
 ## [ ] F9-05 · Better Auth sólo con OAuth
 

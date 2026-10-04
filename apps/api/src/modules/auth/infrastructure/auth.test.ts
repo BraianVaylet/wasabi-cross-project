@@ -217,7 +217,8 @@ describe('auth', () => {
       });
 
       expect(auth.options.rateLimit.enabled).toBe(false);
-      expect(auth.options.plugins).toHaveLength(0);
+      // Sin `haveIBeenPwned`; el único plugin es `testUtils` (F9-04), que no llama a nadie.
+      expect(auth.options.plugins.map((plugin) => plugin.id)).toEqual(['test-utils']);
     });
   });
 

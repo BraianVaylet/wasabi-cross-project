@@ -35,6 +35,12 @@ export const CONSUMER_TENANT_ID = '9188040d-6c67-4c5b-b112-36a304b66dad';
 /** Un tenant cualquiera de trabajo o escuela: sirve para probar que se rechaza. */
 export const ORGANIZATION_TENANT_ID = '5d2f1c0e-7b1a-4c3e-9a55-0f6e8d3b7a21';
 
+/**
+ * El usuario que la pantalla ofrece cargado: el admin de desarrollo (plan Pro) que siembra
+ * `seed:admin`. Entrar sin tocar nada es entrar como él, con un clic.
+ */
+export const DEV_ADMIN = { email: 'admin@wasabicross.dev', name: 'Admin' } as const;
+
 const CODE_TTL_MS = 60_000;
 const TOKEN_TTL_SECONDS = 3600;
 const REDIRECT_PATH_PREFIX = '/api/auth/callback/';
@@ -114,6 +120,14 @@ function uuidFrom(label: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
 }
 
+/**
+ * El `sub` que el IdP da a una cuenta: lo que Better Auth guarda como `accountId`. Sin elegir un
+ * `account_id` en la pantalla, la cuenta es el email. `seed:admin` lo usa para ligar al admin.
+ */
+export function fakeIdpSubjectFor(accountId: string): string {
+  return uuidFrom(`sub:${accountId}`);
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll('&', '&amp;')
@@ -147,7 +161,7 @@ function withParams(uri: string, params: Record<string, string>): string {
 
 export async function startFakeIdp(options: FakeIdpOptions): Promise<FakeIdp> {
   const now = options.now ?? (() => new Date());
-  const defaultUser = options.defaultUser ?? { email: 'admin@wasabicross.dev', name: 'Admin' };
+  const defaultUser = options.defaultUser ?? DEV_ADMIN;
   const allowedOrigin = new URL(options.allowedRedirectOrigin).origin;
 
   const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
@@ -380,7 +394,7 @@ export async function startFakeIdp(options: FakeIdpOptions): Promise<FakeIdp> {
       return signJwt({
         ...common,
         iss: `${origin}/${tid}/v2.0`,
-        sub: uuidFrom(`sub:${chosen.accountId}`),
+        sub: fakeIdpSubjectFor(chosen.accountId),
         oid: uuidFrom(`oid:${chosen.accountId}`),
         tid,
         nbf: issuedAt,
@@ -394,7 +408,7 @@ export async function startFakeIdp(options: FakeIdpOptions): Promise<FakeIdp> {
     return signJwt({
       ...common,
       iss: origin,
-      sub: uuidFrom(`sub:${chosen.accountId}`),
+      sub: fakeIdpSubjectFor(chosen.accountId),
       email_verified: chosen.emailVerified,
       ...(chosen.photo ? { picture: `data:image/png;base64,${PIXEL_PNG}` } : {}),
     });

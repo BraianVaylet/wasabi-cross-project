@@ -118,12 +118,15 @@ actuales (no hay producción), que se sume Outlook y que el Perfil muestre la fo
 [ADR-0012](../adr/0012-ingreso-solo-con-oauth.md)). **F9-01 y F9-02 están mergeadas** (PR #95): los
 contratos y los códigos `WC-OAUTH-*` en schemas, y el módulo `oauth` con
 `GET /api/v1/oauth/providers` y las variables de entorno (`GOOGLE_*`, `MICROSOFT_*`,
-`OAUTH_DEV_IDP`, `MICROSOFT_AUTHORITY`) con sus guardas. **F9-03 tiene el código hecho, en una PR**,
-a la espera de la revisión humana de sus tests: el IdP falso de desarrollo (`apps/api/dev-support/`,
-dos caras: genérica y Microsoft), `startServer` en `src/bootstrap.ts` con los plugins de Better Auth
-inyectados, `scripts/dev.ts` (que ahora corre `pnpm dev`) y el cableado en `dev:ephemeral`, con
-cuatro guardas probadas con pruebas inversas. Nada de esto cambia todavía cómo se entra: sigue siendo
-email y contraseña hasta F9-05. El usuario confirmó los seis
+`OAUTH_DEV_IDP`, `MICROSOFT_AUTHORITY`) con sus guardas. **F9-03 está mergeada** (PR #96): el IdP falso
+de desarrollo (`apps/api/dev-support/`, dos caras: genérica y Microsoft), `startServer` en
+`src/bootstrap.ts` con los plugins de Better Auth inyectados, `scripts/dev.ts` (que corre `pnpm dev`)
+y el cableado en `dev:ephemeral`, con cuatro guardas probadas con pruebas inversas. **F9-04 tiene el
+código hecho, en una PR**: los tests de la API abren sesión con `createTestSession` (el plugin
+`testUtils`, sólo con `NODE_ENV=test`), el admin sembrado queda **sin contraseña** y ligado a la cuenta
+del IdP falso, y se fue `UserRegistrar`. Nada de esto cambia todavía cómo se entra por la web: sigue
+siendo email y contraseña hasta F9-05, y **hasta F9-07 el admin sembrado no puede entrar por la web**
+(sin contraseña y sin botón del IdP). El usuario confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -178,10 +181,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00, F9-01 y F9-02 (mergeadas) y revisar la PR de
-    F9-03 —**es de riesgo alto: un IdP que acepta a cualquiera en producción sería un bypass; los
-    tests de las cuatro guardas necesitan ojo humano (spec §9)**—. Después F9-04 (tests y seed sin
-    contraseña). F9-05 tiene que envolver el `getUserInfo` de Microsoft con un chequeo propio del
+10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-03 (mergeadas; en F9-03 conviene mirar
+    los tests de las cuatro guardas: un IdP que acepta a cualquiera en producción sería un bypass) y
+    revisar la PR de F9-04. Después F9-05 (Better Auth sólo con OAuth), que tiene que envolver el `getUserInfo` de Microsoft con un chequeo propio del
     `tid` (Better Auth no lo hace en el flujo con `code`). F9-10 necesita que el usuario cree el
     cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
     prod esperan a F3-07.
@@ -253,15 +255,19 @@ pnpm --filter @wasabi-cross/api dev:ephemeral   # API en :3100, Mongo efímero
 # lo leen solos), MONGODB_URI tiene que ser un replica set, y antes de levantar:
 pnpm --filter @wasabi-cross/api migrate up      # sin esto, /ready responde no-listo
 pnpm --filter @wasabi-cross/api seed            # catálogo de ejercicios
-pnpm --filter @wasabi-cross/api seed:admin      # usuario admin con plan Pro
-pnpm dev                                        # API en :3000, web en :5173
+pnpm --filter @wasabi-cross/api seed:admin      # usuario admin con plan Pro, sin contraseña
+pnpm dev                                        # API en :3000, web en :5173; con OAUTH_DEV_IDP=on, el IdP falso en :3102
 ```
 
 **Usuario admin de desarrollo** (`seed:admin`, y de nuevo en cada arranque de `dev:ephemeral`):
-`admin@wasabicross.dev` / `wasabi-cross-admin-dev`, plan Pro fijo — no hay proveedor de pago
-todavía (ver "Decisiones abiertas"), así que es la única forma de ver las estadísticas sin que
-se puedan pagar. Un usuario que se registra nace Free. Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME`. Sólo de
-desarrollo: el script se niega a correr con `NODE_ENV=production`.
+`admin@wasabicross.dev`, plan Pro fijo y **sin contraseña** (F9-04, ADR-0012): queda ligado a la cuenta
+del IdP falso, que lo ofrece cargado por defecto, así que entrar como él es un clic en la pantalla del
+IdP (`OAUTH_DEV_IDP=on`). No hay proveedor de pago todavía (ver "Decisiones abiertas"): es la única
+forma de ver las estadísticas sin que se puedan pagar. Un usuario que se registra nace Free.
+Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_NAME`. Sólo de desarrollo: el script se niega a correr
+con `NODE_ENV=production`. **Hasta F9-07** (el botón del IdP en la pantalla de ingreso) el admin sembrado
+no puede entrar por la web: sin contraseña y sin botón. Para ver las estadísticas en local, registrar
+un usuario y subirle el plan con el control de `dev:ephemeral` (`POST :3101/plan`).
 
 ## Última actualización
 
@@ -269,9 +275,13 @@ desarrollo: el script se niega a correr con `NODE_ENV=production`.
 planificación. Decididos con el usuario: sitio aparte, la landing lleva a la app, voseo y
 Free/Pro según la spec. Bitácora [2026-10-04](./bitacora/2026-10-04-plan-landing.md).
 
+2026-10-04 — **Fase 9, F9-04**: tests y seed sin contraseña: `createTestSession`, el admin ligado al
+IdP falso, fuera `UserRegistrar`, en una PR. Bitácora
+[2026-10-04](./bitacora/2026-10-04-f9-04-tests-y-seed-sin-contrasena.md).
+
 2026-10-04 — **Fase 9, F9-03**: el IdP falso de desarrollo, el arranque con plugins inyectados y las
-cuatro guardas, en una PR. Se descubrió que Better Auth no chequea el `tid` de Microsoft en el flujo
-con `code`: va a F9-05. Bitácora
+cuatro guardas, mergeado en la PR #96. Se descubrió que Better Auth no chequea el `tid` de Microsoft
+en el flujo con `code`: va a F9-05. Bitácora
 [2026-10-04](./bitacora/2026-10-04-f9-03-idp-falso.md).
 
 2026-10-04 — **Fase 9, F9-01 y F9-02**: contratos de OAuth en schemas y el módulo `oauth` (proveedores
