@@ -134,7 +134,7 @@ de verificación antes de dar por buena su cuenta; la foto hay que servirla desd
 bloquearía la URL de Google; y el service worker de la PWA devolvería `index.html` al callback (no
 excluye `/api/`). **Después de la fase:** un modal para promocionar Pro (sin tareas todavía).
 
-**Fase 10 — Landing page con Astro** (2026-10-04, **sólo planificada**, 14 tareas y 40 puntos en el
+**Fase 10 — Landing page con Astro** (2026-10-04, **planificada, F10-00 hecha**, 14 tareas y 40 puntos en el
 [backlog](../ACTION-PLAN.md)): el usuario trajo el diseño en `docs/landing/` (un HTML y su PNG, más
 16 capturas de la app) y pidió que se desarrolle con Astro. La spec la dejaba afuera (§1 y §5);
 F10-00 la mete. Cuatro decisiones del usuario: **sitio aparte** (`apps/landing`, con su propio
@@ -146,7 +146,8 @@ Tailwind y Google Fonts por CDN (se reescribe sobre los tokens, con Fontsource);
 diseño pasa AA; el diseño nombra 5 de las 7 disciplinas; y que un cambio de copy no reinicie la API
 depende de los _watch paths_ de Railway, que el IaC no documenta (F10-12 lo comprueba). **El dominio
 hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth llevan el host de la
-app. Nada de la fase empezó.
+app. **F10-00 está hecha, en una PR** (spec §1, §5, §5.7 nueva, §6, §7, §11, §12 y §13, y
+[ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md)); ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -190,8 +191,8 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** el usuario revisa el plan y arranca por F10-00 (spec y ADR-0013);
-    crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-00 (spec §5.7 y ADR-0013); después F10-01 (el
+    workspace con Astro). Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -264,6 +265,9 @@ se puedan pagar. Un usuario que se registra nace Free. Configurable con `SEED_AD
 desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
+
+2026-10-04 — **Fase 10, F10-00**: spec §5.7 (la landing) y ADR-0013 (sitio aparte), en una PR.
+Bitácora [2026-10-04](./bitacora/2026-10-04-f10-00-spec-landing.md).
 
 2026-10-04 — **Fase 10, landing page con Astro**: backlog (14 tareas, 40 puntos), sólo
 planificación. Decididos con el usuario: sitio aparte, la landing lleva a la app, voseo y

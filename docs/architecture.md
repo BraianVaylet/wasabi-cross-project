@@ -10,6 +10,7 @@ Estructura real del repo desde la Fase 0. La herramienta de workspaces es **pnpm
 wasabi-cross/
 ├── apps/
 │   ├── web/               # React PWA (Vite)
+│   ├── landing/           # Landing page (Astro, estática; ADR-0013)
 │   └── api/               # API REST (Fastify)
 │       └── src/
 │           ├── config/     # entorno validado con Zod

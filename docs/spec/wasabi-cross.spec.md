@@ -8,7 +8,7 @@
 | -------------------------- | ---------------------------------------------------------------------------- |
 | Nombre                     | Wasabi Cross                                                                 |
 | Qué es                     | Webapp para gestionar ejercicios y RMs (repetición máxima) de un atleta      |
-| Alcance de este desarrollo | Webapp + API. La landing page queda fuera de esta fase.                      |
+| Alcance de este desarrollo | Webapp + API + landing page (un sitio estático aparte, §5.7).                      |
 | Monetización               | Suscripción Free / Pro                                                       |
 | Origen                     | Evolución (v2) de bv-cross, para uso personal, amigos y algunos suscriptores |
 
@@ -79,7 +79,7 @@ Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
 
 **PWA**: instalable en el dispositivo. Al haber una nueva versión, se notifica al usuario con un popup para actualizar.
 
-**Landing page**: fuera de esta fase de desarrollo.
+**Landing page**: un sitio estático aparte de la app, en `apps/landing` (§5.7).
 
 ### 5.1 Ejercicios, marcas y porcentajes
 
@@ -365,6 +365,50 @@ guardan**: el único uso del _access token_ es pedirle la foto a Microsoft duran
 después se descarta (si Better Auth no permitiera descartarlo, se guarda cifrado: ADR-0012). No hay
 contraseña, recupero de contraseña ni verificación de email propios: los resuelve el proveedor.
 
+### 5.7 Landing page
+
+La landing es **el sitio público de Wasabi Cross**: le presenta el producto a quien todavía no lo usa
+y lo lleva a la app. Es un **sitio estático aparte** ([ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md)), no una pantalla de la PWA:
+vive en `apps/landing` (Astro), no tiene sesión, no llama a la API y no guarda nada de quien la
+visita. El diseño está en [`../landing`](../landing): un HTML y su PNG, y las capturas de la app
+que muestra.
+
+**Estructura.** Una página larga, `/`, con estas secciones en este orden: header, hero, Registro,
+Funciones, Estadísticas Pro, Planes y footer. Además, `/privacidad` y `/terminos`, y una 404 con la
+marca.
+
+**Qué promete de cada plan, y qué no.** Lo que la landing dice de Free y Pro no puede ir más allá de
+lo que dice §4:
+
+- Los dos cargan todos los ejercicios y marcas que quieran, con porcentajes de carga e historial de
+  marcas. Lo único que los diferencia es ver las estadísticas.
+- Como "estadísticas" incluye el progreso del detalle de ejercicio (§4, §5.2), la landing **no
+  presenta ese progreso como parte de Free**: en las secciones que no están marcadas como Pro habla
+  de historial de marcas, no de "tendencia" ni de "evolución". Las capturas que muestran el progreso
+  o las estadísticas se presentan como lo que son, de Pro.
+- El precio y el período de Pro están **por definir** (§4): la landing dice "precio por definir",
+  sin monto y sin decir si es mensual o anual, hasta que §4 los fije.
+- La fila de estadísticas de la tabla de planes sale de la misma regla que hace cumplir la API
+  (`canViewStats`, en `@wasabi-cross/schemas`): la landing no la repite a mano.
+- Las disciplinas que nombra existen en el catálogo (§5.1), y el "más de ocho semanas" de los
+  ejercicios para retestear es el umbral de §5.4: 56 días.
+
+**Entrada a la app.** "Entrar", en el header, y "Empezar gratis", el CTA principal, llevan al ingreso
+de la app (`/login`, §5.6) en la URL que dice la variable de build `PUBLIC_APP_URL`. "Ver la app en
+acción" queda como enlace secundario a la captura del hero. Sin `PUBLIC_APP_URL` —mientras la app no
+esté en producción— no se muestran ni "Entrar" ni "Empezar gratis". La landing sólo enlaza: nunca
+arma ni toca el ingreso por OAuth.
+
+**Voz.** es-AR con voseo, como la app (§11). Los textos son datos tipados en el código, no están en
+el marcado.
+
+**Qué no lleva.** Cookies, analytics y banner de consentimiento; formularios; JavaScript de cliente;
+manifest y service worker (no es una PWA: no se instala); Tailwind (§6, §11).
+
+**Indexación y compartir.** Sólo producción es indexable: el build trae `PUBLIC_SITE_URL` y
+`LANDING_INDEXABLE=1`. Staging y CI salen con `noindex` y un `robots.txt` que bloquea todo (§12).
+Lleva metadatos para compartir el enlace: título, descripción e imagen de 1200×630.
+
 ## 6. Stack
 
 - React
@@ -376,11 +420,14 @@ contraseña, recupero de contraseña ni verificación de email propios: los resu
 - Temporal (fechas)
 - Tanstack (Table, Form, Charts, Query, Router…)
 - Motion (animaciones)
-- Fontsource (fuentes)
+- Fontsource (fuentes; la landing suma Figtree para el texto corrido)
 - Zustand (estado global)
 - pragmatic-drag-and-drop (drag and drop)
 - Nuqs (estado en URL)
 - Swagger (documentación de API)
+- Astro (la landing page: sitio estático, sin JavaScript de cliente — §5.7)
+
+La landing no usa Tailwind: el HTML de su diseño lo trae por CDN y la CSP (§13) no deja correr un script de otro origen. Se escribe CSS propio sobre los tokens de la app ([ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md)).
 
 ## 7. Arquitectura
 
@@ -416,6 +463,8 @@ Un solo deployable de backend, módulos aislados (`domain / application / infras
 - `@wasabi-cross/schemas`: Zod compartido front/back, fuente única de verdad de validaciones y tipos (`z.infer`).
 - `@wasabi-cross/ui`: librería de componentes (Componentes Cross), con Storybook.
 - API REST versionada + OpenAPI **generado** desde los schemas Zod (nunca escrito a mano).
+
+`apps/landing` (§5.7) no es un módulo de dominio: no importa de `apps/api` ni de `apps/web`. Lee `@wasabi-cross/schemas` (las reglas que cuenta, como `canViewStats`) y los tokens de `@wasabi-cross/ui`.
 
 Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture.md](../architecture.md).
 
@@ -464,6 +513,10 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - Tipografía fluida, mínimo 16px en inputs (evita zoom automático de iOS)
 - Optimistic UI
 - El campo de tiempo (mm:ss) inserta los ":" solo, cada dos cifras tipeadas: no hace falta que el usuario los escriba.
+- La **landing** (§5.7) usa el mismo tema y los mismos tokens, pero a **todo el ancho** (hasta 1280px): la columna de 430px es la de la app, y en la landing sólo es el tamaño con el que se muestran sus capturas.
+- Tipografía de la landing: Staatliches y Share Tech Mono, como la app, y **Figtree** para el texto corrido (§6). Figtree es sólo de la landing.
+- Los colores del diseño de la landing se llevan a los tokens `--wc-*`; lo que la app no tiene entra como token nuevo: la banda `#13071F` y el **rosa de Pro** (`#C15EA7` de borde y relleno, `#D989C0` de texto). La etiqueta PRO de la app es lima: si se unifican es una decisión abierta. Los textos del diseño de la landing pasan AA sin apartarse de él (el peor par da 5,2:1); se recalcula con los tokens finales.
+- Voseo es-AR (Entrá, Elegí, Registrá) en la app y en la landing.
 
 ## 12. Infra
 
@@ -477,6 +530,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - **Secrets** en el gestor de la plataforma, nunca en el repo. Rotación documentada. Incluye los secretos de cliente OAuth, uno por ambiente (`GOOGLE_*`, `MICROSOFT_*`): el de Microsoft vence.
 - **Migraciones de esquema** versionadas y reversibles (`migrate-mongo` o similar); nunca cambios manuales en Atlas.
 - **Health checks** `/health` (liveness) y `/ready` (readiness con ping a Mongo).
+- **Landing:** un servicio estático aparte en Railway (`wasabi-cross-landing`), en el dominio raíz. La app y la API siguen siendo un solo servicio, en `app.` ([ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md), [ADR-0007](../adr/0007-la-api-sirve-el-front.md)). Con la app en `app.`, `WEB_ORIGIN`, `BETTER_AUTH_URL` y las redirect URIs de OAuth (§5.6) llevan el host de la app. **El dominio todavía no está elegido**: hay que fijarlo antes de crear los clientes OAuth de staging y prod. La landing no tiene secretos: `PUBLIC_SITE_URL`, `PUBLIC_APP_URL` y `LANDING_INDEXABLE` son públicas y de build. Con dos servicios del mismo repo, un push redeploya los dos salvo que se configuren _watch paths_ por servicio.
 - Uptime monitoring externo con alerta a WhatsApp/Telegram.
 - Plan de escala: Railway alcanza para el volumen inicial (uso personal + amigos + early subscribers); el disparador para migrar a VPS/Coolify es costo o límite de recursos, no estética.
 
@@ -496,6 +550,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - **Tokens del proveedor:** scopes mínimos (`openid`, `email`, `profile`; en Microsoft, también `User.Read`, que permite la foto), sin acceso offline, y no se guardan. En los logs, nunca `code`, `state`, `idToken` ni secretos de cliente.
 - **Foto:** es un dato personal. La API sólo baja imágenes de hosts de Google, sólo `png`, `jpeg` o `webp`, con tamaño y tiempo máximos; un SVG serviría script en el origen de la app.
 - **IdP falso de desarrollo:** nunca en producción. Vive fuera de `src/` y de `dist/`, y la API se niega a arrancar con él con `NODE_ENV=production`.
+- **Landing (§5.7):** sin cookies, analytics ni formularios: no recibe datos de quien la visita. CSP propia y estricta: `script-src 'none'` (no tiene JavaScript), sin `unsafe-inline` en estilos (todo el CSS va en archivos), y los mismos headers que la API (HSTS, `X-Content-Type-Options`, `Referrer-Policy`). Ningún recurso de otro origen: ni fuentes ni scripts de CDN. Las variables `PUBLIC_*` van al navegador: nunca llevan un secreto. Staging y CI no se indexan. La política de privacidad dice lo que §5.6 y este apartado dicen que se guarda, y nada más; el texto lo aprueba el usuario.
 
 ## 14. Observabilidad, logs y códigos de error
 
