@@ -11,6 +11,8 @@ import { getViteConfig } from 'astro/config';
 export default getViteConfig({
   test: {
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
+    // El build real, una sola vez para los tests que miran su salida.
+    globalSetup: ['./test/global-setup.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],

@@ -1,6 +1,10 @@
 ---
-// Página mínima de F10-01: sólo prueba que el workspace compila. La landing de verdad llega con
-// F10-03 (estructura) y F10-05 a F10-08 (secciones).
+// Página mínima de F10-01/F10-02: sólo prueba que el workspace compila y que los estilos y las
+// tipografías llegan. La landing de verdad llega con F10-03 (estructura, donde esto pasa al layout)
+// y F10-05 a F10-08 (secciones).
+import '../styles/global.css';
+// La condensada de los titulares es lo primero que se ve: se pide ya, sin esperar al CSS.
+import staatliches from '@fontsource/staatliches/files/staatliches-latin-400-normal.woff2?url';
 ---
 
 <!doctype html>
@@ -8,9 +12,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" as="font" type="font/woff2" href={staatliches} crossorigin />
     <title>Wasabi Cross</title>
   </head>
-  <body>
+  <body class="wc-root">
     <h1>Wasabi Cross</h1>
   </body>
 </html>

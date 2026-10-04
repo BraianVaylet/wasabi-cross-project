@@ -186,9 +186,21 @@ importers:
 
   apps/landing:
     dependencies:
+      '@fontsource/figtree':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/share-tech-mono':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/staatliches':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@wasabi-cross/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
+      '@wasabi-cross/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
     devDependencies:
       '@astrojs/check':
         specifier: 'catalog:'
@@ -1585,6 +1597,9 @@ packages:
 
   '@fastify/swagger@9.9.0':
     resolution: {integrity: sha512-d21Im1l3KoF2kmzJHOYL50Erjhj1qUUudQsW9hzwYTE7likjvMx7AQKpClyZbdhrqGXbl+fU4dI2S7BaLpFIvw==}
+
+  '@fontsource/figtree@5.3.0':
+    resolution: {integrity: sha512-/iTcTXL1eRBGhvD7NN9dnKzXzWqDLVZVEUFI9xIxAC1G/hXU8tCyYeXCAuPOuvSYPInFUP7H6KLGgygmDfy1SA==}
 
   '@fontsource/share-tech-mono@5.3.0':
     resolution: {integrity: sha512-hVEzVCzEid/fBfhggMyvkfDzn9ODrMihxC0EiOeQK3BuQNvdjmith2ERnoDNUkbW8zhufbKNuCgaSoT8LUNpuQ==}
@@ -7413,6 +7428,8 @@ snapshots:
       yaml: 2.9.1
     transitivePeerDependencies:
       - supports-color
+
+  '@fontsource/figtree@5.3.0': {}
 
   '@fontsource/share-tech-mono@5.3.0': {}
 
