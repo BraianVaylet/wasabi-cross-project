@@ -8,7 +8,7 @@
 | -------------------------- | ---------------------------------------------------------------------------- |
 | Nombre                     | Wasabi Cross                                                                 |
 | Qué es                     | Webapp para gestionar ejercicios y RMs (repetición máxima) de un atleta      |
-| Alcance de este desarrollo | Webapp + API + landing page (un sitio estático aparte, §5.7).                      |
+| Alcance de este desarrollo | Webapp + API + landing page (un sitio estático aparte, §5.7).                |
 | Monetización               | Suscripción Free / Pro                                                       |
 | Origen                     | Evolución (v2) de bv-cross, para uso personal, amigos y algunos suscriptores |
 
