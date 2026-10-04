@@ -23,6 +23,7 @@
 | Fase 5 — Catálogo ampliado        |     16 |           62 |      0 |
 | Fase 7 — Estadísticas ampliadas   |      8 |           23 |      0 |
 | Fase 8 — Plan Pro                 |      7 |           22 |      0 |
+| Fase 9 — Ingreso con OAuth 2.0    |     11 |           42 |      0 |
 
 Las siete tareas de código de la Fase 0 están cerradas: PR #1 mergeada el 2026-09-17 con CI verde, y
 sus tarjetas movidas a `Completadas`. Queda abierta F0-08, que no depende de código — ver abajo.
@@ -2561,5 +2562,525 @@ quitar un campo del contrato rompe a todos los que lo leen) → F8-02 (`max` pas
 - **depends_on:** F8-04, F8-05
 - **risk:** low
 - **test_plan:** `pnpm e2e` y `pnpm e2e:prod` completos, en CI.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+---
+
+# Fase 9 — Ingreso con OAuth 2.0 (Google y Microsoft)
+
+El usuario decidió (2026-10-04) que **todo el login y el registro pasa por OAuth 2.0**, con **Google y
+Microsoft** (las cuentas Outlook, Hotmail y Live): se va el email y la contraseña (F0-03 y F1-10, y la
+decisión del 2026-09-18 que los dejaba como único ingreso). No hay usuarios que conservar —no hay
+producción ni Atlas— así que no hay migración de cuentas. Wasabi Cross es **cliente** OpenID Connect
+de los proveedores, con _authorization code_ + PKCE; no es un servidor OAuth. Entrar por primera vez
+crea la cuenta: no hay pantalla de registro. El Perfil muestra la foto del usuario.
+
+**Qué se aprovecha** de los proveedores y del Better Auth que ya está:
+
+- El proveedor autentica, guarda y protege la contraseña y puede pedir 2FA. Se van el hash, la
+  política de largo, `haveIBeenPwned`, `forget-password` y sus límites de intentos. Con eso se
+  cierra la decisión abierta "Proveedor de email": sin contraseñas no hay nada que recuperar.
+- Better Auth ya trae `socialProviders` para los dos (`state`, PKCE, cookie de sesión), el plugin
+  `testUtils` (`createUser`, `login`) para tener sesiones en tests sin pasar por ningún formulario, y
+  `overrideUserInfoOnSignIn`, que refresca nombre y foto en cada ingreso.
+- **El token no se guarda ni hace falta después del ingreso.** El _access token_ sólo tiene un uso
+  para Wasabi: en Microsoft, el ID token no trae foto y Better Auth la pide a Microsoft Graph con él
+  durante el ingreso (Google manda la URL de la foto, `picture`, en el ID token y no necesita nada).
+  Hecho eso no sirve para nada más: refrescar la foto sin que la persona entre exigiría un
+  _refresh token_ (un secreto de larga vida en la base), y llamar a otras APIs del proveedor
+  (Calendar, Fit, Graph) está fuera de la spec §2. La foto se refresca en el ingreso siguiente.
+
+**Supuestos, confirmados por el usuario el 2026-10-04** (F9-00 los vuelca en la spec):
+
+1. **Google y Microsoft, sólo cuentas personales de Microsoft** (tenant `consumers`). Las cuentas de
+   trabajo o escuela quedan afuera: ahí el email lo controla el administrador del tenant y no es
+   confiable (ver el hallazgo de abajo). Si hay que aceptarlas, es otra decisión, con más riesgo.
+2. **Cualquier cuenta con email verificado por el proveedor puede crear cuenta**, y nace Free. El
+   modal para promocionar Pro es posterior y no entra en esta fase.
+3. **El nombre visible** ("Hi, Braian!") **es el del proveedor**, sin pantalla para cambiarlo. Si no
+   lo trae, la parte local del email.
+4. **Se guardan email, nombre, foto y el id del proveedor.** Ningún token. La foto se muestra en el
+   Perfil.
+5. **Cada ingreso pide elegir la cuenta** (`prompt: select_account`, en los dos): cerrar sesión en
+   Wasabi no cierra la del proveedor, y en un teléfono compartido entraría solo a la cuenta
+   equivocada.
+6. **Las cuentas no se vinculan solas** (`accountLinking` apagado). Un email que ya tiene cuenta con
+   el otro proveedor recibe un aviso para entrar con ese. Quien usa Google y Microsoft con emails
+   distintos tiene dos cuentas separadas: vincularlas es una función aparte, con sesión iniciada.
+
+**Hallazgos del repo y de la documentación de los proveedores**, comprobados al armar el plan:
+
+- **Sin contraseña no sirve nada de lo que hoy abre una sesión.** Once archivos de test de la API se
+  registran por `/api/auth/sign-up/email`; el E2E lo hace por `/registro` en `registrarse()`
+  (`apps/web/e2e/app.ts`, que usan todos los specs); `seed:admin` crea al admin con contraseña.
+  Los tests pasan a `testUtils`; el E2E y el desarrollo, a un IdP falso; el admin se siembra ligado
+  a él.
+- **El IdP falso pasa a ser el ingreso de desarrollo.** Si llegara a producción sería un _bypass_ de
+  autenticación. Por eso F9-03 lo deja fuera de `src/` y de `dist/`, y `parseEnv` se niega a
+  arrancar con él en `production`.
+- **El email de Microsoft no es confiable.** Su documentación dice que el claim `email` "no está
+  garantizado como correcto y es mutable" y que no se use para identificar ni guardar datos del
+  usuario (es la base del ataque _nOAuth_). Better Auth ya identifica la cuenta de Microsoft por
+  `oid`, que es inmutable. Y sólo marca el email como verificado si el token trae `email_verified`
+  o el email figura en `verified_primary_email` / `verified_secondary_email`, que son _claims_
+  opcionales que hay que pedir en el registro de la app en Entra. La documentación no dice si las
+  cuentas personales los reciben. **F9-10 captura un token real para comprobarlo; si no vienen, se
+  frena y se decide: no se fuerza `emailVerified: true`**, porque con la vinculación apagada el
+  email sólo importa para impedir que alguien se adelante con el de otro, y eso lo impide pedir que
+  esté verificado.
+- **Los scopes por defecto de Microsoft incluyen `offline_access`** (un _refresh token_). Se
+  desactivan los scopes por defecto y se piden `openid profile email User.Read`; `User.Read` es el
+  que permite la foto. Google se pide sin acceso offline.
+- **La foto no se puede mostrar tal cual viene.** Better Auth la guarda en `user.image`: una URL de
+  `googleusercontent.com` en Google y un _data URL_ en Microsoft (con un espacio después de la
+  coma). La CSP de producción (`img-src 'self' data:`, el default de helmet) bloquearía la primera, y
+  el segundo, de unos 6 KB, viajaría en cada `/me`. Por eso la API la sirve desde su propio origen
+  (F9-08) y `/me` sólo dice si hay foto.
+- **El service worker se comería el callback.** `dist/sw.js` registra
+  `NavigationRoute(createHandlerBoundToURL("index.html"))` sin lista de exclusión: con la PWA activa,
+  la navegación de vuelta del proveedor (`/api/auth/callback/google`) recibiría `index.html`. Hay que
+  excluir `/api/` (F9-07).
+- **Los errores del callback no son 4xx.** Better Auth responde con un redirect a `?error=<código>`,
+  así que `translateAuthError` no los ve: el front traduce ese parámetro a un código `WC-OAUTH-*` y
+  nunca refleja el texto crudo.
+- **Tokens del proveedor.** Better Auth guarda `accessToken`, `refreshToken` e `idToken` en la
+  colección `account`. Wasabi no los necesita (F9-05).
+- **Logs.** La URL del callback trae `code` y `state`, y `auth.routes.ts` loguea `request.url`. El
+  logger redacta `accessToken` y `refreshToken`, pero no `idToken` ni el _query_ (F9-06).
+- **El callback depende del proveedor:** `/api/auth/callback/google`, `/api/auth/callback/microsoft`
+  y, para el IdP falso, `/api/auth/oauth2/callback/<id>`. Todos caen bajo `/api/`.
+- **Los secretos de Microsoft vencen** (hasta 24 meses); los de Google no. El runbook (F9-10) anota la
+  fecha de vencimiento.
+- **Cookies.** `sameSite: 'lax'` ya está puesto y es lo que deja que la cookie de `state` sobreviva
+  el regreso desde el proveedor. La cookie es por _host_, no por puerto: en desarrollo la API y el
+  front tienen que usar el mismo (`localhost` en todo, o `127.0.0.1` en todo).
+- **La Fase 8 ya está en `main`** (PR #93): `seed:admin` siembra Pro y el E2E fija el plan con
+  `fijarPlan`, y esta fase los reemplaza.
+
+**Fuera de la Fase 9**, para que no se cuele:
+
+- El modal para promocionar Pro (el usuario lo pidió para después; sin tareas todavía).
+- Wasabi Cross como servidor OAuth / proveedor OIDC para terceros.
+- Más proveedores, cuentas de trabajo o escuela de Microsoft, y vincular cuentas con una sección
+  "Cuentas conectadas" en el Perfil.
+- Cambiar el nombre visible o la foto desde Wasabi, borrar la cuenta y 2FA propio (lo da el
+  proveedor).
+- Migrar cuentas con contraseña: no hay ninguna que valga. Las bases de desarrollo con cuentas viejas
+  se borran (`dev:ephemeral` nace limpia; en una base propia, `dropDatabase` y volver a migrar y
+  sembrar): un `user` viejo con el mismo email que una cuenta nueva daría "no vinculada". Si antes de
+  esta fase alguien crea staging con datos, también se borra.
+
+**Camino:** F9-00 → F9-01 y F9-02 (en paralelo) → F9-03 → F9-04 → F9-05 → F9-06, F9-07 y F9-08 (en
+paralelo) → F9-09. F9-10 (🔑, las cuentas de Google y Microsoft del usuario) se destraba con F9-05; su
+parte de staging y prod espera a F3-07. Cada paso compila y pasa: F9-04 saca la contraseña de los
+tests y del seed sin cambiar lo que hace la API, F9-05 la apaga, y F9-07 borra los formularios y los
+schemas de contraseña, que son lo último que los usaba. F9-03, F9-05 y F9-07 tocan la entrada a la
+app: revisión humana de los tests (spec §9), y cada una pasa por `/security-review` y `aikido:scan`.
+
+## [ ] F9-00 · Spec: el ingreso es sólo con OAuth
+
+- **module:** spec
+- **description:** Los seis supuestos de arriba, cerrados con el usuario y volcados en la spec: §5
+  (las filas Login y Registro pasan a una sola, "Ingreso"; la del Perfil suma la foto), §5.5 (el
+  Perfil empieza por la persona), §5.6 nueva (el ingreso: proveedores, pantalla, primera vez y
+  después, qué pasa cuando algo no sale, cuentas sin vincular, foto, sesión y qué se guarda), §6
+  (Better Auth sólo con OAuth), §7 (`auth` queda con la sesión; `oauth` con el ingreso por
+  proveedores), §12 (los secretos de cliente OAuth) y §13 (rate limit del ingreso, 5 por minuto por
+  IP; se van el recupero de contraseña y el hash con listas de filtradas; entra OAuth: _code_ +
+  PKCE, `state`, redirect URIs exactas por ambiente, tokens, la foto como dato personal, el IdP
+  falso). ADR-0012: revierte el login con email y contraseña, con las opciones (1) sólo OAuth, (2)
+  OAuth y contraseña, (3) sólo contraseña; el costo de depender de dos proveedores; por qué
+  `consumers` y no `common`; por qué la vinculación está apagada y qué haría falta para encenderla.
+  STATE.md: se cierra "Proveedor de email" y la decisión del 2026-09-18 queda como reemplazada.
+  `docs/error-codes.md` suma `OAUTH` a la lista de módulos.
+- **acceptance-criteria:**
+  - Dada la spec, cuando se lee §5, entonces dice qué ve cada persona al entrar, y que no hay
+    pantalla de registro ni campos de email o contraseña.
+  - Dada la spec, cuando se lee §13, entonces no queda ninguna regla de contraseñas y cada regla de
+    OAuth tiene su lugar.
+  - Dado el ADR, cuando se lee, entonces dice qué se gana, qué se pierde y qué haría falta para sumar
+    un tercer proveedor o vincular cuentas.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** —
+- **risk:** low
+- **test_plan:** revisión humana de la PR.
+- **error-codes:** ninguno (el módulo se registra acá; los códigos llegan en F9-01)
+- **data-model-impact:** ninguno
+- **estado:** hecha, a la espera de revisión. Spec §5.6 nueva y [ADR-0012](./adr/0012-ingreso-solo-con-oauth.md);
+  `OAUTH` en la lista de módulos de [error-codes.md](./error-codes.md). La spec cita ya los tres
+  códigos `WC-OAUTH-*`, que entran al diccionario en F9-01 (acá no hay código que los lance).
+
+## [ ] F9-01 · Schemas: contratos de OAuth
+
+- **module:** schemas
+- **description:** Lo compartido por front y back, en `@wasabi-cross/schemas` (ADR-0006), **sólo
+  agregando**: lo de contraseñas se borra al final, cuando ya no lo use nadie (F9-07).
+  `oauthProviderSchema` (`google` y `microsoft`) y la respuesta de proveedores habilitados
+  (`{ id, label }`); `oauthErrorFor(valor)`, que traduce el `?error=` de Better Auth
+  (`access_denied`, `account_not_linked`, `state_mismatch`, `unable_to_create_user`…) a un código del
+  catálogo, y un valor desconocido cae siempre en el genérico. Los tres códigos entran al catálogo y a
+  [error-codes.md](./error-codes.md) acá, en el mismo PR.
+- **acceptance-criteria:**
+  - Dado `access_denied`, cuando se traduce, entonces da `WC-OAUTH-400-001`; dado
+    `account_not_linked`, `WC-OAUTH-409-003`; dado cualquier otro valor, conocido o no,
+    `WC-OAUTH-400-002`, sin devolver nunca el texto recibido.
+  - Dado un proveedor que no está en el enum, cuando se parsea, entonces se rechaza.
+  - Dada la respuesta de proveedores, cuando se parsea un objeto con campos de más (`clientId`),
+    entonces se rechaza.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F9-00
+- **risk:** low
+- **test_plan:** tests de schema por regla; el test que ya falla si catálogo y diccionario divergen
+  cubre los códigos nuevos. Coverage ≥90%.
+- **error-codes:** nuevos `WC-OAUTH-400-001` (ingreso cancelado), `WC-OAUTH-400-002` (no se pudo
+  completar el ingreso) y `WC-OAUTH-409-003` (ya hay una cuenta con ese email: entrá con el otro
+  proveedor)
+- **data-model-impact:** ninguno
+
+## [ ] F9-02 · API: módulo `oauth`, configuración y proveedores habilitados
+
+- **module:** oauth
+- **description:** Nace `apps/api/src/modules/oauth/{domain,application,infrastructure}`. Variables
+  `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET`, y `MICROSOFT_CLIENT_ID` y `MICROSOFT_CLIENT_SECRET`:
+  opcionales pero **cada par, completo o ausente** (mismo patrón que el `refine` de
+  `AUTH_RATE_LIMIT`). El tenant de Microsoft es `consumers` y está fijo en el código, no es una
+  variable. `OAUTH_DEV_IDP` (`on` u `off`, `off` por defecto) y `MICROSOFT_AUTHORITY` (para apuntar
+  el proveedor de Microsoft al IdP falso) los rechaza `parseEnv` con `NODE_ENV=production`, y la
+  segunda además exige `OAUTH_DEV_IDP=on`. **Con el ingreso sólo por OAuth, una API sin ningún
+  proveedor no deja entrar a nadie**: no arranca, salvo en `test`, donde se entra con `testUtils`.
+  Un registro de proveedores en el dominio (`{ id, label }`) y `GET /api/v1/oauth/providers`, **sin
+  sesión** porque el ingreso lo necesita antes de entrar, que devuelve sólo los habilitados, sin
+  `clientId` ni configuración. `apps/api/.env.example` documenta las variables. Las reglas de ESLint
+  que hacen cumplir la arquitectura cubren el módulo nuevo.
+- **acceptance-criteria:**
+  - Dados los dos pares de variables, cuando se pide `/oauth/providers`, entonces responde
+    `["google", "microsoft"]`; con sólo uno, ese; con sólo `OAUTH_DEV_IDP=on`, el IdP de desarrollo.
+  - Dado un entorno sin ningún proveedor (fuera de `test`), cuando arranca el proceso, entonces no
+    levanta y el mensaje dice cómo habilitar uno.
+  - Dado un par con una sola de sus dos variables, cuando arranca, entonces no levanta y dice cuál
+    falta.
+  - Dados `OAUTH_DEV_IDP=on` o `MICROSOFT_AUTHORITY` con `NODE_ENV=production`, cuando arranca,
+    entonces no levanta; dado `MICROSOFT_AUTHORITY` sin `OAUTH_DEV_IDP=on`, tampoco.
+  - Dada la respuesta, cuando se inspecciona, entonces no contiene ids de cliente ni secretos.
+  - Dado un import de otro módulo desde `oauth` (o al revés), cuando corre el lint, entonces falla.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F9-00
+- **risk:** medium
+- **test_plan:** unitarios del registro y del `parseEnv` (cada combinación de variables);
+  integración de la ruta; el lint como test de la frontera.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F9-03 · IdP falso para desarrollo y E2E
+
+- **module:** infra
+- **description:** Un proveedor OIDC mínimo en Fastify con **dos caras**. La genérica
+  (`/.well-known/openid-configuration`, `/authorize`, `/token`, `/jwks`) se registra en Better Auth
+  con `genericOAuth` bajo `providerId: "fake-idp"`. La que imita el layout de Microsoft
+  (`/<tenant>/oauth2/v2.0/authorize`, `/token` y `/<tenant>/discovery/v2.0/keys`, con `iss` igual a
+  `<authority>/<tid>/v2.0`) deja correr el **proveedor `microsoft` real** de Better Auth apuntando
+  `MICROSOFT_AUTHORITY` acá, así que se prueban de verdad el chequeo de `tid`, la identidad por
+  `oid` y los _claims_ de verificación. `/authorize` muestra una pantalla chica con email y nombre
+  —el admin de desarrollo ya cargado— para elegir quién entra, y cada usuario puede llevar `tid`,
+  `oid`, `verified_primary_email` y `picture` (un _data URL_ chico). Vive en
+  `apps/api/dev-support/`, **fuera de `src/`**: un `scripts/dev.ts` lo arranca junto a la API cuando
+  `OAUTH_DEV_IDP=on` (en `pnpm dev` y en `dev:ephemeral`, en `127.0.0.1:3102`) y `src/` nunca lo
+  importa. La llamada a Graph para la foto está fija a `graph.microsoft.com` y no se puede desviar:
+  esa parte se prueba a mano en F9-10.
+- **acceptance-criteria:**
+  - Dado el flujo _authorization code_ + PKCE completo por la cara genérica, cuando un cliente de
+    prueba lo recorre, entonces recibe un `id_token` con el email y el nombre elegidos que se
+    verifica contra el JWKS.
+  - Dado el mismo flujo por la cara de Microsoft, cuando lo recorre el proveedor `microsoft` de
+    Better Auth, entonces el ingreso se completa con `oid` como identidad.
+  - Dado un `/token` sin el `code_verifier` correcto, entonces rechaza; dado un `code` ya usado,
+    entonces rechaza.
+  - Dado un usuario marcado con `tid` de una organización, cuando entra por la cara de Microsoft,
+    entonces el proveedor lo rechaza.
+  - Dado el build de producción, cuando se compila, entonces `dist/` no contiene el IdP falso (test
+    en `pnpm verify`).
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F9-02
+- **risk:** high. 🔴 **Un IdP que acepta a cualquiera, en producción, es un _bypass_ de la
+  autenticación.** Las tres guardas (fuera de `src/`, fuera de `dist/`, `parseEnv`) tienen su test.
+- **test_plan:** tests del propio IdP por criterio; el test de `dist/` y el de `parseEnv` (F9-02).
+  Revisión humana (spec §9).
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F9-04 · Tests y seed sin contraseña
+
+- **module:** auth
+- **description:** El plugin `testUtils` de Better Auth (`createUser`, `login`) en la configuración de
+  `NODE_ENV=test` y **nunca** en la que se despliega, y un helper `createTestSession` (recibe el
+  _harness_ y el plan) que devuelve la cookie. Los once archivos de test de la API que hoy se registran
+  por `/api/auth/sign-up/email` pasan al helper. `seed:admin` y `dev:ephemeral` siembran al admin con
+  una cuenta del IdP falso (`providerId: "fake-idp"`, `accountId` fijo) y plan Pro, **sin
+  contraseña**: el IdP falso lo ofrece por defecto, así que entrar en desarrollo es un clic. Se van
+  `UserRegistrar` (el puerto y su implementación) y `SEED_ADMIN_PASSWORD`. Lo que hace la API no
+  cambia: el email y la contraseña siguen andando hasta F9-05.
+- **acceptance-criteria:**
+  - Dado `createTestSession` con plan Pro, cuando la cookie llega a `/api/v1/me`, entonces la API
+    responde con ese usuario y ese plan.
+  - Dados los archivos de test de la API, cuando se busca `sign-up/email` fuera de `auth.test.ts`,
+    entonces no aparece.
+  - Dado `seed:admin` corrido dos veces, entonces hay un solo admin con plan Pro, ligado al IdP
+    falso, sin cuenta `credential` ni hash de contraseña.
+  - Dado `seed:admin` con `NODE_ENV=production`, entonces se niega, como hoy.
+  - Dada la configuración de `createAuth` con `NODE_ENV=production`, cuando se listan sus
+    endpoints, entonces no hay ninguno de `testUtils`.
+- **example:** —
+- **story-points:** 3
+- **depends_on:** F9-03
+- **risk:** medium
+- **test_plan:** los tests migrados son el test; el de la configuración de producción es nuevo;
+  `pnpm test:coverage` sigue ≥90% de ramas (el CI lo exige).
+- **error-codes:** ninguno
+- **data-model-impact:** el admin sembrado tiene una `account` de `fake-idp` y ninguna `credential`.
+
+## [ ] F9-05 · Better Auth sólo con OAuth
+
+- **module:** auth
+- **description:** `createAuth` recibe de la raíz de composición la configuración que arma `oauth`
+  (`auth` no importa a `oauth`; se inyecta, como `requireSession`). Se van `emailAndPassword`,
+  `haveIBeenPwned`, las reglas de límite de `/sign-in/email`, `/sign-up/email` y `/forget-password`
+  y la cuenta `credential`: esos endpoints dejan de existir. **Google:** sus scopes son
+  `openid email profile`, sin acceso offline. **Microsoft:** tenant `consumers`, scopes por defecto
+  desactivados y `openid profile email User.Read` (sin `offline_access`), foto de 96 px. En los
+  dos, `prompt: select_account` y `overrideUserInfoOnSignIn` para refrescar nombre y foto.
+  `accountLinking` apagado. Los tokens del proveedor no se guardan (un
+  `databaseHooks.account.create.before` los descarta; si Better Auth no lo permite,
+  `encryptOAuthTokens`). `mapProfileToUser` toma el nombre del proveedor o, sin él, la parte local
+  del email, y **nunca** el plan. Un email que el proveedor no verificó no crea usuario, y no se
+  fuerza a verificado (ver F9-10). `onAPIError.errorURL` y `errorCallbackURL` van al `/login` del
+  front. Límite de 5 por minuto para `/sign-in/social` y los callbacks (spec §13). Migración con el
+  índice único `(providerId, accountId)` en `account`: Better Auth no crea índices y sin él dos
+  callbacks simultáneos pueden crear dos cuentas; revisar de paso que `user.email` ya sea único. En
+  `translateAuthError`, un 401 ya no es "credenciales inválidas". `auth.test.ts` se reescribe contra
+  el IdP falso.
+- **acceptance-criteria:**
+  - Dado un proveedor con email verificado y sin cuenta, cuando entra, entonces se crea el usuario
+    con plan Free y sesión por cookie, sin contraseña y sin tokens guardados.
+  - Dado el mismo `accountId`, cuando vuelve a entrar, entonces es el mismo usuario, sin duplicar;
+    y si cambió su nombre o su foto en el proveedor, entonces se actualizan.
+  - Dado `POST /api/auth/sign-up/email`, `/sign-in/email` o `/forget-password`, cuando llega,
+    entonces responde 404: no queda otro camino de entrada que los proveedores.
+  - Dado un email que el proveedor no verificó (en Microsoft: sin `email_verified` ni
+    `verified_primary_email`), cuando intenta entrar, entonces no hay usuario ni sesión.
+  - Dado un usuario de Microsoft con `tid` de una organización, cuando intenta entrar, entonces no
+    hay usuario ni sesión.
+  - Dado un `state` alterado, repetido o sin su cookie, cuando vuelve el callback, entonces falla sin
+    sesión; dado el consentimiento denegado, vuelve a `/login?error=access_denied`.
+  - Dado un usuario creado con un proveedor, cuando entra otro proveedor con el mismo email, entonces
+    no accede a esa cuenta (la vinculación está apagada) y vuelve a `/login?error=account_not_linked`,
+    sin sesión, con la cuenta original intacta.
+  - Dado el pedido de autorización de Microsoft, cuando se mira, entonces los scopes son
+    `openid profile email User.Read` y no está `offline_access`; el de Google no pide acceso offline.
+  - Dado un perfil que trae `plan: "pro"`, cuando se crea el usuario, entonces nace Free.
+  - Dados seis pedidos a `/sign-in/social` en un minuto desde la misma IP, entonces el sexto
+    responde 429 `WC-AUTH-429-003`.
+  - Dados dos callbacks simultáneos del mismo `accountId` nuevo, entonces queda una sola cuenta.
+  - Dada la migración, cuando se revierte, entonces el índice desaparece; al reaplicar, vuelve.
+- **example:** Una atleta nueva toca "Continuar con Microsoft", elige su cuenta de Outlook y queda
+  adentro con plan Free y sesión de 30 días. Nunca eligió una contraseña ni confirmó un email.
+- **story-points:** 5
+- **depends_on:** F9-01, F9-02, F9-03, F9-04
+- **risk:** high. 🔴 **Es la puerta de entrada de toda la app: un error acá regala cuentas.**
+  Revisión humana de los tests (spec §9).
+- **test_plan:** integración contra el IdP falso, una por criterio, con la misma configuración que
+  los proveedores reales (Microsoft, el proveedor real contra el layout falso); carrera de callbacks
+  sobre `MongoMemoryReplSet`; pruebas inversas (quitar cada protección y ver que su test falla);
+  migración ida y vuelta.
+- **error-codes:** consume `WC-OAUTH-400-001`, `WC-OAUTH-400-002`, `WC-OAUTH-409-003`,
+  `WC-AUTH-429-003`, `WC-AUTH-401-004`
+- **data-model-impact:** índice único `(providerId, accountId)` en `account`; `user` y `account`
+  sin contraseña ni tokens. No hay migración de datos: las bases de desarrollo con cuentas viejas se
+  borran.
+
+## [ ] F9-06 · Logs y headers: nada del flujo OAuth se filtra
+
+- **module:** infra
+- **description:** `REDACTED_PATHS` suma `idToken`, `*.idToken`, `clientSecret` y `*.clientSecret`. El
+  log de requests y el `warn` de `auth.routes.ts` dejan de incluir el _query_ de los callbacks: se
+  loguea el path, no `code` ni `state`. Un test comprueba que el flujo completo no necesita ampliar
+  la CSP (es navegación de nivel superior, no `fetch`) ni cambiar `referrerPolicy`, y que la cookie
+  de `state` viaja con `sameSite: lax`. `docs/architecture.md` suma la regla.
+- **acceptance-criteria:**
+  - Dado un callback fallido con `code=abc&state=xyz`, cuando se leen todos los logs de la
+    petición, entonces ni `abc` ni `xyz` aparecen.
+  - Dado un log con `idToken` anidado, cuando sale, entonces dice `[REDACTED]`.
+  - Dadas las respuestas de `/sign-in/social` y del callback, cuando se miran los headers, entonces
+    la CSP y el resto son los de siempre y la cookie de `state` es `lax`.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F9-05
+- **risk:** medium
+- **test_plan:** test sobre el _stream_ de Pino con un callback real contra el IdP falso; el test
+  de headers existente, extendido.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F9-07 · Web: la pantalla de ingreso
+
+- **module:** web
+- **description:** Una sola pantalla, `/login`; se va `/registro`. Un `ProviderButton` por proveedor
+  habilitado (en `@wasabi-cross/ui`: sólo presentación, con story y test; el ícono de cada proveedor
+  respeta sus lineamientos de marca; el de Microsoft dice "Continuar con Microsoft"), con un texto
+  que cubre las dos cosas ("Entrá o creá tu cuenta") y la marca del diseño (F4-06).
+  `session.signInWithProvider(provider, { redirect })` hace un `POST` a `/api/auth/sign-in/social`
+  con `callbackURL` (el `redirect` ya validado de F1-09, sólo rutas internas) y
+  `errorCallbackURL: /login`, y después `window.location.assign(url)`. El `?error=` de `/login`
+  pasa por `oauthErrorFor` (F9-01), se muestra con el mensaje del catálogo y sale de la URL. Se
+  borran los formularios con contraseña, `session.signIn` y `signUp`, `signInSchema`,
+  `signUpSchema`, `passwordSchema` y `auth.api.ts` de schemas, y sus tests; `WC-AUTH-401-001` se
+  retira del catálogo y del diccionario. La configuración de la PWA se extrae a `pwa.config.ts` y
+  suma `workbox.navigateFallbackDenylist: [/^\/api\//, /^\/docs/]`, para que el service worker no
+  responda `index.html` al callback.
+- **acceptance-criteria:**
+  - Dado `/login`, cuando se abre, entonces hay un botón por proveedor habilitado y ningún campo de
+    email ni de contraseña.
+  - Dado el botón, cuando se aprieta, entonces se pide la URL y se navega a ella, y queda
+    deshabilitado mientras tanto.
+  - Dado `/registro`, cuando se abre, entonces responde como cualquier ruta inexistente.
+  - Dado `/login?redirect=/ejercicios/x`, cuando termina el ingreso, entonces vuelve a esa ruta; dado
+    un `redirect` externo, entonces se ignora.
+  - Dado `/login?error=access_denied`, entonces se ve el mensaje de `WC-OAUTH-400-001`;
+    `account_not_linked`, el de `WC-OAUTH-409-003`; cualquier otro valor, el de `WC-OAUTH-400-002`
+    sin reflejarlo; y el parámetro sale de la URL.
+  - Dado `/oauth/providers` vacío o caído, entonces se avisa que el ingreso no está disponible, con
+    "Reintentar": no hay otra forma de entrar.
+  - Dada la configuración de la PWA, cuando se evalúa la exclusión contra
+    `/api/auth/callback/google`, `/api/auth/callback/microsoft` y
+    `/api/auth/oauth2/callback/fake-idp`, entonces coincide; contra `/ejercicios`, no.
+  - Dado el repo, cuando se busca `passwordSchema`, `signInSchema` y `signUpSchema`, entonces no
+    aparecen.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F9-01, F9-02, F9-05
+- **risk:** medium
+- **test_plan:** tests de componentes con el cliente de sesión simulado, uno por criterio; test de
+  `pwa.config.ts`; Storybook del botón. axe va en F9-09.
+- **error-codes:** consume `WC-OAUTH-400-001`, `WC-OAUTH-400-002`, `WC-OAUTH-409-003`; retira
+  `WC-AUTH-401-001`
+- **data-model-impact:** ninguno
+
+## [ ] F9-08 · La foto del usuario en el Perfil
+
+- **module:** users
+- **description:** `GET /api/v1/me/photo`, con sesión, sirve la foto del usuario **desde el origen de
+  la API**, así la CSP (`img-src 'self' data:`) no se toca y `/me` no carga con 6 KB de foto: `/me`
+  suma sólo `hasPhoto`. `AuthenticatedUser` gana `image`, que sale del `user.image` que guarda Better
+  Auth. Dos formas de origen: un _data URL_ (Microsoft; Better Auth lo arma con un espacio después
+  de la coma, hay que tolerarlo) se decodifica y se sirve; una URL `https` de `*.googleusercontent.com`
+  (Google) la baja la API, con tiempo y tamaño máximos y verificando que sea una imagen. Cualquier
+  otro host no se baja nunca. Sólo `image/png`, `image/jpeg` y `image/webp`: un SVG serviría script
+  en el origen de la app. `ETag` con el hash del valor de `user.image` y
+  `Cache-Control: private, no-cache`: la revalidación no vuelve a pedirle nada al proveedor. Sin
+  foto o con el proveedor caído, 404 `WC-USER-404-001`. Un componente Cross `Avatar` (foto o
+  iniciales, cuadrado como el diseño) y, en el Perfil, un bloque con avatar, nombre y email. La URL
+  no lleva id: cada uno sólo puede pedir la suya.
+- **acceptance-criteria:**
+  - Dado un usuario con foto de Microsoft (_data URL_), cuando pide `/me/photo`, entonces recibe la
+    imagen con su `Content-Type` y un `ETag`; con `If-None-Match` igual, 304.
+  - Dado un usuario con foto de Google, cuando la pide, entonces la API la baja del host de Google
+    (simulado) y la sirve; dada una URL de otro host, entonces 404 y no sale ningún pedido.
+  - Dado un tipo no permitido (SVG, HTML) o más grande que el máximo, entonces 404.
+  - Dado un usuario sin foto, o con el proveedor caído, cuando la pide, entonces 404
+    `WC-USER-404-001` y el Perfil muestra las iniciales.
+  - Dado un usuario sin sesión, entonces 401.
+  - Dado `/me`, cuando se inspecciona, entonces trae `hasPhoto` y nunca la URL ni el _data URL_.
+  - Dado el Perfil con foto que falla al cargar, entonces cae a las iniciales sin dejar un ícono roto.
+  - Dada la CSP de producción, cuando se abre el Perfil con foto, entonces es la de siempre.
+  - Dado axe a 390px en el Perfil con foto y con iniciales, entonces 0 violaciones.
+- **example:** Braian entra con su cuenta de Google y ve su foto arriba del Perfil; Ana, con una
+  cuenta de Outlook sin foto, ve una "A".
+- **story-points:** 5
+- **depends_on:** F9-05
+- **risk:** medium. 🔴 **La API baja una URL: sólo hosts de Google, nunca lo que diga el usuario.**
+- **test_plan:** integración de cada criterio con el `fetch` del proveedor inyectado (nunca de
+  verdad); unitarios del decodificador del _data URL_ y de la lista de hosts; tests de componente
+  del `Avatar` y del Perfil; Storybook del `Avatar`.
+- **error-codes:** nuevo `WC-USER-404-001` (el usuario no tiene foto)
+- **data-model-impact:** ninguno: se lee `user.image`, que ya guarda Better Auth.
+
+## [ ] F9-09 · E2E y axe del ingreso con OAuth
+
+- **module:** web
+- **description:** `registrarse()` de `apps/web/e2e/app.ts` pasa a entrar por el IdP falso de
+  `dev:ephemeral` (`127.0.0.1:3102`): misma firma, devuelve al atleta, así que los demás specs casi
+  no cambian; `atletaNuevo` pierde la contraseña. Un spec nuevo, `ingreso-oauth.spec.ts`, recorre el
+  ingreso. `diseno.spec.ts`, que hoy usa el ingreso por formulario, se adapta. En `pnpm e2e:prod`,
+  con el service worker activo, el callback no devuelve `index.html`.
+- **acceptance-criteria:**
+  - Dado un usuario nuevo, cuando entra con el IdP, entonces llega a Home con plan Free y un pedido
+    directo a `/stats/summary` responde 403 `WC-SUBS-403-002`.
+  - Dado el mismo usuario, cuando cierra sesión y vuelve a entrar, entonces es el mismo (mismo `id`
+    en `/me`) y el IdP le vuelve a pedir elegir la cuenta.
+  - Dado un usuario con foto, cuando abre el Perfil, entonces la ve; sin foto, ve las iniciales.
+  - Dado el IdP, cuando se cancela, entonces `/login` muestra el aviso de `WC-OAUTH-400-001` y no hay
+    sesión; dado un `state` alterado, entonces el de `WC-OAUTH-400-002` y no hay sesión.
+  - Dado un email que ya tiene cuenta con el otro proveedor, cuando entra por el segundo, entonces
+    ve el aviso de `WC-OAUTH-409-003` y no hay sesión.
+  - Dado `POST /api/auth/sign-up/email`, cuando se llama directo, entonces responde 404; `/registro`
+    no existe.
+  - Dado el build de producción con el service worker activo, cuando vuelve el callback, entonces el
+    usuario queda con sesión.
+  - Dado axe a 390px en `/login`, en `/login` con el aviso de error y en el Perfil con foto, entonces
+    0 violaciones.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F9-06, F9-07, F9-08
+- **risk:** medium
+- **test_plan:** `pnpm e2e` y `pnpm e2e:prod` completos, en CI.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+
+## [ ] F9-10 · Credenciales de Google y Microsoft, runbook y prueba real — 🔑 necesita al usuario
+
+- **module:** infra
+- **description:** Lo único que no se puede hacer sin las cuentas del usuario. **Google, usuario:**
+  crea el proyecto en Google Cloud Console; configura la pantalla de consentimiento (nombre, email
+  de soporte, dominio autorizado y política de privacidad, que Google pide para publicarla) con
+  sólo los scopes `openid`, `email` y `profile`; la **publica** (en modo "Testing" sólo entran los
+  usuarios de prueba que se carguen a mano); y crea un cliente OAuth "Aplicación web" **por
+  ambiente**. **Microsoft, usuario:** crea el registro de la app en Microsoft Entra (_App
+  registrations_) con tipo de cuenta "sólo cuentas personales de Microsoft", una plataforma "Web"
+  con el redirect URI de cada ambiente, un secreto de cliente (anotar cuándo vence) y el _claim_
+  opcional `verified_primary_email` en el ID token. **Los dos:** redirect URI exacto
+  (`http://localhost:3000/api/auth/callback/google` y `…/callback/microsoft` en dev;
+  `https://<dominio>/api/auth/callback/<proveedor>` en staging y en prod), un cliente por ambiente, y
+  cargar los pares `*_CLIENT_ID` / `*_CLIENT_SECRET` en `apps/api/.env` y en Railway (spec §12:
+  secrets en la plataforma, nunca en el repo). En dev, `BETTER_AUTH_URL` y `WEB_ORIGIN` van los dos
+  con `localhost`. **IA:** el runbook `docs/runbooks/oauth.md` (pasos de cada proveedor, redirect
+  URIs, rotación de secretos —el de Microsoft vence—, qué hacer si se filtra uno, spec §12) y la
+  prueba guiada; confirma cada paso que toque una cuenta real antes de ejecutarlo. **Con una cuenta
+  real de Outlook se decodifica el ID token** (en dev, nunca se loguea) para comprobar si trae
+  `verified_primary_email` o `email_verified`: si no vienen, se frena y se decide con el usuario; no
+  se fuerza a verificado. La prueba se hace en dev y en staging, nunca en prod.
+- **acceptance-criteria:**
+  - Dado dev con credenciales reales, cuando se entra con una cuenta de Google y con una de Outlook,
+    entonces se crea un usuario Free con su nombre y su foto, y queda con sesión; al volver a entrar
+    es el mismo.
+  - Dado el ID token de una cuenta personal de Microsoft, cuando se decodifica, entonces queda
+    anotado en el runbook qué _claims_ de verificación trae.
+  - Dado staging con sus propios clientes, cuando se hace lo mismo, entonces anda con el redirect
+    URI exacto, y uno distinto lo rechaza el proveedor.
+  - Dada la pantalla de consentimiento de Google publicada, cuando entra una cuenta que no es del
+    usuario, entonces puede.
+  - Dada la PWA instalada en un teléfono, cuando se entra con cada proveedor, entonces la sesión queda
+    en la app; si en algún navegador el modo _standalone_ abre el proveedor afuera y la sesión queda
+    en el otro contexto, el runbook lo documenta con la decisión tomada.
+  - Dado el runbook, cuando se rota un secreto, entonces alcanza para hacerlo sin adivinar pasos, y
+    anota la fecha de vencimiento del de Microsoft.
+- **example:** —
+- **story-points:** 5
+- **depends_on:** F9-05 (staging y prod: F3-07)
+- **risk:** medium
+- **test_plan:** prueba manual guiada, con el resultado en la bitácora.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno

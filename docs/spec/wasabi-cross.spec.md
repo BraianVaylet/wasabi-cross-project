@@ -66,14 +66,13 @@ Mockups en [`../mockup`](../mockup).
 | Página                     | Mockup                                              | Descripción                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | -------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Presentación               | `wasabi (1).png`                                    | Splash con logo y nombre al abrir la app.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Login                      | `wasabi (2).png`                                    | Email y contraseña. El mockup muestra además login por username y con Google: **fuera de la Fase 1**.                                                                                                                                                                                                                                                                                                                                                                       |
-| Registro                   | `wasabi (3).png`                                    | Email, nombre, contraseña y confirmación. El campo "Username" del mockup es el **nombre visible** (el del "Hi, Braian!" de Home), no un identificador para entrar.                                                                                                                                                                                                                                                                                                          |
+| Ingreso                    | `wasabi (2).png`, `../design`                       | Una sola pantalla, `/login`, para entrar y para crear la cuenta: un botón por proveedor habilitado (**Google** y **Microsoft**). No hay email, contraseña ni pantalla de registro: la primera vez que alguien entra se crea su cuenta, con plan Free. Los mockups `wasabi (2)` y `wasabi (3)`, con sus campos, quedan reemplazados. Reglas en §5.6.                                                                                                                         |
 | Header (componente global) | `wasabi (4a).png`, `../design`                      | Logo + nombre a la izquierda; menú a la derecha. Menú: Tus ejercicios, Estadísticas, Perfil, Cerrar sesión. Con plan Pro, una etiqueta "PRO" al lado del botón de menú (§5.5). Presente en todas las páginas. **Sin toggle de tema ni "Color"** (ADR-0008: tema único). El diseño de `../design` no muestra el botón de menú: se mantiene, cuadrado y con borde (§5.2).                                                                                                     |
 | Home                       | `wasabi (4).png`                                    | Lista de ejercicios gestionados: nombre, fecha del valor actual, valor actual con su unidad. Botón "New Exercise".                                                                                                                                                                                                                                                                                                                                                          |
 | Estadísticas               | `wasabi (10).png`                                   | Accesible desde la navegación; **sólo Pro** (§4), con Free se ve el aviso de §5.5. Por ejercicio: gráficos y números de evolución, máximos y mínimos. Sección de estadísticas generales: evolución por capacidad (fuerza, potencia, resistencia, velocidad) y por grupo muscular — ej. detectar si el tren inferior progresa más rápido que el tren superior. Además, constancia, récords del período, ejercicios para retestear y cómo se reparte el entrenamiento (§5.4). |
 | Ejercicio                  | `../design`; antes `wasabi (5)`, `(6)` y `(11).png` | Detalle de un ejercicio gestionado: valor actual, tags, tabla de porcentajes y porcentaje custom, progreso, historial. Acciones: editar, ver estadísticas, cargar una marca nueva (modal "New RM", o "New Record" si no se mide en RM). Reglas en §5.1; estructura en §5.2.                                                                                                                                                                                                 |
 | Nuevo ejercicio            | `wasabi (9).png`                                    | Dos pestañas: **Catálogo** (buscar y elegir un precargado, que llena el formulario y se puede editar) y **Crear** (uno propio, campo por campo). En las dos: primera marca con su fecha, nivel, comentarios y "con dolor". Reglas en §5.3.                                                                                                                                                                                                                                  |
-| Perfil                     | —                                                   | Porcentajes de carga por defecto y **tu plan**: la etiqueta Free o Pro y un link a la suscripción. Reglas en §5.5.                                                                                                                                                                                                                                                                                                                                                          |
+| Perfil                     | —                                                   | Tu foto, nombre y email (§5.6), porcentajes de carga por defecto y **tu plan**: la etiqueta Free o Pro y un link a la suscripción. Reglas en §5.5.                                                                                                                                                                                                                                                                                                                          |
 | Suscripción                | —                                                   | `/suscripcion`: el plan actual, lo que se paga y los dos planes con el botón para pasar de uno al otro. **Sólo la UI** hasta que haya pasarela de pago (§4). Reglas en §5.5.                                                                                                                                                                                                                                                                                                |
 
 Vista general de todas las pantallas y leyenda de tags: `wasabi (12).png`.
@@ -290,8 +289,9 @@ marca. Sin ninguno, la sección no aparece.
 El plan es lo único que separa a Free de Pro (§4). Esta sección dice dónde se ve y qué hace la
 pantalla de suscripción mientras no haya pasarela de pago.
 
-**Perfil.** Arriba de los porcentajes, la sección **Tu plan**: el plan en una etiqueta ("Free" o
-"Pro"), una línea de lo que incluye y el link "Administrar suscripción" a `/suscripcion`.
+**Perfil.** Arriba de todo, la persona: foto (o iniciales), nombre y email (§5.6). Después, arriba de
+los porcentajes, la sección **Tu plan**: el plan en una etiqueta ("Free" o "Pro"), una línea de lo
+que incluye y el link "Administrar suscripción" a `/suscripcion`.
 
 **Etiqueta en el header.** Con plan Pro, al lado del botón de menú va una etiqueta **"PRO"** —lima,
 con el recorte de esquina— que lleva a la suscripción. Con Free no hay etiqueta: no se marca lo que
@@ -314,13 +314,64 @@ muestra un aviso en lugar del contenido: el título de la sección, "Las estadí
 plan Pro" y un link "Ver planes" a la suscripción. El front no pide los datos —ahorra el viaje y
 no depende de que alguien mire el 403—, pero la regla está en el backend (§4).
 
+### 5.6 Ingreso con OAuth 2.0
+
+Wasabi Cross no guarda contraseñas: **todo el ingreso y el registro pasa por un proveedor OAuth 2.0 /
+OpenID Connect** ([ADR-0012](../adr/0012-ingreso-solo-con-oauth.md)). Es **cliente** de los
+proveedores, no un servidor OAuth: no le entrega tokens a nadie (§2).
+
+**Proveedores.** Google y Microsoft. De Microsoft, sólo las **cuentas personales** (Outlook, Hotmail,
+Live): las de trabajo o escuela quedan afuera, porque ahí el email lo controla el administrador del
+tenant y no es confiable. Un proveedor está habilitado si la API tiene sus credenciales (§12); una
+API sin ningún proveedor no arranca, porque nadie podría entrar.
+
+**Pantalla `/login`.** Los botones "Continuar con Google" y "Continuar con Microsoft", y un texto que
+dice "Entrá o creá tu cuenta": es lo mismo, porque no hay un registro aparte. Cada ingreso le pide
+al proveedor que haga **elegir la cuenta**: cerrar sesión en Wasabi Cross no cierra la del proveedor,
+y en un teléfono compartido entraría solo a la cuenta equivocada. Al terminar, vuelve a donde iba
+(sólo rutas internas) o, si no iba a ningún lado, a Home. Si la lista de proveedores no carga o viene
+vacía, se avisa que el ingreso no está disponible, con "Reintentar".
+
+**Primera vez y después.** La primera vez se crea la cuenta, con plan **Free** (§4), el nombre y la
+foto del proveedor; las siguientes, se entra a la misma. **La identidad es el par (proveedor, id que
+da el proveedor), nunca el email.** Para crear la cuenta, el proveedor tiene que haber **verificado
+el email**; si no, no se crea. El nombre visible ("Hi, Braian!") es el del proveedor, o la parte
+local del email si no lo trae; no hay una pantalla para cambiarlo. En cada ingreso se refrescan el
+nombre y la foto.
+
+**Cuando algo no sale**, `/login` muestra el aviso con el mensaje del catálogo y nunca el texto que
+mande el proveedor:
+
+| Caso                                                                                          | Código             |
+| --------------------------------------------------------------------------------------------- | ------------------ |
+| La persona cancela en el proveedor                                                            | `WC-OAUTH-400-001` |
+| Cualquier otra falla: estado inválido, código vencido, email sin verificar, cuenta de trabajo | `WC-OAUTH-400-002` |
+| El email ya tiene cuenta con el otro proveedor                                                | `WC-OAUTH-409-003` |
+
+**Las cuentas no se vinculan solas.** Quien entra con un email que ya tiene cuenta con el otro
+proveedor ve un aviso para entrar con ese. Quien usa Google y Microsoft con emails distintos tiene
+dos cuentas separadas, cada una con sus ejercicios. Vincularlas es una función aparte, con sesión
+iniciada, que esta spec no incluye.
+
+**Foto.** El Perfil la muestra arriba, con el nombre y el email; sin foto, o si no carga, las
+iniciales. La API la sirve desde su propio origen (`GET /api/v1/me/photo`): la del proveedor no se
+enlaza directo. Es un dato personal (§13).
+
+**Sesión.** Cookie `httpOnly` de 30 días, como hasta ahora. "Cerrar sesión" cierra la de Wasabi
+Cross, no la del proveedor.
+
+**Qué se guarda.** Email, nombre, foto y el id del proveedor. **Los tokens del proveedor no se
+guardan**: el único uso del _access token_ es pedirle la foto a Microsoft durante el ingreso, y
+después se descarta (si Better Auth no permitiera descartarlo, se guarda cifrado: ADR-0012). No hay
+contraseña, recupero de contraseña ni verificación de email propios: los resuelve el proveedor.
+
 ## 6. Stack
 
 - React
 - Node
 - TypeScript
 - MongoDB
-- Better Auth (autenticación)
+- Better Auth (autenticación, sólo con proveedores OAuth 2.0: Google y Microsoft — §5.6)
 - Zod (validaciones)
 - Temporal (fechas)
 - Tanstack (Table, Form, Charts, Query, Router…)
@@ -344,16 +395,17 @@ no depende de que alguien mire el 403—, pero la regla está en el backend (§4
 
 Un solo deployable de backend, módulos aislados (`domain / application / infrastructure` cada uno). Se comunican por interfaces o eventos internos — nunca importando modelos de otro módulo directamente.
 
-| Módulo          | Responsabilidad                                                                                                  |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `auth`          | Login, registro, sesión (Better Auth)                                                                            |
-| `users`         | Perfil, configuración (porcentajes de carga default)                                                             |
-| `exercises`     | Catálogo pre-cargado, ejercicios propios y la lista de ejercicios gestionados de cada usuario (nivel, con dolor) |
-| `records`       | Carga y evolución de RM / tiempos / repeticiones / distancias, cálculo de porcentajes                            |
-| `stats`         | Agregaciones y análisis (por ejercicio y generales)                                                              |
-| `subscriptions` | Plan Free/Pro y qué puede ver cada uno (entitlements)                                                            |
-| `billing`       | Pago de la suscripción Pro                                                                                       |
-| `notifications` | Popup de nueva versión PWA, avisos                                                                               |
+| Módulo          | Responsabilidad                                                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `auth`          | Sesión: quién es el usuario y cerrar sesión (Better Auth). No tiene credenciales propias (§5.6)                                         |
+| `oauth`         | Ingreso y registro con proveedores OAuth 2.0 / OpenID Connect (Google, Microsoft): configuración de proveedores y reglas de alta (§5.6) |
+| `users`         | Perfil (nombre y foto), configuración (porcentajes de carga default)                                                                    |
+| `exercises`     | Catálogo pre-cargado, ejercicios propios y la lista de ejercicios gestionados de cada usuario (nivel, con dolor)                        |
+| `records`       | Carga y evolución de RM / tiempos / repeticiones / distancias, cálculo de porcentajes                                                   |
+| `stats`         | Agregaciones y análisis (por ejercicio y generales)                                                                                     |
+| `subscriptions` | Plan Free/Pro y qué puede ver cada uno (entitlements)                                                                                   |
+| `billing`       | Pago de la suscripción Pro                                                                                                              |
+| `notifications` | Popup de nueva versión PWA, avisos                                                                                                      |
 
 ### Eventos de dominio (in-process, cola si hace falta después)
 
@@ -422,7 +474,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - **Ambientes**: `dev` (local) · `staging` (datos sintéticos) · `prod`. Prohibido probar en prod.
 - **Mongo Atlas**: replica set, backups con PITR, alertas de conexión/storage. RPO ≤ 24h, RTO ≤ 4h, restauración probada al menos una vez.
 - **Backblaze B2**: buckets privados + URLs firmadas de corta vida, límites de tamaño, CDN delante para media de ejercicios.
-- **Secrets** en el gestor de la plataforma, nunca en el repo. Rotación documentada.
+- **Secrets** en el gestor de la plataforma, nunca en el repo. Rotación documentada. Incluye los secretos de cliente OAuth, uno por ambiente (`GOOGLE_*`, `MICROSOFT_*`): el de Microsoft vence.
 - **Migraciones de esquema** versionadas y reversibles (`migrate-mongo` o similar); nunca cambios manuales en Atlas.
 - **Health checks** `/health` (liveness) y `/ready` (readiness con ping a Mongo).
 - Uptime monitoring externo con alerta a WhatsApp/Telegram.
@@ -432,14 +484,18 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 
 - OWASP Top 10 como checklist de revisión por módulo.
 - **Autorización en cada endpoint** (recurso + acción + usuario dueño del recurso). El riesgo real acá es **IDOR** — un usuario cambiando un ID en la URL para ver/editar ejercicios de otro. Test obligatorio. Un recurso de otro usuario responde **404, no 403**: confirmar que existe ya es filtrar información.
-- Rate limiting: login (5/min/IP), registro, recupero de contraseña, webhooks de pago.
+- Rate limiting: ingreso por OAuth (`/sign-in/social` y los callbacks, 5/min/IP), webhooks de pago.
 - Validación de entrada con Zod en el borde; sanitización de HTML en notas/descripciones de ejercicio.
 - Prevención de NoSQL injection (nunca pasar objetos del usuario directo a `find`).
 - Headers: CSP, HSTS, X-Content-Type-Options, Referrer-Policy. CORS restrictivo por origen.
 - Subida de archivos (si aplica a media de ejercicios): mime real, tamaño máximo, nombre aleatorio, sin ejecución.
 - Dependencias: `npm audit` + Dependabot en CI.
 - **Nunca** datos de tarjeta en la base — el pago de la suscripción Pro pasa por el proveedor de pago, nunca se guarda el número de tarjeta.
-- Contraseñas: hashing gestionado por Better Auth; política mínima + verificación contra listas de filtradas.
+- **Sin contraseñas.** No hay credenciales propias que guardar, hashear ni recuperar: las del usuario las protege el proveedor (§5.6).
+- **OAuth 2.0:** _authorization code_ con PKCE y `state` (los maneja Better Auth); redirect URIs exactas y un cliente OAuth por ambiente; cookie `sameSite: lax`, para que la de `state` sobreviva el regreso del proveedor; la identidad es (proveedor, id del proveedor), nunca el email, y el email tiene que venir verificado por el proveedor para crear la cuenta; las cuentas no se vinculan solas.
+- **Tokens del proveedor:** scopes mínimos (`openid`, `email`, `profile`; en Microsoft, también `User.Read`, que permite la foto), sin acceso offline, y no se guardan. En los logs, nunca `code`, `state`, `idToken` ni secretos de cliente.
+- **Foto:** es un dato personal. La API sólo baja imágenes de hosts de Google, sólo `png`, `jpeg` o `webp`, con tamaño y tiempo máximos; un SVG serviría script en el origen de la app.
+- **IdP falso de desarrollo:** nunca en producción. Vive fuera de `src/` y de `dist/`, y la API se niega a arrancar con él con `NODE_ENV=production`.
 
 ## 14. Observabilidad, logs y códigos de error
 
