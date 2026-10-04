@@ -6,7 +6,7 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 
 ## Módulos
 
-`AUTH` · `USER` · `EXO` (exercises) · `RM` (records) · `STATS` · `SUBS` (subscriptions) · `BILL` (billing) · `NOTF` (notifications) · `SYS`
+`AUTH` · `OAUTH` · `USER` · `EXO` (exercises) · `RM` (records) · `STATS` · `SUBS` (subscriptions) · `BILL` (billing) · `NOTF` (notifications) · `SYS`
 
 ## Semilla
 

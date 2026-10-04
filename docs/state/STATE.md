@@ -114,11 +114,11 @@ diferencia es **ver las estadísticas**; los dos cargan todos los ejercicios y m
 **todo el login y el registro pase por OAuth**, sin email ni contraseña, que se olviden las cuentas
 actuales (no hay producción), que se sume Outlook y que el Perfil muestre la foto. Wasabi Cross es
 **cliente** OIDC con un módulo `oauth` sobre Better Auth; entrar por primera vez crea la cuenta Free.
-**No hay spec, ADR ni código todavía**: la spec manda, y F9-00 es la primera tarea. El usuario
-confirmó los seis supuestos del backlog (2026-10-04): Google y Microsoft sólo con cuentas
-personales (`consumers`), cualquier cuenta verificada crea cuenta Free, el nombre sale del
-proveedor, la foto se muestra en el Perfil, cada ingreso pide elegir la cuenta, y las cuentas no se
-vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
+**F9-00 está hecha** (spec §5.6 nueva y §5, §5.5, §6, §7, §12 y §13 al día, [ADR-0012](../adr/0012-ingreso-solo-con-oauth.md),
+en PR), a la espera del Definition of Done; **no hay código todavía**. El usuario confirmó los seis
+supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
+cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
+cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
 tests de la API, `registrarse()` del E2E y `seed:admin`), así que el IdP falso pasa a ser el ingreso
 de desarrollo —con guardas, porque en producción sería un bypass—; el email de Microsoft no es
 confiable según su documentación, y F9-10 tiene que comprobar con una cuenta real si trae los _claims_
@@ -156,17 +156,16 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** F9-00 (spec §5, §6, §7 y §13, ADR-0012), después F9-01 y F9-02 en paralelo. F9-10
-    necesita que el usuario cree el cliente OAuth en Google Cloud Console y el registro de la app en
-    Microsoft Entra (🔑); staging y prod esperan a F3-07.
+10. **Fase 9:** revisar y mergear la PR de F9-00 (spec §5.6 y ADR-0012), cumplir su Definition of
+    Done; después F9-01 y F9-02 en paralelo. F9-10 necesita que el usuario cree el cliente OAuth en
+    Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y prod esperan a
+    F3-07.
 
 ## Decisiones abiertas
 
 - **Proveedor de pago** para la suscripción Pro (Mercado Pago / Stripe / otro).
 - **Precio de Pro** y su período (mensual o anual): a definir. La UI dice "A definir" y el texto
   vive en `apps/web/src/lib/plans.ts`.
-- **Proveedor de email.** Sin él no hay recupero de contraseña, y el mockup de login tiene el link.
-  Queda fuera de la Fase 1 hasta que se decida.
 - **TypeScript 7.** Hoy el monorepo está en 6.0.3 (PR #8) porque `typescript-eslint@8` declara
   `typescript >=4.8.4 <6.1.0` como peer, y con TS 7.0 directamente se niega a cargar (probado:
   build, typecheck y tests pasan; el lint muere). `.github/dependabot.yml` ignora
@@ -179,7 +178,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 Cerradas el 2026-09-18, ya volcadas en la spec §4, §5 y §5.1:
 
-- Login sólo con email y contraseña en la Fase 1; username y Google, afuera.
+- Login sólo con email y contraseña en la Fase 1; username y Google, afuera. **Reemplazada el
+  2026-10-04 (Fase 9): el ingreso es sólo con OAuth, Google y Microsoft** (spec §5.6, ADR-0012). Con
+  ella se cierra también la decisión abierta "Proveedor de email": sin contraseñas no hay recupero.
 - Los ejercicios de tiempo no tienen tabla de porcentajes.
 - Los ejercicios del catálogo cuentan para el límite de 10 del plan Free. **Reemplazada el
   2026-10-03 (Fase 8): ya no hay límite de cantidad** (spec §4, ADR-0011).
@@ -225,8 +226,8 @@ desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
 
-2026-10-04 — **Fase 9, ingreso sólo con OAuth 2.0 (Google y Microsoft), sólo el plan**: 11 tareas y
-42 puntos en el backlog, sin tocar spec ni código; los supuestos esperan al usuario. Bitácora
+2026-10-04 — **Fase 9, ingreso sólo con OAuth 2.0 (Google y Microsoft)**: backlog (11 tareas, 42
+puntos) y F9-00 (spec §5.6, ADR-0012) en una PR; sin código todavía. Bitácora
 [2026-10-03](./bitacora/2026-10-03-plan-oauth.md).
 
 2026-10-03 — **Fase 8, plan Pro**: spec §4 y §5.5, ADR-0011, backlog (7 tareas, 22 puntos) y el

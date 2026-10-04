@@ -2682,13 +2682,14 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
 
 - **module:** spec
 - **description:** Los seis supuestos de arriba, cerrados con el usuario y volcados en la spec: §5
-  (las filas Login y Registro pasan a una sola, "Ingreso", con un botón por proveedor; qué ve quien
-  entra por primera vez, quien vuelve, quien cancela y quien choca con un email de otro proveedor; el
-  Perfil muestra la foto), §6 (Better Auth sólo con OAuth), §7 (`auth` queda con la sesión; `oauth`
-  con el ingreso por proveedores) y §13 (rate limit del ingreso, 5 por minuto por IP; se van el
-  recupero de contraseña y el hash con listas de filtradas; entra OAuth: _code_ + PKCE, `state`,
-  redirect URIs exactas por ambiente, qué datos se guardan y cuáles no, la foto como dato
-  personal). ADR-0012: revierte el login con email y contraseña, con las opciones (1) sólo OAuth, (2)
+  (las filas Login y Registro pasan a una sola, "Ingreso"; la del Perfil suma la foto), §5.5 (el
+  Perfil empieza por la persona), §5.6 nueva (el ingreso: proveedores, pantalla, primera vez y
+  después, qué pasa cuando algo no sale, cuentas sin vincular, foto, sesión y qué se guarda), §6
+  (Better Auth sólo con OAuth), §7 (`auth` queda con la sesión; `oauth` con el ingreso por
+  proveedores), §12 (los secretos de cliente OAuth) y §13 (rate limit del ingreso, 5 por minuto por
+  IP; se van el recupero de contraseña y el hash con listas de filtradas; entra OAuth: _code_ +
+  PKCE, `state`, redirect URIs exactas por ambiente, tokens, la foto como dato personal, el IdP
+  falso). ADR-0012: revierte el login con email y contraseña, con las opciones (1) sólo OAuth, (2)
   OAuth y contraseña, (3) sólo contraseña; el costo de depender de dos proveedores; por qué
   `consumers` y no `common`; por qué la vinculación está apagada y qué haría falta para encenderla.
   STATE.md: se cierra "Proveedor de email" y la decisión del 2026-09-18 queda como reemplazada.
@@ -2707,6 +2708,9 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
 - **test_plan:** revisión humana de la PR.
 - **error-codes:** ninguno (el módulo se registra acá; los códigos llegan en F9-01)
 - **data-model-impact:** ninguno
+- **estado:** hecha, a la espera de revisión. Spec §5.6 nueva y [ADR-0012](./adr/0012-ingreso-solo-con-oauth.md);
+  `OAUTH` en la lista de módulos de [error-codes.md](./error-codes.md). La spec cita ya los tres
+  códigos `WC-OAUTH-*`, que entran al diccionario en F9-01 (acá no hay código que los lance).
 
 ## [ ] F9-01 · Schemas: contratos de OAuth
 

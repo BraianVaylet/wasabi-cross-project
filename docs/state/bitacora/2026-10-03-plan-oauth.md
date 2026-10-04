@@ -31,6 +31,11 @@ del usuario en el Perfil**, preguntando qué uso se le puede dar al token.
   existía y estaba mergeado** (#93, 2026-10-03, el árbol de `main` idéntico al de la rama), así que no
   había nada que abrir: se cortó `docs/f9-00-ingreso-oauth` desde `origin/main` y se empezó.
 
+- **F9-00**, en esa misma rama: spec §5.6 nueva (el ingreso) y §5, §5.5, §6, §7, §12 y §13 al día,
+  [ADR-0012](../../adr/0012-ingreso-solo-con-oauth.md), `OAUTH` en la lista de módulos de
+  [error-codes.md](../../error-codes.md). Se cierra la decisión abierta "Proveedor de email" y la del
+  2026-09-18 queda como reemplazada.
+
 ## Decisiones tomadas
 
 - **Se interpretó "OAuth 2.0" como cliente OIDC (entrar con proveedores), no como servidor.** La
@@ -72,6 +77,6 @@ del usuario en el Perfil**, preguntando qué uso se le puede dar al token.
 
 ## Próximo paso
 
-F9-00 (spec §5, §6, §7 y §13, ADR-0012) va en esta misma PR, a la espera del Definition of Done del
-usuario. Después, F9-01 y F9-02 en paralelo. Debe coincidir con el punto 10 de "Próximo paso" en
+Revisar y mergear esta PR (backlog de la Fase 9 y F9-00), y que el usuario cumpla el Definition of
+Done de F9-00. Después, F9-01 y F9-02 en paralelo. Debe coincidir con el punto 10 de "Próximo paso" en
 [STATE.md](../STATE.md). Faltan las tarjetas (`/trello-sync`).
