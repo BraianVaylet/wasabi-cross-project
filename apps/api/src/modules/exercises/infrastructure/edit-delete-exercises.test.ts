@@ -1,6 +1,7 @@
 import type { ExerciseList, ManagedExerciseSummary } from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookiesFrom, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { createTestSession } from '../../../test/session.ts';
 import { seedCatalog } from '../application/seed-catalog.ts';
 import { createMongoExerciseRepository } from './mongo-exercise.repository.ts';
 
@@ -19,17 +20,11 @@ describe('editar y borrar ejercicios gestionados (F1-06)', () => {
 
   async function newUser(): Promise<string> {
     userCount += 1;
-    const response = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-up/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({
-        email: `editor${String(userCount)}@example.com`,
-        password: 'una-frase-larga-y-propia',
-        name: `Editor ${String(userCount)}`,
-      }),
+    const session = await createTestSession(harness, {
+      email: `editor${String(userCount)}@example.com`,
+      name: `Editor ${String(userCount)}`,
     });
-    return cookiesFrom(response.headers);
+    return session.cookie;
   }
 
   async function catalogId(name: string): Promise<string> {

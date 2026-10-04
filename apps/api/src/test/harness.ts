@@ -3,7 +3,7 @@ import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
 import type { Env } from '../config/env.ts';
-import { createAuth } from '../modules/auth/infrastructure/better-auth.ts';
+import { createAuth, type Auth } from '../modules/auth/infrastructure/better-auth.ts';
 import {
   composeExercises,
   composeOauth,
@@ -19,6 +19,8 @@ export interface TestHarness {
   app: FastifyInstance;
   mongo: MongoConnection;
   env: Env;
+  /** La misma instancia de Better Auth que atiende `app`: de acá salen las sesiones de test. */
+  auth: Auth;
   stop: () => Promise<void>;
 }
 
@@ -58,6 +60,7 @@ export async function startTestApi(): Promise<TestHarness> {
     app,
     mongo,
     env,
+    auth,
     stop: async () => {
       await app.close();
       await mongo.close();

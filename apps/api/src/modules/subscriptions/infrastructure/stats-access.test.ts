@@ -1,6 +1,7 @@
 import type { ManagedExerciseSummary } from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookiesFrom, setPlan, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { setPlan, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { createTestSession } from '../../../test/session.ts';
 import { seedCatalog } from '../../exercises/application/seed-catalog.ts';
 import { createMongoExerciseRepository } from '../../exercises/infrastructure/mongo-exercise.repository.ts';
 
@@ -29,20 +30,12 @@ describe('estadísticas sólo para Pro (F8-03)', () => {
   async function newUser(plan?: 'pro'): Promise<{ cookie: string; email: string }> {
     userCount += 1;
     const email = `plan${String(userCount)}@example.com`;
-    const response = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-up/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({
-        email,
-        password: 'una-frase-larga-y-propia',
-        name: `Plan ${String(userCount)}`,
-      }),
+    const session = await createTestSession(harness, {
+      email,
+      name: `Plan ${String(userCount)}`,
+      ...(plan ? { plan } : {}),
     });
-    if (plan) {
-      await setPlan(harness, email, plan);
-    }
-    return { cookie: cookiesFrom(response.headers), email };
+    return { cookie: session.cookie, email };
   }
 
   async function addExercise(cookie: string): Promise<ManagedExerciseSummary> {

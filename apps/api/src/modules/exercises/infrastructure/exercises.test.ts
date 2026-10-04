@@ -7,7 +7,8 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { EXERCISE_CATALOG } from '../domain/catalog.ts';
 import { seedCatalog } from '../application/seed-catalog.ts';
-import { cookiesFrom, startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { createTestSession } from '../../../test/session.ts';
 import {
   EXERCISES_COLLECTION,
   createMongoExerciseRepository,
@@ -31,17 +32,8 @@ describe('catálogo de ejercicios', () => {
   beforeAll(async () => {
     harness = await startTestApi();
 
-    const signUp = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-up/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({
-        email: 'atleta@example.com',
-        password: 'una-frase-larga-y-propia',
-        name: 'Atleta',
-      }),
-    });
-    cookie = cookiesFrom(signUp.headers);
+    cookie = (await createTestSession(harness, { email: 'atleta@example.com', name: 'Atleta' }))
+      .cookie;
   });
 
   afterAll(async () => {

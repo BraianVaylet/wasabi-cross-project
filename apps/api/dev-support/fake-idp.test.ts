@@ -2,8 +2,10 @@ import { createHash, createPublicKey, createVerify, randomBytes } from 'node:cry
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   CONSUMER_TENANT_ID,
+  DEV_ADMIN,
   FAKE_IDP_CLIENT_ID,
   FAKE_IDP_CLIENT_SECRET,
+  fakeIdpSubjectFor,
   ORGANIZATION_TENANT_ID,
   startFakeIdp,
   type FakeIdp,
@@ -240,8 +242,25 @@ describe('IdP falso de desarrollo', () => {
 
       expect(response.status).toBe(200);
       expect(response.headers.get('content-type')).toContain('text/html');
-      expect(html).toContain('admin@wasabicross.dev');
+      expect(html).toContain(DEV_ADMIN.email);
+      expect(html).toContain(`value="${DEV_ADMIN.name}"`);
       expect(html).toContain('IdP falso');
+    });
+
+    it('entrar sin tocar nada es entrar como el admin: un clic', async () => {
+      const token = await signIn(idp, {});
+
+      expect(token.claims).toMatchObject({ email: DEV_ADMIN.email, name: DEV_ADMIN.name });
+      expect(token.claims.sub).toBe(fakeIdpSubjectFor(DEV_ADMIN.email));
+    });
+
+    it('`login_hint` cambia el email que aparece cargado', async () => {
+      const params = authorizeParams({});
+      params.set('login_hint', 'otra@example.com');
+
+      const html = await (await fetch(`${idp.origin}/authorize?${params.toString()}`)).text();
+
+      expect(html).toContain('otra@example.com');
     });
 
     it('escapa lo que le llega en la URL: un state armado no inyecta HTML', async () => {

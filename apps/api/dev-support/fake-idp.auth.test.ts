@@ -6,6 +6,7 @@ import { testEnv } from '../src/test/env.ts';
 import { chooseAtIdp, type Choice } from './fake-idp-client.ts';
 import { startFakeIdp, type FakeIdp } from './fake-idp.ts';
 import { fakeIdpAuthPlugin, fakeIdpMicrosoftProvider } from './fake-idp-auth.ts';
+import { Jar, signInVia as runFlow, type Attempt } from './idp-flow.ts';
 
 /*
  * El IdP falso contra Better Auth de verdad (F9-03): `createAuth` con el plugin inyectado, y el
@@ -14,30 +15,6 @@ import { fakeIdpAuthPlugin, fakeIdpMicrosoftProvider } from './fake-idp-auth.ts'
  */
 
 const BASE = 'http://127.0.0.1:3000';
-
-/** Las cookies que el navegador guardaría entre pasos. */
-class Jar {
-  private readonly cookies = new Map<string, string>();
-
-  absorb(response: Response): void {
-    for (const line of response.headers.getSetCookie()) {
-      const pair = line.split(';')[0] ?? '';
-      const separator = pair.indexOf('=');
-      const name = pair.slice(0, separator);
-      const value = pair.slice(separator + 1);
-      if (value === '' || /max-age=0/i.test(line)) this.cookies.delete(name);
-      else this.cookies.set(name, value);
-    }
-  }
-
-  header(): string {
-    return [...this.cookies].map(([name, value]) => `${name}=${value}`).join('; ');
-  }
-
-  hasSession(): boolean {
-    return [...this.cookies.keys()].some((name) => name.endsWith('session_token'));
-  }
-}
 
 describe('el IdP falso con Better Auth (F9-03)', () => {
   let mongod: MongoMemoryServer;
@@ -76,47 +53,20 @@ describe('el IdP falso con Better Auth (F9-03)', () => {
 
   type TestAuth = ReturnType<typeof authWith>;
 
-  interface Attempt {
-    jar: Jar;
-    /** La URL a la que Better Auth manda al navegador al terminar. */
-    finalLocation: string;
-    /** La URL del callback que el IdP le dio al navegador. */
-    callbackUrl: string;
-    callbackStatus: number;
-  }
-
-  /** Recorre el ingreso entero: empieza, elige en el IdP y vuelve al callback de la API. */
-  async function signInVia(
+  /** El recorrido compartido, con la API y el front de este archivo. */
+  function signInVia(
     auth: TestAuth,
     provider: string,
     choice: Choice,
     mutateCallback?: (url: URL) => void,
   ): Promise<Attempt> {
-    const jar = new Jar();
-    const start = await auth.handler(
-      new Request(`${BASE}/api/auth/sign-in/social`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', origin: env().WEB_ORIGIN },
-        body: JSON.stringify({ provider, callbackURL: '/inicio', errorCallbackURL: '/login' }),
-      }),
-    );
-    if (start.status !== 200) throw new Error(`sign-in/social: ${String(start.status)}`);
-    jar.absorb(start);
-    const { url } = (await start.json()) as { url: string };
-
-    const atIdp = await chooseAtIdp(url, choice);
-    const callback = new URL(atIdp.headers.get('location') ?? '');
-    mutateCallback?.(callback);
-
-    const back = await auth.handler(new Request(callback, { headers: { cookie: jar.header() } }));
-    jar.absorb(back);
-
-    return {
-      jar,
-      finalLocation: back.headers.get('location') ?? '',
-      callbackUrl: callback.toString(),
-      callbackStatus: back.status,
-    };
+    return runFlow(auth, {
+      base: BASE,
+      webOrigin: env().WEB_ORIGIN,
+      provider,
+      choice,
+      ...(mutateCallback ? { mutateCallback } : {}),
+    });
   }
 
   async function countUsers(): Promise<number> {

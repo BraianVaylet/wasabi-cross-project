@@ -3,6 +3,8 @@
  * autorización que le dio Better Auth, elegir quién entra y apretar "Entrar" (o "Cancelar").
  */
 
+import { DEV_ADMIN } from './fake-idp.ts';
+
 export interface Choice {
   /** `approve` entra, `deny` cancela. */
   action: 'approve' | 'deny';
@@ -25,8 +27,8 @@ export async function chooseAtIdp(authorizeUrl: string, choice: Choice): Promise
   const html = await page.text();
 
   const fields: Record<string, string> = {
-    email: choice.email ?? 'admin@wasabicross.dev',
-    name: choice.name ?? 'Admin',
+    email: choice.email ?? DEV_ADMIN.email,
+    name: choice.name ?? DEV_ADMIN.name,
     action: choice.action,
   };
   for (const match of html.matchAll(/<input type="hidden" name="([^"]+)" value="([^"]*)"/g)) {

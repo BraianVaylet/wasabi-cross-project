@@ -5,11 +5,10 @@ import type { Db } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { z } from 'zod';
 import { startFakeIdp } from '../dev-support/fake-idp.ts';
+import { seedDevAdmin } from '../dev-support/seed-dev-admin.ts';
 import { fakeIdpAuthPlugin } from '../dev-support/fake-idp-auth.ts';
 import { startServer } from '../src/bootstrap.ts';
-import { seedAdmin } from '../src/modules/auth/application/seed-admin.ts';
 import { createAuth } from '../src/modules/auth/infrastructure/better-auth.ts';
-import { createUserRegistrar } from '../src/modules/auth/infrastructure/user-registrar.ts';
 import { parseEnv } from '../src/config/env.ts';
 import { seedCatalog } from '../src/modules/exercises/application/seed-catalog.ts';
 import { createMongoExerciseRepository } from '../src/modules/exercises/infrastructure/mongo-exercise.repository.ts';
@@ -107,9 +106,10 @@ async function main(): Promise<void> {
     await seedCatalog(createMongoExerciseRepository(mongo.db));
 
     const auth = createAuth({ env, db: mongo.db, client: mongo.client });
-    const { email } = await seedAdmin(createUserRegistrar(auth), mongo.db, {
+    const { email } = await seedDevAdmin({
+      auth,
+      db: mongo.db,
       email: process.env.SEED_ADMIN_EMAIL,
-      password: process.env.SEED_ADMIN_PASSWORD,
       name: process.env.SEED_ADMIN_NAME,
     });
     console.info(`Usuario admin (plan Pro): ${email}`);

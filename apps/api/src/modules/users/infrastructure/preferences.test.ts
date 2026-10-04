@@ -1,8 +1,7 @@
 import type { UserPreferences } from '@wasabi-cross/schemas';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookiesFrom, startTestApi, type TestHarness } from '../../../test/harness.ts';
-
-const PASSWORD = 'una-frase-larga-y-propia';
+import { startTestApi, type TestHarness } from '../../../test/harness.ts';
+import { createTestSession, openSession } from '../../../test/session.ts';
 
 describe('preferencias del usuario (F1-08)', () => {
   let harness: TestHarness;
@@ -16,16 +15,14 @@ describe('preferencias del usuario (F1-08)', () => {
     await harness.stop();
   });
 
-  async function newUser(): Promise<{ cookie: string; email: string }> {
+  async function newUser(): Promise<{ cookie: string; userId: string }> {
     userCount += 1;
     const email = `prefs${String(userCount)}@example.com`;
-    const response = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-up/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({ email, password: PASSWORD, name: `Prefs ${String(userCount)}` }),
+    const session = await createTestSession(harness, {
+      email,
+      name: `Prefs ${String(userCount)}`,
     });
-    return { cookie: cookiesFrom(response.headers), email };
+    return { cookie: session.cookie, userId: session.userId };
   }
 
   function read(cookie: string) {
@@ -65,16 +62,10 @@ describe('preferencias del usuario (F1-08)', () => {
   });
 
   it('los porcentajes guardados los recupera el próximo login, en otro dispositivo', async () => {
-    const { cookie, email } = await newUser();
+    const { cookie, userId } = await newUser();
     await update(cookie, { loadPercentages: [55, 65] });
 
-    const login = await harness.app.inject({
-      method: 'POST',
-      url: '/api/auth/sign-in/email',
-      headers: { 'content-type': 'application/json' },
-      payload: JSON.stringify({ email, password: PASSWORD }),
-    });
-    const otroDispositivo = cookiesFrom(login.headers);
+    const otroDispositivo = await openSession(harness, userId);
 
     expect(otroDispositivo).not.toBe(cookie);
     expect((await read(otroDispositivo)).json<UserPreferences>().loadPercentages).toEqual([55, 65]);
