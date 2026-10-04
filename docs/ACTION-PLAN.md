@@ -2648,8 +2648,17 @@ crea la cuenta: no hay pantalla de registro. El Perfil muestra la foto del usuar
   colección `account`. Wasabi no los necesita (F9-05).
 - **Logs.** La URL del callback trae `code` y `state`, y `auth.routes.ts` loguea `request.url`. El
   logger redacta `accessToken` y `refreshToken`, pero no `idToken` ni el _query_ (F9-06).
-- **El callback depende del proveedor:** `/api/auth/callback/google`, `/api/auth/callback/microsoft`
-  y, para el IdP falso, `/api/auth/oauth2/callback/<id>`. Todos caen bajo `/api/`.
+- **El callback es `/api/auth/callback/<proveedor>`**, también para el IdP falso: en Better Auth 1.7
+  los proveedores de `genericOAuth` se registran como proveedores sociales y usan los mismos
+  `/sign-in/social` y `/callback/<id>`, así que el front no necesita un caso aparte. Todos caen
+  bajo `/api/`.
+- **Better Auth no aplica `verifyClaims` en el flujo con `code`.** El chequeo de que el `tid` sea el
+  de las cuentas personales (y el de `iss` y `aud`) sólo corre cuando llega un ID token suelto
+  (`sign-in` con `idToken`, vincular cuenta) y en el plugin `genericOAuth`; en el callback, el
+  `getUserInfo` de Microsoft apenas decodifica el token. En producción lo que deja afuera a las
+  cuentas de trabajo es el endpoint `/consumers` de Microsoft, que no las emite, pero el rechazo
+  propio lo tiene que escribir Wasabi (F9-05). Se encontró corriendo el proveedor real contra el
+  IdP falso (F9-03).
 - **Los secretos de Microsoft vencen** (hasta 24 meses); los de Google no. El runbook (F9-10) anota la
   fecha de vencimiento.
 - **Cookies.** `sameSite: 'lax'` ya está puesto y es lo que deja que la cookie de `state` sobreviva
@@ -2798,35 +2807,51 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   con `genericOAuth` bajo `providerId: "fake-idp"`. La que imita el layout de Microsoft
   (`/<tenant>/oauth2/v2.0/authorize`, `/token` y `/<tenant>/discovery/v2.0/keys`, con `iss` igual a
   `<authority>/<tid>/v2.0`) deja correr el **proveedor `microsoft` real** de Better Auth apuntando
-  `MICROSOFT_AUTHORITY` acá, así que se prueban de verdad el chequeo de `tid`, la identidad por
-  `oid` y los _claims_ de verificación. `/authorize` muestra una pantalla chica con email y nombre
-  —el admin de desarrollo ya cargado— para elegir quién entra, y cada usuario puede llevar `tid`,
-  `oid`, `verified_primary_email` y `picture` (un _data URL_ chico). Vive en
-  `apps/api/dev-support/`, **fuera de `src/`**: un `scripts/dev.ts` lo arranca junto a la API cuando
-  `OAUTH_DEV_IDP=on` (en `pnpm dev` y en `dev:ephemeral`, en `127.0.0.1:3102`) y `src/` nunca lo
-  importa. La llamada a Graph para la foto está fija a `graph.microsoft.com` y no se puede desviar:
-  esa parte se prueba a mano en F9-10.
+  `MICROSOFT_AUTHORITY` acá, así que se prueban de verdad la identidad por `oid` y los _claims_ de
+  verificación. `/authorize` muestra una pantalla chica con email y nombre —el admin de desarrollo
+  ya cargado— para elegir quién entra, y cada usuario puede llevar `tid`, `oid`,
+  `verified_primary_email` y `picture` (un _data URL_ chico). Vive en `apps/api/dev-support/`,
+  **fuera de `src/`**. `startServer` (nuevo `src/bootstrap.ts`) recibe los plugins de Better Auth
+  por inyección; `scripts/dev.ts` (que ahora corre `pnpm dev`) y `scripts/ephemeral.ts` arrancan el
+  IdP en `127.0.0.1:3102` (`FAKE_IDP_PORT`) y se lo pasan. `src/server.ts`, la entrada de
+  producción, no pasa nada. La llamada a Graph para la foto está fija a `graph.microsoft.com` y no
+  se puede desviar: esa parte se prueba a mano en F9-10.
 - **acceptance-criteria:**
   - Dado el flujo _authorization code_ + PKCE completo por la cara genérica, cuando un cliente de
     prueba lo recorre, entonces recibe un `id_token` con el email y el nombre elegidos que se
     verifica contra el JWKS.
   - Dado el mismo flujo por la cara de Microsoft, cuando lo recorre el proveedor `microsoft` de
-    Better Auth, entonces el ingreso se completa con `oid` como identidad.
-  - Dado un `/token` sin el `code_verifier` correcto, entonces rechaza; dado un `code` ya usado,
-    entonces rechaza.
-  - Dado un usuario marcado con `tid` de una organización, cuando entra por la cara de Microsoft,
-    entonces el proveedor lo rechaza.
-  - Dado el build de producción, cuando se compila, entonces `dist/` no contiene el IdP falso (test
-    en `pnpm verify`).
+    Better Auth, entonces el ingreso se completa con `oid` como identidad, y el email queda
+    verificado sólo si el token trae `verified_primary_email`.
+  - Dado un `/token` sin el `code_verifier` correcto, entonces rechaza; dado un `code` ya usado o
+    vencido, entonces rechaza.
+  - Dado un usuario marcado con el tenant de una organización, cuando entra por la cara de
+    Microsoft, entonces el IdP emite un token con ese `tid` y su `iss`, para que F9-05 pruebe el
+    rechazo (Better Auth no lo hace: ver los hallazgos de la fase).
+  - Dado el IdP, cuando se lo prueba contra `createAuth` por `/sign-in/social` y
+    `/callback/fake-idp`, entonces deja una sesión; cancelar, un `state` alterado, un callback sin
+    la cookie de `state` o repetido, no.
+  - Dadas las guardas, cuando se rompe cada una, entonces un test falla: el build sólo compila
+    `src/`, `src/` no importa `dev-support/`, `parseEnv` no deja `OAUTH_DEV_IDP=on` en producción y
+    `createAuth` no admite plugins extra en producción.
 - **example:** —
 - **story-points:** 5
 - **depends_on:** F9-02
 - **risk:** high. 🔴 **Un IdP que acepta a cualquiera, en producción, es un _bypass_ de la
-  autenticación.** Las tres guardas (fuera de `src/`, fuera de `dist/`, `parseEnv`) tienen su test.
-- **test_plan:** tests del propio IdP por criterio; el test de `dist/` y el de `parseEnv` (F9-02).
-  Revisión humana (spec §9).
+  autenticación.** Las cuatro guardas (fuera del build, sin imports desde `src/`, `parseEnv`,
+  `createAuth`) tienen su test.
+- **test_plan:** tests del propio IdP por criterio, por HTTP y contra Better Auth; las guardas se
+  comprobaron con pruebas inversas (se rompe cada una y el test falla). Revisión humana (spec §9).
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de **revisión humana de los tests** (spec §9). Dos cosas que
+  cambiaron respecto de lo planeado: (1) **el rechazo del `tid` de una organización no lo hace
+  Better Auth** (`verifyClaims` no corre en el flujo con `code`): el criterio pasó a F9-05, que
+  envuelve el `getUserInfo` de Microsoft, y acá queda como `it.todo`. (2) **El guard de `dist/`** es
+  un test de la configuración del build y de los imports (los tests corren antes del build, y
+  `dist/` puede no existir); más una guarda que no estaba, en `createAuth`. Se probó de punta a punta
+  contra `dev:ephemeral`: ingreso por el IdP, `/me` con la cookie, cancelar, y el login con
+  contraseña sigue andando hasta F9-05.
 
 ## [ ] F9-04 · Tests y seed sin contraseña
 
@@ -2880,7 +2905,14 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   el IdP falso. **Con el ingreso sólo por OAuth, una API sin ningún proveedor no deja entrar a
   nadie**: `server.ts` no arranca si `enabledProviders` (F9-02) viene vacío, salvo en `test`, donde
   se entra con `testUtils`. Va en `server.ts` y no en `parseEnv` porque `migrate` y `seed` leen el
-  mismo entorno y no necesitan ningún proveedor.
+  mismo entorno y no necesitan ningún proveedor. **El `tid` de Microsoft lo chequea Wasabi**: Better
+  Auth no aplica su `verifyClaims` en el flujo con `code` (se descubrió en F9-03), así que el
+  proveedor `microsoft` se arma con un `getUserInfo` propio que, antes de delegar en el de Better
+  Auth (`microsoft(options)`), exige `tid` igual al de las cuentas personales, `iss` igual a
+  `<authority>/<tid>/v2.0` y `aud` igual al id de cliente, y devuelve `null` si no. La cuenta del
+  IdP falso con tenant de organización (F9-03) es el caso de prueba. En esa misma configuración,
+  `disableProfilePhoto` se prende cuando `MICROSOFT_AUTHORITY` apunta al IdP falso, porque la
+  llamada a Graph no se puede desviar.
 - **acceptance-criteria:**
   - Dado un entorno sin ningún proveedor (fuera de `test`), cuando arranca el servidor, entonces no
     levanta y el mensaje dice cómo habilitar uno; `migrate` y `seed` corren igual.
@@ -2892,8 +2924,9 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
     entonces responde 404: no queda otro camino de entrada que los proveedores.
   - Dado un email que el proveedor no verificó (en Microsoft: sin `email_verified` ni
     `verified_primary_email`), cuando intenta entrar, entonces no hay usuario ni sesión.
-  - Dado un usuario de Microsoft con `tid` de una organización, cuando intenta entrar, entonces no
-    hay usuario ni sesión.
+  - Dado un usuario de Microsoft con `tid` de una organización —aunque el token llegue por el
+    endpoint `consumers`—, cuando intenta entrar, entonces no hay usuario ni sesión; ídem con un
+    `iss` que no es `<authority>/<tid>/v2.0` o un `aud` que no es el cliente.
   - Dado un `state` alterado, repetido o sin su cookie, cuando vuelve el callback, entonces falla sin
     sesión; dado el consentimiento denegado, vuelve a `/login?error=access_denied`.
   - Dado un usuario creado con un proveedor, cuando entra otro proveedor con el mismo email, entonces
@@ -2976,7 +3009,7 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
     "Reintentar": no hay otra forma de entrar.
   - Dada la configuración de la PWA, cuando se evalúa la exclusión contra
     `/api/auth/callback/google`, `/api/auth/callback/microsoft` y
-    `/api/auth/oauth2/callback/fake-idp`, entonces coincide; contra `/ejercicios`, no.
+    `/api/auth/callback/fake-idp`, entonces coincide; contra `/ejercicios`, no.
   - Dado el repo, cuando se busca `passwordSchema`, `signInSchema` y `signUpSchema`, entonces no
     aparecen.
 - **example:** —

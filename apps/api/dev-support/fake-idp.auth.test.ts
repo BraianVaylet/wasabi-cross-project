@@ -1,0 +1,345 @@
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { createAuth } from '../src/modules/auth/infrastructure/better-auth.ts';
+import { connectMongo, type MongoConnection } from '../src/shared/db/mongo.ts';
+import { testEnv } from '../src/test/env.ts';
+import { chooseAtIdp, type Choice } from './fake-idp-client.ts';
+import { startFakeIdp, type FakeIdp } from './fake-idp.ts';
+import { fakeIdpAuthPlugin, fakeIdpMicrosoftProvider } from './fake-idp-auth.ts';
+
+/*
+ * El IdP falso contra Better Auth de verdad (F9-03): `createAuth` con el plugin inyectado, y el
+ * proveedor `microsoft` real apuntando a la cara de Microsoft. Es el mismo camino que recorrerá el
+ * navegador: /sign-in/social → pantalla del IdP → /callback/<id> → cookie de sesión.
+ */
+
+const BASE = 'http://127.0.0.1:3000';
+
+/** Las cookies que el navegador guardaría entre pasos. */
+class Jar {
+  private readonly cookies = new Map<string, string>();
+
+  absorb(response: Response): void {
+    for (const line of response.headers.getSetCookie()) {
+      const pair = line.split(';')[0] ?? '';
+      const separator = pair.indexOf('=');
+      const name = pair.slice(0, separator);
+      const value = pair.slice(separator + 1);
+      if (value === '' || /max-age=0/i.test(line)) this.cookies.delete(name);
+      else this.cookies.set(name, value);
+    }
+  }
+
+  header(): string {
+    return [...this.cookies].map(([name, value]) => `${name}=${value}`).join('; ');
+  }
+
+  hasSession(): boolean {
+    return [...this.cookies.keys()].some((name) => name.endsWith('session_token'));
+  }
+}
+
+describe('el IdP falso con Better Auth (F9-03)', () => {
+  let mongod: MongoMemoryServer;
+  let mongo: MongoConnection;
+  let idp: FakeIdp;
+  const env = () => testEnv({ BETTER_AUTH_URL: BASE });
+
+  beforeAll(async () => {
+    mongod = await MongoMemoryServer.create();
+    mongo = await connectMongo(testEnv({ MONGODB_URI: mongod.getUri() }));
+    idp = await startFakeIdp({ port: 0, host: '127.0.0.1', allowedRedirectOrigin: BASE });
+  });
+
+  afterAll(async () => {
+    await idp.close();
+    await mongo.close();
+    await mongod.stop();
+  });
+
+  beforeEach(async () => {
+    for (const name of ['user', 'account', 'session', 'verification']) {
+      await mongo.db.collection(name).deleteMany({});
+    }
+  });
+
+  function authWith(extra: { microsoft?: boolean; plugin?: boolean }) {
+    return createAuth({
+      env: env(),
+      db: mongo.db,
+      client: mongo.client,
+      transactions: false,
+      ...(extra.plugin ? { plugins: [fakeIdpAuthPlugin(idp)] } : {}),
+      ...(extra.microsoft ? { socialProviders: { microsoft: fakeIdpMicrosoftProvider(idp) } } : {}),
+    });
+  }
+
+  type TestAuth = ReturnType<typeof authWith>;
+
+  interface Attempt {
+    jar: Jar;
+    /** La URL a la que Better Auth manda al navegador al terminar. */
+    finalLocation: string;
+    /** La URL del callback que el IdP le dio al navegador. */
+    callbackUrl: string;
+    callbackStatus: number;
+  }
+
+  /** Recorre el ingreso entero: empieza, elige en el IdP y vuelve al callback de la API. */
+  async function signInVia(
+    auth: TestAuth,
+    provider: string,
+    choice: Choice,
+    mutateCallback?: (url: URL) => void,
+  ): Promise<Attempt> {
+    const jar = new Jar();
+    const start = await auth.handler(
+      new Request(`${BASE}/api/auth/sign-in/social`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', origin: env().WEB_ORIGIN },
+        body: JSON.stringify({ provider, callbackURL: '/inicio', errorCallbackURL: '/login' }),
+      }),
+    );
+    if (start.status !== 200) throw new Error(`sign-in/social: ${String(start.status)}`);
+    jar.absorb(start);
+    const { url } = (await start.json()) as { url: string };
+
+    const atIdp = await chooseAtIdp(url, choice);
+    const callback = new URL(atIdp.headers.get('location') ?? '');
+    mutateCallback?.(callback);
+
+    const back = await auth.handler(new Request(callback, { headers: { cookie: jar.header() } }));
+    jar.absorb(back);
+
+    return {
+      jar,
+      finalLocation: back.headers.get('location') ?? '',
+      callbackUrl: callback.toString(),
+      callbackStatus: back.status,
+    };
+  }
+
+  async function countUsers(): Promise<number> {
+    return mongo.db.collection('user').countDocuments();
+  }
+
+  describe('proveedor genérico `fake-idp`, registrado por inyección', () => {
+    it('entra por /sign-in/social y /callback/fake-idp, y deja una sesión con el email y el nombre elegidos', async () => {
+      const auth = authWith({ plugin: true });
+
+      const attempt = await signInVia(auth, 'fake-idp', {
+        action: 'approve',
+        email: 'ana@example.com',
+        name: 'Ana',
+      });
+
+      expect(attempt.callbackStatus).toBe(302);
+      expect(attempt.finalLocation).toContain('/inicio');
+      expect(attempt.jar.hasSession()).toBe(true);
+
+      const session = await auth.api.getSession({
+        headers: new Headers({ cookie: attempt.jar.header() }),
+      });
+      expect(session?.user).toMatchObject({ email: 'ana@example.com', name: 'Ana' });
+    });
+
+    it('guarda la cuenta con el proveedor y el id que da el IdP', async () => {
+      const auth = authWith({ plugin: true });
+
+      await signInVia(auth, 'fake-idp', {
+        action: 'approve',
+        email: 'ana@example.com',
+        name: 'Ana',
+      });
+
+      const account = await mongo.db.collection('account').findOne({ providerId: 'fake-idp' });
+      expect(account?.accountId).toMatch(/^[0-9a-f-]{36}$/);
+    });
+
+    it('la misma persona que vuelve es el mismo usuario, no uno nuevo', async () => {
+      const auth = authWith({ plugin: true });
+      const choice: Choice = { action: 'approve', email: 'ana@example.com', name: 'Ana' };
+
+      await signInVia(auth, 'fake-idp', choice);
+      const second = await signInVia(auth, 'fake-idp', choice);
+
+      expect(second.jar.hasSession()).toBe(true);
+      expect(await countUsers()).toBe(1);
+      expect(await mongo.db.collection('account').countDocuments()).toBe(1);
+    });
+
+    it('otro email es otro usuario', async () => {
+      const auth = authWith({ plugin: true });
+
+      await signInVia(auth, 'fake-idp', {
+        action: 'approve',
+        email: 'ana@example.com',
+        name: 'Ana',
+      });
+      await signInVia(auth, 'fake-idp', {
+        action: 'approve',
+        email: 'beto@example.com',
+        name: 'Beto',
+      });
+
+      expect(await countUsers()).toBe(2);
+    });
+
+    it('cancelar en el IdP vuelve a /login con access_denied, sin sesión y sin usuario', async () => {
+      const auth = authWith({ plugin: true });
+
+      const attempt = await signInVia(auth, 'fake-idp', { action: 'deny' });
+
+      expect(attempt.finalLocation).toContain('/login');
+      expect(new URL(attempt.finalLocation, BASE).searchParams.get('error')).toBe('access_denied');
+      expect(attempt.jar.hasSession()).toBe(false);
+      expect(await countUsers()).toBe(0);
+    });
+
+    it('un state alterado no deja entrar', async () => {
+      const auth = authWith({ plugin: true });
+
+      const attempt = await signInVia(
+        auth,
+        'fake-idp',
+        { action: 'approve', email: 'ana@example.com', name: 'Ana' },
+        (callback) => {
+          callback.searchParams.set('state', 'otro-state');
+        },
+      );
+
+      expect(attempt.jar.hasSession()).toBe(false);
+      expect(new URL(attempt.finalLocation, BASE).searchParams.has('error')).toBe(true);
+      expect(await countUsers()).toBe(0);
+    });
+
+    it('el callback sin la cookie de state no deja entrar', async () => {
+      const auth = authWith({ plugin: true });
+      const start = await auth.handler(
+        new Request(`${BASE}/api/auth/sign-in/social`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: env().WEB_ORIGIN },
+          body: JSON.stringify({ provider: 'fake-idp', callbackURL: '/inicio' }),
+        }),
+      );
+      const { url } = (await start.json()) as { url: string };
+      const atIdp = await chooseAtIdp(url, {
+        action: 'approve',
+        email: 'ana@example.com',
+        name: 'Ana',
+      });
+
+      // Sin las cookies del primer paso, como si el callback llegara desde otro navegador.
+      const back = await auth.handler(new Request(atIdp.headers.get('location') ?? ''));
+      const jar = new Jar();
+      jar.absorb(back);
+
+      expect(jar.hasSession()).toBe(false);
+      expect(await countUsers()).toBe(0);
+    });
+
+    it('un callback repetido no vuelve a entrar: el code ya se usó', async () => {
+      const auth = authWith({ plugin: true });
+      const first = await signInVia(auth, 'fake-idp', {
+        action: 'approve',
+        email: 'ana@example.com',
+        name: 'Ana',
+      });
+      expect(first.jar.hasSession()).toBe(true);
+
+      // Un navegador nuevo, con la misma URL de callback pero sin sesión ni state propios.
+      const replay = await auth.handler(new Request(first.callbackUrl));
+      const jar = new Jar();
+      jar.absorb(replay);
+
+      expect(jar.hasSession()).toBe(false);
+    });
+  });
+
+  describe('el proveedor `microsoft` real, apuntado a la cara de Microsoft', () => {
+    it('entra con una cuenta personal y la identidad es el oid, no el email', async () => {
+      const auth = authWith({ microsoft: true });
+
+      const attempt = await signInVia(auth, 'microsoft', {
+        action: 'approve',
+        email: 'ana@outlook.com',
+        name: 'Ana',
+      });
+
+      expect(attempt.jar.hasSession()).toBe(true);
+      const account = await mongo.db.collection('account').findOne({ providerId: 'microsoft' });
+      expect(account?.accountId).toMatch(/^[0-9a-f-]{36}$/);
+    });
+
+    it('el mismo oid con otro email sigue siendo la misma cuenta: no se identifica por email', async () => {
+      const auth = authWith({ microsoft: true });
+
+      await signInVia(auth, 'microsoft', {
+        action: 'approve',
+        email: 'ana@outlook.com',
+        name: 'Ana',
+        accountId: 'cuenta-1',
+      });
+      const second = await signInVia(auth, 'microsoft', {
+        action: 'approve',
+        email: 'ana@outlook.com',
+        name: 'Ana',
+        accountId: 'cuenta-1',
+      });
+
+      expect(second.jar.hasSession()).toBe(true);
+      expect(await mongo.db.collection('account').countDocuments({ providerId: 'microsoft' })).toBe(
+        1,
+      );
+    });
+
+    it('marca el email como verificado sólo si Microsoft lo trae en verified_primary_email', async () => {
+      const auth = authWith({ microsoft: true });
+
+      await signInVia(auth, 'microsoft', {
+        action: 'approve',
+        email: 'ana@outlook.com',
+        name: 'Ana',
+      });
+
+      const user = await mongo.db.collection('user').findOne({ email: 'ana@outlook.com' });
+      expect(user?.emailVerified).toBe(true);
+    });
+
+    it('sin verified_primary_email, el email queda sin verificar: Better Auth no lo da por hecho', async () => {
+      const auth = authWith({ microsoft: true });
+
+      await signInVia(auth, 'microsoft', {
+        action: 'approve',
+        email: 'beto@outlook.com',
+        name: 'Beto',
+        emailVerified: false,
+      });
+
+      const user = await mongo.db.collection('user').findOne({ email: 'beto@outlook.com' });
+      expect(user?.emailVerified).toBe(false);
+    });
+
+    /*
+     * Lo que este test iba a probar no lo hace Better Auth: su `verifyClaims` (el chequeo de que el
+     * `tid` sea el de las cuentas personales) sólo corre cuando llega un ID token suelto, no en el
+     * flujo con `code`, donde `getUserInfo` apenas decodifica el token. En producción lo que deja
+     * afuera a las cuentas de trabajo es el endpoint `/consumers` de Microsoft, que no las emite;
+     * pero el rechazo propio —por si alguien cambia el tenant o el servidor responde cualquier
+     * cosa— lo tiene que escribir Wasabi: F9-05 envuelve `getUserInfo`. La cara de Microsoft ya
+     * emite el token de organización (ver `fake-idp.test.ts`) para poder probarlo.
+     */
+    it.todo(
+      'F9-05: rechaza un token con el tid de una organización aunque llegue por el endpoint `consumers`',
+    );
+
+    it('cancelar vuelve con access_denied', async () => {
+      const auth = authWith({ microsoft: true });
+
+      const attempt = await signInVia(auth, 'microsoft', { action: 'deny' });
+
+      expect(new URL(attempt.finalLocation, BASE).searchParams.get('error')).toBe('access_denied');
+      expect(attempt.jar.hasSession()).toBe(false);
+    });
+  });
+});
