@@ -73,7 +73,7 @@ editable. Decidido con él y volcado en [ADR-0009](../adr/0009-catalogo-ampliado
 **Fase 7 — Estadísticas ampliadas** (2026-10-02, spec §5.4): el usuario pidió donas con la
 proporción de disciplinas según sus ejercicios, los grupos musculares más trabajados contando
 primario y secundarios, y que se evaluaran otras métricas; de la evaluación eligió las cuatro
-propuestas. **El código está completo (F7-00 a F7-07, en una PR)**, ninguna tarea cerrada:
+propuestas. **El código está completo (F7-00 a F7-07, mergeado en la PR #92)**, ninguna tarea cerrada:
 
 - Dos endpoints nuevos en `stats`, sin tocar el resumen: `GET /stats/breakdown` (sin período:
   disciplina, categoría, segmento, grupo) y `GET /stats/activity` (constancia, récords nuevos, los
@@ -90,7 +90,7 @@ propuestas. **El código está completo (F7-00 a F7-07, en una PR)**, ninguna ta
 **Fase 8 — Plan Pro** (2026-10-03, [ADR-0011](../adr/0011-plan-pro-y-estadisticas.md), spec §4 y
 §5.5): el usuario cambió la monetización. Dos planes, **Free y Pro**, y lo único que los
 diferencia es **ver las estadísticas**; los dos cargan todos los ejercicios y marcas que quieran.
-**El código está completo (F8-00 a F8-06, en una PR)**, ninguna tarea cerrada:
+**El código está completo (F8-00 a F8-06, mergeado en la PR #93)**, ninguna tarea cerrada:
 
 - **Se fue el límite de cantidad** (10 ejercicios, 3 propios) y todo lo que lo sostenía: el
   serializador con su lock, el contador, `WC-SUBS-403-001` (retirado) y la colección
@@ -108,6 +108,23 @@ diferencia es **ver las estadísticas**; los dos cargan todos los ejercicios y m
   Perfil suma "Tu plan" y, con Pro, el header muestra una etiqueta **PRO** que lleva ahí.
 - Los E2E fijan el plan de sus atletas con un control que sólo existe en `dev:ephemeral`
   (`POST :3101/plan`, nunca en la API que se despliega).
+
+**Fase 9 — Ingreso con OAuth 2.0, Google y Microsoft** (2026-10-04, **sólo planificada**, 11 tareas y
+42 puntos en el [backlog](../ACTION-PLAN.md)): el usuario pidió un módulo nuevo y, después, que
+**todo el login y el registro pase por OAuth**, sin email ni contraseña, que se olviden las cuentas
+actuales (no hay producción), que se sume Outlook y que el Perfil muestre la foto. Wasabi Cross es
+**cliente** OIDC con un módulo `oauth` sobre Better Auth; entrar por primera vez crea la cuenta Free.
+**No hay spec, ADR ni código todavía**: la spec manda, y F9-00 es la primera tarea. El usuario
+confirmó los seis supuestos del backlog (2026-10-04): Google y Microsoft sólo con cuentas
+personales (`consumers`), cualquier cuenta verificada crea cuenta Free, el nombre sale del
+proveedor, la foto se muestra en el Perfil, cada ingreso pide elegir la cuenta, y las cuentas no se
+vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
+tests de la API, `registrarse()` del E2E y `seed:admin`), así que el IdP falso pasa a ser el ingreso
+de desarrollo —con guardas, porque en producción sería un bypass—; el email de Microsoft no es
+confiable según su documentación, y F9-10 tiene que comprobar con una cuenta real si trae los _claims_
+de verificación antes de dar por buena su cuenta; la foto hay que servirla desde la API porque la CSP
+bloquearía la URL de Google; y el service worker de la PWA devolvería `index.html` al callback (no
+excluye `/api/`). **Después de la fase:** un modal para promocionar Pro (sin tareas todavía).
 
 ## Bloqueado
 
@@ -130,16 +147,18 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 6. Decidir qué tareas de [prácticas de Claude Code](../claude-code-practices.md#tareas-propuestas)
    (IA-01 a IA-09) entran al plan. No dependen de Railway ni de Atlas: pueden avanzar mientras la
    Fase 3 espera.
-7. Fase 7: revisar la PR de estadísticas ampliadas (sobre todo las tres reglas de §5.4 y cómo se
-   ven las donas en el teléfono), mergear, cumplir el Definition of Done y crear las tarjetas
-   (`/trello-sync`).
-8. Fase 8: revisar la PR del plan Pro (sobre todo el alcance de "estadísticas" y el guard de la
-   API, que es lo que regala o no la función de pago), mergear, correr las migraciones
-   `fuera-locks-de-cupo` y `plan-pro` en cada ambiente antes de desplegar, cumplir el Definition
-   of Done y crear las tarjetas (`/trello-sync`).
+7. Fase 7 (PR #92, mergeada): cumplir el Definition of Done —sobre todo las tres reglas de §5.4 y
+   cómo se ven las donas en el teléfono— y crear las tarjetas (`/trello-sync`).
+8. Fase 8 (PR #93, mergeada): correr las migraciones `fuera-locks-de-cupo` y `plan-pro` en cada
+   ambiente antes de desplegar, cumplir el Definition of Done —sobre todo el alcance de
+   "estadísticas" y el guard de la API, que es lo que regala o no la función de pago— y crear las
+   tarjetas (`/trello-sync`).
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
+10. **Fase 9:** F9-00 (spec §5, §6, §7 y §13, ADR-0012), después F9-01 y F9-02 en paralelo. F9-10
+    necesita que el usuario cree el cliente OAuth en Google Cloud Console y el registro de la app en
+    Microsoft Entra (🔑); staging y prod esperan a F3-07.
 
 ## Decisiones abiertas
 
@@ -205,6 +224,10 @@ se puedan pagar. Un usuario que se registra nace Free. Configurable con `SEED_AD
 desarrollo: el script se niega a correr con `NODE_ENV=production`.
 
 ## Última actualización
+
+2026-10-04 — **Fase 9, ingreso sólo con OAuth 2.0 (Google y Microsoft), sólo el plan**: 11 tareas y
+42 puntos en el backlog, sin tocar spec ni código; los supuestos esperan al usuario. Bitácora
+[2026-10-03](./bitacora/2026-10-03-plan-oauth.md).
 
 2026-10-03 — **Fase 8, plan Pro**: spec §4 y §5.5, ADR-0011, backlog (7 tareas, 22 puntos) y el
 código completo en una PR, un commit por tarea (F8-01 a F8-03 en tres capas a la vez porque el
