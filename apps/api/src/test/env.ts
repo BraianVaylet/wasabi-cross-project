@@ -18,6 +18,7 @@ export function testEnv(overrides: Partial<Env> = {}): Env {
     // Prendido, como en producción: en test lo apaga `NODE_ENV`, y los tests de rate limit
     // lo prenden a mano.
     AUTH_RATE_LIMIT: 'on',
+    OAUTH_DEV_IDP: 'off',
     ...overrides,
   };
 }

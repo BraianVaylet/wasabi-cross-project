@@ -30,6 +30,20 @@ export const ERROR_CATALOG = {
     userMessage: 'Demasiados intentos. Esperá un minuto y probá de nuevo.',
   },
   'WC-AUTH-401-004': { status: 401, userMessage: 'Iniciá sesión para continuar.' },
+  // Los tres los muestra `/login` al volver del proveedor (F9-01, spec §5.6): el callback de OAuth
+  // redirige con `?error=`, no responde con un 4xx, así que ninguno sale de la API como envelope.
+  'WC-OAUTH-400-001': {
+    status: 400,
+    userMessage: 'Cancelaste el ingreso. Probá de nuevo cuando quieras.',
+  },
+  'WC-OAUTH-400-002': {
+    status: 400,
+    userMessage: 'No pudimos completar el ingreso. Probá de nuevo.',
+  },
+  'WC-OAUTH-409-003': {
+    status: 409,
+    userMessage: 'Ya hay una cuenta con ese email. Entrá con el otro proveedor.',
+  },
   'WC-EXO-404-002': { status: 404, userMessage: 'No encontramos ese ejercicio.' },
   'WC-EXO-409-003': { status: 409, userMessage: 'Ya tenés ese ejercicio en tu lista.' },
   'WC-RM-422-001': { status: 422, userMessage: 'El valor cargado no es válido.' },

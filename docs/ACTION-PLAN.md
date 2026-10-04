@@ -2739,6 +2739,13 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   completar el ingreso) y `WC-OAUTH-409-003` (ya hay una cuenta con ese email: entrá con el otro
   proveedor)
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `oauth.api.ts` en schemas: el enum de
+  proveedores suma `fake-idp` (el IdP de desarrollo de F9-03), porque F9-02 lo lista con
+  `OAUTH_DEV_IDP=on` y el front tiene que poder tipar esa respuesta; la API no lo lista nunca en
+  producción. La respuesta es `{ providers: [{ id, label }] }`, estricta. `oauthErrorFor` recibe un
+  `unknown` (el parámetro viene de la URL) y cualquier cosa que no sea `access_denied` o
+  `account_not_linked` es el genérico, incluido `email_not_verified`, que Better Auth sí manda.
+  Los tres códigos, en el catálogo y en el diccionario.
 
 ## [ ] F9-02 · API: módulo `oauth`, configuración y proveedores habilitados
 
@@ -2749,19 +2756,17 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   `AUTH_RATE_LIMIT`). El tenant de Microsoft es `consumers` y está fijo en el código, no es una
   variable. `OAUTH_DEV_IDP` (`on` u `off`, `off` por defecto) y `MICROSOFT_AUTHORITY` (para apuntar
   el proveedor de Microsoft al IdP falso) los rechaza `parseEnv` con `NODE_ENV=production`, y la
-  segunda además exige `OAUTH_DEV_IDP=on`. **Con el ingreso sólo por OAuth, una API sin ningún
-  proveedor no deja entrar a nadie**: no arranca, salvo en `test`, donde se entra con `testUtils`.
-  Un registro de proveedores en el dominio (`{ id, label }`) y `GET /api/v1/oauth/providers`, **sin
+  segunda además exige `OAUTH_DEV_IDP=on`. (Que la API no arranque sin ningún proveedor llega con
+  F9-05: hasta que se apague la contraseña, `pnpm dev`, `dev:ephemeral` y el CI siguen entrando por
+  el formulario.) Un registro de proveedores en el dominio (`{ id, label }`) y `GET /api/v1/oauth/providers`, **sin
   sesión** porque el ingreso lo necesita antes de entrar, que devuelve sólo los habilitados, sin
   `clientId` ni configuración. `apps/api/.env.example` documenta las variables. Las reglas de ESLint
   que hacen cumplir la arquitectura cubren el módulo nuevo.
 - **acceptance-criteria:**
   - Dados los dos pares de variables, cuando se pide `/oauth/providers`, entonces responde
     `["google", "microsoft"]`; con sólo uno, ese; con sólo `OAUTH_DEV_IDP=on`, el IdP de desarrollo.
-  - Dado un entorno sin ningún proveedor (fuera de `test`), cuando arranca el proceso, entonces no
-    levanta y el mensaje dice cómo habilitar uno.
   - Dado un par con una sola de sus dos variables, cuando arranca, entonces no levanta y dice cuál
-    falta.
+    falta; con una variable vacía (un `.env` copiado del ejemplo), cuenta como ausente.
   - Dados `OAUTH_DEV_IDP=on` o `MICROSOFT_AUTHORITY` con `NODE_ENV=production`, cuando arranca,
     entonces no levanta; dado `MICROSOFT_AUTHORITY` sin `OAUTH_DEV_IDP=on`, tampoco.
   - Dada la respuesta, cuando se inspecciona, entonces no contiene ids de cliente ni secretos.
@@ -2774,6 +2779,16 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   integración de la ruta; el lint como test de la frontera.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `oauth/{domain,application,infrastructure}`
+  con `GET /api/v1/oauth/providers` (sin sesión, `{ providers: [{ id, label }] }`, siempre en el orden
+  Google, Microsoft, IdP de desarrollo). `parseEnv` pasa a un `superRefine` con los pares de
+  credenciales, `OAUTH_DEV_IDP` y `MICROSOFT_AUTHORITY`; una variable vacía vale como ausente. Dos
+  cosas que cambiaron respecto de la descripción: (1) **"la API no arranca sin ningún proveedor" se
+  movió a F9-05**: hoy el ingreso sigue siendo el formulario, y exigirlo ahora rompería `pnpm dev`,
+  `dev:ephemeral` y el E2E del CI; además va en `server.ts` y no en `parseEnv`, porque `migrate` y
+  `seed` leen el mismo entorno y no necesitan ningún proveedor. (2) La frontera entre módulos no
+  tiene test propio: la regla de ESLint ya cubre `modules/*/domain` y `modules/*/application`, y se
+  comprobó a mano con un import cruzado que `pnpm lint` falla.
 
 ## [ ] F9-03 · IdP falso para desarrollo y E2E
 
@@ -2862,8 +2877,13 @@ app: revisión humana de los tests (spec §9), y cada una pasa por `/security-re
   índice único `(providerId, accountId)` en `account`: Better Auth no crea índices y sin él dos
   callbacks simultáneos pueden crear dos cuentas; revisar de paso que `user.email` ya sea único. En
   `translateAuthError`, un 401 ya no es "credenciales inválidas". `auth.test.ts` se reescribe contra
-  el IdP falso.
+  el IdP falso. **Con el ingreso sólo por OAuth, una API sin ningún proveedor no deja entrar a
+  nadie**: `server.ts` no arranca si `enabledProviders` (F9-02) viene vacío, salvo en `test`, donde
+  se entra con `testUtils`. Va en `server.ts` y no en `parseEnv` porque `migrate` y `seed` leen el
+  mismo entorno y no necesitan ningún proveedor.
 - **acceptance-criteria:**
+  - Dado un entorno sin ningún proveedor (fuera de `test`), cuando arranca el servidor, entonces no
+    levanta y el mensaje dice cómo habilitar uno; `migrate` y `seed` corren igual.
   - Dado un proveedor con email verificado y sin cuenta, cuando entra, entonces se crea el usuario
     con plan Free y sesión por cookie, sin contraseña y sin tokens guardados.
   - Dado el mismo `accountId`, cuando vuelve a entrar, entonces es el mismo usuario, sin duplicar;

@@ -23,6 +23,10 @@ import {
 import type { DependencyProbe } from './modules/health/domain/readiness.ts';
 import { healthRoutes } from './modules/health/infrastructure/health.routes.ts';
 import {
+  oauthRoutes,
+  type OauthRoutesOptions,
+} from './modules/oauth/infrastructure/oauth.routes.ts';
+import {
   recordRoutes,
   type RecordRoutesOptions,
 } from './modules/records/infrastructure/record.routes.ts';
@@ -46,6 +50,8 @@ export interface BuildAppOptions {
   probes?: readonly DependencyProbe[];
   /** Sin `auth`, la app levanta sin endpoints de sesión — útil para tests de infra. */
   auth?: Auth;
+  /** Los proveedores de ingreso (F9-02). Va aparte de `auth`: se pide antes de que haya sesión. */
+  oauth?: OauthRoutesOptions;
   /** Se registra sólo junto con `auth`, como todo lo que es de un usuario. */
   users?: Omit<PreferencesRoutesOptions, 'requireSession'>;
   /** Se registra sólo junto con `auth`: los ejercicios son para usuarios con sesión. */
@@ -60,6 +66,7 @@ export async function buildApp({
   env,
   probes = [],
   auth,
+  oauth,
   users,
   exercises,
   records,
@@ -126,6 +133,11 @@ export async function buildApp({
 
   // Liveness y readiness van fuera de /api/v1: los consume el orquestador, no el front.
   await app.register(healthRoutes(probes));
+
+  // Sin sesión: la pantalla de ingreso lo pide antes de que exista una.
+  if (oauth) {
+    await app.register(oauthRoutes(oauth), { prefix: API_PREFIX });
+  }
 
   if (auth) {
     // Better Auth sirve sus propias rutas bajo /api/auth, fuera del versionado:

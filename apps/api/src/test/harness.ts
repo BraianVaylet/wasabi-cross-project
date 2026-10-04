@@ -4,7 +4,13 @@ import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../app.ts';
 import type { Env } from '../config/env.ts';
 import { createAuth } from '../modules/auth/infrastructure/better-auth.ts';
-import { composeExercises, composeRecords, composeStats, composeUsers } from '../composition.ts';
+import {
+  composeExercises,
+  composeOauth,
+  composeRecords,
+  composeStats,
+  composeUsers,
+} from '../composition.ts';
 import { migrateUp, migrationsProbe } from '../shared/db/migrations.ts';
 import { connectMongo, type MongoConnection } from '../shared/db/mongo.ts';
 import { testEnv } from './env.ts';
@@ -39,6 +45,7 @@ export async function startTestApi(): Promise<TestHarness> {
   const app = await buildApp({
     env,
     auth,
+    oauth: composeOauth(env),
     users: composeUsers(mongo),
     exercises: composeExercises(mongo),
     records: composeRecords(mongo),
