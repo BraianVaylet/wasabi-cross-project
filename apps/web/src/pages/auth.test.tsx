@@ -1,11 +1,16 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
-import { braian, fakeSession, renderApp } from '../test/app.tsx';
+import { PROVIDERS_QUERY_KEY } from '../app/session.ts';
+import { braian, fakeSession, refreshSession, renderApp } from '../test/app.tsx';
 
-const PASSWORD = 'una-frase-larga-y-propia';
+/*
+ * La pantalla de ingreso (F9-07, spec §5.6, ADR-0012): sólo botones de proveedores, ningún campo.
+ * El ingreso de verdad navega fuera de la app y vuelve con la sesión abierta, así que acá se prueba
+ * hasta el pedido de la URL; lo que sigue es del E2E.
+ */
 
 async function expectSinViolaciones(): Promise<void> {
   const results = await axe.run(document.body, {
@@ -14,53 +19,160 @@ async function expectSinViolaciones(): Promise<void> {
   expect(results.violations.map((violation) => violation.id)).toEqual([]);
 }
 
-async function completar(campo: string | RegExp, valor: string): Promise<void> {
-  await userEvent.type(screen.getByLabelText(campo), valor);
+async function abrirLogin(path = '/login', session = fakeSession(null)) {
+  const app = renderApp(path, session.client);
+  await screen.findByRole('heading', { name: 'Entrar' });
+  return { ...app, session };
 }
 
-describe('login y registro (F1-10)', () => {
-  describe('login (mockup 2)', () => {
-    it('entra con email y contraseña, y vuelve a donde iba', async () => {
+describe('pantalla de ingreso (F9-07)', () => {
+  describe('qué muestra', () => {
+    it('un botón por proveedor habilitado, y ningún campo de email ni de contraseña', async () => {
+      await abrirLogin();
+
+      const botones = await screen.findAllByRole('button');
+      expect(botones.map((boton) => boton.textContent)).toEqual([
+        'Continuar con Google',
+        'Continuar con Microsoft',
+      ]);
+      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/email|contraseña/i)).not.toBeInTheDocument();
+      expect(document.querySelector('input')).toBeNull();
+    });
+
+    it('un texto que cubre las dos cosas: entrar y crear la cuenta son lo mismo', async () => {
+      await abrirLogin();
+
+      expect(await screen.findByText(/Entrá o creá tu cuenta/)).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /crear una cuenta/i })).not.toBeInTheDocument();
+    });
+
+    it('sólo los proveedores que la API habilita', async () => {
       const session = fakeSession(null);
-      const { router } = renderApp('/login?redirect=%2Fperfil', session.client);
-      await screen.findByRole('heading', { name: 'Entrar' });
+      session.client.providers.mockResolvedValue([{ id: 'google', label: 'Google' }]);
+      await abrirLogin('/login', session);
 
-      await completar('Email', 'Braian@Example.com');
-      await completar('Contraseña', PASSWORD);
-      await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+      expect(await screen.findByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+      expect(screen.queryByRole('button', { name: /Microsoft/ })).not.toBeInTheDocument();
+      // Y la nota de Microsoft, que sólo corresponde si Microsoft está.
+      expect(screen.queryByText(/sólo cuentas personales/)).not.toBeInTheDocument();
+    });
 
-      expect(await screen.findByRole('heading', { name: 'Perfil' })).toBeInTheDocument();
-      expect(session.client.signIn).toHaveBeenCalledWith({
-        // Normalizado: no son dos cuentas distintas.
-        email: 'braian@example.com',
-        password: PASSWORD,
+    it('cada botón lleva el logo de su proveedor', async () => {
+      const session = fakeSession(null);
+      session.client.providers.mockResolvedValue([
+        { id: 'google', label: 'Google' },
+        { id: 'microsoft', label: 'Microsoft' },
+        { id: 'fake-idp', label: 'Ingreso de desarrollo' },
+      ]);
+      await abrirLogin('/login', session);
+
+      const google = await screen.findByRole('button', { name: 'Continuar con Google' });
+      const microsoft = screen.getByRole('button', { name: 'Continuar con Microsoft' });
+      const desarrollo = screen.getByRole('button', {
+        name: 'Continuar con Ingreso de desarrollo',
       });
-      expect(router.state.location.pathname).toBe('/perfil');
+      expect(google.querySelector('path[fill="#4285F4"]')).not.toBeNull();
+      expect(microsoft.querySelector('rect[fill="#F25022"]')).not.toBeNull();
+      expect(desarrollo.querySelector('svg')).toHaveAttribute('stroke', 'currentColor');
     });
 
-    it('con credenciales inválidas muestra el mensaje, sin decir qué campo estaba mal', async () => {
+    it('el ingreso de desarrollo se nombra distinto, para no confundirlo con uno de verdad', async () => {
       const session = fakeSession(null);
-      session.client.signIn.mockRejectedValueOnce(
-        new ApiError(401, 'WC-AUTH-401-001', 'Email o contraseña incorrectos.', 'req-1'),
+      session.client.providers.mockResolvedValue([
+        { id: 'fake-idp', label: 'Ingreso de desarrollo' },
+      ]);
+      await abrirLogin('/login', session);
+
+      expect(
+        await screen.findByRole('button', { name: 'Continuar con Ingreso de desarrollo' }),
+      ).toBeVisible();
+    });
+
+    it('avisa que Microsoft es sólo para cuentas personales', async () => {
+      await abrirLogin();
+
+      expect(await screen.findByText(/sólo cuentas personales/)).toBeInTheDocument();
+    });
+
+    it('mientras carga la lista, no hay botones ni un aviso de error', async () => {
+      const session = fakeSession(null);
+      session.client.providers.mockReturnValue(new Promise(() => undefined));
+      await abrirLogin('/login', session);
+
+      expect(screen.getByRole('status', { name: /Cargando/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('sin violaciones de accesibilidad', async () => {
+      await abrirLogin();
+      await screen.findByRole('button', { name: 'Continuar con Google' });
+
+      await expectSinViolaciones();
+    });
+  });
+
+  describe('al apretar un botón', () => {
+    it('pide la URL del proveedor y queda deshabilitado mientras tanto', async () => {
+      const session = fakeSession(null);
+      let navegar: () => void = () => undefined;
+      session.client.signInWithProvider.mockReturnValue(
+        new Promise<void>((resolve) => {
+          navegar = resolve;
+        }),
       );
-      renderApp('/login', session.client);
-      await screen.findByRole('heading', { name: 'Entrar' });
+      await abrirLogin('/login', session);
 
-      await completar('Email', 'braian@example.com');
-      await completar('Contraseña', 'la-que-no-era');
-      await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Continuar con Google' }));
 
-      const alert = await screen.findByRole('alert');
-      expect(alert).toHaveTextContent('Email o contraseña incorrectos.');
-      expect(alert).toHaveTextContent('WC-AUTH-401-001');
-      // Ningún campo queda marcado: decir cuál falló diría si el email existe (spec §13).
-      expect(screen.getByLabelText('Email')).not.toHaveAttribute('aria-invalid');
-      expect(screen.getByLabelText('Contraseña')).not.toHaveAttribute('aria-invalid');
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Continuar con Google' })).toBeDisabled();
+      });
+      expect(session.client.signInWithProvider).toHaveBeenCalledExactlyOnceWith('google', {
+        redirect: undefined,
+      });
+      // El botón que se apretó dice que está trabajando, y el otro no se puede apretar a la vez.
+      expect(screen.getByRole('button', { name: 'Continuar con Google' })).toHaveAttribute(
+        'aria-busy',
+        'true',
+      );
+      expect(screen.getByRole('button', { name: 'Continuar con Microsoft' })).toBeDisabled();
+
+      // Cuando la navegación empieza, la página se va: no hay que habilitar nada en el medio. React
+      // Query publica el éxito en la vuelta siguiente: hay que dejarlo pasar para que el test mire
+      // el estado de después y no el de antes.
+      navegar();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+      expect(screen.getByRole('button', { name: 'Continuar con Google' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Continuar con Microsoft' })).toBeDisabled();
     });
 
-    it('con demasiados intentos explica cuánto esperar', async () => {
+    it('con Microsoft pide el de Microsoft', async () => {
+      const { session } = await abrirLogin();
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Continuar con Microsoft' }));
+
+      expect(session.client.signInWithProvider).toHaveBeenCalledExactlyOnceWith('microsoft', {
+        redirect: undefined,
+      });
+    });
+
+    it('le pasa a dónde iba el usuario, para que el ingreso vuelva ahí', async () => {
+      const { session } = await abrirLogin('/login?redirect=%2Fejercicios%2Fmex_abc');
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Continuar con Google' }));
+
+      expect(session.client.signInWithProvider).toHaveBeenCalledWith('google', {
+        redirect: '/ejercicios/mex_abc',
+      });
+    });
+
+    it('si no se puede pedir la URL, lo dice con su código y deja volver a intentar', async () => {
       const session = fakeSession(null);
-      session.client.signIn.mockRejectedValueOnce(
+      session.client.signInWithProvider.mockRejectedValueOnce(
         new ApiError(
           429,
           'WC-AUTH-429-003',
@@ -68,191 +180,183 @@ describe('login y registro (F1-10)', () => {
           'req-2',
         ),
       );
-      renderApp('/login', session.client);
-      await screen.findByRole('heading', { name: 'Entrar' });
+      await abrirLogin('/login', session);
 
-      await completar('Email', 'braian@example.com');
-      await completar('Contraseña', PASSWORD);
-      await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+      await userEvent.click(await screen.findByRole('button', { name: 'Continuar con Google' }));
 
-      expect(await screen.findByRole('alert')).toHaveTextContent('Esperá un minuto');
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('Esperá un minuto');
+      expect(alert).toHaveTextContent('WC-AUTH-429-003');
+      // Se puede volver a intentar.
+      expect(screen.getByRole('button', { name: 'Continuar con Google' })).toBeEnabled();
+      expect(screen.getByRole('button', { name: 'Continuar con Microsoft' })).toBeEnabled();
+    });
+  });
+
+  describe('al volver del proveedor sin entrar (?error=)', () => {
+    it.each([
+      [
+        'access_denied',
+        'Cancelaste el ingreso. Probá de nuevo cuando quieras.',
+        'WC-OAUTH-400-001',
+      ],
+      [
+        'account_not_linked',
+        'Ya hay una cuenta con ese email. Entrá con el otro proveedor.',
+        'WC-OAUTH-409-003',
+      ],
+      ['state_mismatch', 'No pudimos completar el ingreso. Probá de nuevo.', 'WC-OAUTH-400-002'],
+      [
+        'email_not_verified',
+        'No pudimos completar el ingreso. Probá de nuevo.',
+        'WC-OAUTH-400-002',
+      ],
+    ])('%s muestra el mensaje del catálogo', async (error, mensaje, codigo) => {
+      renderApp(`/login?error=${error}`, fakeSession(null).client);
+
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent(mensaje);
+      expect(alert).toHaveTextContent(codigo);
     });
 
-    it('un email inválido se rechaza en el formulario, sin llamar a la API', async () => {
-      const session = fakeSession(null);
-      renderApp('/login', session.client);
-      await screen.findByRole('heading', { name: 'Entrar' });
+    it('un valor inventado no se refleja: nunca se muestra el texto que vino en el link', async () => {
+      const link = '<img src=x onerror=alert(1)>Tu cuenta fue bloqueada, llamá al 0800-123';
+      renderApp(`/login?error=${encodeURIComponent(link)}`, fakeSession(null).client);
 
-      await completar('Email', 'no-es-un-email');
-      await completar('Contraseña', PASSWORD);
-      await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
-
-      expect(await screen.findByText('Email inválido')).toBeInTheDocument();
-      expect(session.client.signIn).not.toHaveBeenCalled();
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('No pudimos completar el ingreso. Probá de nuevo.');
+      expect(document.body).not.toHaveTextContent('Tu cuenta fue bloqueada');
+      expect(document.body).not.toHaveTextContent('0800-123');
+      expect(document.querySelector('img')).toBeNull();
     });
 
-    it('se envía con Enter desde el último campo, sin llegar al botón', async () => {
-      const session = fakeSession(null);
-      renderApp('/login', session.client);
-      await screen.findByRole('heading', { name: 'Entrar' });
+    it('algo que no es un texto (?error=1) cae en el genérico', async () => {
+      renderApp('/login?error=1', fakeSession(null).client);
 
-      await completar('Email', 'braian@example.com');
-      await userEvent.type(screen.getByLabelText('Contraseña'), `${PASSWORD}{Enter}`);
+      expect(await screen.findByRole('alert')).toHaveTextContent('WC-OAUTH-400-002');
+    });
 
+    it('el parámetro sale de la URL y el aviso se queda, y a dónde iba el usuario también', async () => {
+      const { router } = renderApp(
+        '/login?error=access_denied&redirect=%2Fperfil',
+        fakeSession(null).client,
+      );
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('WC-OAUTH-400-001');
       await waitFor(() => {
-        expect(session.client.signIn).toHaveBeenCalledOnce();
+        expect(router.state.location.search).toEqual({ redirect: '/perfil' });
       });
+      expect(router.state.location.pathname).toBe('/login');
+      expect(screen.getByRole('alert')).toHaveTextContent('WC-OAUTH-400-001');
     });
 
-    it('la contraseña se escribe oculta y el navegador sabe qué guardar', async () => {
-      renderApp('/login', fakeSession(null).client);
+    it('el aviso no tapa los botones: se puede volver a intentar', async () => {
+      const { session } = await abrirLogin('/login?error=access_denied');
 
-      const password = await screen.findByLabelText('Contraseña');
-      expect(password).toHaveAttribute('type', 'password');
-      expect(password).toHaveAttribute('autocomplete', 'current-password');
-      expect(screen.getByLabelText('Email')).toHaveAttribute('autocomplete', 'email');
+      await screen.findByRole('alert');
+      await userEvent.click(await screen.findByRole('button', { name: 'Continuar con Google' }));
+
+      expect(session.client.signInWithProvider).toHaveBeenCalledOnce();
     });
 
-    it('sin violaciones de accesibilidad', async () => {
-      renderApp('/login', fakeSession(null).client);
-      await screen.findByRole('heading', { name: 'Entrar' });
+    it('sin violaciones de accesibilidad con el aviso a la vista', async () => {
+      await abrirLogin('/login?error=access_denied');
+      await screen.findByRole('alert');
+      await screen.findByRole('button', { name: 'Continuar con Google' });
 
       await expectSinViolaciones();
     });
   });
 
-  describe('registro (mockup 3)', () => {
-    async function irARegistro(): Promise<void> {
-      await screen.findByRole('heading', { name: 'Entrar' });
-      await userEvent.click(screen.getByRole('link', { name: 'Crear una cuenta' }));
-      await screen.findByRole('heading', { name: 'Crear una cuenta' });
-    }
+  describe('si la lista de proveedores no está', () => {
+    it('vacía: avisa que el ingreso no está disponible, con Reintentar', async () => {
+      const session = fakeSession(null);
+      session.client.providers.mockResolvedValueOnce([]);
+      await abrirLogin('/login', session);
 
-    it('se llega desde login, y se vuelve, sin perder a dónde iba', async () => {
-      const { router } = renderApp('/login?redirect=%2Fperfil', fakeSession(null).client);
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent('El ingreso no está disponible');
+      expect(screen.queryByRole('button', { name: /Continuar con/ })).not.toBeInTheDocument();
 
-      await irARegistro();
+      await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+      expect(await screen.findByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('caída: reintenta sola y, si sigue sin llegar, avisa con el código del pedido', async () => {
+      const session = fakeSession(null);
+      session.client.providers.mockRejectedValue(
+        new ApiError(0, 'WC-SYS-503-004', 'No pudimos conectarnos.', 'req-8'),
+      );
+      await abrirLogin('/login', session);
+
+      const alert = await screen.findByRole('alert', undefined, { timeout: 8000 });
+      expect(alert).toHaveTextContent('El ingreso no está disponible');
+      expect(alert).toHaveTextContent('WC-SYS-503-004');
+      expect(alert).toHaveTextContent('req-8');
+      expect(session.client.providers.mock.calls.length).toBeGreaterThan(1);
+
+      session.client.providers.mockResolvedValue([{ id: 'google', label: 'Google' }]);
+      await userEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+      expect(await screen.findByRole('button', { name: 'Continuar con Google' })).toBeVisible();
+    }, 15_000);
+
+    it('si un refresco falla con los botones a la vista, se los deja: sigue siendo posible entrar', async () => {
+      const session = fakeSession(null);
+      const app = renderApp('/login', session.client);
+      await screen.findByRole('button', { name: 'Continuar con Google' });
+
+      // Un 4xx no se reintenta: el error llega enseguida.
+      session.client.providers.mockRejectedValue(
+        new ApiError(404, 'WC-SYS-404-003', 'No encontramos lo que buscás.', 'req-3'),
+      );
+      await app.queryClient.refetchQueries({ queryKey: PROVIDERS_QUERY_KEY });
+      await waitFor(() => {
+        expect(app.queryClient.getQueryState(PROVIDERS_QUERY_KEY)?.status).toBe('error');
+      });
+
+      expect(screen.getByRole('button', { name: 'Continuar con Google' })).toBeEnabled();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('sin violaciones de accesibilidad', async () => {
+      const session = fakeSession(null);
+      session.client.providers.mockResolvedValue([]);
+      await abrirLogin('/login', session);
+      await screen.findByRole('alert');
+
+      await expectSinViolaciones();
+    });
+  });
+
+  describe('rutas', () => {
+    it('/registro ya no existe: responde como cualquier ruta inexistente', async () => {
+      const { router } = renderApp('/registro', fakeSession(null).client);
+
+      expect(await screen.findByText('No encontramos lo que buscás.')).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Crear una cuenta' })).not.toBeInTheDocument();
       expect(router.state.location.pathname).toBe('/registro');
-      expect(router.state.location.search).toEqual({ redirect: '/perfil' });
-
-      await userEvent.click(screen.getByRole('link', { name: 'Ya tengo cuenta' }));
-
-      expect(await screen.findByRole('heading', { name: 'Entrar' })).toBeInTheDocument();
-      expect(router.state.location.search).toEqual({ redirect: '/perfil' });
     });
 
-    it('crea la cuenta y entra', async () => {
-      const session = fakeSession(null);
-      const { router } = renderApp('/registro', session.client);
-      await screen.findByRole('heading', { name: 'Crear una cuenta' });
-
-      await completar('Email', 'braian@example.com');
-      await completar('Nombre', 'Braian');
-      await completar('Contraseña', PASSWORD);
-      await completar('Repetir contraseña', PASSWORD);
-      await userEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
-
-      expect(await screen.findByRole('heading', { name: 'Tus ejercicios' })).toBeInTheDocument();
-      // La confirmación se queda en el formulario: no viaja a la API.
-      expect(session.client.signUp).toHaveBeenCalledWith({
-        email: 'braian@example.com',
-        name: 'Braian',
-        password: PASSWORD,
-      });
-      expect(router.state.location.pathname).toBe('/');
-    });
-
-    it('dos contraseñas distintas: el error va en la confirmación, antes de llamar a la API', async () => {
-      const session = fakeSession(null);
-      renderApp('/registro', session.client);
-      await screen.findByRole('heading', { name: 'Crear una cuenta' });
-
-      await completar('Email', 'braian@example.com');
-      await completar('Nombre', 'Braian');
-      await completar('Contraseña', PASSWORD);
-      await completar('Repetir contraseña', 'otra-frase-distinta');
-      await userEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
-
-      expect(await screen.findByText('Las contraseñas no coinciden')).toBeInTheDocument();
-      expect(screen.getByLabelText('Repetir contraseña')).toHaveAttribute('aria-invalid', 'true');
-      expect(session.client.signUp).not.toHaveBeenCalled();
-    });
-
-    it('una contraseña corta se rechaza en el formulario, con el mismo mínimo que la API', async () => {
-      const session = fakeSession(null);
-      renderApp('/registro', session.client);
-      await screen.findByRole('heading', { name: 'Crear una cuenta' });
-
-      await completar('Email', 'braian@example.com');
-      await completar('Nombre', 'Braian');
-      await completar('Contraseña', 'corta');
-      await completar('Repetir contraseña', 'corta');
-      await userEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
-
-      expect(await screen.findByText(/al menos 10 caracteres/)).toBeInTheDocument();
-      expect(session.client.signUp).not.toHaveBeenCalled();
-    });
-
-    it('si el email ya existe, lo dice con el mensaje de la API', async () => {
-      const session = fakeSession(null);
-      session.client.signUp.mockRejectedValueOnce(
-        new ApiError(400, 'WC-SYS-400-002', 'Ese email ya está registrado.', 'req-3'),
-      );
-      renderApp('/registro', session.client);
-      await screen.findByRole('heading', { name: 'Crear una cuenta' });
-
-      await completar('Email', 'braian@example.com');
-      await completar('Nombre', 'Braian');
-      await completar('Contraseña', PASSWORD);
-      await completar('Repetir contraseña', PASSWORD);
-      await userEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
-
-      expect(await screen.findByRole('alert')).toHaveTextContent('Ese email ya está registrado.');
-    });
-
-    it('las contraseñas se escriben ocultas y el navegador sabe que son nuevas', async () => {
-      renderApp('/registro', fakeSession(null).client);
-
-      const password = await screen.findByLabelText('Contraseña');
-      expect(password).toHaveAttribute('type', 'password');
-      expect(password).toHaveAttribute('autocomplete', 'new-password');
-      expect(screen.getByLabelText('Repetir contraseña')).toHaveAttribute(
-        'autocomplete',
-        'new-password',
-      );
-    });
-
-    it('sin violaciones de accesibilidad', async () => {
-      renderApp('/registro', fakeSession(null).client);
-      await screen.findByRole('heading', { name: 'Crear una cuenta' });
-
-      await expectSinViolaciones();
-    });
-  });
-
-  describe('con sesión', () => {
-    it('login y registro llevan a Home: no hay nada que hacer ahí', async () => {
-      const { router } = renderApp('/registro', fakeSession(braian).client);
+    it('con sesión, /login lleva a Home: no hay nada que hacer ahí', async () => {
+      const { router } = renderApp('/login', fakeSession(braian).client);
 
       expect(await screen.findByRole('heading', { name: 'Tus ejercicios' })).toBeInTheDocument();
       expect(router.state.location.pathname).toBe('/');
     });
-  });
-});
 
-describe('sin dejar rastros', () => {
-  it('el formulario no queda en el DOM con la contraseña escrita después de entrar', async () => {
-    const session = fakeSession(null);
-    renderApp('/login', session.client);
-    await screen.findByRole('heading', { name: 'Entrar' });
+    it('volver del proveedor con la sesión abierta lleva a donde iba', async () => {
+      const session = fakeSession(null);
+      const app = renderApp('/login?redirect=%2Fperfil', session.client);
+      await screen.findByRole('heading', { name: 'Entrar' });
 
-    await userEvent.type(screen.getByLabelText('Email'), 'braian@example.com');
-    await userEvent.type(screen.getByLabelText('Contraseña'), PASSWORD);
-    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+      session.login(braian);
+      await refreshSession(app);
 
-    await screen.findByRole('heading', { name: 'Tus ejercicios' });
-    await waitFor(() => {
-      expect(screen.queryByLabelText('Contraseña')).not.toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: 'Perfil' })).toBeInTheDocument();
+      expect(app.router.state.location.pathname).toBe('/perfil');
     });
   });
 });

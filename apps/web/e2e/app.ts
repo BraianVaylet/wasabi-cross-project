@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 /*
  * Lo que comparten los E2E: un atleta nuevo por test (la base es una sola y no se limpia
@@ -41,9 +41,9 @@ export async function fijarPlan(email: string, plan: 'free' | 'pro'): Promise<vo
  * Free, como cualquiera; con `plan: 'pro'` se lo sube después y se recarga para que la pantalla lo
  * sepa.
  *
- * Todavía no hay botón en la pantalla de ingreso (llega en F9-07): se le pide a la API la URL del IdP
- * desde el navegador, con el mismo `fetch` que hará el botón, y se sigue el camino de verdad —la
- * pantalla del IdP, el callback de la API, la cookie— hasta Home.
+ * Es el camino de verdad, de punta a punta: el botón de la pantalla de ingreso (F9-07), la pantalla
+ * del IdP, el callback de la API y la cookie, hasta Home. En desarrollo el único proveedor habilitado
+ * es ese IdP, y se nombra distinto a propósito para no confundirlo con uno de verdad.
  */
 export async function registrarse(
   page: Page,
@@ -52,30 +52,10 @@ export async function registrarse(
   const atleta = atletaNuevo();
 
   await page.goto('/login');
-  const origen = new URL(page.url()).origin;
-  // La API: otro origen en desarrollo (el front lo sirve Vite), el mismo en el build de producción.
-  const api = String(test.info().config.metadata.apiURL);
-  const urlDelIdp = await page.evaluate(
-    async ({ api: apiUrl, origin }) => {
-      const respuesta = await fetch(`${apiUrl}/api/auth/sign-in/social`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          provider: 'fake-idp',
-          callbackURL: `${origin}/`,
-          errorCallbackURL: `${origin}/login`,
-        }),
-      });
-      const cuerpo = (await respuesta.json()) as { url: string };
-      return cuerpo.url;
-    },
-    { api, origin: origen },
-  );
+  await page.getByRole('button', { name: 'Continuar con Ingreso de desarrollo' }).click();
 
   // La pantalla del IdP falso: elegir quién entra. `exact`, porque "Email verificado por el
   // proveedor" también contiene la palabra.
-  await page.goto(urlDelIdp);
   await page.getByLabel('Email', { exact: true }).fill(atleta.email);
   await page.getByLabel('Nombre', { exact: true }).fill(atleta.nombre);
   await page.getByRole('button', { name: 'Entrar' }).click();

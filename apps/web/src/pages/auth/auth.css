@@ -1,4 +1,4 @@
-/* Login y registro (mockups 2 y 3) con el lenguaje del diseño, en la columna de 430px. */
+/* La pantalla de ingreso (mockups 2 y 3) con el lenguaje del diseño, en la columna de 430px. */
 
 .auth {
   box-sizing: border-box;
@@ -39,10 +39,17 @@
   font-size: var(--wc-font-size-title);
 }
 
-.auth__form {
+/* "Entrá o creá tu cuenta": lo que dice la pantalla, antes de los botones. */
+.auth__lead {
+  margin: 0;
+  color: var(--wc-text-soft);
+}
+
+/* Un botón por proveedor, apilados a todo el ancho de la columna. */
+.auth__providers {
   display: flex;
   flex-direction: column;
-  gap: var(--wc-space-4);
+  gap: var(--wc-space-3);
 }
 
 .auth__footer {
@@ -52,8 +59,4 @@
   color: var(--wc-text-muted);
   font-size: var(--wc-font-size-sm);
   text-align: center;
-}
-
-.auth__footer a {
-  color: var(--wc-accent-text);
 }
