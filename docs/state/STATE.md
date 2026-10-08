@@ -124,11 +124,14 @@ de desarrollo (`apps/api/dev-support/`, dos caras: genérica y Microsoft), `star
 y el cableado en `dev:ephemeral`, con cuatro guardas probadas con pruebas inversas. **F9-04 está
 mergeada** (PR #99): los tests de la API abren sesión con `createTestSession` (el plugin `testUtils`,
 sólo con `NODE_ENV=test`), el admin sembrado queda **sin contraseña** y ligado a la cuenta del IdP
-falso, y se fue `UserRegistrar`. **F9-05 tiene el código hecho, en una PR** (la puerta de entrada,
+falso, y se fue `UserRegistrar`. **F9-05 está mergeada** (PR #101; la puerta de entrada,
 de riesgo alto): **el email y la contraseña dejaron de existir** —Better Auth sin
 `emailAndPassword`, y sólo cuatro de sus rutas llegan a la red—, las cuentas no se vinculan solas,
 los tokens del proveedor no se guardan, un email sin verificar no crea usuario, el `tid` de Microsoft
-se chequea, y la API no arranca sin ningún proveedor. **Desde F9-05 y hasta F9-07 las pantallas
+se chequea, y la API no arranca sin ningún proveedor. **F9-06 está hecha, en una PR**: nada del flujo OAuth sale en
+un log —las URLs van sin _query_, `idToken` y `clientSecret` se redactan, y el logger de Better Auth
+escribe por Pino porque por defecto volcaba el `state` a `console`— y los headers no cambian.
+**Desde F9-05 y hasta F9-07 las pantallas
 `/login` y `/registro` no funcionan** (la API les responde 404): en local se entra como se explica
 abajo, en "Cómo correrlo". El usuario confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
@@ -187,10 +190,11 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-04 (mergeadas) y **revisar la PR de F9-05,
-    que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los tests de
-    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Después
-    F9-06 (logs) y F9-07 (la pantalla de ingreso: con ella vuelven a andar `/login` y la web). F9-10
+10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-05 (mergeadas) y **revisar los tests de F9-05,
+    que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
+    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Revisar la
+    PR de F9-06 (logs y headers). Después F9-07 (la pantalla de ingreso: con ella vuelven a andar
+    `/login` y la web). F9-10
     necesita que el usuario cree el
     cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
     prod esperan a F3-07.
@@ -317,7 +321,12 @@ Bitácora [2026-10-04](./bitacora/2026-10-04-f10-00-spec-landing.md).
 planificación. Decididos con el usuario: sitio aparte, la landing lleva a la app, voseo y
 Free/Pro según la spec. Bitácora [2026-10-04](./bitacora/2026-10-04-plan-landing.md).
 
-2026-10-04 — **Fase 9, F9-05**: Better Auth sólo con OAuth, en una PR. Se fue el email y la
+2026-10-08 — **Fase 9, F9-06**: nada del flujo OAuth sale en un log, en una PR. Las URLs van sin
+_query_, `idToken` y `clientSecret` se redactan y el logger de Better Auth escribe por Pino (por
+defecto volcaba el `state` a `console`). Los headers quedan fijados por tests. Bitácora
+[2026-10-08](./bitacora/2026-10-08-f9-06-logs-y-headers.md).
+
+2026-10-04 — **Fase 9, F9-05**: Better Auth sólo con OAuth, mergeado en la PR #101. Se fue el email y la
 contraseña; sólo cuatro rutas de Better Auth llegan a la red; el `tid` de Microsoft se chequea; una
 migración con los índices únicos de la identidad. De paso, el 429 del límite de intentos respondía 500.
 Bitácora [2026-10-04](./bitacora/2026-10-04-f9-05-better-auth-solo-oauth.md).

@@ -1,5 +1,6 @@
+import { PassThrough } from 'node:stream';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.ts';
 import type { Env } from '../src/config/env.ts';
 import { createAuth } from '../src/modules/auth/infrastructure/better-auth.ts';
@@ -49,13 +50,14 @@ describe('el ingreso por OAuth (F9-05)', () => {
     }
   });
 
-  function authFor(overrides: Partial<Env> = {}) {
+  function authFor(overrides: Partial<Env> = {}, logStream?: NodeJS.WritableStream) {
     return createAuth({
       env: env(overrides),
       db: mongo.db,
       client: mongo.client,
       plugins: [fakeIdpAuthPlugin(idp)],
       socialProviders: fakeIdpSocialProviders(idp),
+      ...(logStream ? { logStream } : {}),
     });
   }
 
@@ -263,10 +265,10 @@ describe('el ingreso por OAuth (F9-05)', () => {
   });
 
   describe('por la API de verdad (Fastify, con la política de rutas)', () => {
-    async function appWith(overrides: Partial<Env> = {}) {
+    async function appWith(overrides: Partial<Env> = {}, logStream?: NodeJS.WritableStream) {
       const options = env(overrides);
-      const auth = authFor(overrides);
-      const app = await buildApp({ env: options, auth });
+      const auth = authFor(overrides, logStream);
+      const app = await buildApp({ env: options, auth, ...(logStream ? { logStream } : {}) });
       await app.ready();
       return { app, auth };
     }
@@ -358,6 +360,229 @@ describe('el ingreso por OAuth (F9-05)', () => {
 
       expect(statuses.every((status) => status === 200)).toBe(true);
       await app.close();
+    });
+
+    // F9-06: nada del flujo OAuth se filtra a un log, y los headers siguen siendo los de siempre.
+    describe('lo que el flujo deja en los logs y en los headers (F9-06)', () => {
+      /** Los valores del callback de un proveedor; distintivos, para que no choquen por azar. */
+      const CODE = 'c0d3-del-pr0v33d0r';
+      const STATE = 'st4t3-del-fl4j0';
+
+      /** Adónde escribe Pino: se lee lo que quedó, entero o línea por línea. */
+      function logCapture() {
+        const stream = new PassThrough();
+        const chunks: string[] = [];
+        stream.on('data', (chunk: Buffer) => chunks.push(chunk.toString()));
+        const text = () => chunks.join('');
+        const lines = () =>
+          text()
+            .split('\n')
+            .filter(Boolean)
+            .map((line) => JSON.parse(line) as Record<string, unknown>);
+        return { stream, text, lines };
+      }
+
+      /** Lo que Better Auth escribe por su cuenta (usa `console`), para leerlo con el resto. */
+      function consoleCapture() {
+        const written: string[] = [];
+        const record = (...args: unknown[]) => {
+          written.push(
+            args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '),
+          );
+        };
+        const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((method) =>
+          vi.spyOn(console, method).mockImplementation(record),
+        );
+        return {
+          text: () => written.join('\n'),
+          restore: () => {
+            for (const spy of spies) spy.mockRestore();
+          },
+        };
+      }
+
+      const withLogs = { LOG_LEVEL: 'info' } satisfies Partial<Env>;
+
+      /** Los `req.url` que quedaron en el log, uno por cada "incoming request". */
+      const loggedUrls = (lines: Record<string, unknown>[]) =>
+        lines.flatMap((line) => {
+          const req = line.req as { url?: string } | undefined;
+          return req?.url === undefined ? [] : [req.url];
+        });
+
+      it('un callback fallido con code y state no deja ninguno de los dos en ningún log', async () => {
+        const sink = logCapture();
+        const betterAuth = consoleCapture();
+        const { app } = await appWith(withLogs, sink.stream);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/api/auth/callback/fake-idp?code=${CODE}&state=${STATE}`,
+        });
+        await app.close();
+        betterAuth.restore();
+
+        expect(response.statusCode).toBe(302);
+        for (const written of [sink.text(), betterAuth.text()]) {
+          expect(written).not.toContain(CODE);
+          expect(written).not.toContain(STATE);
+        }
+        // Que no sea un test vacío: el request sí se logueó, con su path...
+        expect(loggedUrls(sink.lines())).toContain('/api/auth/callback/fake-idp');
+        // ...y Better Auth dejó constancia de qué falló, pero por Pino y sin los valores. Por
+        // defecto lo escribe a `console` con el `state` adentro (`details: { state }`).
+        expect(sink.lines()).toContainEqual(
+          expect.objectContaining({ component: 'better-auth', code: 'state_mismatch' }),
+        );
+        expect(betterAuth.text()).toBe('');
+      });
+
+      it('el warn de un callback rechazado por el límite lleva el path, no el query', async () => {
+        const sink = logCapture();
+        const { app } = await appWith(
+          { ...withLogs, NODE_ENV: 'development', AUTH_RATE_LIMIT: 'on' },
+          sink.stream,
+        );
+
+        const statuses: number[] = [];
+        for (let attempt = 0; attempt < 6; attempt += 1) {
+          const response = await app.inject({
+            method: 'GET',
+            url: `/api/auth/callback/fake-idp?code=${CODE}-${String(attempt)}&state=${STATE}-${String(attempt)}`,
+          });
+          statuses.push(response.statusCode);
+        }
+        await app.close();
+
+        expect(statuses[5]).toBe(429);
+        expect(sink.text()).not.toContain(CODE);
+        expect(sink.text()).not.toContain(STATE);
+        expect(sink.lines()).toContainEqual(
+          expect.objectContaining({
+            errorCode: 'WC-AUTH-429-003',
+            url: '/api/auth/callback/fake-idp',
+          }),
+        );
+      });
+
+      it('una ruta que no se expone, con code y state, tampoco los loguea', async () => {
+        const sink = logCapture();
+        const { app } = await appWith(withLogs, sink.stream);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/api/auth/callback/fake-idp/otra?code=${CODE}&state=${STATE}`,
+        });
+        await app.close();
+
+        expect(response.statusCode).toBe(404);
+        expect(sink.text()).not.toContain(CODE);
+        expect(sink.text()).not.toContain(STATE);
+        expect(sink.lines()).toContainEqual(
+          expect.objectContaining({
+            errorCode: 'WC-SYS-404-003',
+            url: '/api/auth/callback/fake-idp/otra',
+          }),
+        );
+      });
+
+      it('el recorrido completo no deja en el log ni el code, ni el state, ni la cookie de sesión', async () => {
+        const sink = logCapture();
+        const betterAuth = consoleCapture();
+        const { app } = await appWith(withLogs, sink.stream);
+        const start = await app.inject({
+          method: 'POST',
+          url: '/api/auth/sign-in/social',
+          headers,
+          payload: JSON.stringify({ provider: 'fake-idp', callbackURL: '/inicio' }),
+        });
+        const atIdp = await chooseAtIdp(start.json<{ url: string }>().url, ana);
+        const callback = new URL(atIdp.headers.get('location') ?? '');
+        const code = callback.searchParams.get('code') ?? '';
+        const state = callback.searchParams.get('state') ?? '';
+        const back = await app.inject({
+          method: 'GET',
+          url: callback.pathname + callback.search,
+          headers: { cookie: cookiesOf(start.headers['set-cookie']) },
+        });
+        const sessionCookie = cookiesOf(back.headers['set-cookie']);
+        await app.inject({ method: 'GET', url: '/api/v1/me', headers: { cookie: sessionCookie } });
+        await app.close();
+        betterAuth.restore();
+
+        // Los valores reales, y de buen largo, para que la comparación diga algo.
+        expect(code.length).toBeGreaterThan(8);
+        expect(state.length).toBeGreaterThan(8);
+        expect(back.statusCode).toBe(302);
+        const sessionValue = sessionCookie.split('=').slice(1).join('=');
+        expect(sessionValue.length).toBeGreaterThan(8);
+        for (const written of [sink.text(), betterAuth.text()]) {
+          expect(written).not.toContain(code);
+          expect(written).not.toContain(state);
+          expect(written).not.toContain(sessionValue);
+        }
+        expect(loggedUrls(sink.lines())).toEqual(
+          expect.arrayContaining([
+            '/api/auth/sign-in/social',
+            '/api/auth/callback/fake-idp',
+            '/api/v1/me',
+          ]),
+        );
+      });
+
+      it('sign-in/social y el callback traen los mismos headers de siempre: la CSP no se ensancha', async () => {
+        const { app } = await appWith();
+        const baseline = await app.inject({ method: 'GET', url: '/health' });
+        const start = await app.inject({
+          method: 'POST',
+          url: '/api/auth/sign-in/social',
+          headers,
+          payload: JSON.stringify({ provider: 'fake-idp', callbackURL: '/inicio' }),
+        });
+        const atIdp = await chooseAtIdp(start.json<{ url: string }>().url, ana);
+        const callback = new URL(atIdp.headers.get('location') ?? '');
+        const back = await app.inject({
+          method: 'GET',
+          url: callback.pathname + callback.search,
+          headers: { cookie: cookiesOf(start.headers['set-cookie']) },
+        });
+        await app.close();
+
+        const csp = baseline.headers['content-security-policy'];
+        expect(csp).toBeDefined();
+        for (const response of [start, back]) {
+          // El ingreso es navegación de nivel superior (`location.assign`), no `fetch` ni `form`:
+          // no hay nada que permitirle a la CSP, ni cambiarle al Referrer-Policy.
+          expect(response.headers['content-security-policy']).toBe(csp);
+          expect(response.headers['referrer-policy']).toBe(baseline.headers['referrer-policy']);
+          expect(response.headers['referrer-policy']).toBe('no-referrer');
+          expect(response.headers['strict-transport-security']).toBe(
+            baseline.headers['strict-transport-security'],
+          );
+          expect(response.headers['x-content-type-options']).toBe('nosniff');
+        }
+        expect(csp).not.toMatch(/google|microsoft|127\.0\.0\.1:\d+/);
+      });
+
+      it('la cookie del state viaja con SameSite=Lax y HttpOnly', async () => {
+        const { app } = await appWith();
+        const start = await app.inject({
+          method: 'POST',
+          url: '/api/auth/sign-in/social',
+          headers,
+          payload: JSON.stringify({ provider: 'fake-idp', callbackURL: '/inicio' }),
+        });
+        await app.close();
+
+        const setCookies = ([] as string[]).concat(start.headers['set-cookie'] ?? []);
+        const stateCookie = setCookies.find((cookie) => /state/i.test(cookie.split('=')[0] ?? ''));
+
+        // Lax es lo que hace falta: el proveedor vuelve con un GET de nivel superior desde otro
+        // sitio, y una cookie Strict no viajaría; None la dejaría ir en pedidos entre sitios.
+        expect(stateCookie).toBeDefined();
+        expect(stateCookie).toMatch(/SameSite=Lax/i);
+        expect(stateCookie).toMatch(/HttpOnly/i);
+      });
     });
   });
 });

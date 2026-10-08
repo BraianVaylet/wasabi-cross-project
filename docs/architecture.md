@@ -90,6 +90,11 @@ Consumidores típicos: `notifications` (avisar al usuario), `stats` (recalcular 
 **Reglas:**
 
 - Nunca loguear passwords, tokens ni datos de pago.
+- Nada del flujo OAuth sale en un log ([ADR-0012](./adr/0012-ingreso-solo-con-oauth.md)). El callback del proveedor vuelve con `?code=…&state=…`: el `code` se canjea por tokens y el `state` es la mitad del chequeo contra CSRF. Por eso:
+  - Las URLs se loguean **sin query** (ni `req.url` ni un `url` suelto): se ve el path, no los valores. Lo hace el logger (`withoutQuery`, en `shared/logger.ts`), no cada lugar que loguea.
+  - `idToken` y `clientSecret` se redactan por path, como los demás tokens.
+  - El logger de Better Auth escribe por Pino y de lo que recibe se queda con `name`, `code`, `provider` y `providerId`: nunca los `details`, el mensaje ni el stack de un error, que traen el `state` o la respuesta del proveedor. Por defecto escribiría a `console`, fuera de este formato y sin redacción.
+  - Los headers no cambian por el ingreso: es navegación de nivel superior (`location.assign`), no `fetch` ni `form`, así que la CSP no se ensancha ni se toca el `Referrer-Policy`. La cookie del `state` viaja `SameSite=Lax` (el proveedor vuelve con un GET de otro sitio; con `Strict` no viajaría).
 - `requestId` viaja del front al back y vuelve al usuario en el mensaje de error (para poder correlacionar un reporte de soporte con el log exacto).
 - `errorCode` siempre que el log sea de un error de negocio — ver [diccionario de códigos](./error-codes.md).
 
