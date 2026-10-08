@@ -1,0 +1,100 @@
+/*
+ * Los botones de "Continuar con…" (spec §5.6). Google y Microsoft piden su logo sin tocar y sobre
+ * una superficie conocida: se usa la variante clara de cada una, que sobre el fondo casi negro de
+ * la app es además la que más se distingue. Los colores son los de sus lineamientos de marca, no
+ * tokens de la app a propósito: no se ajustan al tema.
+ *
+ * Rectangulares, sin el recorte de esquina de `Button`: el recorte comería el borde de 1px que
+ * esos lineamientos piden.
+ */
+.wc-provider-button {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--wc-space-3);
+  width: 100%;
+  min-height: 48px;
+  padding: var(--wc-space-2) var(--wc-space-4);
+
+  border: 1px solid transparent;
+  border-radius: var(--wc-radius-md);
+
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+
+  cursor: pointer;
+  transition:
+    background-color var(--wc-transition),
+    border-color var(--wc-transition);
+}
+
+.wc-provider-button:focus-visible {
+  outline: 2px solid var(--wc-focus);
+  outline-offset: 2px;
+}
+
+.wc-provider-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.wc-provider-button__logo {
+  display: inline-flex;
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.wc-provider-button__logo > svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Google, tema claro: fondo #FFFFFF, texto #1F1F1F (16:1), borde #747775. */
+.wc-provider-button--google {
+  background-color: #fff;
+  border-color: #747775;
+  color: #1f1f1f;
+}
+
+.wc-provider-button--google:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+/* Microsoft, tema claro: fondo #FFFFFF, texto #5E5E5E (6.5:1), borde #8C8C8C. */
+.wc-provider-button--microsoft {
+  background-color: #fff;
+  border-color: #8c8c8c;
+  color: #5e5e5e;
+}
+
+.wc-provider-button--microsoft:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+/* Sin marca: la superficie de la app, con el borde teal de los controles. */
+.wc-provider-button--generic {
+  background-color: var(--wc-surface-muted);
+  border-color: var(--wc-border-muted);
+  color: var(--wc-text);
+}
+
+.wc-provider-button--generic:hover:not(:disabled) {
+  border-color: var(--wc-accent);
+}
+
+/* En alto contraste de Windows el sistema pone sus colores: el borde tiene que seguir a la vista. */
+@media (forced-colors: active) {
+  .wc-provider-button {
+    border-color: ButtonText;
+  }
+}

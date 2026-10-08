@@ -3033,7 +3033,7 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
   de headers existente, extendido.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
-- **estado:** código hecho, en una PR. `shared/logger.ts`: `idToken` y `clientSecret` redactados;
+- **estado:** código hecho, mergeado en la PR #105. `shared/logger.ts`: `idToken` y `clientSecret` redactados;
   `withoutQuery` y dos serializadores (`req`, que reemplaza al de Fastify con los mismos campos pero la
   URL sin _query_, y `url`, para los que se agregan a mano). `modules/auth/infrastructure/auth-logger.ts`:
   el `logger` de Better Auth por Pino. `buildApp` y `createAuth` aceptan un `logStream` para que los
@@ -3085,6 +3085,28 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
 - **error-codes:** consume `WC-OAUTH-400-001`, `WC-OAUTH-400-002`, `WC-OAUTH-409-003`; retira
   `WC-AUTH-401-001`
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR. `ProviderButton` en `@wasabi-cross/ui` (con story y 8 tests):
+  Google y Microsoft llevan su logo sin tocar y la variante **clara** de cada marca, que además es la
+  que más se distingue sobre el fondo casi negro; el de desarrollo, un ícono genérico. `session.ts`
+  pierde `signIn` y `signUp` y gana `providers()` y `signInWithProvider()`; `/login` es una sola
+  pantalla con el aviso del `?error=` y, si la lista no carga o viene vacía, "El ingreso no está
+  disponible" con "Reintentar". Se borraron `RegisterPage`, `/registro`, `auth.api.ts` de schemas
+  (con sus tests) y `WC-AUTH-401-001`, que pasa a "Retirados" en `docs/error-codes.md`. Cosas que no
+  estaban en el plan y salieron de hacerlo:
+  - **Las URLs de vuelta tienen que ser absolutas y del front.** En desarrollo la API está en otro
+    origen que Vite: un `callbackURL` relativo terminaría el ingreso en una ruta de la API. Por eso
+    `createSessionClient` recibe la navegación (`origin` y `assign`), que en el navegador son la
+    ubicación de la página y en los tests un doble.
+  - **A dónde se navega se valida.** La URL que contesta Better Auth va a `location.assign`; si no es
+    `http(s)`, falla en vez de navegar (un `javascript:` ahí sería un script en el origen de la app).
+  - **Un refresco que falla no saca los botones que ya andan.** El primer diseño miraba el error de
+    la consulta; volver a la pestaña dispara un refresco, y si fallaba, tapaba los botones. Ahora
+    sólo importa si hay proveedores. Lo encontró una prueba inversa.
+  - **`refreshSession` se fue de producción:** después de entrar ya no hay nada que refrescar (la
+    página vuelve entera del proveedor) y sólo lo usaban los tests, así que vive en `src/test/app.tsx`.
+  - **El E2E ya entra por el botón** (`registrarse()`), en vez del `fetch` de la consola de F9-05; la
+    prueba de las pantallas públicas pierde el paso de "Crear una cuenta". El spec nuevo del ingreso
+    sigue siendo F9-09.
 
 ## [ ] F9-08 · La foto del usuario en el Perfil
 

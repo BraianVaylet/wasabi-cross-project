@@ -1,10 +1,11 @@
 import {
   canViewStats,
+  oauthErrorFor,
   statsPeriodSchema,
   type AddExercise,
+  type OauthErrorCode,
+  type OauthProvider,
   type RecordInput,
-  type SignIn,
-  type SignUpRequest,
   type UpdateManagedExercise,
 } from '@wasabi-cross/schemas';
 import { useInfiniteQuery, useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
@@ -15,13 +16,12 @@ import {
   createRouter,
   redirect,
   useNavigate,
-  useRouter,
   type RouterHistory,
 } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { HomePage } from '../pages/HomePage.tsx';
 import { LoginPage } from '../pages/auth/LoginPage.tsx';
-import { RegisterPage } from '../pages/auth/RegisterPage.tsx';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { NewExercisePage } from '../pages/new-exercise/NewExercisePage.tsx';
 import { EditExercisePage } from '../pages/edit-exercise/EditExercisePage.tsx';
@@ -29,7 +29,6 @@ import { ExerciseDetailPage } from '../pages/exercise-detail/ExerciseDetailPage.
 import { ProfilePage } from '../pages/profile/ProfilePage.tsx';
 import { SubscriptionPage } from '../pages/subscription/SubscriptionPage.tsx';
 import { StatsPage } from '../pages/stats/StatsPage.tsx';
-import { refreshSession } from './create-app.ts';
 import {
   catalogQueryOptions,
   exerciseListQueryOptions,
@@ -49,7 +48,12 @@ import { ErrorScreen } from './ErrorNotice.tsx';
 import { isStatsLocked } from './StatsLocked.tsx';
 import { optimisticId, prependRecord, type HistoryPages } from './optimistic-history.ts';
 import { safeRedirect, type RedirectSearch } from './redirect.ts';
-import { SESSION_QUERY_KEY, sessionQueryOptions, type SessionClient } from './session.ts';
+import {
+  SESSION_QUERY_KEY,
+  providersQueryOptions,
+  sessionQueryOptions,
+  type SessionClient,
+} from './session.ts';
 import { AppShell } from './shell/AppShell.tsx';
 
 export interface RouterContext {
@@ -64,14 +68,21 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
   errorComponent: ({ error }) => <ErrorScreen error={error} />,
 });
 
-// El `redirect` llega de la URL: si no es texto, se ignora. Que sea interno lo decide
-// `safeRedirect` al usarlo.
-const loginSearch = z.object({ redirect: z.string().optional().catch(undefined) });
+/*
+ * Lo que llega a `/login` en la URL. El `redirect` es a dónde volver: si no es texto, se ignora, y
+ * que sea interno lo decide `safeRedirect` al usarlo. El `error` lo agrega la API cuando el
+ * proveedor devuelve al usuario sin que haya entrado (F9-07): es de cualquiera que arme un link,
+ * así que se acepta lo que venga y `oauthErrorFor` lo baja a un código del catálogo.
+ */
+const loginSearch = z.object({
+  redirect: z.string().optional().catch(undefined),
+  error: z.unknown().optional(),
+});
 
 /**
- * Las dos pantallas públicas (F1-10). Con sesión no hay nada que hacer acá: se va a donde
- * el usuario iba. `beforeLoad` corre otra vez cuando `refreshSession` invalida el router,
- * así que entrar o registrarse redirige solo.
+ * La pantalla pública (F1-10). Con sesión no hay nada que hacer acá: se va a donde el usuario
+ * iba. `beforeLoad` corre otra vez cuando el router se invalida, así que volver del proveedor con
+ * la sesión abierta redirige solo.
  */
 function beforeLoadPublic(): (opts: {
   context: RouterContext;
@@ -86,18 +97,6 @@ function beforeLoadPublic(): (opts: {
   };
 }
 
-/** Entrar o crear la cuenta, y que el router haga el resto cuando la sesión ya existe. */
-function useEnter<TInput>(enter: (input: TInput) => Promise<void>) {
-  const router = useRouter();
-  // Del router y no de la ruta: el mismo hook sirve en login y en registro.
-  const { queryClient } = router.options.context;
-
-  return useMutation({
-    mutationFn: enter,
-    onSuccess: () => refreshSession({ queryClient, router }),
-  });
-}
-
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -105,39 +104,47 @@ const loginRoute = createRoute({
   beforeLoad: beforeLoadPublic(),
   component: function LoginRoute() {
     const { session } = loginRoute.useRouteContext();
-    const search = loginRoute.useSearch();
-    const signIn = useEnter<SignIn>((credentials) => session.signIn(credentials));
+    const { redirect: back, error } = loginRoute.useSearch();
+    const navigate = useNavigate();
+    const providers = useQuery(providersQueryOptions(session));
+    // El ingreso navega fuera de la app: no hay nada que refrescar al terminar el pedido.
+    const enter = useMutation({
+      mutationFn: (provider: OauthProvider) =>
+        session.signInWithProvider(provider, { redirect: back }),
+    });
+    const [returnError, setReturnError] = useState<OauthErrorCode | null>(null);
+
+    // El `?error=` se muestra una vez y sale de la URL, para que un reload o un link copiado no
+    // vuelvan a avisar de algo que ya pasó. A dónde iba el usuario, en cambio, se conserva.
+    useEffect(() => {
+      if (error === undefined) {
+        return;
+      }
+      setReturnError(oauthErrorFor(error));
+      void navigate({
+        to: '.',
+        search: back === undefined ? {} : { redirect: back },
+        replace: true,
+      });
+    }, [error, back, navigate]);
 
     return (
       <LoginPage
-        search={search}
-        pending={signIn.isPending}
-        error={signIn.error}
-        onSubmit={(credentials) => {
-          signIn.mutate(credentials);
+        providers={{
+          items: providers.data,
+          loading: providers.isPending,
+          error: providers.error,
+          onRetry: () => {
+            void providers.refetch();
+          },
         }}
-      />
-    );
-  },
-});
-
-const registerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/registro',
-  validateSearch: (search) => loginSearch.parse(search),
-  beforeLoad: beforeLoadPublic(),
-  component: function RegisterRoute() {
-    const { session } = registerRoute.useRouteContext();
-    const search = registerRoute.useSearch();
-    const signUp = useEnter<SignUpRequest>((input) => session.signUp(input));
-
-    return (
-      <RegisterPage
-        search={search}
-        pending={signUp.isPending}
-        error={signUp.error}
-        onSubmit={(input) => {
-          signUp.mutate(input);
+        returnError={returnError}
+        // También después de pedir la URL: la página se está yendo, y habilitar los botones en el
+        // medio dejaría apretar dos veces. Si el pedido falla, sí se vuelven a habilitar.
+        entering={enter.isPending || enter.isSuccess ? enter.variables : null}
+        enterError={enter.error}
+        onEnter={(provider) => {
+          enter.mutate(provider);
         }}
       />
     );
@@ -509,7 +516,6 @@ const statsRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  registerRoute,
   appRoute.addChildren([
     homeRoute,
     newExerciseRoute,
