@@ -16,16 +16,16 @@ allowBuilds:
 catalog:
   # Lenguaje y tooling
   typescript: 6.0.3
-  '@types/node': ^24.19.0
+  '@types/node': ^24.19.1
   tsx: ^4.23.15
 
   # Calidad
-  eslint: ^10.11.0
-  typescript-eslint: ^8.71.0
+  eslint: ^10.12.0
+  typescript-eslint: ^8.71.1
   eslint-config-prettier: ^10.1.8
   prettier: ^3.9.9
-  vitest: ^5.0.2
-  '@vitest/coverage-v8': ^5.0.2
+  vitest: ^5.0.3
+  '@vitest/coverage-v8': ^5.0.3
 
   # Dominio compartido
   zod: ^4.6.5
@@ -39,8 +39,8 @@ catalog:
   react-dom: ^19.3.0
   '@types/react': ^19.3.0
   '@types/react-dom': ^19.3.0
-  vite: ^8.3.1
-  '@vitejs/plugin-react': ^6.1.1
+  vite: ^8.3.2
+  '@vitejs/plugin-react': ^6.1.2
 
   # Landing (ADR-0013). Astro 7 usa la misma Vite 8 que la web: no se duplica.
   astro: ^7.3.5
