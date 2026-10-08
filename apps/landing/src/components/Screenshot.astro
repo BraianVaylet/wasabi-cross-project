@@ -1,0 +1,51 @@
+---
+/*
+ * Una captura de la app con su pie. Pasa por `astro:assets`: sale en WebP, en dos anchos (la captura
+ * es de 780px, el doble de los 390px del teléfono) y con `width` y `height` reales, para que la
+ * página no salte al cargarla. El `alt` es obligatorio y no puede estar vacío (spec §11, WCAG 1.1.1).
+ */
+import { Image } from 'astro:assets';
+import type { ScreenshotProps } from '../lib/screenshot.ts';
+
+type Props = ScreenshotProps;
+
+const { src, alt, pie, sizes, prioridad = false } = Astro.props;
+
+if (alt.trim() === '') {
+  throw new Error(
+    '<Screenshot>: el alt no puede estar vacío; una captura es una imagen informativa',
+  );
+}
+---
+
+<figure class="captura">
+  <Image
+    src={src}
+    alt={alt}
+    widths={[390, 780]}
+    sizes={sizes}
+    format="webp"
+    quality={85}
+    loading={prioridad ? 'eager' : 'lazy'}
+    fetchpriority={prioridad ? 'high' : undefined}
+  />
+  <figcaption>{pie}</figcaption>
+</figure>
+
+<style>
+  .captura {
+    margin: 0;
+    border: 1px solid var(--wc-line);
+    /* Una sección puede pintarlas sobre otra superficie: `--captura-fondo`. */
+    background-color: var(--captura-fondo, var(--wc-surface));
+  }
+
+  figcaption {
+    padding: var(--wc-space-3) var(--wc-space-4);
+    border-top: 1px solid var(--wc-divider);
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+</style>

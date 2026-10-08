@@ -1,21 +1,32 @@
 ---
-// Página mínima de F10-01/F10-02: sólo prueba que el workspace compila y que los estilos y las
-// tipografías llegan. La landing de verdad llega con F10-03 (estructura, donde esto pasa al layout)
-// y F10-05 a F10-08 (secciones).
-import '../styles/global.css';
-// La condensada de los titulares es lo primero que se ve: se pide ya, sin esperar al CSS.
-import staatliches from '@fontsource/staatliches/files/staatliches-latin-400-normal.woff2?url';
+// La página de ejemplo de F10-03: la estructura (layout, header, footer) con una captura, para
+// probar el componente. El contenido de verdad llega con F10-05 (hero) a F10-08 (planes).
+import Screenshot from '../components/Screenshot.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import home from '../assets/capturas/01-home.png';
 ---
 
-<!doctype html>
-<html lang="es-AR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="preload" as="font" type="font/woff2" href={staatliches} crossorigin />
-    <title>Wasabi Cross</title>
-  </head>
-  <body class="wc-root">
+<BaseLayout
+  titulo="Wasabi Cross"
+  descripcion="Registrá tus marcas de fuerza, repeticiones, distancia y tiempos en un solo lugar."
+>
+  <div class="contenedor">
     <h1>Wasabi Cross</h1>
-  </body>
-</html>
+    <div class="demo">
+      <Screenshot
+        src={home}
+        alt="Pantalla de inicio de Wasabi Cross: ejercicios de fuerza, burpees, carrera, remo ergómetro y sled con sus marcas"
+        pie="INICIO — Distintas marcas en una misma vista."
+        sizes="(min-width: 48rem) 430px, 100vw"
+        prioridad
+      />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* La columna de la app (spec §11): 430px como máximo. */
+  .demo {
+    max-width: var(--wc-column-max);
+  }
+</style>

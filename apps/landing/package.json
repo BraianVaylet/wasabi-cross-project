@@ -24,6 +24,7 @@
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "astro": "catalog:",
+    "sharp": "^0.35.5",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

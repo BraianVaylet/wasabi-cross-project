@@ -1,0 +1,72 @@
+---
+/*
+ * El nombre de la marca como en el diseño: "WASABI // CROSS", con las barras en lima. Es el mismo
+ * recurso que el `Wordmark` de la app: las barras son contenido CSS con texto alternativo vacío, así
+ * que el texto y el nombre accesible siguen siendo "Wasabi Cross" (un lector de pantalla no lee
+ * "barra barra").
+ */
+interface Props {
+  /** El renglón chico de abajo. Es un eslogan: no suma al nombre accesible del enlace. */
+  subtitulo?: string | undefined;
+}
+
+const { subtitulo } = Astro.props;
+---
+
+<span class="marca">
+  <span class="nombre">
+    Wasabi <span class="barras" aria-hidden="true"></span> Cross
+  </span>
+  {subtitulo && (
+    <span class="subtitulo" aria-hidden="true">
+      {subtitulo}
+    </span>
+  )}
+</span>
+
+<style>
+  .marca {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .nombre {
+    font-family: var(--wc-font-family-display);
+    font-size: 1.375rem;
+    line-height: 1;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 40rem) {
+    .nombre {
+      font-size: 1.5625rem;
+    }
+  }
+
+  /* El segundo `content` (con `/ ''`, texto alternativo vacío) gana donde el navegador lo entiende. */
+  .barras::before {
+    content: '//';
+    content: '//' / '';
+    color: var(--wc-accent-text);
+  }
+
+  .subtitulo {
+    margin-top: var(--wc-space-1);
+    color: var(--wc-text-muted);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-2xs);
+    line-height: 1.2;
+    letter-spacing: var(--wc-tracking-kicker);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 40rem) {
+    .subtitulo {
+      font-size: var(--wc-font-size-caption);
+    }
+  }
+</style>
