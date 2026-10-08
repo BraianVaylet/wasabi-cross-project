@@ -1,0 +1,57 @@
+---
+/*
+ * Los metadatos del `<head>` de una página (F10-04, spec §5.7): título y descripción, la vista
+ * previa al compartir el enlace (Open Graph y Twitter), los íconos y si los buscadores la indexan.
+ * Sin manifest ni service worker (no es una PWA), sin JSON-LD y sin analytics.
+ */
+import { marca, seo as texto } from '../content/sitio.ts';
+import { configurarSeo, metaRobots, urlAbsoluta } from '../lib/seo.ts';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  /** La ruta de la página (`/`), para su URL absoluta. */
+  ruta: string;
+  /** `false` para lo que nunca se indexa, como la 404: aunque el sitio sea de producción. */
+  indexar?: boolean;
+}
+
+const { titulo, descripcion, ruta, indexar = true } = Astro.props;
+
+const seo = configurarSeo(import.meta.env.PUBLIC_SITE_URL, import.meta.env.LANDING_INDEXABLE);
+const robots = metaRobots(seo, indexar);
+const url = indexar ? urlAbsoluta(seo, ruta) : null;
+const imagen = urlAbsoluta(seo, texto.imagen.ruta);
+// El canonical sólo existe donde la página se indexa: en una `noindex` apuntaría a una URL que
+// no queremos que se indexe.
+const canonical = seo.indexable && indexar ? url : null;
+---
+
+<title>{titulo}</title>
+<meta name="description" content={descripcion} />
+<meta name="robots" content={robots} />
+{canonical !== null && <link rel="canonical" href={canonical} />}
+
+<meta name="theme-color" content={texto.colorDelTema} />
+<!-- El SVG es el ícono de los navegadores modernos; el .ico, el de respaldo. El "sizes" del .ico
+     evita que Chrome lo prefiera al SVG. Son los de la app. -->
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/logo.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+<meta property="og:type" content="website" />
+<meta property="og:locale" content="es_AR" />
+<meta property="og:site_name" content={marca.nombre} />
+<meta property="og:title" content={titulo} />
+<meta property="og:description" content={descripcion} />
+{url !== null && <meta property="og:url" content={url} />}
+{imagen !== null && (
+  <>
+    <meta property="og:image" content={imagen} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={texto.imagen.alt} />
+    <meta name="twitter:image" content={imagen} />
+  </>
+)}
+<meta name="twitter:card" content="summary_large_image" />

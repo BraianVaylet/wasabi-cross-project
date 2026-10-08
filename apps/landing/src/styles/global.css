@@ -23,6 +23,31 @@
 @import '@fontsource/figtree/latin-600.css';
 @import '@fontsource/figtree/latin-700.css';
 
+:root {
+  /* El ancho del contenido y su margen lateral: 20 px en el teléfono, 32 desde 640 y 48 desde 1024. */
+  --landing-max: 80rem;
+  --landing-gutter: 1.25rem;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --landing-gutter: 2rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --landing-gutter: 3rem;
+  }
+}
+
+/* El contenedor de toda sección: centrado, con su margen. */
+.contenedor {
+  max-width: var(--landing-max);
+  margin-inline: auto;
+  padding-inline: var(--landing-gutter);
+}
+
 *,
 *::before,
 *::after {

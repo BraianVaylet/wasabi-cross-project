@@ -1,0 +1,70 @@
+---
+/*
+ * La base de toda página: el `<head>` (con sus metadatos, F10-04), los estilos (F10-02), el enlace
+ * para saltar al contenido, el header, el `<main>` y el footer.
+ */
+import '../styles/global.css';
+// La condensada de los titulares es lo primero que se ve: se pide ya, sin esperar al CSS.
+import staatliches from '@fontsource/staatliches/files/staatliches-latin-400-normal.woff2?url';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import Seo from '../components/Seo.astro';
+import { textos } from '../content/sitio.ts';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  /** La ruta de la página, para su URL absoluta y su canonical. */
+  ruta: string;
+  /** `false` para lo que nunca se indexa, como la 404. */
+  indexar?: boolean;
+  /** La nav de anclas del header. Las páginas sin secciones (la 404) la apagan. */
+  nav?: boolean;
+  /** El enlace "Ver la app en acción" del footer, que apunta a `#demo`. */
+  demo?: boolean;
+}
+
+const { titulo, descripcion, ruta, indexar = true, nav = true, demo = true } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preload" as="font" type="font/woff2" href={staatliches} crossorigin />
+    <Seo titulo={titulo} descripcion={descripcion} ruta={ruta} indexar={indexar} />
+  </head>
+  <body class="wc-root">
+    <a class="saltar" href="#contenido">
+      {textos.saltarAlContenido}
+    </a>
+    <Header nav={nav} />
+    <main id="contenido">
+      <slot />
+    </main>
+    <Footer demo={demo} />
+  </body>
+</html>
+
+<style>
+  /* Fuera de la vista hasta que recibe el foco: el primer Tab de la página. */
+  .saltar {
+    position: absolute;
+    top: var(--wc-space-3);
+    left: var(--wc-space-3);
+    z-index: 10;
+    padding: var(--wc-space-3) var(--wc-space-4);
+    background-color: var(--wc-accent);
+    color: var(--wc-text-on-accent);
+    font-family: var(--wc-font-family-display);
+    font-size: 1.125rem;
+    letter-spacing: var(--wc-tracking-button);
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+
+  .saltar:focus-visible {
+    transform: none;
+  }
+</style>

@@ -4,6 +4,7 @@ import { testUtils } from 'better-auth/plugins';
 import type { Db, MongoClient } from 'mongodb';
 import type { Env } from '../../../config/env.ts';
 import { generateId } from '../../../shared/ids.ts';
+import { buildAuthLogger } from './auth-logger.ts';
 
 export interface CreateAuthOptions {
   env: Env;
@@ -22,6 +23,8 @@ export interface CreateAuthOptions {
   plugins?: readonly BetterAuthPlugin[];
   /** Los proveedores sociales (Google, Microsoft) que arma el módulo `oauth` (F9-05). */
   socialProviders?: BetterAuthOptions['socialProviders'];
+  /** Para los tests que leen el log (F9-06): adónde escribe el logger de Better Auth. */
+  logStream?: NodeJS.WritableStream;
 }
 
 export const AUTH_BASE_PATH = '/api/auth';
@@ -42,6 +45,7 @@ export function createAuth({
   transactions = true,
   plugins: extraPlugins = [],
   socialProviders,
+  logStream,
 }: CreateAuthOptions) {
   const isTest = env.NODE_ENV === 'test';
 
@@ -58,6 +62,11 @@ export function createAuth({
     secret: env.BETTER_AUTH_SECRET,
     database: mongodbAdapter(db, { client, transaction: transactions }),
     trustedOrigins: [env.WEB_ORIGIN],
+
+    // Por Pino y sin los valores del flujo (el `state`, el `code`): el logger de Better Auth por
+    // defecto escribe a `console` lo que recibe, y los errores del callback traen esos valores
+    // adentro (F9-06, ADR-0012).
+    logger: buildAuthLogger(env, logStream),
 
     // Sin `emailAndPassword` (F9-05, ADR-0012): todo el ingreso y el registro pasan por un proveedor
     // OAuth. No hay contraseñas que guardar, hashear ni recuperar, y esos endpoints ni siquiera se
