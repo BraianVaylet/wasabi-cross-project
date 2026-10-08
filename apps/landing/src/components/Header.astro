@@ -1,0 +1,109 @@
+---
+/*
+ * El header: el logo con el nombre, la nav de anclas (desde 768px; abajo, como en el diseño, no hay
+ * menú y quedan el logo y "Entrar") y "Entrar" si hay app a la que llevar.
+ */
+import { marca, secciones, textos } from '../content/sitio.ts';
+import AppLink from './AppLink.astro';
+import Marca from './Marca.astro';
+
+interface Props {
+  /** La nav de anclas. Las páginas sin secciones (la 404) la apagan. */
+  nav?: boolean;
+}
+
+const { nav = true } = Astro.props;
+---
+
+<header class="cabecera">
+  <a class="inicio" href="/" aria-label={`${marca.nombre}, inicio`}>
+    <span class="logo" aria-hidden="true">
+      W
+    </span>
+    <Marca subtitulo={marca.lema} />
+  </a>
+  <div class="acciones">
+    {nav && (
+      <nav class="nav" aria-label={textos.navegacion}>
+        {secciones.map((s) => (
+          <a href={`#${s.id}`}>{s.nombre}</a>
+        ))}
+      </nav>
+    )}
+    <AppLink texto={textos.entrar} variante="compacto" />
+  </div>
+</header>
+
+<style>
+  .cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--wc-space-4);
+    max-width: var(--landing-max);
+    margin-inline: auto;
+    padding: 1.25rem var(--landing-gutter);
+    border-bottom: 1px solid var(--wc-divider);
+  }
+
+  .inicio {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-space-3);
+    min-height: var(--wc-tap-target);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .logo {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    background-color: var(--wc-accent);
+    color: var(--wc-text-on-accent);
+    font-family: var(--wc-font-family-display);
+    font-size: 1.875rem;
+    line-height: 1;
+  }
+
+  @media (min-width: 48rem) {
+    .logo {
+      width: 3rem;
+      height: 3rem;
+      font-size: 2.25rem;
+    }
+  }
+
+  .acciones {
+    display: flex;
+    align-items: center;
+    gap: var(--wc-space-6);
+  }
+
+  .nav {
+    display: none;
+    gap: var(--wc-space-6);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+  }
+
+  @media (min-width: 48rem) {
+    .nav {
+      display: flex;
+    }
+  }
+
+  .nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--wc-tap-target);
+    color: var(--wc-text-soft);
+    text-decoration: none;
+  }
+
+  .nav a:hover {
+    color: var(--wc-accent-text);
+  }
+</style>

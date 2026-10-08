@@ -3478,6 +3478,26 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   obligatorio; axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `BaseLayout`, `Header`, `Footer`, `Marca`
+  (el nombre con las barras, como el `Wordmark` de la app), `AppLink`, `Screenshot` y la 404;
+  los textos compartidos en `src/content/sitio.ts` y la URL del ingreso en `src/lib/app-url.ts`.
+  **`AppLink` rompe el build si `PUBLIC_APP_URL` no es una URL http(s)** (el plan sólo decía "sin
+  la variable no renderiza"): un deploy mal configurado se tiene que notar, y `javascript:` o
+  `data:` nunca llegan a un `href`. El logo enlaza a `/` y no a `#inicio`, y la 404 va sin la nav
+  de secciones ni "Ver la app en acción", para que no queden anclas colgando. Las 13 capturas
+  que se usan se copiaron a `src/assets/capturas/`; salen en WebP (calidad 85) en 390 y 780 px,
+  con `width` y `height`: la de inicio pasa de 116 KB a 76 KB (35 KB en 390 px). **`sharp` hay que
+  declararlo como dependencia de la landing**: Astro lo busca en el proyecto y con pnpm no lo ve si
+  sólo está como opcional de `astro` (`MissingSharp`); lo que dijo F10-01 de que "quedó instalado"
+  no alcanzaba. Dos archivos de tipos para typescript-eslint (`jsx.d.ts` y la declaración de
+  `*.astro` en `env.d.ts`), que no entiende `.astro`. La página de ejemplo (`index.astro`) lleva
+  el header, una captura y el footer; el contenido de verdad llega con F10-05 a F10-08, y hasta
+  entonces `#registro`, `#funciones`, `#planes` y `#demo` apuntan a nada. 77 tests (de 48), y
+  once mutaciones a mano que atrapa un test cada una (una era equivalente: WebP es el default de
+  Astro, así que lo que se prueba es forzar PNG). **Verificado en Chromium** (Playwright y axe, sin
+  commitear: el E2E permanente es F10-10): 0 violaciones de axe en `/` y en `/404.html` a 390 y
+  1280 px, el primer Tab cae en "Saltar al contenido" y se ve, la nav aparece desde 768 px,
+  "Entrar" mide 44 px de alto, sin scroll horizontal y sin errores de consola.
 
 ## [ ] F10-04 · SEO y compartir
 
