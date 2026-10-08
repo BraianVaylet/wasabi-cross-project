@@ -23,7 +23,6 @@ export type ErrorEnvelope = z.infer<typeof errorEnvelopeSchema>;
  * falla si divergen. Vive acá porque lo usan la API y el front.
  */
 export const ERROR_CATALOG = {
-  'WC-AUTH-401-001': { status: 401, userMessage: 'Email o contraseña incorrectos.' },
   'WC-AUTH-403-002': { status: 403, userMessage: 'No tenés permisos para esta acción.' },
   'WC-AUTH-429-003': {
     status: 429,
