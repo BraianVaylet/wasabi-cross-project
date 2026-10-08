@@ -3010,7 +3010,10 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
 - **module:** infra
 - **description:** `REDACTED_PATHS` suma `idToken`, `*.idToken`, `clientSecret` y `*.clientSecret`. El
   log de requests y el `warn` de `auth.routes.ts` dejan de incluir el _query_ de los callbacks: se
-  loguea el path, no `code` ni `state`. Un test comprueba que el flujo completo no necesita ampliar
+  loguea el path, no `code` ni `state` (lo hacen los serializadores del logger, `req` y `url`, no cada
+  lugar que loguea). El logger de Better Auth —que por defecto escribe a `console` el error del
+  callback con el `state` adentro— pasa a escribir por Pino, quedándose con `name`, `code`,
+  `provider` y `providerId`. Un test comprueba que el flujo completo no necesita ampliar
   la CSP (es navegación de nivel superior, no `fetch`) ni cambiar `referrerPolicy`, y que la cookie
   de `state` viaja con `sameSite: lax`. `docs/architecture.md` suma la regla.
 - **acceptance-criteria:**
@@ -3019,6 +3022,9 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
   - Dado un log con `idToken` anidado, cuando sale, entonces dice `[REDACTED]`.
   - Dadas las respuestas de `/sign-in/social` y del callback, cuando se miran los headers, entonces
     la CSP y el resto son los de siempre y la cookie de `state` es `lax`.
+  - Dado un callback con un `state` inválido, cuando Better Auth deja constancia, entonces sale por
+    el log estructurado (`component: better-auth`, `code: state_mismatch`), sin el valor, y no
+    escribe nada a `console`.
 - **example:** —
 - **story-points:** 2
 - **depends_on:** F9-05
@@ -3027,6 +3033,18 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
   de headers existente, extendido.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR. `shared/logger.ts`: `idToken` y `clientSecret` redactados;
+  `withoutQuery` y dos serializadores (`req`, que reemplaza al de Fastify con los mismos campos pero la
+  URL sin _query_, y `url`, para los que se agregan a mano). `modules/auth/infrastructure/auth-logger.ts`:
+  el `logger` de Better Auth por Pino. `buildApp` y `createAuth` aceptan un `logStream` para que los
+  tests lean el log. Una cosa que no estaba en el plan y salió de probarlo:
+  - **Better Auth filtraba el `state` por su cuenta.** Con un callback de `state` roto escribía a
+    `console` `Failed to parse state {"code":"state_mismatch","details":{"state":"…"}}`, fuera de
+    Pino y sin redacción. Los demás errores del flujo (el endpoint de tokens, el query inválido) también
+    le pasan sus objetos al logger. Ahora de cada argumento sólo salen cuatro campos de texto.
+  - Los headers no necesitaron cambios: los tests los dejan fijados (la CSP de `/sign-in/social` y del
+    callback es la de `/health`, el `Referrer-Policy` sigue en `no-referrer` y la cookie `state` es
+    `SameSite=Lax` y `HttpOnly`).
 
 ## [ ] F9-07 · Web: la pantalla de ingreso
 
