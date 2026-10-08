@@ -1,0 +1,48 @@
+---
+// La 404 con la marca. La sirve el servidor de producción cuando una ruta no existe (F10-11).
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  titulo="Esa página no existe · Wasabi Cross"
+  descripcion="La página que buscás no existe o cambió de lugar."
+  ruta="/404"
+  indexar={false}
+  nav={false}
+  demo={false}
+>
+  <section class="contenedor vacia">
+    <p class="wc-kicker">Error 404</p>
+    <h1>Esa página no existe</h1>
+    <p>Puede que el enlace esté viejo o mal escrito.</p>
+    <a class="volver" href="/">
+      Volvé al inicio
+    </a>
+  </section>
+</BaseLayout>
+
+<style>
+  .vacia {
+    padding-block: var(--wc-space-6);
+  }
+
+  .vacia h1 {
+    margin: var(--wc-space-2) 0;
+    font-size: var(--wc-font-size-title);
+  }
+
+  .vacia p {
+    margin: 0 0 var(--wc-space-5);
+    color: var(--wc-text-body);
+  }
+
+  .volver {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--wc-tap-target);
+    color: var(--wc-accent-text);
+    font-family: var(--wc-font-family);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+</style>

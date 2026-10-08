@@ -1,0 +1,77 @@
+---
+/*
+ * Un enlace al ingreso de la app (`/login`, spec §5.6): "Entrar" en el header y "Empezar gratis" en
+ * los CTA. La URL sale de `PUBLIC_APP_URL`; **sin ella no renderiza nada** (spec §5.7: mientras la
+ * app no esté en producción no hay a dónde llevar).
+ */
+import { urlIngreso } from '../lib/app-url.ts';
+
+interface Props {
+  texto: string;
+  /** `cta` es la placa lima con recorte; `compacto`, el botón de línea del header. */
+  variante?: 'cta' | 'compacto';
+  /** Un carácter decorativo después del texto, como la flecha del CTA del diseño. */
+  flecha?: string | undefined;
+  /** Para pruebas: la URL de la app, en vez de la variable de build. */
+  appUrl?: string | undefined;
+}
+
+const { texto, variante = 'cta', flecha, appUrl = import.meta.env.PUBLIC_APP_URL } = Astro.props;
+const href = urlIngreso(appUrl);
+---
+
+{href !== null && (
+  <a class:list={['enlace', variante, variante === 'cta' && 'wc-plate-cut']} href={href}>
+    {texto}
+    {flecha && <span aria-hidden="true">{flecha}</span>}
+  </a>
+)}
+
+<style>
+  .enlace {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+
+  .cta {
+    min-height: 3.5rem;
+    padding-inline: var(--wc-space-5);
+    gap: 1.25rem;
+    background-color: var(--wc-accent);
+    color: var(--wc-text-on-accent);
+    font-family: var(--wc-font-family-display);
+    font-size: 1.25rem;
+    letter-spacing: var(--wc-tracking-button);
+  }
+
+  .cta:hover {
+    background-color: var(--wc-accent-hover);
+  }
+
+  /* El recorte (`.wc-plate-cut`) se come el outline: en un control, el foco va como anillo interior
+     (igual que el botón primario de la app). */
+  .cta:focus-visible {
+    outline: none;
+    box-shadow:
+      inset 0 0 0 3px var(--wc-accent),
+      inset 0 0 0 5px var(--wc-text-on-accent);
+  }
+
+  .compacto {
+    min-height: var(--wc-tap-target);
+    padding-inline: var(--wc-space-4);
+    border: 1px solid var(--wc-accent);
+    color: var(--wc-accent-text);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    letter-spacing: var(--wc-tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .compacto:hover {
+    background-color: var(--wc-accent);
+    color: var(--wc-text-on-accent);
+  }
+</style>
