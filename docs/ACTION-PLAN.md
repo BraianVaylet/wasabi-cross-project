@@ -3528,6 +3528,21 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   `og.png` mide 1200×630.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `src/lib/seo.ts` decide la indexación y las
+  URLs absolutas con las dos variables de build; `Seo.astro` pone el `<head>` (título, descripción,
+  `robots`, canonical, Open Graph, Twitter, `theme-color` e íconos); `robots.txt.ts` y
+  `sitemap.xml.ts` son endpoints estáticos. **Una combinación sin sentido rompe el build** en vez de
+  degradarse en silencio: `LANDING_INDEXABLE=1` sin `PUBLIC_SITE_URL` o con `http`, un valor que no es
+  `1` ni `0`, o un sitio que no es una URL http(s). El sitemap fuera de producción sale vacío pero
+  válido, y la 404 no se indexa nunca. Tres builds en los tests, uno por ambiente (desarrollo/CI,
+  staging y producción), y se probaron a mano las dos roturas de arriba. `og.png` (1200×630, 43 KB)
+  lo arma `pnpm --filter @wasabi-cross/landing og` con Playwright, los tokens y las fuentes de la
+  landing, **y repite el titular del hero** (en `src/content/sitio.ts`, que usan los dos): el copy en
+  voseo todavía no lo aprobó el usuario (F10-05). Los íconos son copias de los de la app y un test
+  falla si dejan de ser idénticos. `og:url`, `og:image` y `twitter:image` salen también en
+  staging (con `PUBLIC_SITE_URL`) para que el enlace tenga vista previa, pero sin canonical y con
+  `noindex`. Los endpoints y las páginas quedan fuera del coverage: son pegamento y los cubren los
+  builds. Falta la prueba manual de la vista previa en un chat, que necesita staging.
 
 ## [ ] F10-05 · Hero
 

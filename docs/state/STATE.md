@@ -158,8 +158,8 @@ depende de los _watch paths_ de Railway, que el IaC no documenta (F10-12 lo comp
 hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth llevan el host de la
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
-(tokens, fuentes y estilos base, PR #102) también, y F10-03 (la estructura de la página) está
-hecha en una PR**; ninguna tarea cerrada.
+(tokens, fuentes y estilos base, PR #102) y F10-03 (la estructura de la página, PR #104)
+también, y F10-04 (SEO y compartir) está hecha en una PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -204,9 +204,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-03 (layout, header, footer, 404 y `Screenshot`);
-    después, en paralelo, F10-04 (SEO y compartir) y las secciones F10-05 a F10-09. Crear las
-    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-04 (SEO y compartir; trae `og.png`, que repite el
+    titular del hero: si el copy de F10-05 cambia, `pnpm --filter @wasabi-cross/landing og` lo
+    regenera); después, en paralelo, las secciones F10-05 a F10-09. Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -306,6 +306,10 @@ usuario Free, cambiar el email y el nombre antes de apretar "Entrar". La API nec
 (el `.env.example` ya lo trae): sin ningún proveedor, no arranca.
 
 ## Última actualización
+
+2026-10-08 — **Fase 10, F10-04**: los metadatos para compartir (Open Graph y Twitter, con una imagen de
+1200×630), la indexación sólo en producción, `robots.txt` y `sitemap.xml`, en una PR. Bitácora
+[2026-10-08](./bitacora/2026-10-08-f10-04-seo.md).
 
 2026-10-08 — **Fase 10, F10-03**: la estructura de la landing (layout, header, footer, 404, el
 enlace de salto, "Entrar" según `PUBLIC_APP_URL` y el componente `Screenshot`), en una PR.

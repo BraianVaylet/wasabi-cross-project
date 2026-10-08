@@ -5,6 +5,10 @@
 interface ImportMetaEnv {
   /** El origen de la app, para "Entrar" y "Empezar gratis" (spec §5.7). Sin ella, no se muestran. */
   readonly PUBLIC_APP_URL?: string;
+  /** El origen público de la landing, para las URLs absolutas (`og:image`, canonical, sitemap). */
+  readonly PUBLIC_SITE_URL?: string;
+  /** `1` sólo en producción: sin eso la landing sale `noindex` (spec §5.7). No es `PUBLIC_`: sólo se lee al compilar. */
+  readonly LANDING_INDEXABLE?: string;
 }
 
 interface ImportMeta {

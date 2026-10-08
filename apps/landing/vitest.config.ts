@@ -16,7 +16,9 @@ export default getViteConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
+      // Las páginas y los endpoints (`robots.txt.ts`, `sitemap.xml.ts`) son pegamento: leen las
+      // variables de build y llaman a `src/lib`. Su salida la cubren los builds reales de test/.
+      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/pages/**'],
       thresholds: { lines: 90, functions: 90, branches: 90, statements: 90 },
     },
   },

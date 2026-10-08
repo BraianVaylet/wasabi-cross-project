@@ -3,6 +3,13 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": [".astro/types.d.ts", "src/**/*", "test/**/*", "astro.config.ts", "vitest.config.ts"],
+  "include": [
+    ".astro/types.d.ts",
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "astro.config.ts",
+    "vitest.config.ts"
+  ],
   "exclude": ["dist", "coverage"]
 }
