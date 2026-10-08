@@ -52,6 +52,11 @@ catalog:
 # mínima. Se fuerza acá. Sacar el override cuando `astro` pida `^4.3.0` por su cuenta.
 overrides:
   http-cache-semantics: ^4.3.0
+  # `postcss` (de vite, de todo el monorepo) trae `source-map-js` <1.2.2, que `pnpm audit` marca
+  # como alta desde el 2026-10-08 (GHSA-68fv-2mgg-jv7q: denegación de servicio con las posiciones de
+  # un source map indexado). El parche es la 1.2.2, del 2026-09-30, y la última `postcss` ya la pide
+  # (`^1.2.2`). Sacar el override cuando el lockfile deje de resolver a una versión vieja.
+  source-map-js: ^1.2.2
 
 minimumReleaseAgeExclude:
   - '@tanstack/react-router@1.170.38'
