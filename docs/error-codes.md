@@ -12,7 +12,6 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 
 | Código             | HTTP | Significado                                                           | Mensaje al usuario                                                 |
 | ------------------ | ---- | --------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `WC-AUTH-401-001`  | 401  | Credenciales inválidas                                                | Email o contraseña incorrectos.                                    |
 | `WC-AUTH-403-002`  | 403  | Sin permiso sobre el recurso                                          | No tenés permisos para esta acción.                                |
 | `WC-AUTH-429-003`  | 429  | Demasiados intentos                                                   | Demasiados intentos. Esperá un minuto y probá de nuevo.            |
 | `WC-AUTH-401-004`  | 401  | Sin sesión, o sesión vencida                                          | Iniciá sesión para continuar.                                      |
@@ -40,5 +39,6 @@ Un código retirado no se reusa: sigue acá para que nadie le asigne otro signif
 | ----------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `WC-EXO-409-004`  | F5-08       | Un propio puede llamarse como uno del catálogo: un precargado editado conserva su nombre ([ADR-0009](./adr/0009-catalogo-ampliado.md)).                       |
 | `WC-SUBS-403-001` | F8-01       | Era el límite de ejercicios del plan. Free y Pro cargan sin tope; lo que los separa son las estadísticas ([ADR-0011](./adr/0011-plan-pro-y-estadisticas.md)). |
+| `WC-AUTH-401-001` | F9-07       | Era "email o contraseña incorrectos". Ya no hay contraseñas: el ingreso es sólo con OAuth ([ADR-0012](./adr/0012-ingreso-solo-con-oauth.md)).                 |
 
 Reglas de logging asociadas a estos códigos: ver [docs/architecture.md](./architecture.md).

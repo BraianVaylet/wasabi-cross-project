@@ -1,0 +1,89 @@
+---
+/*
+ * El footer: la marca, su frase y los enlaces de cierre. "Empezar gratis" sólo si hay app a la que
+ * llevar; "Ver la app en acción" salta a la captura del hero (`#demo`).
+ */
+import { textos } from '../content/sitio.ts';
+import AppLink from './AppLink.astro';
+import Marca from './Marca.astro';
+
+interface Props {
+  /** El enlace a la captura del hero. Las páginas que no la tienen (la 404) lo apagan. */
+  demo?: boolean;
+}
+
+const { demo = true } = Astro.props;
+---
+
+<footer class="pie">
+  <div class="presentacion">
+    <Marca />
+    <p>{textos.pieDescripcion}</p>
+  </div>
+  <div class="acciones">
+    <AppLink texto={textos.empezarGratis} flecha="↗" />
+    {demo && (
+      <a class="demo" href="#demo">
+        {textos.verLaApp}
+      </a>
+    )}
+  </div>
+</footer>
+
+<style>
+  .pie {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wc-space-5);
+    max-width: var(--landing-max);
+    margin-inline: auto;
+    padding: 2.25rem var(--landing-gutter);
+  }
+
+  @media (min-width: 48rem) {
+    .pie {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding-block: 3rem;
+    }
+  }
+
+  .presentacion p {
+    max-width: 31rem;
+    margin: var(--wc-space-2) 0 0;
+    color: var(--wc-text-muted);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-caption);
+    line-height: 1.25rem;
+    text-transform: uppercase;
+  }
+
+  .acciones {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--wc-space-3);
+  }
+
+  @media (min-width: 48rem) {
+    .acciones {
+      align-items: flex-end;
+    }
+  }
+
+  .demo {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--wc-tap-target);
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .demo:hover {
+    color: var(--wc-accent-text);
+  }
+</style>

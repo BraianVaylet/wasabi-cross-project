@@ -51,18 +51,3 @@ export function createApp({
 
   return { queryClient, router };
 }
-
-/**
- * Después de entrar (F1-10): vuelve a pedir la sesión y deja que el router decida a dónde
- * ir. Login, con sesión, manda a donde el usuario iba.
- */
-export async function refreshSession({
-  queryClient,
-  router,
-}: {
-  queryClient: QueryClient;
-  router: AppRouter;
-}): Promise<void> {
-  await queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY, refetchType: 'all' });
-  await router.invalidate();
-}

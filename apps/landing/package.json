@@ -10,7 +10,8 @@
     "preview": "astro preview",
     "typecheck": "astro check",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "og": "node scripts/generar-og.ts"
   },
   "dependencies": {
     "@fontsource/figtree": "^5.3.0",
@@ -21,9 +22,11 @@
   },
   "devDependencies": {
     "@astrojs/check": "catalog:",
+    "@playwright/test": "^1.63.0",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "astro": "catalog:",
+    "sharp": "^0.35.5",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

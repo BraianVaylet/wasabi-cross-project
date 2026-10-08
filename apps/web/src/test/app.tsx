@@ -4,19 +4,22 @@ import type {
   GeneralStats,
   LogRecordResponse,
   ManagedExerciseSummary,
+  OauthProviderInfo,
   RecordHistory,
   SessionUser,
   TrainingActivity,
   TrainingBreakdown,
   UserPreferences,
 } from '@wasabi-cross/schemas';
+import type { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory } from '@tanstack/react-router';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 import { App } from '../app/App.tsx';
 import type { ApiClient } from '../app/api.ts';
 import { createApp } from '../app/create-app.ts';
-import type { SessionClient } from '../app/session.ts';
+import type { AppRouter } from '../app/router.tsx';
+import { SESSION_QUERY_KEY, type SessionClient } from '../app/session.ts';
 
 export const braian: SessionUser = {
   id: 'u1',
@@ -36,21 +39,25 @@ export interface FakeSession {
   login: (who: SessionUser) => void;
 }
 
-/** Una sesión en memoria: arranca con o sin usuario, y entrar o salir la cambia. */
+/** Los dos proveedores de verdad, en el orden en que la API los lista (spec §5.6). */
+export const proveedores: OauthProviderInfo[] = [
+  { id: 'google', label: 'Google' },
+  { id: 'microsoft', label: 'Microsoft' },
+];
+
+/**
+ * Una sesión en memoria: arranca con o sin usuario, y salir la cambia. Entrar no: el ingreso real
+ * navega fuera de la app y vuelve con la sesión abierta, así que `signInWithProvider` no abre
+ * ninguna acá; el test que quiera ese "volver" usa `login` y `refreshSession`.
+ */
 export function fakeSession(initial: SessionUser | null): FakeSession {
   let user = initial;
 
   return {
     client: {
       current: vi.fn<SessionClient['current']>(() => Promise.resolve(user)),
-      signIn: vi.fn<SessionClient['signIn']>(() => {
-        user = braian;
-        return Promise.resolve();
-      }),
-      signUp: vi.fn<SessionClient['signUp']>(() => {
-        user = braian;
-        return Promise.resolve();
-      }),
+      providers: vi.fn<SessionClient['providers']>(() => Promise.resolve(proveedores)),
+      signInWithProvider: vi.fn<SessionClient['signInWithProvider']>(() => Promise.resolve()),
       signOut: vi.fn<SessionClient['signOut']>(() => {
         user = null;
         return Promise.resolve();
@@ -174,6 +181,21 @@ export function renderApp(path: string, session: SessionClient, api: ApiClient =
   const app = createApp({ session, api, history });
   render(<App queryClient={app.queryClient} router={app.router} session={session} />);
   return app;
+}
+
+/**
+ * Vuelve a pedir la sesión y deja que el router decida a dónde ir: lo que pasa cuando el usuario
+ * vuelve del proveedor con la sesión ya abierta, o cuando la sesión cambia por otro lado.
+ */
+export async function refreshSession({
+  queryClient,
+  router,
+}: {
+  queryClient: QueryClient;
+  router: AppRouter;
+}): Promise<void> {
+  await queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY, refetchType: 'all' });
+  await router.invalidate();
 }
 
 /**

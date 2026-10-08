@@ -3,20 +3,20 @@ import { AppError, isAppError } from './app-error.ts';
 
 describe('AppError', () => {
   it('toma status y mensaje al usuario del catálogo', () => {
-    const error = new AppError('WC-AUTH-401-001');
+    const error = new AppError('WC-AUTH-403-002');
 
-    expect(error.statusCode).toBe(401);
-    expect(error.userMessage).toBe('Email o contraseña incorrectos.');
-    expect(error.message).toBe('Email o contraseña incorrectos.');
+    expect(error.statusCode).toBe(403);
+    expect(error.userMessage).toBe('No tenés permisos para esta acción.');
+    expect(error.message).toBe('No tenés permisos para esta acción.');
   });
 
   it('permite un mensaje interno distinto del mensaje al usuario', () => {
-    const error = new AppError('WC-AUTH-401-001', {
-      message: 'hash mismatch para usr_789',
+    const error = new AppError('WC-AUTH-403-002', {
+      message: 'el usuario usr_789 no es dueño del recurso',
     });
 
-    expect(error.message).toBe('hash mismatch para usr_789');
-    expect(error.userMessage).toBe('Email o contraseña incorrectos.');
+    expect(error.message).toBe('el usuario usr_789 no es dueño del recurso');
+    expect(error.userMessage).toBe('No tenés permisos para esta acción.');
   });
 
   it('congela meta para que nadie la mute después de lanzarla', () => {

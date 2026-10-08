@@ -124,13 +124,18 @@ de desarrollo (`apps/api/dev-support/`, dos caras: genérica y Microsoft), `star
 y el cableado en `dev:ephemeral`, con cuatro guardas probadas con pruebas inversas. **F9-04 está
 mergeada** (PR #99): los tests de la API abren sesión con `createTestSession` (el plugin `testUtils`,
 sólo con `NODE_ENV=test`), el admin sembrado queda **sin contraseña** y ligado a la cuenta del IdP
-falso, y se fue `UserRegistrar`. **F9-05 tiene el código hecho, en una PR** (la puerta de entrada,
+falso, y se fue `UserRegistrar`. **F9-05 está mergeada** (PR #101; la puerta de entrada,
 de riesgo alto): **el email y la contraseña dejaron de existir** —Better Auth sin
 `emailAndPassword`, y sólo cuatro de sus rutas llegan a la red—, las cuentas no se vinculan solas,
 los tokens del proveedor no se guardan, un email sin verificar no crea usuario, el `tid` de Microsoft
-se chequea, y la API no arranca sin ningún proveedor. **Desde F9-05 y hasta F9-07 las pantallas
-`/login` y `/registro` no funcionan** (la API les responde 404): en local se entra como se explica
-abajo, en "Cómo correrlo". El usuario confirmó los seis
+se chequea, y la API no arranca sin ningún proveedor. **F9-06 está mergeada** (PR #105): nada del
+flujo OAuth sale en un log —las URLs van sin _query_, `idToken` y `clientSecret` se redactan, y el
+logger de Better Auth escribe por Pino porque por defecto volcaba el `state` a `console`— y los
+headers no cambian. **F9-07 tiene el código hecho, en una PR**: `/login` vuelve a andar como una
+sola pantalla, con un botón por proveedor habilitado (sin campos de email ni contraseña), el aviso
+del `?error=` con el mensaje del catálogo y "Reintentar" si la lista de proveedores no carga;
+`/registro`, los formularios, los schemas de contraseña y `WC-AUTH-401-001` se fueron. El usuario
+confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -154,8 +159,9 @@ diseño pasa AA; el diseño nombra 5 de las 7 disciplinas; y que un cambio de co
 depende de los _watch paths_ de Railway, que el IaC no documenta (F10-12 lo comprueba). **El dominio
 hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth llevan el host de la
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
-está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro) también (PR #100) y
-F10-02 (tokens, fuentes y estilos base) está hecha en una PR**; ninguna tarea cerrada.
+está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
+(tokens, fuentes y estilos base, PR #102) y F10-03 (la estructura de la página, PR #104)
+también, y F10-04 (SEO y compartir) está hecha en una PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -187,10 +193,11 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-04 (mergeadas) y **revisar la PR de F9-05,
-    que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los tests de
-    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Después
-    F9-06 (logs) y F9-07 (la pantalla de ingreso: con ella vuelven a andar `/login` y la web). F9-10
+10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-06 (mergeadas) y **revisar los tests de
+    F9-05, que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
+    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Revisar la
+    PR de F9-07 (la pantalla de ingreso: la cara de la puerta; ver cómo se ve en el teléfono y con
+    Google y Microsoft de verdad, que no se pueden probar sin F9-10). F9-10
     necesita que el usuario cree el
     cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
     prod esperan a F3-07.
@@ -199,9 +206,9 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-02 (tokens, fuentes y estilos base; toca
-    `packages/ui`: un export nuevo); después F10-03 (layout, header, footer, 404 y
-    `Screenshot`). Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-04 (SEO y compartir; trae `og.png`, que repite el
+    titular del hero: si el copy de F10-05 cambia, `pnpm --filter @wasabi-cross/landing og` lo
+    regenera); después, en paralelo, las secciones F10-05 a F10-09. Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -279,28 +286,25 @@ forma de ver las estadísticas sin que se puedan pagar. Un usuario que se regist
 Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_NAME`. Sólo de desarrollo: el script se niega a correr
 con `NODE_ENV=production`.
 
-**Cómo entrar a la web en local hasta F9-07** (la pantalla de ingreso todavía no tiene el botón del IdP, y
-el formulario de email y contraseña ya no existe): abrir `/login`, y en la consola del navegador
-pedirle a la API la URL del IdP y seguirla:
-
-```js
-const r = await fetch('/api/auth/sign-in/social', {
-  method: 'POST',
-  headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({
-    provider: 'fake-idp',
-    callbackURL: location.origin + '/',
-    errorCallbackURL: location.origin + '/login',
-  }),
-});
-location.href = (await r.json()).url;
-```
-
-La pantalla del IdP muestra al admin Pro cargado: un clic y se entra como él. Para entrar como un
-usuario Free, cambiar el email y el nombre antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on`
-(el `.env.example` ya lo trae): sin ningún proveedor, no arranca.
+**Cómo entrar a la web en local** (no hay formulario de email y contraseña): abrir `/login` y apretar
+"Continuar con Ingreso de desarrollo", que lleva a la pantalla del IdP falso. Ofrece al admin Pro
+cargado: un clic y se entra como él. Para entrar como un usuario Free, cambiar el email y el nombre
+antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example` ya lo trae): sin
+ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-08 — **Fase 9, F9-07**: la pantalla de ingreso, con un botón por proveedor, en una PR. Se fueron
+`/registro`, los formularios con contraseña y `WC-AUTH-401-001`. Bitácora
+[2026-10-08](./bitacora/2026-10-08-f9-07-pantalla-de-ingreso.md).
+
+2026-10-08 — **Fase 10, F10-04**: los metadatos para compartir (Open Graph y Twitter, con una imagen de
+1200×630), la indexación sólo en producción, `robots.txt` y `sitemap.xml`, en una PR. Bitácora
+[2026-10-08](./bitacora/2026-10-08-f10-04-seo.md).
+
+2026-10-08 — **Fase 10, F10-03**: la estructura de la landing (layout, header, footer, 404, el
+enlace de salto, "Entrar" según `PUBLIC_APP_URL` y el componente `Screenshot`), en una PR.
+Bitácora [2026-10-08](./bitacora/2026-10-08-f10-03-estructura-pagina.md).
 
 2026-10-04 — **Fase 10, F10-02**: la landing usa los tokens de la app (`@wasabi-cross/ui/tokens.css`),
 sus propios tokens y las tres tipografías de Fontsource, con el contraste cuidado por un test, en
@@ -317,7 +321,12 @@ Bitácora [2026-10-04](./bitacora/2026-10-04-f10-00-spec-landing.md).
 planificación. Decididos con el usuario: sitio aparte, la landing lleva a la app, voseo y
 Free/Pro según la spec. Bitácora [2026-10-04](./bitacora/2026-10-04-plan-landing.md).
 
-2026-10-04 — **Fase 9, F9-05**: Better Auth sólo con OAuth, en una PR. Se fue el email y la
+2026-10-08 — **Fase 9, F9-06**: nada del flujo OAuth sale en un log, mergeado en la PR #105. Las URLs van sin
+_query_, `idToken` y `clientSecret` se redactan y el logger de Better Auth escribe por Pino (por
+defecto volcaba el `state` a `console`). Los headers quedan fijados por tests. Bitácora
+[2026-10-08](./bitacora/2026-10-08-f9-06-logs-y-headers.md).
+
+2026-10-04 — **Fase 9, F9-05**: Better Auth sólo con OAuth, mergeado en la PR #101. Se fue el email y la
 contraseña; sólo cuatro rutas de Better Auth llegan a la red; el `tid` de Microsoft se chequea; una
 migración con los índices únicos de la identidad. De paso, el 429 del límite de intentos respondía 500.
 Bitácora [2026-10-04](./bitacora/2026-10-04-f9-05-better-auth-solo-oauth.md).

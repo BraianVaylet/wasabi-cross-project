@@ -52,6 +52,8 @@ export interface BuildAppOptions {
   auth?: Auth;
   /** Los proveedores de ingreso (F9-02). Va aparte de `auth`: se pide antes de que haya sesión. */
   oauth?: OauthRoutesOptions;
+  /** Para los tests que leen el log (F9-06): adónde escribe Pino, en vez de stdout. */
+  logStream?: NodeJS.WritableStream;
   /** Se registra sólo junto con `auth`, como todo lo que es de un usuario. */
   users?: Omit<PreferencesRoutesOptions, 'requireSession'>;
   /** Se registra sólo junto con `auth`: los ejercicios son para usuarios con sesión. */
@@ -67,13 +69,14 @@ export async function buildApp({
   probes = [],
   auth,
   oauth,
+  logStream,
   users,
   exercises,
   records,
   stats,
 }: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: buildLoggerOptions(env),
+    logger: buildLoggerOptions(env, logStream),
     // El requestId viaja del front al back y vuelve al usuario en el error,
     // para poder correlacionar un reporte de soporte con el log exacto.
     genReqId: (request) => {
