@@ -3,13 +3,11 @@
 // probar el componente. El contenido de verdad llega con F10-05 (hero) a F10-08 (planes).
 import Screenshot from '../components/Screenshot.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { seo } from '../content/sitio.ts';
 import home from '../assets/capturas/01-home.png';
 ---
 
-<BaseLayout
-  titulo="Wasabi Cross"
-  descripcion="Registrá tus marcas de fuerza, repeticiones, distancia y tiempos en un solo lugar."
->
+<BaseLayout titulo={seo.titulo} descripcion={seo.descripcion} ruta="/">
   <div class="contenedor">
     <h1>Wasabi Cross</h1>
     <div class="demo">
