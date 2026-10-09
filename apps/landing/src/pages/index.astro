@@ -1,30 +1,10 @@
 ---
-// La página de ejemplo de F10-03: la estructura (layout, header, footer) con una captura, para
-// probar el componente. El contenido de verdad llega con F10-05 (hero) a F10-08 (planes).
-import Screenshot from '../components/Screenshot.astro';
-import BaseLayout from '../layouts/BaseLayout.astro';
+// La página de la landing. Las secciones de después del hero llegan con F10-06 a F10-08.
+import Hero from '../components/Hero.astro';
 import { seo } from '../content/sitio.ts';
-import home from '../assets/capturas/01-home.png';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout titulo={seo.titulo} descripcion={seo.descripcion} ruta="/">
-  <div class="contenedor">
-    <h1>Wasabi Cross</h1>
-    <div class="demo">
-      <Screenshot
-        src={home}
-        alt="Pantalla de inicio de Wasabi Cross: ejercicios de fuerza, burpees, carrera, remo ergómetro y sled con sus marcas"
-        pie="INICIO — Distintas marcas en una misma vista."
-        sizes="(min-width: 48rem) 430px, 100vw"
-        prioridad
-      />
-    </div>
-  </div>
+  <Hero />
 </BaseLayout>
-
-<style>
-  /* La columna de la app (spec §11): 430px como máximo. */
-  .demo {
-    max-width: var(--wc-column-max);
-  }
-</style>

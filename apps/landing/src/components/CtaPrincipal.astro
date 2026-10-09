@@ -1,0 +1,35 @@
+---
+/*
+ * Los CTA del hero y del footer (decisión 2 de la Fase 10, spec §5.7):
+ *
+ *   - Con app a la que llevar: "Empezar gratis" es la placa lima, y "Ver la app en acción" pasa a un
+ *     enlace de texto a la captura del hero (`#demo`).
+ *   - Sin app (todavía no hay producción): "Ver la app en acción" es la placa lima, como en el
+ *     diseño, y "Empezar gratis" no existe.
+ */
+import { urlIngreso } from '../lib/app-url.ts';
+import { textos } from '../content/sitio.ts';
+import AppLink from './AppLink.astro';
+import Enlace from './Enlace.astro';
+
+interface Props {
+  /** La flecha de los CTA: en el hero apunta hacia la captura (↘); en el footer, hacia arriba (↗). */
+  flecha: string;
+  /** El enlace a la captura. Las páginas que no la tienen (la 404) lo apagan. */
+  demo?: boolean;
+}
+
+const { flecha, demo = true } = Astro.props;
+const appUrl = import.meta.env.PUBLIC_APP_URL;
+const hayApp = urlIngreso(appUrl) !== null;
+---
+
+<AppLink texto={textos.empezarGratis} flecha={flecha} appUrl={appUrl} />
+{demo && (
+  <Enlace
+    href="#demo"
+    texto={textos.verLaApp}
+    variante={hayApp ? 'texto' : 'cta'}
+    flecha={hayApp ? undefined : flecha}
+  />
+)}

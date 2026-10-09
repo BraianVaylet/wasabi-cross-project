@@ -45,7 +45,8 @@ desde su propio origen, sin ensanchar la CSP y sin que `/me` cargue con ella.
   fix de la #103 más el regenerado de dependabot) y `vite-plugin-pwa` en `^1.3.0` contra `^2.0.0` en el
   manifiesto (la #109 se mergeó sin regenerar). Lo arreglé aparte, en la
   [PR #112](https://github.com/BraianVaylet/wasabi-cross-project/pull/112), con la verificación completa
-  (incluido el E2E de producción, que ejercita el service worker con `vite-plugin-pwa` 2).
+  (incluido el E2E de producción, que ejercita el service worker con `vite-plugin-pwa` 2). Otra sesión mergeó en paralelo la
+  [#113](https://github.com/BraianVaylet/wasabi-cross-project/pull/113) con el mismo fin, y `main` volvió a verde.
 - **Un `node_modules` a medias miente.** En este worktree, `pnpm install` decía "Already up to date" y el
   typecheck de la API fallaba por dos copias de pino (`10.3.1` vieja y `10.4.0`), con `fastify` enlazado a la
   vieja; en el worktree del fix, recién instalado, compilaba. Se arregló borrando los `node_modules` del

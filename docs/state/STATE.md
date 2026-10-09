@@ -162,8 +162,9 @@ depende de los _watch paths_ de Railway, que el IaC no documenta (F10-12 lo comp
 hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth llevan el host de la
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
-(tokens, fuentes y estilos base, PR #102) y F10-03 (la estructura de la página, PR #104)
-también, y F10-04 (SEO y compartir) está hecha en una PR**; ninguna tarea cerrada.
+(tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
+F10-04 (SEO y compartir, PR #110) también, y F10-05 (el hero) está hecha en una PR**; ninguna
+tarea cerrada.
 
 ## Bloqueado
 
@@ -209,9 +210,11 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-04 (SEO y compartir; trae `og.png`, que repite el
-    titular del hero: si el copy de F10-05 cambia, `pnpm --filter @wasabi-cross/landing og` lo
-    regenera); después, en paralelo, las secciones F10-05 a F10-09. Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-05 (el hero) y **aprobar su copy en voseo**: el
+    titular, el párrafo, la línea de ejercicios, los CTA y el pie de la captura. Si el titular
+    cambia, `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04).
+    También decidir si el párrafo suma `hybrid` y `pilates`. Después, en paralelo, F10-06 a F10-09.
+    Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -300,8 +303,12 @@ ningún proveedor, no arranca, y ése es el único que hay fuera de producción 
 2026-10-09 — **Fase 9, F9-08**: la foto del usuario en el Perfil, en una PR: `GET /api/v1/me/photo` (sólo
 baja de `*.googleusercontent.com`, sólo `png`/`jpeg`/`webp` por lo que dicen los bytes, con tiempo y tamaño
 máximos y 304 sin tocar al proveedor), `hasPhoto` en `/me`, el `Avatar` y el bloque "Tu cuenta". De paso,
-se arregló el lockfile roto de `main` (PR #112). Bitácora
+se reparó el lockfile roto de `main` (PR #112 y #113). Bitácora
 [2026-10-09](./bitacora/2026-10-09-f9-08-foto-en-el-perfil.md).
+
+2026-10-09 — **Fase 10, F10-05**: el hero de la landing (titular, párrafo, CTA según haya app, franja de
+métricas y la captura del LCP), en una PR. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f10-05-hero.md).
 
 2026-10-08 — **Fase 9, F9-07**: la pantalla de ingreso, con un botón por proveedor, mergeada en la PR #111. Se fueron
 `/registro`, los formularios con contraseña y `WC-AUTH-401-001`. Bitácora

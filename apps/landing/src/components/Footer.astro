@@ -1,10 +1,9 @@
 ---
 /*
- * El footer: la marca, su frase y los enlaces de cierre. "Empezar gratis" sólo si hay app a la que
- * llevar; "Ver la app en acción" salta a la captura del hero (`#demo`).
+ * El footer: la marca, su frase y los CTA de cierre, los mismos que los del hero (`CtaPrincipal`).
  */
 import { textos } from '../content/sitio.ts';
-import AppLink from './AppLink.astro';
+import CtaPrincipal from './CtaPrincipal.astro';
 import Marca from './Marca.astro';
 
 interface Props {
@@ -21,12 +20,7 @@ const { demo = true } = Astro.props;
     <p>{textos.pieDescripcion}</p>
   </div>
   <div class="acciones">
-    <AppLink texto={textos.empezarGratis} flecha="↗" />
-    {demo && (
-      <a class="demo" href="#demo">
-        {textos.verLaApp}
-      </a>
-    )}
+    <CtaPrincipal flecha="↗" demo={demo} />
   </div>
 </footer>
 
@@ -70,20 +64,5 @@ const { demo = true } = Astro.props;
     .acciones {
       align-items: flex-end;
     }
-  }
-
-  .demo {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--wc-tap-target);
-    color: var(--wc-text-soft);
-    font-family: var(--wc-font-family);
-    font-size: var(--wc-font-size-sm);
-    text-decoration: underline;
-    text-underline-offset: 0.25em;
-  }
-
-  .demo:hover {
-    color: var(--wc-accent-text);
   }
 </style>
