@@ -43,6 +43,8 @@ export const ERROR_CATALOG = {
     status: 409,
     userMessage: 'Ya hay una cuenta con ese email. Entrá con el otro proveedor.',
   },
+  // El usuario no tiene foto, o no se la pudo traer del proveedor (F9-08): el front cae a las iniciales.
+  'WC-USER-404-001': { status: 404, userMessage: 'No hay una foto para mostrar.' },
   'WC-EXO-404-002': { status: 404, userMessage: 'No encontramos ese ejercicio.' },
   'WC-EXO-409-003': { status: 409, userMessage: 'Ya tenés ese ejercicio en tu lista.' },
   'WC-RM-422-001': { status: 422, userMessage: 'El valor cargado no es válido.' },

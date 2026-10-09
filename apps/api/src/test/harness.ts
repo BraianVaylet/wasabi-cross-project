@@ -7,10 +7,12 @@ import { createAuth, type Auth } from '../modules/auth/infrastructure/better-aut
 import {
   composeExercises,
   composeOauth,
+  composePhoto,
   composeRecords,
   composeStats,
   composeUsers,
 } from '../composition.ts';
+import type { PhotoDownloaderOptions } from '../modules/users/infrastructure/download-photo.ts';
 import { migrateUp, migrationsProbe } from '../shared/db/migrations.ts';
 import { connectMongo, type MongoConnection } from '../shared/db/mongo.ts';
 import { testEnv } from './env.ts';
@@ -32,7 +34,9 @@ export interface TestHarness {
  * standalone no existen. Así los tests corren con las
  * mismas garantías que producción, Better Auth incluido.
  */
-export async function startTestApi(): Promise<TestHarness> {
+export async function startTestApi(
+  options: { photo?: PhotoDownloaderOptions } = {},
+): Promise<TestHarness> {
   const replSet = await MongoMemoryReplSet.create({
     replSet: { count: 1, storageEngine: 'wiredTiger' },
   });
@@ -49,6 +53,8 @@ export async function startTestApi(): Promise<TestHarness> {
     auth,
     oauth: composeOauth(env),
     users: composeUsers(mongo),
+    // Con el `fetch` que pase el test: la foto de Google nunca se baja de verdad.
+    photo: composePhoto(options.photo),
     exercises: composeExercises(mongo),
     records: composeRecords(mongo),
     stats: composeStats(mongo),

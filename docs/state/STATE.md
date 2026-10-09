@@ -131,11 +131,13 @@ los tokens del proveedor no se guardan, un email sin verificar no crea usuario, 
 se chequea, y la API no arranca sin ningún proveedor. **F9-06 está mergeada** (PR #105): nada del
 flujo OAuth sale en un log —las URLs van sin _query_, `idToken` y `clientSecret` se redactan, y el
 logger de Better Auth escribe por Pino porque por defecto volcaba el `state` a `console`— y los
-headers no cambian. **F9-07 tiene el código hecho, en una PR**: `/login` vuelve a andar como una
-sola pantalla, con un botón por proveedor habilitado (sin campos de email ni contraseña), el aviso
-del `?error=` con el mensaje del catálogo y "Reintentar" si la lista de proveedores no carga;
-`/registro`, los formularios, los schemas de contraseña y `WC-AUTH-401-001` se fueron. El usuario
-confirmó los seis
+headers no cambian. **F9-07 está mergeada** (PR #111): `/login` es una sola pantalla, con un botón
+por proveedor habilitado (sin campos de email ni contraseña), el aviso del `?error=` con el mensaje
+del catálogo y "Reintentar" si la lista de proveedores no carga; `/registro`, los formularios, los
+schemas de contraseña y `WC-AUTH-401-001` se fueron. **F9-08 tiene el código hecho, en una PR**: el
+Perfil muestra la foto del usuario (o sus iniciales), nombre y email; la sirve la API desde su propio
+origen (`GET /api/v1/me/photo`) y sólo baja imágenes de `*.googleusercontent.com`, nunca de otro host.
+El usuario confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -194,11 +196,12 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-06 (mergeadas) y **revisar los tests de
+10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-07 (mergeadas) y **revisar los tests de
     F9-05, que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
     `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Revisar la
-    PR de F9-07 (la pantalla de ingreso: la cara de la puerta; ver cómo se ve en el teléfono y con
-    Google y Microsoft de verdad, que no se pueden probar sin F9-10). F9-10
+    PR de F9-08 (**la API baja una URL: mirar que sólo sean hosts de Google** —`domain/photo.ts` y
+    `download-photo.ts`—, y que un SVG nunca se sirva). Después F9-09 (E2E del ingreso, con foto y axe).
+    Ver cómo se ve el ingreso en el teléfono y con Google y Microsoft de verdad no se puede sin F9-10. F9-10
     necesita que el usuario cree el
     cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
     prod esperan a F3-07.
@@ -302,6 +305,12 @@ ningún proveedor, no arranca, y ése es el único que hay fuera de producción 
 
 ## Última actualización
 
+2026-10-09 — **Fase 9, F9-08**: la foto del usuario en el Perfil, en una PR: `GET /api/v1/me/photo` (sólo
+baja de `*.googleusercontent.com`, sólo `png`/`jpeg`/`webp` por lo que dicen los bytes, con tiempo y tamaño
+máximos y 304 sin tocar al proveedor), `hasPhoto` en `/me`, el `Avatar` y el bloque "Tu cuenta". De paso,
+se reparó el lockfile roto de `main` (PR #112 y #113). Bitácora
+[2026-10-09](./bitacora/2026-10-09-f9-08-foto-en-el-perfil.md).
+
 2026-10-09 — **Fase 10, F10-06**: las secciones Registro y Funciones de la landing, que sólo prometen lo
 que tiene Free y avisan en el pie qué parte de cada captura es de Pro, en una PR. Bitácora
 [2026-10-09](./bitacora/2026-10-09-f10-06-registro-funciones.md).
@@ -310,7 +319,7 @@ que tiene Free y avisan en el pie qué parte de cada captura es de Pro, en una P
 métricas y la captura del LCP), en una PR. Bitácora
 [2026-10-09](./bitacora/2026-10-09-f10-05-hero.md).
 
-2026-10-08 — **Fase 9, F9-07**: la pantalla de ingreso, con un botón por proveedor, en una PR. Se fueron
+2026-10-08 — **Fase 9, F9-07**: la pantalla de ingreso, con un botón por proveedor, mergeada en la PR #111. Se fueron
 `/registro`, los formularios con contraseña y `WC-AUTH-401-001`. Bitácora
 [2026-10-08](./bitacora/2026-10-08-f9-07-pantalla-de-ingreso.md).
 

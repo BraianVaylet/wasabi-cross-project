@@ -10,7 +10,7 @@ function navigation() {
 const braian = { id: 'u1', email: 'braian@example.com', name: 'Braian', plan: 'free' } as const;
 
 function httpWith(request: HttpClient['request']): HttpClient {
-  return { request };
+  return { request, url: (path) => path };
 }
 
 describe('la navegación del navegador', () => {

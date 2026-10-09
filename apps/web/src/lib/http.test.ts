@@ -20,6 +20,18 @@ function clientWith(fetchImpl: typeof fetch) {
 }
 
 describe('cliente HTTP', () => {
+  it('url() arma la dirección de un recurso contra la API, para lo que no es un fetch (un <img>)', () => {
+    const http = clientWith(vi.fn<typeof fetch>());
+
+    expect(http.url('/api/v1/me/photo')).toBe('http://api.test/api/v1/me/photo');
+  });
+
+  it('url() sin baseUrl (la API en el mismo origen) devuelve la ruta tal cual', () => {
+    const http = createHttpClient({ baseUrl: '', fetch: vi.fn<typeof fetch>() });
+
+    expect(http.url('/api/v1/me/photo')).toBe('/api/v1/me/photo');
+  });
+
   it('manda x-request-id, credenciales y JSON, contra la URL de la API', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(200, { ok: true }));
 

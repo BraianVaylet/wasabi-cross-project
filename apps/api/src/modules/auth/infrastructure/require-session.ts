@@ -39,6 +39,8 @@ export function requireSession(auth: Auth): onRequestAsyncHookHandler {
       email: user.email,
       name: user.name,
       plan,
+      // Sin foto puede ser `null`, `undefined` o un texto vacío, según el proveedor y la época.
+      image: typeof user.image === 'string' && user.image.trim() !== '' ? user.image : undefined,
     };
   };
 }

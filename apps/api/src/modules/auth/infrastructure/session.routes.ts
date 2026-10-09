@@ -30,7 +30,10 @@ export function sessionRoutes(auth: Auth): FastifyPluginAsyncZod {
         }
         /* v8 ignore stop */
 
-        return request.currentUser;
+        // Explícito, y no `return request.currentUser`: ese objeto lleva la foto (`image`), que no sale
+        // por acá. `/me` sólo dice si hay.
+        const { id, email, name, plan, image } = request.currentUser;
+        return { id, email, name, plan, hasPhoto: image !== undefined };
       },
     );
   };

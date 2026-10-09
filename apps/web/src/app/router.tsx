@@ -60,6 +60,8 @@ export interface RouterContext {
   queryClient: QueryClient;
   session: SessionClient;
   api: ApiClient;
+  /** De dónde se carga la foto del usuario (`<img src>`): no es un pedido de la API del front. */
+  photoUrl: string;
 }
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({
@@ -408,7 +410,7 @@ const profileRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/perfil',
   component: function ProfileRoute() {
-    const { api, queryClient, user } = appRoute.useRouteContext();
+    const { api, queryClient, user, photoUrl } = appRoute.useRouteContext();
     const preferences = useQuery(preferencesQueryOptions(api));
     const savePercentages = useMutation({
       mutationFn: (loadPercentages: number[]) => api.savePreferences({ loadPercentages }),
@@ -419,7 +421,8 @@ const profileRoute = createRoute({
 
     return (
       <ProfilePage
-        plan={user.plan}
+        user={user}
+        photoUrl={photoUrl}
         preferences={preferences}
         saving={savePercentages.isPending}
         saved={savePercentages.isSuccess}

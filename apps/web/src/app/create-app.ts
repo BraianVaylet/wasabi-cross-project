@@ -6,6 +6,9 @@ import type { ApiClient } from './api.ts';
 import { createAppRouter, type AppRouter } from './router.tsx';
 import { SESSION_QUERY_KEY, type SessionClient } from './session.ts';
 
+/** Dónde la API sirve la foto del usuario de la sesión (F9-08): sin id, cada uno pide la suya. */
+export const PHOTO_PATH = '/api/v1/me/photo';
+
 /** Sin sesión, o sesión vencida (docs/error-codes.md). */
 export const SESSION_EXPIRED_CODE: ErrorCode = 'WC-AUTH-401-004';
 
@@ -23,10 +26,13 @@ export function shouldRetry(failureCount: number, error: unknown): boolean {
 export function createApp({
   session,
   api,
+  photoUrl = PHOTO_PATH,
   history,
 }: {
   session: SessionClient;
   api: ApiClient;
+  /** La dirección de la foto: absoluta si la API está en otro origen. Por defecto, la del mismo. */
+  photoUrl?: string;
   history?: RouterHistory;
 }): { queryClient: QueryClient; router: AppRouter } {
   const onError = (error: unknown): void => {
@@ -46,6 +52,7 @@ export function createApp({
     queryClient,
     session,
     api,
+    photoUrl,
     ...(history === undefined ? {} : { history }),
   });
 
