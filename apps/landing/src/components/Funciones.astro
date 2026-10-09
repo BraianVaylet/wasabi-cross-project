@@ -1,0 +1,121 @@
+---
+/*
+ * La sección Funciones (F10-06, spec §5.7): el catálogo, las marcas por tiempo y el historial. Sobre
+ * la banda de fondo más clara, como en el diseño. El texto, en `content/funciones.ts`.
+ */
+import catalogo from '../assets/capturas/05-catalogo.png';
+import running from '../assets/capturas/04-detalle-running.png';
+import { funciones } from '../content/funciones.ts';
+import Screenshot from './Screenshot.astro';
+
+const { capturas } = funciones;
+const sizes = '(min-width: 48rem) 560px, 100vw';
+---
+
+<section id={funciones.id} class="banda" aria-labelledby="funciones-titulo">
+  <div class="contenedor seccion">
+    <div class="cabecera">
+      <h2 id="funciones-titulo" class="titulo-seccion">
+        {funciones.titulo.map((linea) => (
+          <span>{linea}</span>
+        ))}
+      </h2>
+      <p class="texto-seccion descripcion">{funciones.descripcion}</p>
+    </div>
+    <div class="capturas">
+      <Screenshot
+        src={catalogo}
+        alt={capturas.catalogo.alt}
+        pie={capturas.catalogo.pie}
+        sizes={sizes}
+      />
+      <Screenshot
+        src={running}
+        alt={capturas.running.alt}
+        pie={capturas.running.pie}
+        sizes={sizes}
+      />
+    </div>
+    <ul class="resumenes">
+      {funciones.resumenes.map((r) => (
+        <li>
+          <span class="resumen-titulo">{r.titulo}</span>
+          {r.texto}
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .banda {
+    border-block: 1px solid var(--wc-line);
+    background-color: var(--wc-bg-band);
+  }
+
+  .cabecera {
+    display: grid;
+    gap: 1.25rem;
+    align-items: end;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--wc-line);
+  }
+
+  @media (min-width: 48rem) {
+    .cabecera {
+      grid-template-columns: 1fr 0.8fr;
+      gap: 3rem;
+    }
+  }
+
+  .cabecera h2 {
+    max-width: 41.25rem;
+  }
+
+  .descripcion {
+    max-width: 30rem;
+    margin: 0;
+  }
+
+  /* Las capturas van sobre el fondo de la página, no sobre el de la banda. */
+  .capturas {
+    --captura-fondo: var(--wc-bg);
+
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+    margin-top: 2rem;
+  }
+
+  @media (min-width: 48rem) {
+    .capturas {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+  }
+
+  .resumenes {
+    display: grid;
+    gap: 1rem 1.5rem;
+    margin: 1.5rem 0 0;
+    padding: 1.25rem 0 0;
+    border-top: 1px solid var(--wc-line);
+    color: var(--wc-text-body);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    line-height: 1.5rem;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .resumenes {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .resumen-titulo {
+    display: block;
+    color: var(--wc-text-soft);
+    text-transform: uppercase;
+  }
+</style>

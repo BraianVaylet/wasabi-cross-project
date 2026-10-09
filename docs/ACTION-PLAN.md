@@ -3633,6 +3633,24 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   palabras "tendencia" ni "evolución"; E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que el usuario apruebe el copy**. `Registro`,
+  `Funciones` y su texto en `src/content/registro.ts` y `funciones.ts`; los estilos que van a compartir
+  las demás secciones (`.seccion`, `.titulo-seccion`, `.texto-seccion`) en `global.css`. **Al mirar las
+  capturas aparecieron más cosas de las que decía el plan:** las tres de los detalles (02, 03 y 04) son
+  de un usuario Pro (etiqueta PRO y gráfico de progreso), y **la 02, la de porcentajes, también muestra
+  abajo el comienzo de "Tendencia de fuerza / Progreso del RM"**; y la del catálogo (05) muestra siete
+  filtros de disciplina, no cinco. Por eso: **los pies de las tres capturas que muestran Pro lo dicen**
+  ("…es de Pro"), la 05 no, y el pie del catálogo **no lista las disciplinas** (el del diseño nombraba
+  cinco y la imagen muestra siete). El `alt` de cada una describe lo que se ve, el progreso incluido.
+  La alternativa del plan, reemplazar las capturas por otras con un usuario Free, queda como decisión
+  abierta en STATE.md: necesita el script que las regenere. Dos reglas en tests: ningún texto de estas
+  secciones usa "tendencia" ni "evolución" y cada vez que hablan de estadísticas dicen que son de PRO;
+  y cada captura con `muestraPro` lo dice en el pie, y las que no, no. Corregido de paso el test de
+  imágenes de F10-03, que comparaba todas contra el PNG de `01-home`: ahora cada WebP contra el suyo.
+  166 tests (de 147) y trece mutaciones a mano que atrapa un test cada una. **Verificado en Chromium**:
+  axe sin violaciones a 390 y 1280 px; títulos H1 → H2 → H2, con las dos secciones nombradas; la nav
+  lleva a cada sección; capturas de 332 px (Registro) y 576 px (Funciones) en escritorio; las cinco
+  imágenes cargan al llegar a ellas a 390 px; sin scroll horizontal ni errores de consola.
 
 ## [ ] F10-07 · Estadísticas Pro
 

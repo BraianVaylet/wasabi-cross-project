@@ -1,10 +1,14 @@
 ---
 // La página de la landing. Las secciones de después del hero llegan con F10-06 a F10-08.
+import Funciones from '../components/Funciones.astro';
 import Hero from '../components/Hero.astro';
+import Registro from '../components/Registro.astro';
 import { seo } from '../content/sitio.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout titulo={seo.titulo} descripcion={seo.descripcion} ruta="/">
   <Hero />
+  <Registro />
+  <Funciones />
 </BaseLayout>
