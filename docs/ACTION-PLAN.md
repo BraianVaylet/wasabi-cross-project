@@ -3711,6 +3711,23 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** Container API; E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que el usuario apruebe el copy**.
+  `Estadisticas` y su texto en `src/content/estadisticas.ts`. Tres bloques como el diseño: el
+  período y el ejercicio junto al titular y la etiqueta "PRO · ESTADÍSTICAS" (en el rosa de Pro);
+  lo general y el entrenamiento, una por columna; y constancia y retestear. **Las dos capturas
+  altas se muestran completas, como el diseño** (a 1280 px, 2063 y 1774 px de alto; la sección
+  mide 3748): con una altura máxima habría que recortarlas o meter un scroll interno, y las dos
+  son la lista completa de capacidades y de grupos. Queda como decisión abierta en STATE.md.
+  **Al mirar las capturas:** el alt del diseño para 07-constancia hablaba de la "fecha de última
+  marca" y la imagen muestra "hace 7 días" y "Lo que más mejoró" (el alt describe lo que se
+  ve); y la dona de disciplinas incluye Hybrid. **Un desvío del diseño, a propósito:** el texto
+  y el par de capturas de arriba y de abajo van lado a lado desde 1024 px y no desde 768 px,
+  porque a 768 px cada captura quedaba en 185 px de ancho (menos que en el teléfono). "Más de
+  ocho semanas" son los 56 días de spec §5.4, y un test lo cruza con la spec. 180 tests (de 166),
+  100 % de cobertura y nueve mutaciones a mano que atrapa un test cada una. **Verificado en
+  Chromium** a 390, 768, 1024 y 1280 px: axe sin violaciones, sin scroll horizontal ni errores de
+  consola, las seis imágenes cargan al llegar a ellas y entran sin saltar (llevan `width` y
+  `height`).
 
 ## [ ] F10-08 · Planes
 
