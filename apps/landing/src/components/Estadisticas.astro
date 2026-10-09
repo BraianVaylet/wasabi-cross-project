@@ -1,0 +1,182 @@
+---
+/*
+ * La sección de estadísticas (F10-07, spec §5.7): lo que suma Pro. Seis capturas en tres bloques,
+ * como el diseño: el período y un ejercicio; lo general y el entrenamiento; la constancia y lo que
+ * toca retestear. El texto, en `content/estadisticas.ts`.
+ */
+import constancia from '../assets/capturas/07-estadisticas-constancia.png';
+import ejercicio from '../assets/capturas/07-estadisticas-ejercicio.png';
+import entrenamiento from '../assets/capturas/07-estadisticas-entrenamiento.png';
+import general from '../assets/capturas/07-estadisticas-general.png';
+import periodo from '../assets/capturas/06-estadisticas.png';
+import retestear from '../assets/capturas/07-estadisticas-retestear.png';
+import { estadisticas } from '../content/estadisticas.ts';
+import Screenshot from './Screenshot.astro';
+
+const { capturas } = estadisticas;
+// Un par de capturas: de a dos desde 640px; junto al texto (con el par a 1.2fr) desde 1024px.
+const sizesPar = '(min-width: 64rem) 340px, (min-width: 40rem) 45vw, 100vw';
+// Las dos grandes del medio: una por columna desde 768px.
+const sizesGrande = '(min-width: 48rem) 560px, 100vw';
+---
+
+<section id={estadisticas.id} class="seccion contenedor" aria-labelledby="estadisticas-titulo">
+  <div class="arriba">
+    <div class="texto">
+      <h2 id="estadisticas-titulo" class="titulo-seccion">
+        {estadisticas.titulo.map((linea) => (
+          <span>{linea}</span>
+        ))}
+      </h2>
+      <p class="texto-seccion">{estadisticas.descripcion}</p>
+      <span class="etiqueta">{estadisticas.etiqueta}</span>
+    </div>
+    <div class="par">
+      <Screenshot
+        src={periodo}
+        alt={capturas.periodo.alt}
+        pie={capturas.periodo.pie}
+        sizes={sizesPar}
+      />
+      <Screenshot
+        src={ejercicio}
+        alt={capturas.ejercicio.alt}
+        pie={capturas.ejercicio.pie}
+        sizes={sizesPar}
+      />
+    </div>
+  </div>
+
+  <div class="medio">
+    <Screenshot
+      src={general}
+      alt={capturas.general.alt}
+      pie={capturas.general.pie}
+      sizes={sizesGrande}
+    />
+    <Screenshot
+      src={entrenamiento}
+      alt={capturas.entrenamiento.alt}
+      pie={capturas.entrenamiento.pie}
+      sizes={sizesGrande}
+    />
+  </div>
+
+  <div class="abajo">
+    <div class="texto-abajo">
+      <h3>{estadisticas.retestear.titulo}</h3>
+      <p class="texto-seccion">{estadisticas.retestear.descripcion}</p>
+    </div>
+    <div class="par">
+      <Screenshot
+        src={constancia}
+        alt={capturas.constancia.alt}
+        pie={capturas.constancia.pie}
+        sizes={sizesPar}
+      />
+      <Screenshot
+        src={retestear}
+        alt={capturas.retestear.alt}
+        pie={capturas.retestear.pie}
+        sizes={sizesPar}
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .arriba {
+    display: grid;
+    gap: 2rem;
+    align-items: start;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--wc-line);
+  }
+
+  /* Texto y par de capturas lado a lado sólo desde 1024px: a 768px, cada captura quedaría en 185px. */
+  @media (min-width: 64rem) {
+    .arriba {
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 3.5rem;
+    }
+  }
+
+  .texto-seccion {
+    max-width: 30.625rem;
+  }
+
+  /* La marca de Pro, en el rosa del diseño (no el lima de la etiqueta de la app: ver STATE.md). */
+  .etiqueta {
+    display: inline-flex;
+    margin-top: 1.5rem;
+    padding: var(--wc-space-1) var(--wc-space-3);
+    border: 1px solid var(--wc-pro-border);
+    color: var(--wc-pro-text);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+  }
+
+  .par {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  @media (min-width: 40rem) {
+    .par {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .medio {
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+    padding-top: 2rem;
+  }
+
+  @media (min-width: 48rem) {
+    .medio {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+  }
+
+  .abajo {
+    display: grid;
+    gap: 1.5rem;
+    align-items: start;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--wc-line);
+  }
+
+  @media (min-width: 64rem) {
+    .abajo {
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 2.5rem;
+    }
+  }
+
+  .texto-abajo {
+    max-width: 26.25rem;
+  }
+
+  /* La condensada y las mayúsculas vienen de `.wc-root`; acá, el tamaño y el tracking del diseño. */
+  .texto-abajo h3 {
+    margin: 0;
+    font-size: 1.875rem;
+    line-height: 1;
+    letter-spacing: 0.04em;
+  }
+
+  @media (min-width: 40rem) {
+    .texto-abajo h3 {
+      font-size: 2.25rem;
+    }
+  }
+
+  .texto-abajo .texto-seccion {
+    margin-top: var(--wc-space-4);
+  }
+</style>

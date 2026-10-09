@@ -163,8 +163,8 @@ hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth l
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
 (tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
-F10-04 (SEO y compartir, PR #110) y F10-05 (el hero, PR #114) también, y F10-06 (Registro y
-Funciones) está hecha en una PR**; ninguna tarea cerrada.
+F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114) y F10-06 (Registro y Funciones,
+PR #115) también, y F10-07 (Estadísticas Pro) está hecha en una PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -210,12 +210,15 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-06 (Registro y Funciones) y **aprobar su copy en
-    voseo**, y lo que queda del de F10-05 si no se aprobó: titular, párrafo, ejercicios, CTA y pies.
-    Si el titular cambia, `pnpm --filter @wasabi-cross/landing og` regenera la imagen para
-    compartir (F10-04). Decidir si el párrafo del hero suma `hybrid` y `pilates` (la captura del
-    catálogo ya muestra los siete filtros). Después, en paralelo, F10-07 a F10-09. Crear las
-    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-07 (Estadísticas Pro) y **aprobar su copy en
+    voseo**, y lo que queda del de F10-05 y F10-06 si no se aprobó: titular, párrafo, ejercicios,
+    CTA, pies y los textos de la sección de estadísticas. Si el titular del hero cambia,
+    `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04). Decidir
+    si el párrafo del hero suma `hybrid` y `pilates` (la captura del catálogo ya muestra los siete
+    filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
+    dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Después, en
+    paralelo, F10-08 y F10-09. Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9:
+    no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -232,6 +235,11 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
   etiqueta PRO y el gráfico de progreso, que Free no ve (spec §4): la landing lo avisa en el pie de
   cada una (F10-06). Reemplazarlas por capturas con un usuario Free sacaría el aviso, y necesita el
   script que las regenere desde la app, que quedó fuera de la Fase 10.
+- **Capturas altas de la sección de estadísticas** (F10-07). `07-estadisticas-general` (780×2740)
+  y `07-estadisticas-entrenamiento` (780×2320) se muestran **completas**, como el diseño: a
+  1280 px miden 2063 y 1774 px de alto y la sección entera, 3748. Con una altura máxima habría que
+  recortar la imagen o meter un scroll interno, y las dos son la lista completa de capacidades
+  y de grupos musculares. Se cambia en `Estadisticas.astro`.
 - **Dominio** de Wasabi Cross: no hay. El plan de la landing asume la landing en la raíz y la
   app en `app.`, y de eso dependen el host de las redirect URIs de OAuth (F9-10) y el de
   `WEB_ORIGIN` y `BETTER_AUTH_URL`.
@@ -304,6 +312,10 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-09 — **Fase 10, F10-07**: la sección de estadísticas Pro de la landing (seis capturas en tres
+bloques, con la etiqueta PRO y el umbral de "para retestear" cruzado con la spec), en una PR.
+Bitácora [2026-10-09](./bitacora/2026-10-09-f10-07-estadisticas-pro.md).
 
 2026-10-09 — **Fase 9, F9-08**: la foto del usuario en el Perfil, en una PR: `GET /api/v1/me/photo` (sólo
 baja de `*.googleusercontent.com`, sólo `png`/`jpeg`/`webp` por lo que dicen los bytes, con tiempo y tamaño
