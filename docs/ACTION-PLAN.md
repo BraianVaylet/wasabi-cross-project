@@ -3593,6 +3593,19 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   `disciplineSchema`; E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que el usuario apruebe el copy**. `Hero`,
+  `CtaPrincipal` (los CTA del hero y del footer), `Enlace` (la placa lima, el botón de línea y el
+  enlace de texto; `AppLink` quedó apoyado en él) y el texto en `src/content/hero.ts`. **Sin app**
+  "Ver la app en acción" es la placa lima y "Empezar gratis" no existe (como el CTA del diseño);
+  **con app**, "Empezar gratis" es la placa y "Ver la app en acción" pasa a enlace de texto. Lo mismo en
+  el footer, que hasta ahora mostraba sólo el enlace de texto. El párrafo nombra las cinco disciplinas
+  del diseño: **faltan `hybrid` y `pilates`**, y sumarlas o no lo decide el usuario. Las disciplinas son
+  `Discipline` de schemas y un test las compara con `disciplineSchema`. `Screenshot` suma la prop `id`
+  (la figura es `#demo`). 147 tests (de 130) y doce mutaciones a mano que atrapa un test cada una.
+  **Verificado en Chromium**, en los dos modos: axe sin violaciones a 390 y 1280 px; una columna en el
+  teléfono y, desde 768 px, texto y captura lado a lado con ésta en 430 px; **el LCP es la captura
+  `#demo` (`IMG`, eager)** a los dos anchos; los CTA miden 56 px y el enlace de texto, 44 px; sin
+  scroll horizontal ni errores de consola.
 
 ## [ ] F10-06 · Registro y Funciones
 

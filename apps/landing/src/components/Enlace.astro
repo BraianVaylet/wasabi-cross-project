@@ -1,0 +1,83 @@
+---
+/*
+ * Un enlace con el estilo de la landing: la placa lima con recorte (`cta`), el botón de línea del
+ * header (`compacto`) o un enlace de texto subrayado (`texto`). Sólo presenta: a dónde va lo decide
+ * quien lo usa (`AppLink` lleva a la app; el hero y el footer, a `#demo`).
+ */
+interface Props {
+  href: string;
+  texto: string;
+  variante?: 'cta' | 'compacto' | 'texto';
+  /** Un carácter decorativo después del texto, como la flecha del CTA del diseño. */
+  flecha?: string | undefined;
+}
+
+const { href, texto, variante = 'cta', flecha } = Astro.props;
+---
+
+<a class:list={['enlace', variante, variante === 'cta' && 'wc-plate-cut']} href={href}>
+  {texto}
+  {flecha && <span aria-hidden="true">{flecha}</span>}
+</a>
+
+<style>
+  .enlace {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+
+  .cta {
+    min-height: 3.5rem;
+    padding-inline: var(--wc-space-5);
+    gap: 1.25rem;
+    background-color: var(--wc-accent);
+    color: var(--wc-text-on-accent);
+    font-family: var(--wc-font-family-display);
+    font-size: 1.25rem;
+    letter-spacing: var(--wc-tracking-button);
+  }
+
+  .cta:hover {
+    background-color: var(--wc-accent-hover);
+  }
+
+  /* El recorte (`.wc-plate-cut`) se come el outline: en un control, el foco va como anillo interior
+     (igual que el botón primario de la app). */
+  .cta:focus-visible {
+    outline: none;
+    box-shadow:
+      inset 0 0 0 3px var(--wc-accent),
+      inset 0 0 0 5px var(--wc-text-on-accent);
+  }
+
+  .compacto {
+    min-height: var(--wc-tap-target);
+    padding-inline: var(--wc-space-4);
+    border: 1px solid var(--wc-accent);
+    color: var(--wc-accent-text);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    letter-spacing: var(--wc-tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .compacto:hover {
+    background-color: var(--wc-accent);
+    color: var(--wc-text-on-accent);
+  }
+
+  .texto {
+    min-height: var(--wc-tap-target);
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .texto:hover {
+    color: var(--wc-accent-text);
+  }
+</style>
