@@ -3258,6 +3258,28 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
 - **test_plan:** prueba manual guiada, con el resultado en la bitácora.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** **la parte de la IA está hecha, en una PR; falta todo lo que necesita al usuario.** Está el
+  runbook [`docs/runbooks/oauth.md`](./runbooks/oauth.md): qué crear en Google Cloud y en Microsoft
+  Entra, por ambiente; las redirect URIs; las variables; la tabla de vencimiento del secreto de
+  Microsoft; cómo rotar cada secreto y qué hacer si se filtra uno; la prueba guiada en 11 pasos con
+  su tabla de resultados; la prueba de la PWA instalada; y qué mirar si el ingreso falla. Y el informe
+  de claims: `pnpm --filter @wasabi-cross/api oauth:inspect-token` lee un ID token por la entrada
+  estándar y dice qué claims trae y si la API crearía la cuenta (la misma regla que Better Auth para
+  Microsoft), **sin imprimir ningún valor personal**. Cosas que salieron de prepararlo:
+  - **Para Microsoft, el email llega verificado sólo si se piden dos notificaciones opcionales.**
+    Better Auth usa `email_verified` si viene; si no, mira que el `email` esté en
+    `verified_primary_email` o `verified_secondary_email`, que son claims **opcionales** del ID token y
+    hay que agregarlos en el registro de la app (Configuración de tokens). Sin ellos nadie entra con
+    Microsoft. Es lo primero que hay que hacer al crear el registro, y lo que el criterio de "qué
+    claims trae" tiene que confirmar.
+  - **La API nunca loguea el ID token**, así que para verlo hay que sacarlo por afuera: el runbook usa
+    `jwt.ms` (la página de Microsoft que decodifica en el navegador) con el cliente de **dev** y saca la
+    redirect URI después. Se descartó agregar un log de claims a la API: es código de producción en la
+    ruta del ingreso para algo que se hace una vez.
+  - **Lo que bloquea lo que falta:** el dominio no está decidido, así que las redirect URIs de staging y
+    prod no se pueden cargar (y F3-07 no creó los ambientes). Dev se puede hacer ya.
+  - Lo que sigue **sin saberse** y el runbook deja como tabla a completar: qué claims trae una cuenta de
+    Outlook de verdad, y si la sesión queda en la PWA instalada con cada proveedor.
 
 ---
 
