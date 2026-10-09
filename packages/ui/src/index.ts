@@ -23,6 +23,12 @@ export {
 } from './components/radio-group/RadioGroup.tsx';
 export { Select, type SelectProps } from './components/select/Select.tsx';
 export { TextArea, type TextAreaProps } from './components/text-area/TextArea.tsx';
+export {
+  Avatar,
+  initialsOf,
+  type AvatarProps,
+  type AvatarSize,
+} from './components/avatar/Avatar.tsx';
 export { Tag, type TagProps, type TagVariant } from './components/tag/Tag.tsx';
 export {
   ProviderButton,

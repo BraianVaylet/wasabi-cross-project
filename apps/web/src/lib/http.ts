@@ -50,6 +50,11 @@ export interface HttpClient {
     path: string,
     options?: RequestOptions,
   ) => Promise<z.infer<TSchema>>;
+  /**
+   * La dirección de un recurso de la API que no se pide con `fetch`: el `src` de un `<img>`, por
+   * ejemplo. Con la API en otro origen (desarrollo) es absoluta; en el mismo, la ruta tal cual.
+   */
+  url: (path: string) => string;
 }
 
 export interface HttpClientOptions {
@@ -78,6 +83,7 @@ export function createHttpClient({
   newRequestId = () => crypto.randomUUID(),
 }: HttpClientOptions): HttpClient {
   return {
+    url: (path) => `${baseUrl}${path}`,
     request: async (schema, path, { method = 'GET', body } = {}) => {
       const requestId = newRequestId();
       const headers = new Headers({ 'x-request-id': requestId });

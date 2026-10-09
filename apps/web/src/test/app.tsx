@@ -26,7 +26,11 @@ export const braian: SessionUser = {
   email: 'braian@example.com',
   name: 'Braian',
   plan: 'free',
+  hasPhoto: false,
 };
+
+/** El mismo atleta con foto: el Perfil la pide a `/api/v1/me/photo` (F9-08). */
+export const braianConFoto: SessionUser = { ...braian, hasPhoto: true };
 
 /** El mismo atleta con plan Pro: ve las estadísticas (spec §4). */
 export const braianPro: SessionUser = { ...braian, plan: 'pro' };
@@ -176,9 +180,14 @@ export function fakeApi(list: ExerciseList = LISTA_VACIA): FakeApi {
   };
 }
 
-export function renderApp(path: string, session: SessionClient, api: ApiClient = fakeApi().client) {
+export function renderApp(
+  path: string,
+  session: SessionClient,
+  api: ApiClient = fakeApi().client,
+  options: { photoUrl?: string } = {},
+) {
   const history = createMemoryHistory({ initialEntries: [path] });
-  const app = createApp({ session, api, history });
+  const app = createApp({ session, api, history, ...options });
   render(<App queryClient={app.queryClient} router={app.router} session={session} />);
   return app;
 }

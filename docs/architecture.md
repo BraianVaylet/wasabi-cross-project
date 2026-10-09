@@ -138,6 +138,30 @@ Versionada (`/api/v1/...`). El spec OpenAPI se **genera** desde los schemas Zod 
 
 **El plan después de la sesión.** Lo que sólo ve un plan (las estadísticas son de Pro, spec §4) se protege con un segundo guard `onRequest`, `requireStatsAccess` de `subscriptions`, que corre después de `requireSession`: sin sesión responde 401, con sesión y plan Free, 403 `WC-SUBS-403-002`, y los dos antes de validar el ejercicio o la consulta, así un usuario Free no puede sondear nada. Llega inyectado a las rutas desde `composition.ts`, como el de sesión: `stats` no importa a `subscriptions`. El plan se lee de la base en cada pedido, así que un cambio rige desde el siguiente.
 
+## La foto del usuario
+
+`GET /api/v1/me/photo` sirve la foto del usuario de la sesión **desde el origen de la API** (F9-08,
+spec §5.6). Es lo único de la API que no responde JSON y lo único que baja algo de afuera, así que tiene
+reglas propias:
+
+- **De dónde baja:** `user.image` lo escribe el proveedor. Un _data URL_ (Microsoft) se decodifica; una URL se
+  baja **sólo** si es `https` de `*.googleusercontent.com` (sin subdominio no, sin credenciales ni puerto raro:
+  se compara el `hostname` que normaliza `URL`, no el texto). Cualquier otro host no se baja nunca: un host
+  elegido por un usuario sería un SSRF. La descarga no sigue redirecciones, no manda cookies, y corta por
+  tiempo (3 s, toda la descarga) y por tamaño (512 KiB, mirando el `content-length` y contando lo que llega).
+- **Qué sirve:** sólo `png`, `jpeg` y `webp`, y el tipo es el que dicen los bytes (sus primeras posiciones),
+  no el que declare un data URL o un `Content-Type` ajeno. Un SVG serviría script en el origen de la app.
+- **Caché:** `ETag` con el hash del valor de `user.image` y `Cache-Control: private, no-cache`; con
+  `If-None-Match` igual responde 304 **antes** de bajar nada, así revalidar no le pide nada al proveedor.
+  Un 404 lleva `no-store` y nunca un `ETag`.
+- **Quién:** la ruta no lleva id: cada uno sólo puede pedir la suya. `/me` no trae la URL ni el data URL, sólo
+  `hasPhoto`.
+- **Headers:** la CSP no cambia (`img-src 'self' data:`, y la foto sale del propio origen). La respuesta lleva
+  `Cross-Origin-Resource-Policy: same-site`, porque en desarrollo el front y la API están en orígenes distintos
+  del mismo sitio y el `same-origin` de helmet bloquearía el `<img>`.
+- **Logs:** el motivo por el que no hay foto va al log (`sin_foto`, `origen_no_permitido`, `tipo_no_permitido`,
+  `muy_grande`, `no_es_una_imagen`, `proveedor_no_responde`); la URL y la foto, nunca (son un dato personal).
+
 ## Decisiones de arquitectura
 
 Cambios estructurales relevantes (elegir una librería, cambiar un patrón, un trade-off de infra) se registran como ADR corto en [docs/adr](./adr), no acá. Este documento describe el estado actual; el ADR explica por qué se llegó a él.

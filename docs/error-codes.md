@@ -18,6 +18,7 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 | `WC-OAUTH-400-001` | 400  | El ingreso se canceló en el proveedor (`?error=access_denied`)        | Cancelaste el ingreso. Probá de nuevo cuando quieras.              |
 | `WC-OAUTH-400-002` | 400  | El ingreso falló por cualquier otra causa, o el `?error=` es raro     | No pudimos completar el ingreso. Probá de nuevo.                   |
 | `WC-OAUTH-409-003` | 409  | El email ya tiene cuenta con el otro proveedor (`account_not_linked`) | Ya hay una cuenta con ese email. Entrá con el otro proveedor.      |
+| `WC-USER-404-001`  | 404  | El usuario no tiene foto, o no se la pudo traer del proveedor         | No hay una foto para mostrar.                                      |
 | `WC-EXO-404-002`   | 404  | Ejercicio no encontrado                                               | No encontramos ese ejercicio.                                      |
 | `WC-EXO-409-003`   | 409  | El ejercicio ya está en la lista del usuario                          | Ya tenés ese ejercicio en tu lista.                                |
 | `WC-RM-422-001`    | 422  | Valor de RM/tiempo/reps inválido                                      | El valor cargado no es válido.                                     |

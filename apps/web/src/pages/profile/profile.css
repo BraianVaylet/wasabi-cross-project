@@ -7,6 +7,37 @@
   margin-top: var(--wc-space-5);
 }
 
+/* La foto o las iniciales, y al lado quién es: el nombre grande y el email, más chico, debajo. */
+.profile__account {
+  display: flex;
+  align-items: center;
+  gap: var(--wc-space-4);
+}
+
+.profile__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wc-space-1);
+  /* Sin esto, un email largo ensancha la columna en vez de cortarse. */
+  min-width: 0;
+}
+
+.profile__name {
+  margin: 0;
+  font-family: var(--wc-font-family-display);
+  font-size: var(--wc-font-size-heading);
+  letter-spacing: var(--wc-tracking-heading);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.profile__email {
+  margin: 0;
+  color: var(--wc-text-soft);
+  font-size: var(--wc-font-size-sm);
+  overflow-wrap: anywhere;
+}
+
 .profile__hint {
   margin: 0;
   color: var(--wc-text-muted);

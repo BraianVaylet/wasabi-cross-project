@@ -3146,6 +3146,21 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
   del `Avatar` y del Perfil; Storybook del `Avatar`.
 - **error-codes:** nuevo `WC-USER-404-001` (el usuario no tiene foto)
 - **data-model-impact:** ninguno: se lee `user.image`, que ya guarda Better Auth.
+- **estado:** código hecho, en una PR. API: en `users`, `domain/photo.ts` (el host permitido, el tipo por
+  los bytes, el ETag), `application/get-photo.ts`, `infrastructure/download-photo.ts` (tiempo, tamaño y sin
+  redirecciones) y `photo.routes.ts`; `/me` suma `hasPhoto` y `AuthenticatedUser`, `image`. UI: `Avatar`
+  (con story y 20 tests). Web: el Perfil estrena un bloque "Tu cuenta" con avatar, nombre y email.
+  Cosas que no estaban en el plan y salieron de hacerlo:
+  - **Un 404 sin `Cache-Control` puede guardarse por heurística**, y el Perfil seguiría sin foto aunque el
+    proveedor se recupere: los 404 de esta ruta llevan `no-store` y nunca `ETag`.
+  - **Helmet bloquea el `<img>` en desarrollo.** Pone `Cross-Origin-Resource-Policy: same-origin` y el front
+    (Vite) está en otro origen que la API: la ruta contesta `same-site`. En producción es el mismo origen.
+  - **La URL de la foto tiene que llegar absoluta al front** cuando la API está en otro origen:
+    `HttpClient.url()` y `createApp({ photoUrl })`, que en `main.tsx` sale de `VITE_API_URL`.
+  - **Las pruebas inversas de la descarga necesitan un servidor de verdad**: con un doble de `fetch` una
+    redirección ajena que falla igual que una seguida no se distingue. `download-photo.test.ts` levanta uno
+    en `127.0.0.1` y comprueba que la API no hace un segundo pedido.
+  - El E2E con foto (la ve en el Perfil, en producción y con axe a 390px) es de F9-09.
 
 ## [ ] F9-09 · E2E y axe del ingreso con OAuth
 
