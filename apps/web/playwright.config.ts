@@ -14,6 +14,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 
 const API_PORT = 3100;
+/** El IdP falso de desarrollo (apps/api/dev-support/fake-idp.ts): lo levanta `dev:ephemeral`. */
+const IDP_PORT = 3102;
 /** El control del plan del script `dev:ephemeral` (e2e/app.ts, `fijarPlan`). */
 const CONTROL_PORT = 3101;
 const WEB_PORT = 5174;
@@ -37,6 +39,14 @@ const apiEnv = {
   HOST: '127.0.0.1',
   AUTH_RATE_LIMIT: 'off',
   EPHEMERAL_CONTROL_PORT: String(CONTROL_PORT),
+  FAKE_IDP_PORT: String(IDP_PORT),
+  // El proveedor `microsoft` de verdad —el mismo `socialProvidersFor` de producción: tenant
+  // `consumers`, el chequeo del `tid`, `prompt=select_account`— apuntado a la cara de Microsoft del
+  // IdP falso (F9-03). Con él hay dos proveedores, y se prueba que una cuenta no se vincula sola
+  // con la del otro. Las credenciales son las del IdP falso: no valen en ningún otro lado.
+  MICROSOFT_CLIENT_ID: 'wasabi-dev-idp',
+  MICROSOFT_CLIENT_SECRET: 'wasabi-dev-idp-secret',
+  MICROSOFT_AUTHORITY: `http://127.0.0.1:${String(IDP_PORT)}`,
 };
 
 function servidoresPara(target: E2eTarget) {

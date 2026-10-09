@@ -3193,6 +3193,26 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
 - **test_plan:** `pnpm e2e` y `pnpm e2e:prod` completos, en CI.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR. `ingreso-oauth.spec.ts` (14 pruebas, a 390px) y un caso nuevo en
+  `produccion.spec.ts`; `registrarse()` gana `conFoto` y los helpers `elegirEnElIdp`, `cerrarSesion`,
+  `pedirMe` y `apiUrl`. Con el E2E de desarrollo en 37 pruebas y el de producción en 42. Cosas que no
+  estaban en el plan y salieron de hacerlo:
+  - **En el E2E ahora hay dos proveedores.** `playwright.config.ts` habilita el proveedor `microsoft` de
+    verdad (el `socialProvidersFor` de producción) apuntado a la cara de Microsoft del IdP falso, con las
+    credenciales del IdP, que no valen en ningún otro lado. Sin él no había forma de probar que dos
+    proveedores no vinculan solas sus cuentas, ni el chequeo del `tid`, ni `prompt=select_account`.
+  - **La foto no carga en desarrollo.** Con el front (Vite) y la API en puertos distintos, Chrome rechaza
+    el `<img>` con `ERR_BLOCKED_BY_RESPONSE.NotSameSite` por el `Cross-Origin-Resource-Policy: same-site`
+    de `/me/photo`, y el Perfil cae a las iniciales. En producción es el mismo origen y carga: el E2E de
+    producción lo comprueba con la CSP real. Lo hizo visible este E2E; la tarea anterior sólo lo probaba
+    contra la API. **Es una decisión abierta** (ver STATE.md): el E2E de desarrollo no afirma que cargue.
+  - **El `state` alterado se prueba cambiando el campo oculto de la pantalla del IdP**, no interceptando
+    el callback con `page.route`: con el service worker de producción activo, interceptar una navegación
+    que el worker deja pasar es frágil, y así corre igual en los dos modos.
+  - `registrarse()` y `diseno.spec.ts` ya entraban por el IdP desde F9-05 y F9-07: no hubo nada que adaptar.
+  - Pruebas inversas sobre el código de producción, con el E2E de verdad (6): sacar `prompt`, pedir
+    `offline_access`, aceptar una cuenta de organización, encender la vinculación, exponer el alta por
+    email y vaciar `navigateFallbackDenylist`; en las 6 falla el E2E.
 
 ## [ ] F9-10 · Credenciales de Google y Microsoft, runbook y prueba real — 🔑 necesita al usuario
 

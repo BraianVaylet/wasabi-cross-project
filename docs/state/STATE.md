@@ -134,10 +134,13 @@ logger de Better Auth escribe por Pino porque por defecto volcaba el `state` a `
 headers no cambian. **F9-07 está mergeada** (PR #111): `/login` es una sola pantalla, con un botón
 por proveedor habilitado (sin campos de email ni contraseña), el aviso del `?error=` con el mensaje
 del catálogo y "Reintentar" si la lista de proveedores no carga; `/registro`, los formularios, los
-schemas de contraseña y `WC-AUTH-401-001` se fueron. **F9-08 tiene el código hecho, en una PR**: el
-Perfil muestra la foto del usuario (o sus iniciales), nombre y email; la sirve la API desde su propio
-origen (`GET /api/v1/me/photo`) y sólo baja imágenes de `*.googleusercontent.com`, nunca de otro host.
-El usuario confirmó los seis
+schemas de contraseña y `WC-AUTH-401-001` se fueron. **F9-08 está mergeada** (PR #116): el Perfil
+muestra la foto del usuario (o sus iniciales), nombre y email; la sirve la API desde su propio origen
+(`GET /api/v1/me/photo`) y sólo baja imágenes de `*.googleusercontent.com`, nunca de otro host.
+**F9-09 tiene el código hecho, en una PR**: el E2E del ingreso (14 pruebas a 390px, con axe) y, en el de
+producción, el callback con el service worker controlando la página; el E2E ahora tiene dos
+proveedores. Lo que mostró: **la foto no carga en desarrollo** (decisión abierta, abajo). El usuario
+confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -196,12 +199,12 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-07 (mergeadas) y **revisar los tests de
+10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-08 (mergeadas) y **revisar los tests de
     F9-05, que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
-    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Revisar la
-    PR de F9-08 (**la API baja una URL: mirar que sólo sean hosts de Google** —`domain/photo.ts` y
-    `download-photo.ts`—, y que un SVG nunca se sirva). Después F9-09 (E2E del ingreso, con foto y axe).
-    Ver cómo se ve el ingreso en el teléfono y con Google y Microsoft de verdad no se puede sin F9-10. F9-10
+    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). **Decidir lo de
+    la foto en desarrollo** ("Decisiones abiertas") y revisar la PR de F9-09. Con ella, la Fase 9 queda
+    sólo con F9-10. Ver cómo se ve el ingreso en el teléfono y con Google y Microsoft de verdad no se
+    puede sin F9-10. F9-10
     necesita que el usuario cree el
     cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
     prod esperan a F3-07.
@@ -221,6 +224,17 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 
 ## Decisiones abiertas
 
+- **La foto del Perfil no carga en desarrollo** (F9-08, la mostró F9-09). Con el front (Vite) y la API en
+  puertos distintos, Chrome rechaza el `<img>` con `ERR_BLOCKED_BY_RESPONSE.NotSameSite`: la ruta
+  `/me/photo` contesta `Cross-Origin-Resource-Policy: same-site` y el navegador no lo da por cumplido
+  entre `127.0.0.1:5174` y `127.0.0.1:3100`. El Perfil cae a las iniciales. **En producción es el mismo
+  origen y carga** (el E2E de producción lo comprueba, con la CSP real). Tres salidas: **(a)**
+  `cross-origin` en esa ruta: en la práctica no expone nada —la cookie es `SameSite=Lax` y no viaja en un
+  `<img>` de otro sitio, que recibiría el 401—, pero es aflojar un header de seguridad, así que lo tiene
+  que decidir una persona; **(b)** un proxy de `/api` en el servidor de Vite, para que en desarrollo
+  también sea el mismo origen (cambia el cableado de cookies, `WEB_ORIGIN` y `BETTER_AUTH_URL`);
+  **(c)** dejarlo: en desarrollo se ven las iniciales. Hoy es (c), y el E2E de desarrollo no afirma que
+  la foto cargue.
 - **Proveedor de pago** para la suscripción Pro (Mercado Pago / Stripe / otro).
 - **Precio de Pro** y su período (mensual o anual): a definir. La UI dice "A definir" y el texto
   vive en `apps/web/src/lib/plans.ts`.
@@ -304,6 +318,12 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-09 — **Fase 9, F9-09**: el E2E del ingreso con OAuth, en una PR: 14 pruebas a 390px con axe
+(entrar, volver a entrar, la foto, cancelar, un `state` alterado, una cuenta de trabajo, cuentas sin
+vincular, `/registro` y el alta por email que no existen) y el callback con el service worker en
+producción. Mostró que la foto no carga en desarrollo: decisión abierta. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f9-09-e2e-ingreso.md).
 
 2026-10-09 — **Fase 9, F9-08**: la foto del usuario en el Perfil, en una PR: `GET /api/v1/me/photo` (sólo
 baja de `*.googleusercontent.com`, sólo `png`/`jpeg`/`webp` por lo que dicen los bytes, con tiempo y tamaño
