@@ -166,8 +166,9 @@ hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth l
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
 (tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
-F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114) y F10-06 (Registro y Funciones,
-PR #115) también, y F10-07 (Estadísticas Pro) está hecha en una PR**; ninguna tarea cerrada.
+F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114), F10-06 (Registro y Funciones,
+PR #115) y F10-07 (Estadísticas Pro, PR #117) también, y F10-08 (Planes) está hecha en una
+PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -213,15 +214,16 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-07 (Estadísticas Pro) y **aprobar su copy en
-    voseo**, y lo que queda del de F10-05 y F10-06 si no se aprobó: titular, párrafo, ejercicios,
-    CTA, pies y los textos de la sección de estadísticas. Si el titular del hero cambia,
+12. **Fase 10 (landing):** revisar la PR de F10-08 (Planes) y **aprobar su texto en voseo**:
+    es lo que se promete sobre el plan pago y lo tiene que mirar una persona (spec §9). Y lo que
+    queda del copy de F10-05 a F10-07 si no se aprobó: titular, párrafo, ejercicios, CTA, pies y
+    los textos de estadísticas. Si el titular del hero cambia,
     `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04). Decidir
     si el párrafo del hero suma `hybrid` y `pilates` (la captura del catálogo ya muestra los siete
     filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
-    dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Después, en
-    paralelo, F10-08 y F10-09. Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9:
-    no comparten código.
+    dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Después,
+    F10-09 (privacidad y términos: el texto legal lo aprueba el usuario). Crear las tarjetas
+    (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -240,7 +242,10 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
   la foto cargue.
 - **Proveedor de pago** para la suscripción Pro (Mercado Pago / Stripe / otro).
 - **Precio de Pro** y su período (mensual o anual): a definir. La UI dice "A definir" y el texto
-  vive en `apps/web/src/lib/plans.ts`.
+  vive en `apps/web/src/lib/plans.ts`. **La landing duplica esa línea** en
+  `apps/landing/src/content/plans.ts` ("Suscripción · precio por definir", sin período): cuando
+  haya precio hay que cambiar los dos, y un test de la landing falla en cuanto el de la app deja
+  de decir "A definir".
 - **Excepción a `minimumReleaseAge` en `pnpm-workspace.yaml`** (F10-01): `http-cache-semantics@4.3.0`,
   el parche de una vulnerabilidad alta que entra por `astro`, y un `overrides` que lo fuerza. Es
   una versión de 19 h al decidirla (mismo publicador que la anterior, firmada). Sacar las dos
@@ -326,6 +331,12 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-09 — **Fase 10, F10-08**: la sección de planes de la landing (la tabla comparativa cuya fila de
+estadísticas sale de `canViewStats`, accesible por teclado a 390px; las tarjetas de Free y Pro con el
+precio por definir; y las capturas de lo que ve cada plan), en una PR. De paso, el interlineado de los
+titulares, que dejaba la tilde de la "Í" tocando la línea de arriba. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f10-08-planes.md).
 
 2026-10-09 — **Fase 9, F9-09**: el E2E del ingreso con OAuth, en una PR: 14 pruebas a 390px con axe
 (entrar, volver a entrar, la foto, cancelar, un `state` alterado, una cuenta de trabajo, cuentas sin

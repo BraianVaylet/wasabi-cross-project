@@ -7,6 +7,10 @@ import type { Plan } from '@wasabi-cross/schemas';
  *
  * El precio de Pro está "a definir" (ADR-0011): la pasarela de pago es una segunda etapa y la app
  * no inventa un monto. Cuando haya precio, es este archivo el que cambia.
+ *
+ * La landing **duplica** ese texto en apps/landing/src/content/plans.ts ("Suscripción · precio por
+ * definir"): cuando haya precio hay que cambiar los dos. Un test de la landing falla en cuanto éste
+ * deje de decir "A definir", para que no se olvide de actualizarla.
  */
 
 export interface PlanFeature {

@@ -1,0 +1,276 @@
+---
+/*
+ * La sección de planes (F10-08, spec §4 y §5.7): la tabla comparativa, las dos tarjetas y lo que
+ * ve cada plan en la app. El texto y las filas, en `content/plans.ts`: las de estadísticas salen
+ * de `canViewStats`, no se escriben acá.
+ *
+ * La tabla mide 560px como mínimo y a 390px no entra: la contiene una región que se desplaza y
+ * **se alcanza con el teclado** (`tabindex="0"`, con nombre), para que quien no usa el mouse
+ * también pueda leer la columna de Pro.
+ */
+import suscripcion from '../assets/capturas/09-suscripcion.png';
+import estadisticasFree from '../assets/capturas/11-estadisticas-free.png';
+import { planes } from '../content/plans.ts';
+import Screenshot from './Screenshot.astro';
+
+const { tabla, tarjetas, capturas } = planes;
+// Las capturas del teléfono no pasan de 340px de ancho, como en las demás secciones.
+const sizes = '(min-width: 23rem) 340px, 100vw';
+const valorClase = (valor: string): string =>
+  valor === 'Sí' ? 'valor-si' : valor === 'Incluidas' ? 'valor-incluida' : 'valor-no';
+---
+
+<section id={planes.id} class="seccion contenedor" aria-labelledby="planes-titulo">
+  <div class="cabecera">
+    <h2 id="planes-titulo" class="titulo-seccion">
+      {planes.titulo.map((linea) => (
+        <span>{linea}</span>
+      ))}
+    </h2>
+    <p class="texto-seccion">{planes.descripcion}</p>
+  </div>
+
+  <div class="tabla-contenedor" role="region" aria-labelledby="planes-tabla-nombre" tabindex="0">
+    <table>
+      <caption id="planes-tabla-nombre" class="wc-visually-hidden">
+        {tabla.nombre}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">{tabla.encabezados.funciones}</th>
+          <th scope="col">{tabla.encabezados.free}</th>
+          <th scope="col">
+            <span class="etiqueta-pro">{tabla.encabezados.pro}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {tabla.filas.map((fila) => (
+          <tr>
+            <th scope="row">{fila.etiqueta}</th>
+            <td class={valorClase(fila.valores.free)}>{fila.valores.free}</td>
+            <td class={valorClase(fila.valores.pro)}>{fila.valores.pro}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="planes">
+    <div class="plan">
+      <article class="tarjeta" data-plan="free">
+        <div class="tarjeta-cabecera">
+          <h3>{tabla.encabezados.free}</h3>
+          <span class="tarjeta-etiqueta">{tarjetas.free.etiqueta}</span>
+        </div>
+        <p>{tarjetas.free.texto}</p>
+      </article>
+      <Screenshot
+        src={estadisticasFree}
+        alt={capturas.free.alt}
+        pie={capturas.free.pie}
+        sizes={sizes}
+      />
+    </div>
+    <div class="plan">
+      <article class="tarjeta tarjeta-pro wc-plate-cut" data-plan="pro">
+        <div class="tarjeta-cabecera">
+          <h3>{tabla.encabezados.pro}</h3>
+          <span class="tarjeta-etiqueta">{tarjetas.pro.etiqueta}</span>
+        </div>
+        <p class="precio">{tarjetas.pro.precio}</p>
+        <p>{tarjetas.pro.texto}</p>
+      </article>
+      <Screenshot
+        src={suscripcion}
+        alt={capturas.suscripcion.alt}
+        pie={capturas.suscripcion.pie}
+        sizes={sizes}
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .cabecera {
+    max-width: 42.5rem;
+  }
+
+  .cabecera .texto-seccion {
+    margin-top: 1.25rem;
+  }
+
+  /* La región que desplaza la tabla: el borde de arriba y de abajo es el del diseño. */
+  .tabla-contenedor {
+    margin-top: 2rem;
+    overflow-x: auto;
+    border-block: 1px solid var(--wc-line);
+  }
+
+  table {
+    width: 100%;
+    min-width: 35rem;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--wc-line);
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    text-transform: uppercase;
+  }
+
+  th,
+  td {
+    font-weight: 400;
+  }
+
+  thead th {
+    padding: 1rem 1rem 1rem 0;
+  }
+
+  thead th + th {
+    padding-inline: 1rem;
+  }
+
+  tbody tr + tr {
+    border-top: 1px solid var(--wc-line);
+  }
+
+  tbody th {
+    padding: 1.25rem 1.25rem 1.25rem 0;
+    color: var(--wc-text);
+    font-family: var(--wc-font-family-body);
+    font-size: var(--wc-font-size-sm);
+    font-weight: 500;
+  }
+
+  tbody td {
+    padding: 1.25rem 1rem;
+    font-family: var(--wc-font-family-body);
+    font-size: var(--wc-font-size-sm);
+  }
+
+  .valor-si {
+    color: var(--wc-accent);
+  }
+
+  .valor-incluida {
+    color: var(--wc-pro-text);
+  }
+
+  .valor-no {
+    color: var(--wc-text-dim);
+  }
+
+  .etiqueta-pro {
+    padding: var(--wc-space-1) var(--wc-space-2);
+    background-color: var(--wc-pro);
+    color: var(--wc-bg);
+  }
+
+  .planes {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+    margin-top: 1.75rem;
+  }
+
+  /* Cada columna: la tarjeta y, debajo, lo que se ve en la app con ese plan. */
+  .plan {
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+  }
+
+  /*
+   * De a dos columnas, las dos tarjetas miden lo mismo y las dos capturas arrancan a la misma
+   * altura: cada columna toma las dos filas de la grilla (subgrid) en vez de armar las suyas.
+   */
+  @media (min-width: 48rem) {
+    .planes {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem 1.5rem;
+      align-items: stretch;
+    }
+
+    .plan {
+      grid-row: span 2;
+      grid-template-rows: subgrid;
+    }
+
+    .plan :global(figure) {
+      align-self: start;
+    }
+  }
+
+  .plan :global(figure) {
+    max-width: 21.25rem;
+  }
+
+  .tarjeta {
+    padding: 1.25rem;
+    border: 1px solid var(--wc-line);
+    background-color: var(--wc-surface);
+  }
+
+  @media (min-width: 40rem) {
+    .tarjeta {
+      padding: 1.75rem;
+    }
+  }
+
+  .tarjeta-pro {
+    border-color: var(--wc-pro-border);
+    background-color: var(--wc-surface-pro);
+  }
+
+  .tarjeta-cabecera {
+    display: flex;
+    gap: var(--wc-space-3);
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--wc-line);
+  }
+
+  .tarjeta-pro .tarjeta-cabecera {
+    border-bottom-color: var(--wc-pro-border-soft);
+  }
+
+  .tarjeta h3 {
+    margin: 0;
+    font-size: 1.875rem;
+    line-height: 1;
+    letter-spacing: 0.025em;
+  }
+
+  .tarjeta-pro h3 {
+    color: var(--wc-pro-text);
+  }
+
+  .tarjeta-etiqueta {
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-caption);
+    text-transform: uppercase;
+  }
+
+  .tarjeta-pro .tarjeta-etiqueta {
+    color: var(--wc-pro-text);
+  }
+
+  .tarjeta p {
+    margin: 1rem 0 0;
+    color: var(--wc-text-body);
+    font-family: var(--wc-font-family-body);
+    font-size: var(--wc-font-size-sm);
+    line-height: 1.5rem;
+  }
+
+  .tarjeta p.precio {
+    font-family: var(--wc-font-family);
+  }
+</style>

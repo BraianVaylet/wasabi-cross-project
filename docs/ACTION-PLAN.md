@@ -3762,6 +3762,28 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   planes y permisos lo mira una persona); E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que una persona apruebe el texto de los
+  planes** (spec §9). `Planes` y su texto en `src/content/plans.ts`. **Las filas de estadísticas
+  de la tabla salen de `canViewStats`**, no se escriben: `test/contenido-planes.test.ts` las
+  compara con la función para los dos planes y trae la prueba inversa (con la función mockeada al
+  revés, la tabla cambia con ella); invertir la regla real en `packages/schemas` hace fallar el
+  test que fija lo que dice hoy. Las tres filas de registro dicen "Sí" en los dos porque lo dice
+  la spec §4, y un test la cruza. La tabla es una `<table>` con `<caption>` y `scope` en columnas
+  y filas, dentro de una región con nombre y `tabindex="0"`: a 390 px (mide 560) se alcanza con
+  Tab y se desplaza con las flechas. Para eso, la regla `no-noninteractive-tabindex` de ESLint
+  acepta `tabindex` en `role="region"`. **Precio: "Suscripción · precio por definir"**, sin
+  período ni monto (el diseño decía "Suscripción anual"); un test mira que la app siga diciendo
+  "A definir" y que cada archivo anote la duplicación del otro. **Se sumaron dos capturas**: la 11
+  (lo que ve Free en lugar de las estadísticas) bajo la tarjeta Free y la 09 (la suscripción en la
+  app) bajo la de Pro; la 09 es de una cuenta Pro y el pie lo dice. **Dos cosas que el plan no
+  decía:** (1) la fila "Estadísticas de cada ejercicio" del diseño pasó a "Progreso y estadísticas
+  de cada ejercicio", porque el progreso del detalle es parte de las estadísticas (spec §4) y no
+  tiene que leerse como "historial de marcas"; (2) con el interlineado .98 del diseño, la tilde de
+  la "Í" de ESTADÍSTICAS tocaba la letra de la línea de arriba (también en F10-07):
+  `.titulo-seccion` pasó a 1.08 y un test lo cuida. 219 tests (de 180), cobertura 100 % y
+  diecinueve mutaciones a mano que atrapa un test cada una. **Verificado en Chromium** a 390, 768,
+  1024 y 1280 px: axe sin violaciones, sin scroll horizontal ni errores de consola, las dos
+  tarjetas miden lo mismo y las capturas arrancan a la misma altura (subgrid).
 
 ## [ ] F10-09 · Privacidad y términos — 🔑 el texto lo aprueba el usuario
 
