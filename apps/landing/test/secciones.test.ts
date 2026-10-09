@@ -91,9 +91,9 @@ describe('la página', () => {
 
   it('todas las imágenes son lazy menos la del hero', () => {
     const todas = imagenes(html);
-    expect(todas).toHaveLength(11);
+    expect(todas).toHaveLength(13);
     const eager = todas.filter((i) => atributo(i, 'loading') === 'eager');
     expect(eager).toHaveLength(1);
-    expect(todas.filter((i) => atributo(i, 'loading') === 'lazy')).toHaveLength(10);
+    expect(todas.filter((i) => atributo(i, 'loading') === 'lazy')).toHaveLength(12);
   });
 });

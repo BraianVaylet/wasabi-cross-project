@@ -64,11 +64,15 @@
  * los h2 de la app (0.08em) es el doble del del diseño de la landing, y acá se afina. Cada línea
  * va en su propio `<span>`: es el salto de línea del diseño, sin un `<br>` que lea el lector de
  * pantalla.
+ *
+ * El interlineado es 1.08 y no el 0.98 del diseño: con 0.98 la tilde de la "Í" de ESTADÍSTICAS
+ * toca la letra de la línea de arriba (se vio en "Pro suma estadísticas…" y en "Registro
+ * completo en Free. Estadísticas extra en Pro.").
  */
 .titulo-seccion {
   margin: 0;
   font-size: 2.25rem;
-  line-height: 0.98;
+  line-height: 1.08;
   letter-spacing: 0.04em;
 }
 
