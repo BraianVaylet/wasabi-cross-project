@@ -1,0 +1,89 @@
+---
+/*
+ * La sección Registro (F10-06, spec §5.7): lo que tiene Free. El texto, en `content/registro.ts`.
+ */
+import historial from '../assets/capturas/03-detalle-completo.png';
+import porcentajes from '../assets/capturas/02-detalle-porcentajes.png';
+import { registro } from '../content/registro.ts';
+import Screenshot from './Screenshot.astro';
+
+const { capturas } = registro;
+// Dos columnas desde 640px; en escritorio, a la derecha del texto.
+const sizes = '(min-width: 64rem) 340px, (min-width: 40rem) 45vw, 100vw';
+---
+
+<section id={registro.id} class="seccion contenedor" aria-labelledby="registro-titulo">
+  <div class="grilla">
+    <div class="texto">
+      <h2 id="registro-titulo" class="titulo-seccion">
+        {registro.titulo.map((linea) => (
+          <span>{linea}</span>
+        ))}
+      </h2>
+      <p class="texto-seccion">{registro.descripcion}</p>
+      <p class="nota">{registro.nota}</p>
+    </div>
+    <div class="capturas">
+      <Screenshot
+        src={porcentajes}
+        alt={capturas.porcentajes.alt}
+        pie={capturas.porcentajes.pie}
+        sizes={sizes}
+      />
+      <Screenshot
+        src={historial}
+        alt={capturas.historial.alt}
+        pie={capturas.historial.pie}
+        sizes={sizes}
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .grilla {
+    display: grid;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (min-width: 64rem) {
+    .grilla {
+      grid-template-columns: 0.78fr 1.22fr;
+      gap: 3.5rem;
+    }
+  }
+
+  .texto {
+    max-width: 29.375rem;
+  }
+
+  .nota {
+    margin: 1.75rem 0 0;
+    padding-top: var(--wc-space-4);
+    border-top: 1px solid var(--wc-line);
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    line-height: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  .capturas {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  @media (min-width: 40rem) {
+    .capturas {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .capturas {
+      gap: 1.5rem;
+    }
+  }
+</style>
