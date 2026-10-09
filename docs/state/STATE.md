@@ -137,10 +137,12 @@ del catálogo y "Reintentar" si la lista de proveedores no carga; `/registro`, l
 schemas de contraseña y `WC-AUTH-401-001` se fueron. **F9-08 está mergeada** (PR #116): el Perfil
 muestra la foto del usuario (o sus iniciales), nombre y email; la sirve la API desde su propio origen
 (`GET /api/v1/me/photo`) y sólo baja imágenes de `*.googleusercontent.com`, nunca de otro host.
-**F9-09 tiene el código hecho, en una PR**: el E2E del ingreso (14 pruebas a 390px, con axe) y, en el de
+**F9-09 está mergeada** (PR #118): el E2E del ingreso (14 pruebas a 390px, con axe) y, en el de
 producción, el callback con el service worker controlando la página; el E2E ahora tiene dos
-proveedores. Lo que mostró: **la foto no carga en desarrollo** (decisión abierta, abajo). El usuario
-confirmó los seis
+proveedores. Lo que mostró: **la foto no carga en desarrollo** (decisión abierta, abajo). **F9-10 tiene
+hecha la parte de la IA, en una PR**: el runbook [`docs/runbooks/oauth.md`](../runbooks/oauth.md) y
+`oauth:inspect-token`; **falta lo que necesita al usuario** (crear los clientes de Google y Microsoft,
+y la prueba con cuentas reales). El usuario confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -203,12 +205,11 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-08 (mergeadas) y **revisar los tests de
     F9-05, que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
     `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). **Decidir lo de
-    la foto en desarrollo** ("Decisiones abiertas") y revisar la PR de F9-09. Con ella, la Fase 9 queda
-    sólo con F9-10. Ver cómo se ve el ingreso en el teléfono y con Google y Microsoft de verdad no se
-    puede sin F9-10. F9-10
-    necesita que el usuario cree el
-    cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
-    prod esperan a F3-07.
+    la foto en desarrollo** ("Decisiones abiertas"). **F9-10, lo que sólo puede hacer el usuario:** crear
+    el cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑), siguiendo
+    el [runbook](../runbooks/oauth.md), y correr la prueba guiada con cuentas reales. Lo primero a
+    mirar: que el registro de Microsoft tenga las notificaciones opcionales `verified_primary_email`, o
+    nadie entra con Microsoft. Staging y prod esperan a F3-07 y al dominio.
 11. **Tests de `apps/web` bajo carga:** corridos todos juntos en local (`pnpm verify`,
     `pnpm test:coverage`) fallan por `Test timed out in 5000ms`, y cada corrida un conjunto distinto
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
@@ -337,6 +338,11 @@ estadísticas sale de `canViewStats`, accesible por teclado a 390px; las tarjeta
 precio por definir; y las capturas de lo que ve cada plan), en una PR. De paso, el interlineado de los
 titulares, que dejaba la tilde de la "Í" tocando la línea de arriba. Bitácora
 [2026-10-09](./bitacora/2026-10-09-f10-08-planes.md).
+2026-10-09 — **Fase 9, F9-10 (la parte de la IA)**: el runbook del ingreso con OAuth
+(`docs/runbooks/oauth.md`: Google y Microsoft por ambiente, variables, rotación de secretos, prueba
+guiada y PWA) y `oauth:inspect-token`, que dice qué claims trae un ID token sin mostrar ningún valor
+personal, en una PR. Falta lo que necesita al usuario. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f9-10-runbook-oauth.md).
 
 2026-10-09 — **Fase 9, F9-09**: el E2E del ingreso con OAuth, en una PR: 14 pruebas a 390px con axe
 (entrar, volver a entrar, la foto, cancelar, un `state` alterado, una cuenta de trabajo, cuentas sin
