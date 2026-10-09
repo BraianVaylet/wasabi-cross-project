@@ -163,8 +163,8 @@ hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth l
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
 (tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
-F10-04 (SEO y compartir, PR #110) también, y F10-05 (el hero) está hecha en una PR**; ninguna
-tarea cerrada.
+F10-04 (SEO y compartir, PR #110) y F10-05 (el hero, PR #114) también, y F10-06 (Registro y
+Funciones) está hecha en una PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -210,11 +210,12 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-05 (el hero) y **aprobar su copy en voseo**: el
-    titular, el párrafo, la línea de ejercicios, los CTA y el pie de la captura. Si el titular
-    cambia, `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04).
-    También decidir si el párrafo suma `hybrid` y `pilates`. Después, en paralelo, F10-06 a F10-09.
-    Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+12. **Fase 10 (landing):** revisar la PR de F10-06 (Registro y Funciones) y **aprobar su copy en
+    voseo**, y lo que queda del de F10-05 si no se aprobó: titular, párrafo, ejercicios, CTA y pies.
+    Si el titular cambia, `pnpm --filter @wasabi-cross/landing og` regenera la imagen para
+    compartir (F10-04). Decidir si el párrafo del hero suma `hybrid` y `pilates` (la captura del
+    catálogo ya muestra los siete filtros). Después, en paralelo, F10-07 a F10-09. Crear las
+    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -227,6 +228,10 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
   el parche de una vulnerabilidad alta que entra por `astro`, y un `overrides` que lo fuerza. Es
   una versión de 19 h al decidirla (mismo publicador que la anterior, firmada). Sacar las dos
   líneas cuando la versión cumpla la antigüedad y Astro suba su rango a `^4.3.0`.
+- **Capturas de la landing con un usuario Pro.** Las de los detalles (02, 03 y 04) muestran la
+  etiqueta PRO y el gráfico de progreso, que Free no ve (spec §4): la landing lo avisa en el pie de
+  cada una (F10-06). Reemplazarlas por capturas con un usuario Free sacaría el aviso, y necesita el
+  script que las regenere desde la app, que quedó fuera de la Fase 10.
 - **Dominio** de Wasabi Cross: no hay. El plan de la landing asume la landing en la raíz y la
   app en `app.`, y de eso dependen el host de las redirect URIs de OAuth (F9-10) y el de
   `WEB_ORIGIN` y `BETTER_AUTH_URL`.
@@ -305,6 +310,10 @@ baja de `*.googleusercontent.com`, sólo `png`/`jpeg`/`webp` por lo que dicen lo
 máximos y 304 sin tocar al proveedor), `hasPhoto` en `/me`, el `Avatar` y el bloque "Tu cuenta". De paso,
 se reparó el lockfile roto de `main` (PR #112 y #113). Bitácora
 [2026-10-09](./bitacora/2026-10-09-f9-08-foto-en-el-perfil.md).
+
+2026-10-09 — **Fase 10, F10-06**: las secciones Registro y Funciones de la landing, que sólo prometen lo
+que tiene Free y avisan en el pie qué parte de cada captura es de Pro, en una PR. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f10-06-registro-funciones.md).
 
 2026-10-09 — **Fase 10, F10-05**: el hero de la landing (titular, párrafo, CTA según haya app, franja de
 métricas y la captura del LCP), en una PR. Bitácora

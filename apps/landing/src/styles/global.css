@@ -48,6 +48,53 @@
   padding-inline: var(--landing-gutter);
 }
 
+/* El aire de arriba y de abajo de una sección: 56 px en el teléfono, 80 desde 768. */
+.seccion {
+  padding-block: 3.5rem;
+}
+
+@media (min-width: 48rem) {
+  .seccion {
+    padding-block: 5rem;
+  }
+}
+
+/*
+ * El titular de una sección. La condensada y las mayúsculas vienen de `.wc-root`; el tracking de
+ * los h2 de la app (0.08em) es el doble del del diseño de la landing, y acá se afina. Cada línea
+ * va en su propio `<span>`: es el salto de línea del diseño, sin un `<br>` que lea el lector de
+ * pantalla.
+ */
+.titulo-seccion {
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 0.98;
+  letter-spacing: 0.04em;
+}
+
+.titulo-seccion > span {
+  display: block;
+}
+
+@media (min-width: 40rem) {
+  .titulo-seccion {
+    font-size: 3rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .titulo-seccion {
+    font-size: 3.75rem;
+  }
+}
+
+/* El párrafo que acompaña al titular de una sección. */
+.texto-seccion {
+  margin: 1.25rem 0 0;
+  color: var(--wc-text-body);
+  line-height: 1.75;
+}
+
 *,
 *::before,
 *::after {
