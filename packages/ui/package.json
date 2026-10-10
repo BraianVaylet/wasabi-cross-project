@@ -54,7 +54,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "@tanstack/charts": "^0.18.0",
+    "@tanstack/charts": "^1.0.0",
     "@tanstack/react-charts": "^0.18.0",
     "d3-scale": "^4.0.2"
   }
