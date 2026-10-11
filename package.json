@@ -17,6 +17,7 @@
     "test:coverage": "pnpm -r test:coverage",
     "e2e": "pnpm --filter @wasabi-cross/web e2e",
     "e2e:prod": "pnpm --filter @wasabi-cross/web e2e:prod",
+    "e2e:landing": "pnpm --filter @wasabi-cross/landing e2e",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

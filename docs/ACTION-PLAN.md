@@ -3884,6 +3884,31 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** es el test; las pruebas inversas de arriba.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. Playwright en `apps/landing` (`e2e/`,
+  `playwright.config.ts`, `pnpm e2e:landing`): dos builds —con y sin `PUBLIC_APP_URL`— servidos por
+  **el servidor de producción** (`server/server.ts`, F10-11) en los puertos 4311 y 4312, y 61
+  pruebas: axe de WCAG 2.2 AA en `/`, `/privacidad/`, `/terminos/` y la 404 a 390 y 1280 px; el
+  recorrido por teclado (salto → nav → Entrar → CTA → demo → tabla → footer) con el foco siempre
+  visible; todas las imágenes cargan y se decodifican; la consola sin errores, avisos ni quejas de
+  la CSP; las anclas y la nav llevan a su destino; sin scroll horizontal; la tabla de planes se
+  enfoca y se desplaza con las flechas a 390 px; los dos modos de `PUBLIC_APP_URL`; y el
+  presupuesto: `dist/` sin ningún `.js` ni `<script>`, y el peso. **Peso medido** (la propuesta de
+  partida era hero ≤ 150 KB y página ≤ 1,5 MB): a 390 px la primera vista pesa 198,6 KB y la
+  página entera 445,8 KB; a 1280 px, 373,0 y 645,1 KB. Los 150 KB no entran (las fuentes, el CSS y
+  el HTML ya son ~91 KB y la captura del hero, 107), y 1,5 MB queda muy por encima de lo que pesa:
+  los topes de `e2e/presupuesto.ts` son lo medido más ~15 % (230 y 515 KB a 390 px; 430 y 745 KB
+  a 1280 px). **Pruebas inversas**: `ayudas.spec.ts` arma a mano una captura que falta (404), un
+  PNG corrupto (200 pero sin decodificar) y un foco sin indicador, y comprueba que se detectan y
+  que el mensaje dice cuál; y trece roturas reales del sitio (una captura 404, un PNG corrupto,
+  un `<script>`, un `style` inline que la CSP bloquea, contraste insuficiente, un ancla sin
+  destino, `#demo` sin id, scroll horizontal, la tabla sin `tabindex`, enlaces sin foco, una
+  imagen de más en la primera vista, "Entrar" a otra ruta y "Entrar" sin app) hacen fallar la
+  prueba que corresponde. **CI**: un job `landing` nuevo en `ci.yml` (corre en todos los PR, también
+  en los que sólo tocan `apps/landing`) y un caché de Chromium que comparte con el job E2E de la
+  app. Local: `pnpm e2e:landing`, con Chromium instalado (`pnpm --filter @wasabi-cross/landing
+exec playwright install chromium`). **Un hallazgo que no era un defecto**: `scroll-behavior:
+smooth` anima el scroll del foco, y medirlo sin esperar lo da por fuera de la pantalla; la ayuda
+  espera, y la página ya respeta `prefers-reduced-motion`.
 
 ## [ ] F10-11 · Servidor estático de producción
 
