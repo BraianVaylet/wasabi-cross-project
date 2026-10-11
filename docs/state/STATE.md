@@ -351,6 +351,11 @@ que el usuario tiene que aprobar, en una PR. Cada cosa que dicen que se guarda l
 spec y con el código de la API, y mostró que la API guarda la IP y el navegador con la sesión, algo que
 la spec no decía: se completó la §5.6. Quién responde sale de dos variables de build. Bitácora
 [2026-10-11](./bitacora/2026-10-11-f10-09-privacidad-terminos.md).
+2026-10-11 — **Fase 10, F10-11**: el servidor estático de la landing (`apps/landing/server/`), en una
+PR. Lo tomó la sesión de OAuth, avisando a la de la landing, porque no depende de las secciones:
+CSP estricta (`script-src 'none'`, sin `unsafe-inline`), caché de un año para `/_astro/*` y
+revalidación para lo demás, `/health` y un 404 con la página de la marca. Probado contra el build
+real y en un navegador. Bitácora [2026-10-11](./bitacora/2026-10-11-f10-11-servidor-estatico.md).
 
 2026-10-09 — **Fase 10, F10-08**: la sección de planes de la landing (la tabla comparativa cuya fila de
 estadísticas sale de `canViewStats`, accesible por teclado a 390px; las tarjetas de Free y Pro con el

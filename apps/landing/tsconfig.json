@@ -8,6 +8,7 @@
     "src/**/*",
     "test/**/*",
     "scripts/**/*",
+    "server/**/*",
     "astro.config.ts",
     "vitest.config.ts"
   ],

@@ -3916,6 +3916,35 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   `/security-review` y `aikido:scan`.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR. `apps/landing/server/app.ts` (`buildLandingServer` y
+  `defaultDistDir`) y `server.ts` (el proceso: `PORT`, `HOST`, `LANDING_DIST_DIR`, `LOG_LEVEL`); `pnpm
+--filter @wasabi-cross/landing start`. `@fastify/helmet` y `@fastify/static` pasaron al `catalog:`,
+  con `fastify`, y la API usa la misma versión. 51 pruebas contra el **build real de producción**
+  (`global-setup.ts`), no contra un fixture, más una de las páginas en su carpeta y una que arranca el
+  proceso de verdad con `node server/server.ts`. Cosas que no estaban en el plan y salieron de
+  hacerlo:
+  - **La CSP sale de lo que el build usa, y es más cerrada de lo previsto.** El build no tiene ni un
+    `data:`, ni un `style=""`, ni un `<script>`: `img-src 'self'` a secas, `style-src 'self'`,
+    `font-src 'self'`, `connect-src 'none'`. Un test recorre todo lo que pide el HTML y el CSS y
+    comprueba que es del propio origen y que el servidor lo tiene: si mañana alguien suma una
+    fuente de Google o una imagen `data:`, falla ahí y no en producción.
+  - **`upgrade-insecure-requests` no rompe `http://127.0.0.1`.** Lo comprobé en un navegador real,
+    con el servidor corriendo: cero quejas de CSP en la consola, el CSS, las fuentes y la captura
+    del hero cargan. Lo necesita F10-10 para su E2E en CI, que corre sin HTTPS.
+  - **Un `<link rel="canonical">` es una URL absoluta, y está bien**: no carga nada, así que la CSP
+    no lo gobierna. El primer recorrido lo tomaba por un recurso.
+  - **Sin build no arranca**, y dice cuál falta: es mejor que contestar 404 a todo y que Railway lo
+    dé por sano.
+  - **`redirect: true`**: Astro deja `privacidad/index.html`, y F10-09 va a compartir `/privacidad`
+    sin barra; sin esto es un 404. Se prueba con un build mínimo, porque hoy la landing no tiene
+    ninguna página en carpeta.
+  - Los headers por defecto de helmet que no estaban en el criterio (`Cross-Origin-Resource-Policy:
+same-origin`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`) quedan como vienen. El primero
+    afecta a `og.png` sólo si un navegador la embebiera desde otro origen; los servidores que arman
+    las vistas previas al compartir no lo aplican. Si algún cliente de mensajería no la mostrara,
+    es lo primero que hay que mirar.
+  - **Lo que queda para F10-12:** `HOST=0.0.0.0` y `PORT` en el IaC (el default local es
+    `127.0.0.1`), y las variables de build.
 
 ## [ ] F10-12 · Railway: el segundo servicio, como código
 
