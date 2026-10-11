@@ -3977,6 +3977,29 @@ same-origin`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`) quedan como viene
   no se borran, con sus pruebas inversas; a mano, el build de cada servicio por separado.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR contra main (F10-11 ya entró, #122).
+  `.railway/railway.ts` declara los dos servicios, con `build` por `--filter ...` y `watchPatterns`;
+  el test de invariantes pasó de 12 a 45 pruebas, ninguna borrada. Cosas que no estaban en el plan y
+  salieron de hacerlo:
+  - **Los watch paths sí se pueden declarar en el IaC.** Es `build.watchPatterns`, en el tipo
+    `BuildConfig` de `railway/iac`, aunque la referencia de `service()` no lo diga. Resultado
+    escrito en ADR-0013 y en `.railway/README.md`. Lo que sigue sin saberse es que Railway los
+    respete al deployar: F10-13 lo prueba.
+  - **La landing no declara `NODE_ENV`.** Con `production`, el instalador omitiría las
+    dependencias de desarrollo y `astro` —que compila el sitio— es una. El servidor no lo necesita.
+    No se pudo comprobar contra Railway (no hay ambientes, F3-07): queda anotado como lo primero
+    a mirar si el primer build falla.
+  - **El IaC de la app no tenía las credenciales de OAuth** (F9-10): el servicio ya existe y sin
+    `GOOGLE_*` ni `MICROSOFT_*` la API no arranca. Se agregaron como `preserve()`, con un test; y
+    otro que fija que `OAUTH_DEV_IDP` y `MICROSOFT_AUTHORITY` **no** estén declarados.
+  - **Los dos `build` se corrieron de verdad**: el de la app construye schemas, ui, api y web; el de
+    la landing, schemas, ui y landing. Ninguno toca al otro.
+  - `PUBLIC_SITE_URL` y `PUBLIC_APP_URL` quedan como `preserve()`: dependen del dominio, que no
+    está decidido. Sin ellas el sitio sale sin "Entrar", y con `LANDING_INDEXABLE=1` y sin sitio el
+    build falla a propósito.
+  - `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL` también, a pedido de F10-09 (#121): quién
+    responde en las páginas legales. **F10-13 tiene que cargarlas**: con `LANDING_INDEXABLE=1` y sin
+    ellas el build de producción de la landing falla a propósito.
 
 ## [ ] F10-13 · Dominio, ambientes y smoke — 🔑 necesita al usuario
 

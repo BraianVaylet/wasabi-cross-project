@@ -346,6 +346,11 @@ ningún proveedor, no arranca, y ése es el único que hay fuera de producción 
 
 ## Última actualización
 
+2026-10-11 — **Fase 10, F10-12**: Railway con la landing como segundo servicio, en una PR (F10-11
+ya está en main, #122): `build` por `--filter`, `watchPatterns` declarados en el IaC (se comprobó
+que se puede) y, de paso, las credenciales de OAuth de la app como `preserve()`.
+Bitácora [2026-10-11](./bitacora/2026-10-11-f10-12-railway-landing.md).
+
 2026-10-11 — **Fase 10, F10-09**: la política de privacidad y los términos de la landing, como borrador
 que el usuario tiene que aprobar, en una PR. Cada cosa que dicen que se guarda la cruza un test con la
 spec y con el código de la API, y mostró que la API guarda la IP y el navegador con la sesión, algo que
