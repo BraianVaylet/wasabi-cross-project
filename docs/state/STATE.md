@@ -169,8 +169,9 @@ app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estati
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
 (tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
 F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114), F10-06 (Registro y Funciones,
-PR #115), F10-07 (Estadísticas Pro, PR #117) y F10-08 (Planes, PR #120) también, y F10-09
-(Privacidad y términos) está hecha en una PR**; ninguna tarea cerrada.
+PR #115), F10-07 (Estadísticas Pro, PR #117), F10-08 (Planes, PR #120) y F10-11 (el servidor
+estático, PR #122) también, y F10-09 (Privacidad y términos) está hecha en una PR**; ninguna
+tarea cerrada.
 
 ## Bloqueado
 
@@ -229,8 +230,8 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     si el párrafo del hero suma `hybrid` y `pilates` (la captura del catálogo ya muestra los siete
     filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
     dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Después,
-    F10-10 (E2E, axe y presupuesto de peso en CI), que espera al servidor de F10-11. Crear las
-    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+    F10-10 (E2E, axe y presupuesto de peso en CI), que ya puede usar el servidor de F10-11
+    (`node apps/landing/server/server.ts`). Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
