@@ -365,6 +365,12 @@ guardan**: el único uso del _access token_ es pedirle la foto a Microsoft duran
 después se descarta (si Better Auth no permitiera descartarlo, se guarda cifrado: ADR-0012). No hay
 contraseña, recupero de contraseña ni verificación de email propios: los resuelve el proveedor.
 
+**Datos de conexión.** Con cada sesión se guardan la dirección IP y el navegador (el _user agent_)
+desde donde se entró (Better Auth lo hace por defecto); el límite de intentos de ingreso (§13) lleva
+un contador por IP, y los registros del servidor (§14) incluyen la IP de cada pedido. Sirven a la
+seguridad y para encontrar errores, y la política de privacidad (§5.7) los dice: no se pueden
+callar. La app no tiene cómo ver ni borrar estos datos desde la interfaz.
+
 ### 5.7 Landing page
 
 La landing es **el sitio público de Wasabi Cross**: le presenta el producto a quien todavía no lo usa
@@ -404,6 +410,17 @@ el marcado.
 
 **Qué no lleva.** Cookies, analytics y banner de consentimiento; formularios; JavaScript de cliente;
 manifest y service worker (no es una PWA: no se instala); Tailwind (§6, §11).
+
+**Páginas legales.** `/privacidad` y `/terminos`, enlazadas desde el footer de todas las páginas y
+listadas en el sitemap de producción. Se publican con barra final (`/privacidad/`), que es donde un sitio estático deja su `index.html`: el
+canonical, el sitemap y los enlaces usan esa forma y ninguno pasa por una redirección. Son sólo texto,
+sin JavaScript. La política dice lo que §5.6 y
+§13 dicen que se guarda, y nada más; los términos, lo que §4 dice de los planes, con el precio por
+definir. **Quién responde** y a qué email se pide ver, corregir o borrar los datos salen de dos
+variables de build, `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`: van las dos o ninguna, y con
+`LANDING_INDEXABLE=1` el build se rompe sin ellas, porque una política sin responsable no se
+publica. Fuera de producción, sin ellas, las páginas avisan que el contacto falta. Los textos los
+aprueba una persona (§13).
 
 **Indexación y compartir.** Sólo producción es indexable: el build trae `PUBLIC_SITE_URL` y
 `LANDING_INDEXABLE=1`. Staging y CI salen con `noindex` y un `robots.txt` que bloquea todo (§12).

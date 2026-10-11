@@ -2,7 +2,7 @@
 /*
  * El footer: la marca, su frase y los CTA de cierre, los mismos que los del hero (`CtaPrincipal`).
  */
-import { textos } from '../content/sitio.ts';
+import { paginasLegales, textos } from '../content/sitio.ts';
 import CtaPrincipal from './CtaPrincipal.astro';
 import Marca from './Marca.astro';
 
@@ -18,6 +18,11 @@ const { demo = true } = Astro.props;
   <div class="presentacion">
     <Marca />
     <p>{textos.pieDescripcion}</p>
+    <nav class="legal" aria-label={textos.legal}>
+      {paginasLegales.map((p) => (
+        <a href={p.ruta}>{p.nombre}</a>
+      ))}
+    </nav>
   </div>
   <div class="acciones">
     <CtaPrincipal flecha="↗" demo={demo} />
@@ -50,6 +55,25 @@ const { demo = true } = Astro.props;
     font-family: var(--wc-font-family);
     font-size: var(--wc-font-size-caption);
     line-height: 1.25rem;
+    text-transform: uppercase;
+  }
+
+  .legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--wc-space-5);
+    margin-top: var(--wc-space-2);
+  }
+
+  .legal a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--wc-tap-target);
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-caption);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
     text-transform: uppercase;
   }
 
