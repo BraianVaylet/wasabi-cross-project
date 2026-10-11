@@ -9,6 +9,12 @@ catalogs:
     '@astrojs/check':
       specifier: ^0.9.10
       version: 0.9.10
+    '@fastify/helmet':
+      specifier: ^13.1.1
+      version: 13.1.1
+    '@fastify/static':
+      specifier: ^10.1.5
+      version: 10.1.5
     '@types/node':
       specifier: ^24.19.1
       version: 24.19.1
@@ -118,13 +124,13 @@ importers:
         specifier: ^11.3.0
         version: 11.3.0
       '@fastify/helmet':
-        specifier: ^13.1.1
+        specifier: 'catalog:'
         version: 13.1.1
       '@fastify/rate-limit':
         specifier: ^11.2.0
         version: 11.2.0
       '@fastify/static':
-        specifier: ^10.1.5
+        specifier: 'catalog:'
         version: 10.1.5
       '@fastify/swagger':
         specifier: ^9.9.1
@@ -187,6 +193,12 @@ importers:
 
   apps/landing:
     dependencies:
+      '@fastify/helmet':
+        specifier: 'catalog:'
+        version: 13.1.1
+      '@fastify/static':
+        specifier: 'catalog:'
+        version: 10.1.5
       '@fontsource/figtree':
         specifier: ^5.3.0
         version: 5.3.0
@@ -202,6 +214,9 @@ importers:
       '@wasabi-cross/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      fastify:
+        specifier: 'catalog:'
+        version: 5.12.5
     devDependencies:
       '@astrojs/check':
         specifier: 'catalog:'

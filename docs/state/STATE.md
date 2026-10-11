@@ -328,6 +328,12 @@ ningún proveedor, no arranca, y ése es el único que hay fuera de producción 
 
 ## Última actualización
 
+2026-10-11 — **Fase 10, F10-11**: el servidor estático de la landing (`apps/landing/server/`), en una
+PR. Lo tomó la sesión de OAuth, avisando a la de la landing, porque no depende de las secciones:
+CSP estricta (`script-src 'none'`, sin `unsafe-inline`), caché de un año para `/_astro/*` y
+revalidación para lo demás, `/health` y un 404 con la página de la marca. Probado contra el build
+real y en un navegador. Bitácora [2026-10-11](./bitacora/2026-10-11-f10-11-servidor-estatico.md).
+
 2026-10-09 — **Fase 9, F9-10 (la parte de la IA)**: el runbook del ingreso con OAuth
 (`docs/runbooks/oauth.md`: Google y Microsoft por ambiente, variables, rotación de secretos, prueba
 guiada y PWA) y `oauth:inspect-token`, que dice qué claims trae un ID token sin mostrar ningún valor

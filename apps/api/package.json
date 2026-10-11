@@ -20,9 +20,9 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
-    "@fastify/helmet": "^13.1.1",
+    "@fastify/helmet": "catalog:",
     "@fastify/rate-limit": "^11.2.0",
-    "@fastify/static": "^10.1.5",
+    "@fastify/static": "catalog:",
     "@fastify/swagger": "^9.9.1",
     "@fastify/swagger-ui": "^6.1.1",
     "@wasabi-cross/schemas": "workspace:*",
