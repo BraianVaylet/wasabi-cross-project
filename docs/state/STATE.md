@@ -333,6 +333,11 @@ ningún proveedor, no arranca, y ése es el único que hay fuera de producción 
 
 ## Última actualización
 
+2026-10-11 — **Fase 10, F10-12**: Railway con la landing como segundo servicio, en una PR (sobre la
+rama de F10-11, hasta que ésta entre a main): `build` por `--filter`, `watchPatterns` declarados en el
+IaC (se comprobó que se puede) y, de paso, las credenciales de OAuth de la app como `preserve()`.
+Bitácora [2026-10-11](./bitacora/2026-10-11-f10-12-railway-landing.md).
+
 2026-10-11 — **Fase 10, F10-11**: el servidor estático de la landing (`apps/landing/server/`), en una
 PR. Lo tomó la sesión de OAuth, avisando a la de la landing, porque no depende de las secciones:
 CSP estricta (`script-src 'none'`, sin `unsafe-inline`), caché de un año para `/_astro/*` y
