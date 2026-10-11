@@ -16,7 +16,7 @@ app, que cada uno compile sólo lo suyo, y averiguar si los _watch paths_ se pue
   pasa de `pnpm build` a `--filter @wasabi-cross/api... --filter @wasabi-cross/web...`.
 - **Watch paths** en `build.watchPatterns` de cada servicio, para que un cambio de copy no reinicie la API
   y uno de la API no redeploye la landing.
-- **El test de invariantes** (`railway-config.test.ts`) pasó a dos servicios: 12 → 43 pruebas, ninguna
+- **El test de invariantes** (`railway-config.test.ts`) pasó a dos servicios: 12 → 45 pruebas, ninguna
   borrada, con las invariantes nuevas (builds que no se cruzan, watch paths, la landing sin secretos, el
   archivo de arranque que existe).
 - **Las credenciales de OAuth** (`GOOGLE_*` y `MICROSOFT_*`) en el servicio de la app como `preserve()`, que
@@ -35,6 +35,10 @@ app, que cada uno compile sólo lo suyo, y averiguar si los _watch paths_ se pue
 - **La landing no declara `NODE_ENV`.** Con `production` el instalador omitiría las dependencias de
   desarrollo y `astro` es una. El servidor no lo necesita.
 - **Las URLs públicas son `preserve()`**, porque dependen del dominio. Sin ellas el sitio sale sin "Entrar".
+- **El contacto legal también** (`PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`): lo pidió la sesión de la
+  landing, porque F10-09 (#121) las exige con `LANDING_INDEXABLE=1`. Sin declararlas, el primer deploy de
+  production después de mergear #121 habría fallado sin que se supiera por qué. Verificado contra
+  `contacto.ts` de esa rama. Son datos de una persona: las carga quien despliega (F10-13).
 
 ## Bloqueos / lo que no se pudo comprobar
 

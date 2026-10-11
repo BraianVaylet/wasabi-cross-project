@@ -114,6 +114,11 @@ export default defineRailway((ctx) => {
       // sale sin "Entrar" y sin URLs absolutas.
       PUBLIC_SITE_URL: preserve(),
       PUBLIC_APP_URL: preserve(),
+      // Quién responde en /privacidad/ y /terminos/ (spec §5.7, F10-09). Van las dos o ninguna, y con
+      // `LANDING_INDEXABLE=1` sin ellas el build falla a propósito. Son datos de una persona: nunca
+      // escritos en el repo, las carga quien despliega (F10-13).
+      PUBLIC_CONTACT_NAME: preserve(),
+      PUBLIC_CONTACT_EMAIL: preserve(),
       // Sólo production se indexa: con `1` y sin `PUBLIC_SITE_URL` el build falla a propósito, en
       // vez de publicar una página sin `canonical`.
       LANDING_INDEXABLE: prod ? '1' : '0',

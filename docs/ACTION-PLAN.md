@@ -3957,7 +3957,7 @@ same-origin`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`) quedan como viene
 - **data-model-impact:** ninguno
 - **estado:** código hecho, en una PR contra main (F10-11 ya entró, #122).
   `.railway/railway.ts` declara los dos servicios, con `build` por `--filter ...` y `watchPatterns`;
-  el test de invariantes pasó de 12 a 43 pruebas, ninguna borrada. Cosas que no estaban en el plan y
+  el test de invariantes pasó de 12 a 45 pruebas, ninguna borrada. Cosas que no estaban en el plan y
   salieron de hacerlo:
   - **Los watch paths sí se pueden declarar en el IaC.** Es `build.watchPatterns`, en el tipo
     `BuildConfig` de `railway/iac`, aunque la referencia de `service()` no lo diga. Resultado
@@ -3975,6 +3975,9 @@ same-origin`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`) quedan como viene
   - `PUBLIC_SITE_URL` y `PUBLIC_APP_URL` quedan como `preserve()`: dependen del dominio, que no
     está decidido. Sin ellas el sitio sale sin "Entrar", y con `LANDING_INDEXABLE=1` y sin sitio el
     build falla a propósito.
+  - `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL` también, a pedido de F10-09 (#121): quién
+    responde en las páginas legales. **F10-13 tiene que cargarlas**: con `LANDING_INDEXABLE=1` y sin
+    ellas el build de producción de la landing falla a propósito.
 
 ## [ ] F10-13 · Dominio, ambientes y smoke — 🔑 necesita al usuario
 

@@ -203,6 +203,12 @@ describe.each(AMBIENTES)('Railway, ambiente %s: la landing (F10-12)', (environme
     expect(servicio.variables.PUBLIC_APP_URL).toEqual({ type: 'preserve' });
   });
 
+  it('el contacto de las páginas legales son datos de una persona: se cargan en Railway, no acá', () => {
+    // Sin ellas, con LANDING_INDEXABLE=1 el build de la landing falla (F10-09, `contacto.ts`).
+    expect(servicio.variables.PUBLIC_CONTACT_NAME).toEqual({ type: 'preserve' });
+    expect(servicio.variables.PUBLIC_CONTACT_EMAIL).toEqual({ type: 'preserve' });
+  });
+
   it('no declara ningún secreto ni nada de la base: es un sitio público', () => {
     const permitidas = [
       'HOST',
@@ -210,16 +216,23 @@ describe.each(AMBIENTES)('Railway, ambiente %s: la landing (F10-12)', (environme
       'LANDING_INDEXABLE',
       'PUBLIC_SITE_URL',
       'PUBLIC_APP_URL',
+      'PUBLIC_CONTACT_NAME',
+      'PUBLIC_CONTACT_EMAIL',
     ];
 
     expect(Object.keys(servicio.variables).sort()).toEqual([...permitidas].sort());
     expect(servicio.variables.MONGODB_URI).toBeUndefined();
     expect(servicio.variables.BETTER_AUTH_SECRET).toBeUndefined();
-    // Las únicas que se preservan son las dos URLs públicas, que no son secretas.
+    // Las únicas que se preservan son las de build, públicas: las dos URLs y el contacto legal.
     const preservadas = Object.entries(servicio.variables)
       .filter(([, variable]) => variable.type === 'preserve')
       .map(([nombre]) => nombre);
-    expect(preservadas.sort()).toEqual(['PUBLIC_APP_URL', 'PUBLIC_SITE_URL']);
+    expect(preservadas.sort()).toEqual([
+      'PUBLIC_APP_URL',
+      'PUBLIC_CONTACT_EMAIL',
+      'PUBLIC_CONTACT_NAME',
+      'PUBLIC_SITE_URL',
+    ]);
   });
 });
 

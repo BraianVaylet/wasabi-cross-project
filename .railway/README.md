@@ -28,15 +28,18 @@ la landing sumaría su build al deploy de la API.
 ## Las variables de la landing
 
 Todas **de build**: Astro las inlinea al compilar (spec §5.7), así que tienen que estar cuando se
-construye. Son públicas; ninguna lleva un secreto.
+construye. Ninguna es un secreto: salen en el HTML publicado. Las del contacto legal son datos de
+una persona, por eso no van escritas en el repo.
 
-| Variable            | Valor                             | Por qué                                                                                |
-| ------------------- | --------------------------------- | -------------------------------------------------------------------------------------- |
-| `PUBLIC_SITE_URL`   | `preserve()`: se carga en Railway | El origen público de la landing. Depende del dominio, que no está decidido (F10-13).   |
-| `PUBLIC_APP_URL`    | `preserve()`: se carga en Railway | A dónde lleva "Entrar". Sin ella el sitio sale sin los botones de ingreso.             |
-| `LANDING_INDEXABLE` | `1` en production, `0` en staging | Sólo production se indexa. Con `1` y sin `PUBLIC_SITE_URL` el build falla a propósito. |
-| `HOST`              | `0.0.0.0`                         | En un contenedor hay que escuchar en todas las interfaces. `PORT` lo pone Railway.     |
-| `LOG_LEVEL`         | `info`                            |                                                                                        |
+| Variable               | Valor                             | Por qué                                                                                                                        |
+| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `PUBLIC_SITE_URL`      | `preserve()`: se carga en Railway | El origen público de la landing. Depende del dominio, que no está decidido (F10-13).                                           |
+| `PUBLIC_APP_URL`       | `preserve()`: se carga en Railway | A dónde lleva "Entrar". Sin ella el sitio sale sin los botones de ingreso.                                                     |
+| `PUBLIC_CONTACT_NAME`  | `preserve()`: se carga en Railway | Quién responde en `/privacidad/` y `/terminos/` (F10-09). Va con el email o ninguna.                                           |
+| `PUBLIC_CONTACT_EMAIL` | `preserve()`: se carga en Railway | A dónde se escribe para ver, corregir o borrar los datos. Con `LANDING_INDEXABLE=1` y sin las dos, el build falla a propósito. |
+| `LANDING_INDEXABLE`    | `1` en production, `0` en staging | Sólo production se indexa. Con `1` y sin `PUBLIC_SITE_URL` el build falla a propósito.                                         |
+| `HOST`                 | `0.0.0.0`                         | En un contenedor hay que escuchar en todas las interfaces. `PORT` lo pone Railway.                                             |
+| `LOG_LEVEL`            | `info`                            |                                                                                                                                |
 
 **La landing no declara `NODE_ENV`, a propósito**: con `production` el instalador omitiría las
 dependencias de desarrollo, y `astro` —que compila el sitio— es una de ellas. El servidor no lo
