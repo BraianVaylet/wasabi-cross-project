@@ -1,8 +1,9 @@
 ---
-// La página de la landing. Las secciones de después del hero llegan con F10-06 a F10-08.
+// La página de la landing: el hero y, en el orden de la spec §5.7, sus secciones.
 import Estadisticas from '../components/Estadisticas.astro';
 import Funciones from '../components/Funciones.astro';
 import Hero from '../components/Hero.astro';
+import Planes from '../components/Planes.astro';
 import Registro from '../components/Registro.astro';
 import { seo } from '../content/sitio.ts';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -13,4 +14,5 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <Registro />
   <Funciones />
   <Estadisticas />
+  <Planes />
 </BaseLayout>

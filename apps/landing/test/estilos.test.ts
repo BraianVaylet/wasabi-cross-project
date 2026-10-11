@@ -115,3 +115,13 @@ describe('colores', () => {
     expect(sueltos).toEqual([]);
   });
 });
+
+describe('titulares', () => {
+  it('el interlineado deja pasar la tilde de las mayúsculas: no baja de 1.05', async () => {
+    // Con el 0.98 del diseño, la tilde de la "Í" de ESTADÍSTICAS tocaba la letra de la línea de arriba.
+    const global = await readFile(join(SRC, 'styles', 'global.css'), 'utf8');
+    const bloque = /\.titulo-seccion\s*{([^}]*)}/.exec(global)?.[1] ?? '';
+    const interlineado = Number(/line-height:\s*([\d.]+)\s*;/.exec(bloque)?.[1]);
+    expect(interlineado).toBeGreaterThanOrEqual(1.05);
+  });
+});
