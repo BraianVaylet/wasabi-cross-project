@@ -333,6 +333,12 @@ ningún proveedor, no arranca, y ése es el único que hay fuera de producción 
 
 ## Última actualización
 
+2026-10-11 — **Fase 10, F10-11**: el servidor estático de la landing (`apps/landing/server/`), en una
+PR. Lo tomó la sesión de OAuth, avisando a la de la landing, porque no depende de las secciones:
+CSP estricta (`script-src 'none'`, sin `unsafe-inline`), caché de un año para `/_astro/*` y
+revalidación para lo demás, `/health` y un 404 con la página de la marca. Probado contra el build
+real y en un navegador. Bitácora [2026-10-11](./bitacora/2026-10-11-f10-11-servidor-estatico.md).
+
 2026-10-09 — **Fase 10, F10-08**: la sección de planes de la landing (la tabla comparativa cuya fila de
 estadísticas sale de `canViewStats`, accesible por teclado a 390px; las tarjetas de Free y Pro con el
 precio por definir; y las capturas de lo que ve cada plan), en una PR. De paso, el interlineado de los
