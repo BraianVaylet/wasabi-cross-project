@@ -3834,6 +3834,28 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** revisión humana del texto; Container API de las páginas; axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, **a la espera de que el usuario revise y apruebe el texto legal** antes de
+  mergear (es el criterio de aceptación). `Legal.astro`, `/privacidad` y `/terminos`; el texto en
+  `src/content/legal.ts` y quién responde en `src/lib/contacto.ts`. **Dos cosas que el plan no
+  decía.** (1) **La API guarda más de lo que decía la spec**: Better Auth guarda la IP y el
+  navegador con cada sesión, el límite de intentos lleva un contador por IP y los logs traen la IP
+  de cada pedido; la spec §5.6 sólo listaba email, nombre, foto e id. Un texto que dijera "nada
+  más" sería falso, así que la política lo dice y se completó la spec §5.6 ("Datos de conexión");
+  si se prefiere no guardarlos, es un cambio de la API. (2) **Quién responde** es un dato de una
+  persona y no está en la spec ni en el repo: salen de `PUBLIC_CONTACT_NAME` y
+  `PUBLIC_CONTACT_EMAIL` (spec §5.7); van las dos o ninguna y, con `LANDING_INDEXABLE=1`, el build
+  se rompe sin ellas; en staging y CI las páginas avisan que falta. Además, la cookie "única" del
+  plan no lo es: durante el ingreso hay una temporal para el `state` (spec §13), y la política dice
+  "sólo cookies técnicas". Cada afirmación de qué se guarda o qué no la cruza un test con la spec y
+  con el código de la API (la sesión de 30 días, `httpOnly`, los tokens pisados con `null`, que no
+  hay `emailAndPassword`). **Sin cláusulas que la spec no respalda**: jurisdicción, edad mínima y
+  limitación de responsabilidad las decide quien responde. Las dos páginas están en el footer de
+  todas y en el sitemap de producción (no en el de staging), con barra final (`/privacidad/`): es
+  donde el servidor de F10-11 las deja sin redirigir, y el canonical no apunta a una URL que
+  redirige. 283 tests (de 219), cobertura 100 % y
+  dieciocho mutaciones a mano que atrapa un test cada una. **Verificado en Chromium** a 390 y
+  1280 px: axe sin violaciones, sin scroll horizontal ni errores de consola, un h1 y secciones con
+  nombre, los enlaces del footer de 44 px.
 
 ## [ ] F10-10 · E2E, axe y presupuesto de peso en CI
 

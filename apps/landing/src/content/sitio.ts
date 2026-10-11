@@ -1,7 +1,7 @@
 /*
  * Los textos que comparten las páginas, como datos tipados y no dentro del marcado (spec §5.7). En
  * voseo es-AR, como la app (§11). El texto de cada sección vive en su propio archivo
- * (F10-05 a F10-08).
+ * (F10-05 a F10-09).
  */
 
 export const marca = {
@@ -20,6 +20,8 @@ export const secciones = [
 export const textos = {
   saltarAlContenido: 'Saltar al contenido',
   navegacion: 'Secciones',
+  /** El nombre de la nav del footer con las páginas legales. */
+  legal: 'Legal',
   entrar: 'Entrar',
   empezarGratis: 'Empezar gratis',
   verLaApp: 'Ver la app en acción',
@@ -49,5 +51,14 @@ export const seo = {
   colorDelTema: '#0f041c',
 } as const;
 
-/** Las páginas que van al sitemap. F10-09 suma las legales. La 404 nunca. */
-export const rutasIndexables = ['/'] as const;
+/**
+ * Las páginas legales (F10-09), enlazadas desde el footer de todas las páginas. Con barra final: es
+ * donde Astro deja `index.html`, y el canonical, el sitemap y los enlaces no pasan por una redirección.
+ */
+export const paginasLegales = [
+  { ruta: '/privacidad/', nombre: 'Privacidad' },
+  { ruta: '/terminos/', nombre: 'Términos' },
+] as const;
+
+/** Las páginas que van al sitemap: la home y las legales. La 404 nunca. */
+export const rutasIndexables: readonly string[] = ['/', ...paginasLegales.map((p) => p.ruta)];
