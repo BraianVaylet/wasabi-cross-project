@@ -169,8 +169,8 @@ app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estati
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
 (tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
 F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114), F10-06 (Registro y Funciones,
-PR #115) y F10-07 (Estadísticas Pro, PR #117) también, y F10-08 (Planes) está hecha en una
-PR**; ninguna tarea cerrada.
+PR #115), F10-07 (Estadísticas Pro, PR #117) y F10-08 (Planes, PR #120) también, y F10-09
+(Privacidad y términos) está hecha en una PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -215,16 +215,22 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-08 (Planes) y **aprobar su texto en voseo**:
-    es lo que se promete sobre el plan pago y lo tiene que mirar una persona (spec §9). Y lo que
-    queda del copy de F10-05 a F10-07 si no se aprobó: titular, párrafo, ejercicios, CTA, pies y
-    los textos de estadísticas. Si el titular del hero cambia,
+12. **Fase 10 (landing):** revisar la PR de F10-09 (Privacidad y términos), que es **un borrador
+    legal que el usuario aprueba o corrige antes de mergear** (spec §13): su URL queda cargada en
+    las consolas de Google y Microsoft. Mirar sobre todo los **datos de conexión** (la IP y el
+    navegador con la sesión, el contador por IP y la IP en los logs: la spec §5.6 no lo decía y se
+    completó), la **cookie temporal del ingreso** (la política dice que, además de la de sesión,
+    hay una) y que **la baja de la cuenta se pide por email**. **Decidir quién responde**
+    (`PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`, variables de build de la landing: en
+    producción el build se rompe sin ellas). Y lo que queda del copy de F10-05 a F10-08 si no se
+    aprobó: titular, párrafo, ejercicios, CTA, pies, estadísticas y planes (spec §9: lo que se
+    promete sobre el plan pago lo mira una persona). Si el titular del hero cambia,
     `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04). Decidir
     si el párrafo del hero suma `hybrid` y `pilates` (la captura del catálogo ya muestra los siete
     filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
     dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Después,
-    F10-09 (privacidad y términos: el texto legal lo aprueba el usuario). Crear las tarjetas
-    (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+    F10-10 (E2E, axe y presupuesto de peso en CI), que espera al servidor de F10-11. Crear las
+    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -260,6 +266,13 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
   1280 px miden 2063 y 1774 px de alto y la sección entera, 3748. Con una altura máxima habría que
   recortar la imagen o meter un scroll interno, y las dos son la lista completa de capacidades
   y de grupos musculares. Se cambia en `Estadisticas.astro`.
+- **Quién responde en las páginas legales** (F10-09). `PUBLIC_CONTACT_NAME` y
+  `PUBLIC_CONTACT_EMAIL` son variables de build de la landing: van las dos o ninguna, y con
+  `LANDING_INDEXABLE=1` el build se rompe sin ellas. No están en el repo (son datos de una
+  persona): hay que cargarlas en el servicio de la landing de cada ambiente (F10-12, F10-13).
+- **La API guarda la IP y el navegador con la sesión** (F10-09). Better Auth lo hace por
+  defecto y la spec no lo decía: ahora la spec §5.6 y la política lo dicen. Si se prefiere no
+  guardarlos es un cambio de la API (y la IP además sirve al límite de 5 intentos por minuto).
 - **Dominio** de Wasabi Cross: no hay. El plan de la landing asume la landing en la raíz y la
   app en `app.`, y de eso dependen el host de las redirect URIs de OAuth (F9-10) y el de
   `WEB_ORIGIN` y `BETTER_AUTH_URL`.
@@ -332,6 +345,12 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-11 — **Fase 10, F10-09**: la política de privacidad y los términos de la landing, como borrador
+que el usuario tiene que aprobar, en una PR. Cada cosa que dicen que se guarda la cruza un test con la
+spec y con el código de la API, y mostró que la API guarda la IP y el navegador con la sesión, algo que
+la spec no decía: se completó la §5.6. Quién responde sale de dos variables de build. Bitácora
+[2026-10-11](./bitacora/2026-10-11-f10-09-privacidad-terminos.md).
 
 2026-10-09 — **Fase 10, F10-08**: la sección de planes de la landing (la tabla comparativa cuya fila de
 estadísticas sale de `canViewStats`, accesible por teclado a 390px; las tarjetas de Free y Pro con el
