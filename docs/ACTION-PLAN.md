@@ -3955,7 +3955,7 @@ same-origin`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`) quedan como viene
   no se borran, con sus pruebas inversas; a mano, el build de cada servicio por separado.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
-- **estado:** código hecho, en una PR (parte de la rama de F10-11, hasta que ésta entre a main).
+- **estado:** código hecho, en una PR contra main (F10-11 ya entró, #122).
   `.railway/railway.ts` declara los dos servicios, con `build` por `--filter ...` y `watchPatterns`;
   el test de invariantes pasó de 12 a 43 pruebas, ninguna borrada. Cosas que no estaban en el plan y
   salieron de hacerlo:

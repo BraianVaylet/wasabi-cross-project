@@ -48,5 +48,6 @@ app, que cada uno compile sólo lo suyo, y averiguar si los _watch paths_ se pue
 
 ## Próximo paso
 
-Esperar a que F10-11 (#122) entre a `main`: esta rama parte de la suya, así que al mergear queda con las dos
-cosas. Después F10-13 (dominio, ambientes y smoke), que necesita al usuario.
+F10-11 (#122) ya está en `main`; la PR de esta tarea va contra `main`. Antes de mergearla, mirar que el
+build de la landing y el de la app salgan bien en el CI. Después F10-13 (dominio, ambientes y smoke),
+que necesita al usuario.
