@@ -3850,7 +3850,9 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   con el código de la API (la sesión de 30 días, `httpOnly`, los tokens pisados con `null`, que no
   hay `emailAndPassword`). **Sin cláusulas que la spec no respalda**: jurisdicción, edad mínima y
   limitación de responsabilidad las decide quien responde. Las dos páginas están en el footer de
-  todas y en el sitemap de producción (no en el de staging). 283 tests (de 219), cobertura 100 % y
+  todas y en el sitemap de producción (no en el de staging), con barra final (`/privacidad/`): es
+  donde el servidor de F10-11 las deja sin redirigir, y el canonical no apunta a una URL que
+  redirige. 283 tests (de 219), cobertura 100 % y
   dieciocho mutaciones a mano que atrapa un test cada una. **Verificado en Chromium** a 390 y
   1280 px: axe sin violaciones, sin scroll horizontal ni errores de consola, un h1 y secciones con
   nombre, los enlaces del footer de 44 px.

@@ -184,7 +184,7 @@ describe('los términos (spec §4)', () => {
     const hrefs = TERMINOS.secciones
       .flatMap((s) => s.bloques)
       .flatMap((b) => (b.tipo === 'enlace' ? [b.href] : []));
-    expect(hrefs).toContain('/privacidad');
+    expect(hrefs).toContain('/privacidad/');
   });
 });
 
@@ -194,7 +194,7 @@ describe('forma de los dos documentos', () => {
     ['términos', TERMINOS],
   ] as const) {
     it(`${nombre}: ruta, título, descripción, fecha y secciones con id propio`, () => {
-      expect(doc.ruta).toMatch(/^\/[a-z]+$/);
+      expect(doc.ruta).toMatch(/^\/[a-z]+\/$/);
       expect(doc.titulo.length).toBeGreaterThan(5);
       expect(doc.descripcion.length).toBeGreaterThan(30);
       expect(doc.actualizado).toMatch(/^\d{1,2} de [a-z]+ de \d{4}$/);
@@ -208,7 +208,7 @@ describe('forma de los dos documentos', () => {
     });
   }
 
-  it('las dos rutas son /privacidad y /terminos', () => {
-    expect([PRIVACIDAD.ruta, TERMINOS.ruta]).toEqual(['/privacidad', '/terminos']);
+  it('las dos rutas son /privacidad/ y /terminos/, con barra final', () => {
+    expect([PRIVACIDAD.ruta, TERMINOS.ruta]).toEqual(['/privacidad/', '/terminos/']);
   });
 });

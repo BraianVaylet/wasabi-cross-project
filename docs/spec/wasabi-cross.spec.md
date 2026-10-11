@@ -412,7 +412,9 @@ el marcado.
 manifest y service worker (no es una PWA: no se instala); Tailwind (§6, §11).
 
 **Páginas legales.** `/privacidad` y `/terminos`, enlazadas desde el footer de todas las páginas y
-listadas en el sitemap de producción. Son sólo texto, sin JavaScript. La política dice lo que §5.6 y
+listadas en el sitemap de producción. Se publican con barra final (`/privacidad/`), que es donde un sitio estático deja su `index.html`: el
+canonical, el sitemap y los enlaces usan esa forma y ninguno pasa por una redirección. Son sólo texto,
+sin JavaScript. La política dice lo que §5.6 y
 §13 dicen que se guarda, y nada más; los términos, lo que §4 dice de los planes, con el precio por
 definir. **Quién responde** y a qué email se pide ver, corregir o borrar los datos salen de dos
 variables de build, `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`: van las dos o ninguna, y con

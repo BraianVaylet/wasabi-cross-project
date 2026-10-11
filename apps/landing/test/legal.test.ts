@@ -22,8 +22,8 @@ const NOMBRE = inject('contactoNombre');
 const EMAIL = inject('contactoEmail');
 
 const PAGINAS = [
-  { ruta: '/privacidad', carpeta: 'privacidad', h1: 'Política de privacidad' },
-  { ruta: '/terminos', carpeta: 'terminos', h1: 'Términos y condiciones' },
+  { ruta: '/privacidad/', carpeta: 'privacidad', h1: 'Política de privacidad' },
+  { ruta: '/terminos/', carpeta: 'terminos', h1: 'Términos y condiciones' },
 ] as const;
 
 const pagina = (dir: string, carpeta: string): string => leer(dir, join(carpeta, 'index.html'));
@@ -106,7 +106,7 @@ describe('indexación', () => {
   it('el sitemap de producción lista la home y las dos páginas', () => {
     const xml = leer(produccion, 'sitemap.xml');
     const locs = [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
-    expect(locs).toEqual([`${siteUrl}/`, `${siteUrl}/privacidad`, `${siteUrl}/terminos`]);
+    expect(locs).toEqual([`${siteUrl}/`, `${siteUrl}/privacidad/`, `${siteUrl}/terminos/`]);
   });
 
   it('el de staging y el de sin variables salen vacíos', () => {
@@ -127,15 +127,15 @@ describe('el footer las enlaza', () => {
   for (const [nombre, html] of paginas) {
     it(`${nombre}: una nav "Legal" con Privacidad y Términos, en ese orden`, () => {
       const nav = navLegal(html);
-      expect(hrefs(nav)).toEqual(['/privacidad', '/terminos']);
+      expect(hrefs(nav)).toEqual(['/privacidad/', '/terminos/']);
       expect(texto(nav)).toBe('Privacidad Términos');
     });
   }
 
   it('la home trae los dos enlaces una sola vez cada uno', () => {
     const todos = hrefs(leer(produccion));
-    expect(todos.filter((h) => h === '/privacidad')).toHaveLength(1);
-    expect(todos.filter((h) => h === '/terminos')).toHaveLength(1);
+    expect(todos.filter((h) => h === '/privacidad/')).toHaveLength(1);
+    expect(todos.filter((h) => h === '/terminos/')).toHaveLength(1);
   });
 });
 

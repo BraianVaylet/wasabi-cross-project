@@ -41,6 +41,9 @@ cargada en las consolas de Google y Microsoft).
   ser cierta y el test falla.
 - **Sin cláusulas que nadie respalda.** Jurisdicción, edad mínima, limitación de responsabilidad y el
   organismo de control quedan afuera: las decide quien responde.
+- **URLs con barra final.** El servidor estático de F10-11 redirige `/privacidad` a `/privacidad/`
+  (ahí deja Astro el `index.html`). El canonical, el sitemap y los enlaces del footer usan la forma
+  con barra, para que ninguno pase por una redirección; el aviso vino de la otra sesión.
 
 ## Bloqueos / lo que no funcionó
 

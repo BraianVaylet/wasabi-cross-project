@@ -51,10 +51,13 @@ export const seo = {
   colorDelTema: '#0f041c',
 } as const;
 
-/** Las páginas legales (F10-09), enlazadas desde el footer de todas las páginas. */
+/**
+ * Las páginas legales (F10-09), enlazadas desde el footer de todas las páginas. Con barra final: es
+ * donde Astro deja `index.html`, y el canonical, el sitemap y los enlaces no pasan por una redirección.
+ */
 export const paginasLegales = [
-  { ruta: '/privacidad', nombre: 'Privacidad' },
-  { ruta: '/terminos', nombre: 'Términos' },
+  { ruta: '/privacidad/', nombre: 'Privacidad' },
+  { ruta: '/terminos/', nombre: 'Términos' },
 ] as const;
 
 /** Las páginas que van al sitemap: la home y las legales. La 404 nunca. */

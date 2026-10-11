@@ -26,7 +26,8 @@ export interface SeccionLegal {
 }
 
 export interface DocumentoLegal {
-  ruta: '/privacidad' | '/terminos';
+  /** Con barra final: es donde un sitio estático deja su `index.html`, sin redirección. */
+  ruta: '/privacidad/' | '/terminos/';
   titulo: string;
   descripcion: string;
   /** La fecha de la versión, para quien la lee: "11 de octubre de 2026". */
@@ -56,7 +57,7 @@ export function privacidad(contacto: Contacto | null): DocumentoLegal {
       : `Escribí a ${contacto.email} desde el email con el que entrás y la borramos, con tus ejercicios y marcas.`;
 
   return {
-    ruta: '/privacidad',
+    ruta: '/privacidad/',
     titulo: 'Política de privacidad',
     descripcion:
       'Qué datos guarda Wasabi Cross, para qué los usa, dónde se guardan y cómo pedir que se borren.',
@@ -186,7 +187,7 @@ export function terminos(contacto: Contacto | null): DocumentoLegal {
       : `Wasabi Cross lo mantiene ${contacto.nombre}. Para cualquier consulta sobre estos términos, escribí a ${contacto.email}.`;
 
   return {
-    ruta: '/terminos',
+    ruta: '/terminos/',
     titulo: 'Términos y condiciones',
     descripcion:
       'Qué es Wasabi Cross, qué incluyen los planes Free y Pro y bajo qué condiciones se usa.',
@@ -255,7 +256,7 @@ export function terminos(contacto: Contacto | null): DocumentoLegal {
           parrafo(
             'Lo que cargás es tuyo. Qué datos guardamos y cómo pedir que se borren está en la política de privacidad.',
           ),
-          { tipo: 'enlace', texto: 'Leer la política de privacidad', href: '/privacidad' },
+          { tipo: 'enlace', texto: 'Leer la política de privacidad', href: '/privacidad/' },
         ],
       },
       {
