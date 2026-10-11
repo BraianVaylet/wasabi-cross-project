@@ -169,8 +169,9 @@ app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estati
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
 (tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
 F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114), F10-06 (Registro y Funciones,
-PR #115), F10-07 (Estadísticas Pro, PR #117) y F10-08 (Planes, PR #120) también, y F10-09
-(Privacidad y términos) está hecha en una PR**; ninguna tarea cerrada.
+PR #115), F10-07 (Estadísticas Pro, PR #117), F10-08 (Planes, PR #120), F10-09 (Privacidad y
+términos, PR #121), F10-11 (el servidor estático, PR #122) y F10-12 (Railway, PR #123) también,
+y F10-10 (el E2E de la landing) está hecha en una PR**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -215,22 +216,19 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-09 (Privacidad y términos), que es **un borrador
-    legal que el usuario aprueba o corrige antes de mergear** (spec §13): su URL queda cargada en
-    las consolas de Google y Microsoft. Mirar sobre todo los **datos de conexión** (la IP y el
-    navegador con la sesión, el contador por IP y la IP en los logs: la spec §5.6 no lo decía y se
-    completó), la **cookie temporal del ingreso** (la política dice que, además de la de sesión,
-    hay una) y que **la baja de la cuenta se pide por email**. **Decidir quién responde**
-    (`PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`, variables de build de la landing: en
-    producción el build se rompe sin ellas). Y lo que queda del copy de F10-05 a F10-08 si no se
-    aprobó: titular, párrafo, ejercicios, CTA, pies, estadísticas y planes (spec §9: lo que se
-    promete sobre el plan pago lo mira una persona). Si el titular del hero cambia,
+12. **Fase 10 (landing):** revisar la PR de F10-10 (E2E, axe y peso en CI): los topes de
+    `apps/landing/e2e/presupuesto.ts` son lo medido más ~15 % y la propuesta de 150 KB para el
+    hero no entraba. **Cargar `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`** en el servicio de
+    la landing de cada ambiente (ya están declaradas en el IaC, F10-12): en producción el build
+    se rompe sin ellas. Y lo que queda del copy de F10-05 a F10-08 si no se aprobó: titular,
+    párrafo, ejercicios, CTA, pies, estadísticas y planes (spec §9: lo que se promete sobre el
+    plan pago lo mira una persona). Si el titular del hero cambia,
     `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04). Decidir
     si el párrafo del hero suma `hybrid` y `pilates` (la captura del catálogo ya muestra los siete
     filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
     dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Después,
-    F10-10 (E2E, axe y presupuesto de peso en CI), que espera al servidor de F10-11. Crear las
-    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+    F10-13 (dominio, ambientes y smoke: necesita al usuario y a F3-07). Crear las tarjetas
+    (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
     **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
     prod.
 
@@ -345,6 +343,11 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-11 — **Fase 10, F10-10**: el E2E de la landing con Playwright (axe a 390 y 1280 px, el foco por
+teclado, las imágenes, la CSP, las anclas, los dos modos de `PUBLIC_APP_URL` y un presupuesto de
+peso medido), sobre el servidor de producción, y un job `landing` en el CI, en una PR. Bitácora
+[2026-10-11](./bitacora/2026-10-11-f10-10-e2e-landing.md).
 
 2026-10-11 — **Fase 10, F10-12**: Railway con la landing como segundo servicio, en una PR (F10-11
 ya está en main, #122): `build` por `--filter`, `watchPatterns` declarados en el IaC (se comprobó

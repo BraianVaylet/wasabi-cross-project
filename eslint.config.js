@@ -9,6 +9,8 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      // Los builds del E2E de la landing (F10-10).
+      '**/dist-e2e/**',
       '**/coverage/**',
       '**/node_modules/**',
       '**/storybook-static/**',

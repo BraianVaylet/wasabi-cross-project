@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "og": "node scripts/generar-og.ts",
-    "start": "node server/server.ts"
+    "start": "node server/server.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@fastify/helmet": "catalog:",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "catalog:",
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",

@@ -9,8 +9,10 @@
     "test/**/*",
     "scripts/**/*",
     "server/**/*",
+    "e2e/**/*",
     "astro.config.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "playwright.config.ts"
   ],
-  "exclude": ["dist", "coverage"]
+  "exclude": ["dist", "dist-e2e", "coverage", "playwright-report", "test-results"]
 }
