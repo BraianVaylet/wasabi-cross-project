@@ -60,6 +60,7 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 | `pnpm e2e`                                        | Playwright: el flujo principal y la auditoría axe (F1-18)        |
 | `pnpm e2e:prod`                                   | Lo mismo contra el build de producción servido por la API (CI)   |
 | `pnpm e2e:landing`                                | Playwright de la landing: axe, foco, imágenes y peso (F10-10)    |
+| `pnpm --filter @wasabi-cross/landing smoke <url>` | GET de sólo lectura contra una landing desplegada (F10-13)       |
 | `pnpm build`                                      | Compila los cinco workspaces en orden de dependencia             |
 | `pnpm format` / `pnpm format:check`               | Prettier                                                         |
 | `pnpm --filter @wasabi-cross/api migrate up`      | Aplica las migraciones pendientes (`down`, `status`)             |

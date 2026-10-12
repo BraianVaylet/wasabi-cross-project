@@ -170,8 +170,9 @@ está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100)
 (tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
 F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114), F10-06 (Registro y Funciones,
 PR #115), F10-07 (Estadísticas Pro, PR #117), F10-08 (Planes, PR #120), F10-09 (Privacidad y
-términos, PR #121), F10-11 (el servidor estático, PR #122) y F10-12 (Railway, PR #123) también,
-y F10-10 (el E2E de la landing) está hecha en una PR**; ninguna tarea cerrada.
+términos, PR #121), F10-11 (el servidor estático, PR #122), F10-12 (Railway, PR #123) y F10-10
+(el E2E de la landing, PR #124) también, y **la parte de la IA de F10-13** (el runbook y el smoke)
+está hecha en una PR: falta lo que toca la cuenta real**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -216,21 +217,22 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-10 (E2E, axe y peso en CI): los topes de
-    `apps/landing/e2e/presupuesto.ts` son lo medido más ~15 % y la propuesta de 150 KB para el
-    hero no entraba. **Cargar `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`** en el servicio de
-    la landing de cada ambiente (ya están declaradas en el IaC, F10-12): en producción el build
-    se rompe sin ellas. Y lo que queda del copy de F10-05 a F10-08 si no se aprobó: titular,
+12. **Fase 10 (landing):** lo que falta es de F10-13 y es del usuario: **decidir el dominio**
+    (landing en la raíz, app en `app.`) antes de F9-10, y después seguir
+    [`docs/runbooks/landing.md`](../runbooks/landing.md): crear el servicio de la landing
+    (`railway config plan` y `apply`, después de F3-07), **cargar `PUBLIC_SITE_URL`,
+    `PUBLIC_APP_URL`, `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`** en cada ambiente (en
+    producción el build se rompe sin las últimas dos), agregar los dominios y el DNS, y correr
+    el smoke (`pnpm --filter @wasabi-cross/landing smoke -- <url>`). **Decidir cómo redirige el
+    `www`**: el servidor no lo hace; la opción recomendada es una regla del proveedor de DNS. Y
+    lo que queda del copy de F10-05 a F10-08 si no se aprobó: titular,
     párrafo, ejercicios, CTA, pies, estadísticas y planes (spec §9: lo que se promete sobre el
     plan pago lo mira una persona). Si el titular del hero cambia,
     `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04). Decidir
     si el párrafo del hero suma `hybrid` y `pilates` (la captura del catálogo ya muestra los siete
     filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
-    dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Después,
-    F10-13 (dominio, ambientes y smoke: necesita al usuario y a F3-07). Crear las tarjetas
-    (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
-    **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
-    prod.
+    dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Crear las
+    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
 
 ## Decisiones abiertas
 
@@ -271,6 +273,10 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 - **La API guarda la IP y el navegador con la sesión** (F10-09). Better Auth lo hace por
   defecto y la spec no lo decía: ahora la spec §5.6 y la política lo dicen. Si se prefiere no
   guardarlos es un cambio de la API (y la IP además sirve al límite de 5 intentos por minuto).
+- **Cómo redirige el `www`** (F10-13). El servidor de la landing no redirige entre hosts. Opción
+  A (recomendada): una regla de redirección del proveedor de DNS, sin código. Opción B: una
+  variable con el host canónico y un 301 en `server/app.ts`, que es una tarea aparte. El smoke
+  lo comprueba con `--www`.
 - **Dominio** de Wasabi Cross: no hay. El plan de la landing asume la landing en la raíz y la
   app en `app.`, y de eso dependen el host de las redirect URIs de OAuth (F9-10) y el de
   `WEB_ORIGIN` y `BETTER_AUTH_URL`.
@@ -343,6 +349,13 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-12 — **Fase 10, F10-13 (la parte de la IA)**: el runbook de la landing
+(`docs/runbooks/landing.md`: dominio, variables por ambiente, DNS, watch paths, cómo se despublica
+sin que la app se entere) y un smoke de sólo lectura contra cualquier URL
+(`pnpm --filter @wasabi-cross/landing smoke`), con tests contra el servidor de producción, en una
+PR. Falta todo lo que necesita al usuario: el dominio, la cuenta de Railway y el DNS. Bitácora
+[2026-10-12](./bitacora/2026-10-12-f10-13-runbook-smoke-landing.md).
 
 2026-10-11 — **Fase 10, F10-10**: el E2E de la landing con Playwright (axe a 390 y 1280 px, el foco por
 teclado, las imágenes, la CSP, las anclas, los dos modos de `PUBLIC_APP_URL` y un presupuesto de

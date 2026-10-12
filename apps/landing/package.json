@@ -13,7 +13,8 @@
     "test:coverage": "vitest run --coverage",
     "og": "node scripts/generar-og.ts",
     "start": "node server/server.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "smoke": "node scripts/smoke.ts"
   },
   "dependencies": {
     "@fastify/helmet": "catalog:",
