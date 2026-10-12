@@ -350,6 +350,11 @@ ningún proveedor, no arranca, y ése es el único que hay fuera de producción 
 
 ## Última actualización
 
+2026-10-12 — **`pnpm dev` imprime el acceso rápido de la landing** (`➜ Landing: http://localhost:4321/`), como
+la línea de Vite para la web. `apps/landing/scripts/dev.ts` corre `astro dev` y lee el puerto real de lo que
+Astro dice: su salida cambia según dónde corre (JSON si detecta un agente) y toma otro puerto si el 4321
+está ocupado.
+
 2026-10-12 — **`pnpm dev` levanta también la landing** (en :4321): la raíz ya no la excluye con el
 filtro de F10-01. Para que muestre "Entrar", `apps/landing/.env.example` trae `PUBLIC_APP_URL` con la
 web local.
