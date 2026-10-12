@@ -77,11 +77,11 @@ test('el perfil y la edición también pasan la auditoría', async ({ page }) =>
 test('las pantallas públicas también', async ({ page }) => {
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
+  // Con los botones de los proveedores ya a la vista: es lo que se audita.
+  await expect(
+    page.getByRole('button', { name: 'Continuar con Ingreso de desarrollo' }),
+  ).toBeVisible();
   await auditar(page, 'Entrar');
-
-  await page.getByRole('link', { name: 'Crear una cuenta' }).click();
-  await expect(page.getByRole('heading', { name: 'Crear una cuenta' })).toBeVisible();
-  await auditar(page, 'Crear una cuenta');
 
   await page.goto('/ejercicios/nuevo?modo=crear');
   // Sin sesión no hay pantalla privada: manda a entrar y se acuerda de a dónde iba.

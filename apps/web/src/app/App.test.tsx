@@ -2,8 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../lib/http.ts';
-import { braian, fakeSession, renderApp } from '../test/app.tsx';
-import { refreshSession } from './create-app.ts';
+import { braian, fakeSession, refreshSession, renderApp } from '../test/app.tsx';
 
 describe('shell de la app (F1-09)', () => {
   describe('al abrir la app', () => {

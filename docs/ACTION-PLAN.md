@@ -3033,7 +3033,7 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
   de headers existente, extendido.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
-- **estado:** código hecho, en una PR. `shared/logger.ts`: `idToken` y `clientSecret` redactados;
+- **estado:** código hecho, mergeado en la PR #105. `shared/logger.ts`: `idToken` y `clientSecret` redactados;
   `withoutQuery` y dos serializadores (`req`, que reemplaza al de Fastify con los mismos campos pero la
   URL sin _query_, y `url`, para los que se agregan a mano). `modules/auth/infrastructure/auth-logger.ts`:
   el `logger` de Better Auth por Pino. `buildApp` y `createAuth` aceptan un `logStream` para que los
@@ -3085,6 +3085,28 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
 - **error-codes:** consume `WC-OAUTH-400-001`, `WC-OAUTH-400-002`, `WC-OAUTH-409-003`; retira
   `WC-AUTH-401-001`
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR. `ProviderButton` en `@wasabi-cross/ui` (con story y 8 tests):
+  Google y Microsoft llevan su logo sin tocar y la variante **clara** de cada marca, que además es la
+  que más se distingue sobre el fondo casi negro; el de desarrollo, un ícono genérico. `session.ts`
+  pierde `signIn` y `signUp` y gana `providers()` y `signInWithProvider()`; `/login` es una sola
+  pantalla con el aviso del `?error=` y, si la lista no carga o viene vacía, "El ingreso no está
+  disponible" con "Reintentar". Se borraron `RegisterPage`, `/registro`, `auth.api.ts` de schemas
+  (con sus tests) y `WC-AUTH-401-001`, que pasa a "Retirados" en `docs/error-codes.md`. Cosas que no
+  estaban en el plan y salieron de hacerlo:
+  - **Las URLs de vuelta tienen que ser absolutas y del front.** En desarrollo la API está en otro
+    origen que Vite: un `callbackURL` relativo terminaría el ingreso en una ruta de la API. Por eso
+    `createSessionClient` recibe la navegación (`origin` y `assign`), que en el navegador son la
+    ubicación de la página y en los tests un doble.
+  - **A dónde se navega se valida.** La URL que contesta Better Auth va a `location.assign`; si no es
+    `http(s)`, falla en vez de navegar (un `javascript:` ahí sería un script en el origen de la app).
+  - **Un refresco que falla no saca los botones que ya andan.** El primer diseño miraba el error de
+    la consulta; volver a la pestaña dispara un refresco, y si fallaba, tapaba los botones. Ahora
+    sólo importa si hay proveedores. Lo encontró una prueba inversa.
+  - **`refreshSession` se fue de producción:** después de entrar ya no hay nada que refrescar (la
+    página vuelve entera del proveedor) y sólo lo usaban los tests, así que vive en `src/test/app.tsx`.
+  - **El E2E ya entra por el botón** (`registrarse()`), en vez del `fetch` de la consola de F9-05; la
+    prueba de las pantallas públicas pierde el paso de "Crear una cuenta". El spec nuevo del ingreso
+    sigue siendo F9-09.
 
 ## [ ] F9-08 · La foto del usuario en el Perfil
 
@@ -3124,6 +3146,21 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
   del `Avatar` y del Perfil; Storybook del `Avatar`.
 - **error-codes:** nuevo `WC-USER-404-001` (el usuario no tiene foto)
 - **data-model-impact:** ninguno: se lee `user.image`, que ya guarda Better Auth.
+- **estado:** código hecho, en una PR. API: en `users`, `domain/photo.ts` (el host permitido, el tipo por
+  los bytes, el ETag), `application/get-photo.ts`, `infrastructure/download-photo.ts` (tiempo, tamaño y sin
+  redirecciones) y `photo.routes.ts`; `/me` suma `hasPhoto` y `AuthenticatedUser`, `image`. UI: `Avatar`
+  (con story y 20 tests). Web: el Perfil estrena un bloque "Tu cuenta" con avatar, nombre y email.
+  Cosas que no estaban en el plan y salieron de hacerlo:
+  - **Un 404 sin `Cache-Control` puede guardarse por heurística**, y el Perfil seguiría sin foto aunque el
+    proveedor se recupere: los 404 de esta ruta llevan `no-store` y nunca `ETag`.
+  - **Helmet bloquea el `<img>` en desarrollo.** Pone `Cross-Origin-Resource-Policy: same-origin` y el front
+    (Vite) está en otro origen que la API: la ruta contesta `same-site`. En producción es el mismo origen.
+  - **La URL de la foto tiene que llegar absoluta al front** cuando la API está en otro origen:
+    `HttpClient.url()` y `createApp({ photoUrl })`, que en `main.tsx` sale de `VITE_API_URL`.
+  - **Las pruebas inversas de la descarga necesitan un servidor de verdad**: con un doble de `fetch` una
+    redirección ajena que falla igual que una seguida no se distingue. `download-photo.test.ts` levanta uno
+    en `127.0.0.1` y comprueba que la API no hace un segundo pedido.
+  - El E2E con foto (la ve en el Perfil, en producción y con axe a 390px) es de F9-09.
 
 ## [ ] F9-09 · E2E y axe del ingreso con OAuth
 
@@ -3156,6 +3193,26 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
 - **test_plan:** `pnpm e2e` y `pnpm e2e:prod` completos, en CI.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR. `ingreso-oauth.spec.ts` (14 pruebas, a 390px) y un caso nuevo en
+  `produccion.spec.ts`; `registrarse()` gana `conFoto` y los helpers `elegirEnElIdp`, `cerrarSesion`,
+  `pedirMe` y `apiUrl`. Con el E2E de desarrollo en 37 pruebas y el de producción en 42. Cosas que no
+  estaban en el plan y salieron de hacerlo:
+  - **En el E2E ahora hay dos proveedores.** `playwright.config.ts` habilita el proveedor `microsoft` de
+    verdad (el `socialProvidersFor` de producción) apuntado a la cara de Microsoft del IdP falso, con las
+    credenciales del IdP, que no valen en ningún otro lado. Sin él no había forma de probar que dos
+    proveedores no vinculan solas sus cuentas, ni el chequeo del `tid`, ni `prompt=select_account`.
+  - **La foto no carga en desarrollo.** Con el front (Vite) y la API en puertos distintos, Chrome rechaza
+    el `<img>` con `ERR_BLOCKED_BY_RESPONSE.NotSameSite` por el `Cross-Origin-Resource-Policy: same-site`
+    de `/me/photo`, y el Perfil cae a las iniciales. En producción es el mismo origen y carga: el E2E de
+    producción lo comprueba con la CSP real. Lo hizo visible este E2E; la tarea anterior sólo lo probaba
+    contra la API. **Es una decisión abierta** (ver STATE.md): el E2E de desarrollo no afirma que cargue.
+  - **El `state` alterado se prueba cambiando el campo oculto de la pantalla del IdP**, no interceptando
+    el callback con `page.route`: con el service worker de producción activo, interceptar una navegación
+    que el worker deja pasar es frágil, y así corre igual en los dos modos.
+  - `registrarse()` y `diseno.spec.ts` ya entraban por el IdP desde F9-05 y F9-07: no hubo nada que adaptar.
+  - Pruebas inversas sobre el código de producción, con el E2E de verdad (6): sacar `prompt`, pedir
+    `offline_access`, aceptar una cuenta de organización, encender la vinculación, exponer el alta por
+    email y vaciar `navigateFallbackDenylist`; en las 6 falla el E2E.
 
 ## [ ] F9-10 · Credenciales de Google y Microsoft, runbook y prueba real — 🔑 necesita al usuario
 
@@ -3201,6 +3258,28 @@ false`, un hook que descarta los tokens (pisándolos con `null`: el `data` de un
 - **test_plan:** prueba manual guiada, con el resultado en la bitácora.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** **la parte de la IA está hecha, en una PR; falta todo lo que necesita al usuario.** Está el
+  runbook [`docs/runbooks/oauth.md`](./runbooks/oauth.md): qué crear en Google Cloud y en Microsoft
+  Entra, por ambiente; las redirect URIs; las variables; la tabla de vencimiento del secreto de
+  Microsoft; cómo rotar cada secreto y qué hacer si se filtra uno; la prueba guiada en 11 pasos con
+  su tabla de resultados; la prueba de la PWA instalada; y qué mirar si el ingreso falla. Y el informe
+  de claims: `pnpm --filter @wasabi-cross/api oauth:inspect-token` lee un ID token por la entrada
+  estándar y dice qué claims trae y si la API crearía la cuenta (la misma regla que Better Auth para
+  Microsoft), **sin imprimir ningún valor personal**. Cosas que salieron de prepararlo:
+  - **Para Microsoft, el email llega verificado sólo si se piden dos notificaciones opcionales.**
+    Better Auth usa `email_verified` si viene; si no, mira que el `email` esté en
+    `verified_primary_email` o `verified_secondary_email`, que son claims **opcionales** del ID token y
+    hay que agregarlos en el registro de la app (Configuración de tokens). Sin ellos nadie entra con
+    Microsoft. Es lo primero que hay que hacer al crear el registro, y lo que el criterio de "qué
+    claims trae" tiene que confirmar.
+  - **La API nunca loguea el ID token**, así que para verlo hay que sacarlo por afuera: el runbook usa
+    `jwt.ms` (la página de Microsoft que decodifica en el navegador) con el cliente de **dev** y saca la
+    redirect URI después. Se descartó agregar un log de claims a la API: es código de producción en la
+    ruta del ingreso para algo que se hace una vez.
+  - **Lo que bloquea lo que falta:** el dominio no está decidido, así que las redirect URIs de staging y
+    prod no se pueden cargar (y F3-07 no creó los ambientes). Dev se puede hacer ya.
+  - Lo que sigue **sin saberse** y el runbook deja como tabla a completar: qué claims trae una cuenta de
+    Outlook de verdad, y si la sesión queda en la PWA instalada con cada proveedor.
 
 ---
 
@@ -3379,8 +3458,8 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **estado:** código hecho, a la espera de revisión. `apps/landing` con Astro 7.3.5
   (`output: 'static'`, `inlineStylesheets: 'never'`), `astro` y `@astrojs/check` en el `catalog:`,
   `eslint-plugin-astro` con las reglas de accesibilidad de JSX y `prettier-plugin-astro`. **`pnpm dev`
-  de la raíz no levanta la landing** (filtro `!@wasabi-cross/landing`): se corre con
-  `pnpm --filter @wasabi-cross/landing dev`. Un test de build real, a un directorio temporal y con la
+  de la raíz no levantaba la landing** (filtro `!@wasabi-cross/landing`); desde 2026-10-12 sí, en
+  :4321, y `pnpm --filter @wasabi-cross/landing dev` la corre sola. Un test de build real, a un directorio temporal y con la
   CLI de Astro en otro proceso (la API programática no anda dentro de Vitest), comprueba el
   `index.html`, que no haya ningún `.js`, `lang="es-AR"` y ningún `<style>` ni `<script>` dentro del
   HTML. Pruebas inversas hechas a mano con un `.astro` roto: ESLint marca el `any` y el `<img>` sin
@@ -3571,6 +3650,19 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   `disciplineSchema`; E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que el usuario apruebe el copy**. `Hero`,
+  `CtaPrincipal` (los CTA del hero y del footer), `Enlace` (la placa lima, el botón de línea y el
+  enlace de texto; `AppLink` quedó apoyado en él) y el texto en `src/content/hero.ts`. **Sin app**
+  "Ver la app en acción" es la placa lima y "Empezar gratis" no existe (como el CTA del diseño);
+  **con app**, "Empezar gratis" es la placa y "Ver la app en acción" pasa a enlace de texto. Lo mismo en
+  el footer, que hasta ahora mostraba sólo el enlace de texto. El párrafo nombra las cinco disciplinas
+  del diseño: **faltan `hybrid` y `pilates`**, y sumarlas o no lo decide el usuario. Las disciplinas son
+  `Discipline` de schemas y un test las compara con `disciplineSchema`. `Screenshot` suma la prop `id`
+  (la figura es `#demo`). 147 tests (de 130) y doce mutaciones a mano que atrapa un test cada una.
+  **Verificado en Chromium**, en los dos modos: axe sin violaciones a 390 y 1280 px; una columna en el
+  teléfono y, desde 768 px, texto y captura lado a lado con ésta en 430 px; **el LCP es la captura
+  `#demo` (`IMG`, eager)** a los dos anchos; los CTA miden 56 px y el enlace de texto, 44 px; sin
+  scroll horizontal ni errores de consola.
 
 ## [ ] F10-06 · Registro y Funciones
 
@@ -3598,6 +3690,24 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   palabras "tendencia" ni "evolución"; E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que el usuario apruebe el copy**. `Registro`,
+  `Funciones` y su texto en `src/content/registro.ts` y `funciones.ts`; los estilos que van a compartir
+  las demás secciones (`.seccion`, `.titulo-seccion`, `.texto-seccion`) en `global.css`. **Al mirar las
+  capturas aparecieron más cosas de las que decía el plan:** las tres de los detalles (02, 03 y 04) son
+  de un usuario Pro (etiqueta PRO y gráfico de progreso), y **la 02, la de porcentajes, también muestra
+  abajo el comienzo de "Tendencia de fuerza / Progreso del RM"**; y la del catálogo (05) muestra siete
+  filtros de disciplina, no cinco. Por eso: **los pies de las tres capturas que muestran Pro lo dicen**
+  ("…es de Pro"), la 05 no, y el pie del catálogo **no lista las disciplinas** (el del diseño nombraba
+  cinco y la imagen muestra siete). El `alt` de cada una describe lo que se ve, el progreso incluido.
+  La alternativa del plan, reemplazar las capturas por otras con un usuario Free, queda como decisión
+  abierta en STATE.md: necesita el script que las regenere. Dos reglas en tests: ningún texto de estas
+  secciones usa "tendencia" ni "evolución" y cada vez que hablan de estadísticas dicen que son de PRO;
+  y cada captura con `muestraPro` lo dice en el pie, y las que no, no. Corregido de paso el test de
+  imágenes de F10-03, que comparaba todas contra el PNG de `01-home`: ahora cada WebP contra el suyo.
+  166 tests (de 147) y trece mutaciones a mano que atrapa un test cada una. **Verificado en Chromium**:
+  axe sin violaciones a 390 y 1280 px; títulos H1 → H2 → H2, con las dos secciones nombradas; la nav
+  lleva a cada sección; capturas de 332 px (Registro) y 576 px (Funciones) en escritorio; las cinco
+  imágenes cargan al llegar a ellas a 390 px; sin scroll horizontal ni errores de consola.
 
 ## [ ] F10-07 · Estadísticas Pro
 
@@ -3623,6 +3733,23 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** Container API; E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que el usuario apruebe el copy**.
+  `Estadisticas` y su texto en `src/content/estadisticas.ts`. Tres bloques como el diseño: el
+  período y el ejercicio junto al titular y la etiqueta "PRO · ESTADÍSTICAS" (en el rosa de Pro);
+  lo general y el entrenamiento, una por columna; y constancia y retestear. **Las dos capturas
+  altas se muestran completas, como el diseño** (a 1280 px, 2063 y 1774 px de alto; la sección
+  mide 3748): con una altura máxima habría que recortarlas o meter un scroll interno, y las dos
+  son la lista completa de capacidades y de grupos. Queda como decisión abierta en STATE.md.
+  **Al mirar las capturas:** el alt del diseño para 07-constancia hablaba de la "fecha de última
+  marca" y la imagen muestra "hace 7 días" y "Lo que más mejoró" (el alt describe lo que se
+  ve); y la dona de disciplinas incluye Hybrid. **Un desvío del diseño, a propósito:** el texto
+  y el par de capturas de arriba y de abajo van lado a lado desde 1024 px y no desde 768 px,
+  porque a 768 px cada captura quedaba en 185 px de ancho (menos que en el teléfono). "Más de
+  ocho semanas" son los 56 días de spec §5.4, y un test lo cruza con la spec. 180 tests (de 166),
+  100 % de cobertura y nueve mutaciones a mano que atrapa un test cada una. **Verificado en
+  Chromium** a 390, 768, 1024 y 1280 px: axe sin violaciones, sin scroll horizontal ni errores de
+  consola, las seis imágenes cargan al llegar a ellas y entran sin saltar (llevan `width` y
+  `height`).
 
 ## [ ] F10-08 · Planes
 
@@ -3657,6 +3784,28 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   planes y permisos lo mira una persona); E2E y axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión **y de que una persona apruebe el texto de los
+  planes** (spec §9). `Planes` y su texto en `src/content/plans.ts`. **Las filas de estadísticas
+  de la tabla salen de `canViewStats`**, no se escriben: `test/contenido-planes.test.ts` las
+  compara con la función para los dos planes y trae la prueba inversa (con la función mockeada al
+  revés, la tabla cambia con ella); invertir la regla real en `packages/schemas` hace fallar el
+  test que fija lo que dice hoy. Las tres filas de registro dicen "Sí" en los dos porque lo dice
+  la spec §4, y un test la cruza. La tabla es una `<table>` con `<caption>` y `scope` en columnas
+  y filas, dentro de una región con nombre y `tabindex="0"`: a 390 px (mide 560) se alcanza con
+  Tab y se desplaza con las flechas. Para eso, la regla `no-noninteractive-tabindex` de ESLint
+  acepta `tabindex` en `role="region"`. **Precio: "Suscripción · precio por definir"**, sin
+  período ni monto (el diseño decía "Suscripción anual"); un test mira que la app siga diciendo
+  "A definir" y que cada archivo anote la duplicación del otro. **Se sumaron dos capturas**: la 11
+  (lo que ve Free en lugar de las estadísticas) bajo la tarjeta Free y la 09 (la suscripción en la
+  app) bajo la de Pro; la 09 es de una cuenta Pro y el pie lo dice. **Dos cosas que el plan no
+  decía:** (1) la fila "Estadísticas de cada ejercicio" del diseño pasó a "Progreso y estadísticas
+  de cada ejercicio", porque el progreso del detalle es parte de las estadísticas (spec §4) y no
+  tiene que leerse como "historial de marcas"; (2) con el interlineado .98 del diseño, la tilde de
+  la "Í" de ESTADÍSTICAS tocaba la letra de la línea de arriba (también en F10-07):
+  `.titulo-seccion` pasó a 1.08 y un test lo cuida. 219 tests (de 180), cobertura 100 % y
+  diecinueve mutaciones a mano que atrapa un test cada una. **Verificado en Chromium** a 390, 768,
+  1024 y 1280 px: axe sin violaciones, sin scroll horizontal ni errores de consola, las dos
+  tarjetas miden lo mismo y las capturas arrancan a la misma altura (subgrid).
 
 ## [ ] F10-09 · Privacidad y términos — 🔑 el texto lo aprueba el usuario
 
@@ -3685,6 +3834,28 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** revisión humana del texto; Container API de las páginas; axe en F10-10.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, **a la espera de que el usuario revise y apruebe el texto legal** antes de
+  mergear (es el criterio de aceptación). `Legal.astro`, `/privacidad` y `/terminos`; el texto en
+  `src/content/legal.ts` y quién responde en `src/lib/contacto.ts`. **Dos cosas que el plan no
+  decía.** (1) **La API guarda más de lo que decía la spec**: Better Auth guarda la IP y el
+  navegador con cada sesión, el límite de intentos lleva un contador por IP y los logs traen la IP
+  de cada pedido; la spec §5.6 sólo listaba email, nombre, foto e id. Un texto que dijera "nada
+  más" sería falso, así que la política lo dice y se completó la spec §5.6 ("Datos de conexión");
+  si se prefiere no guardarlos, es un cambio de la API. (2) **Quién responde** es un dato de una
+  persona y no está en la spec ni en el repo: salen de `PUBLIC_CONTACT_NAME` y
+  `PUBLIC_CONTACT_EMAIL` (spec §5.7); van las dos o ninguna y, con `LANDING_INDEXABLE=1`, el build
+  se rompe sin ellas; en staging y CI las páginas avisan que falta. Además, la cookie "única" del
+  plan no lo es: durante el ingreso hay una temporal para el `state` (spec §13), y la política dice
+  "sólo cookies técnicas". Cada afirmación de qué se guarda o qué no la cruza un test con la spec y
+  con el código de la API (la sesión de 30 días, `httpOnly`, los tokens pisados con `null`, que no
+  hay `emailAndPassword`). **Sin cláusulas que la spec no respalda**: jurisdicción, edad mínima y
+  limitación de responsabilidad las decide quien responde. Las dos páginas están en el footer de
+  todas y en el sitemap de producción (no en el de staging), con barra final (`/privacidad/`): es
+  donde el servidor de F10-11 las deja sin redirigir, y el canonical no apunta a una URL que
+  redirige. 283 tests (de 219), cobertura 100 % y
+  dieciocho mutaciones a mano que atrapa un test cada una. **Verificado en Chromium** a 390 y
+  1280 px: axe sin violaciones, sin scroll horizontal ni errores de consola, un h1 y secciones con
+  nombre, los enlaces del footer de 44 px.
 
 ## [ ] F10-10 · E2E, axe y presupuesto de peso en CI
 
@@ -3713,6 +3884,31 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **test_plan:** es el test; las pruebas inversas de arriba.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. Playwright en `apps/landing` (`e2e/`,
+  `playwright.config.ts`, `pnpm e2e:landing`): dos builds —con y sin `PUBLIC_APP_URL`— servidos por
+  **el servidor de producción** (`server/server.ts`, F10-11) en los puertos 4311 y 4312, y 61
+  pruebas: axe de WCAG 2.2 AA en `/`, `/privacidad/`, `/terminos/` y la 404 a 390 y 1280 px; el
+  recorrido por teclado (salto → nav → Entrar → CTA → demo → tabla → footer) con el foco siempre
+  visible; todas las imágenes cargan y se decodifican; la consola sin errores, avisos ni quejas de
+  la CSP; las anclas y la nav llevan a su destino; sin scroll horizontal; la tabla de planes se
+  enfoca y se desplaza con las flechas a 390 px; los dos modos de `PUBLIC_APP_URL`; y el
+  presupuesto: `dist/` sin ningún `.js` ni `<script>`, y el peso. **Peso medido** (la propuesta de
+  partida era hero ≤ 150 KB y página ≤ 1,5 MB): a 390 px la primera vista pesa 198,6 KB y la
+  página entera 445,8 KB; a 1280 px, 373,0 y 645,1 KB. Los 150 KB no entran (las fuentes, el CSS y
+  el HTML ya son ~91 KB y la captura del hero, 107), y 1,5 MB queda muy por encima de lo que pesa:
+  los topes de `e2e/presupuesto.ts` son lo medido más ~15 % (230 y 515 KB a 390 px; 430 y 745 KB
+  a 1280 px). **Pruebas inversas**: `ayudas.spec.ts` arma a mano una captura que falta (404), un
+  PNG corrupto (200 pero sin decodificar) y un foco sin indicador, y comprueba que se detectan y
+  que el mensaje dice cuál; y trece roturas reales del sitio (una captura 404, un PNG corrupto,
+  un `<script>`, un `style` inline que la CSP bloquea, contraste insuficiente, un ancla sin
+  destino, `#demo` sin id, scroll horizontal, la tabla sin `tabindex`, enlaces sin foco, una
+  imagen de más en la primera vista, "Entrar" a otra ruta y "Entrar" sin app) hacen fallar la
+  prueba que corresponde. **CI**: un job `landing` nuevo en `ci.yml` (corre en todos los PR, también
+  en los que sólo tocan `apps/landing`) y un caché de Chromium que comparte con el job E2E de la
+  app. Local: `pnpm e2e:landing`, con Chromium instalado (`pnpm --filter @wasabi-cross/landing
+exec playwright install chromium`). **Un hallazgo que no era un defecto**: `scroll-behavior:
+smooth` anima el scroll del foco, y medirlo sin esperar lo da por fuera de la pantalla; la ayuda
+  espera, y la página ya respeta `prefers-reduced-motion`.
 
 ## [ ] F10-11 · Servidor estático de producción
 
@@ -3745,6 +3941,35 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   `/security-review` y `aikido:scan`.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR. `apps/landing/server/app.ts` (`buildLandingServer` y
+  `defaultDistDir`) y `server.ts` (el proceso: `PORT`, `HOST`, `LANDING_DIST_DIR`, `LOG_LEVEL`); `pnpm
+--filter @wasabi-cross/landing start`. `@fastify/helmet` y `@fastify/static` pasaron al `catalog:`,
+  con `fastify`, y la API usa la misma versión. 51 pruebas contra el **build real de producción**
+  (`global-setup.ts`), no contra un fixture, más una de las páginas en su carpeta y una que arranca el
+  proceso de verdad con `node server/server.ts`. Cosas que no estaban en el plan y salieron de
+  hacerlo:
+  - **La CSP sale de lo que el build usa, y es más cerrada de lo previsto.** El build no tiene ni un
+    `data:`, ni un `style=""`, ni un `<script>`: `img-src 'self'` a secas, `style-src 'self'`,
+    `font-src 'self'`, `connect-src 'none'`. Un test recorre todo lo que pide el HTML y el CSS y
+    comprueba que es del propio origen y que el servidor lo tiene: si mañana alguien suma una
+    fuente de Google o una imagen `data:`, falla ahí y no en producción.
+  - **`upgrade-insecure-requests` no rompe `http://127.0.0.1`.** Lo comprobé en un navegador real,
+    con el servidor corriendo: cero quejas de CSP en la consola, el CSS, las fuentes y la captura
+    del hero cargan. Lo necesita F10-10 para su E2E en CI, que corre sin HTTPS.
+  - **Un `<link rel="canonical">` es una URL absoluta, y está bien**: no carga nada, así que la CSP
+    no lo gobierna. El primer recorrido lo tomaba por un recurso.
+  - **Sin build no arranca**, y dice cuál falta: es mejor que contestar 404 a todo y que Railway lo
+    dé por sano.
+  - **`redirect: true`**: Astro deja `privacidad/index.html`, y F10-09 va a compartir `/privacidad`
+    sin barra; sin esto es un 404. Se prueba con un build mínimo, porque hoy la landing no tiene
+    ninguna página en carpeta.
+  - Los headers por defecto de helmet que no estaban en el criterio (`Cross-Origin-Resource-Policy:
+same-origin`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`) quedan como vienen. El primero
+    afecta a `og.png` sólo si un navegador la embebiera desde otro origen; los servidores que arman
+    las vistas previas al compartir no lo aplican. Si algún cliente de mensajería no la mostrara,
+    es lo primero que hay que mirar.
+  - **Lo que queda para F10-12:** `HOST=0.0.0.0` y `PORT` en el IaC (el default local es
+    `127.0.0.1`), y las variables de build.
 
 ## [ ] F10-12 · Railway: el segundo servicio, como código
 
@@ -3777,6 +4002,29 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   no se borran, con sus pruebas inversas; a mano, el build de cada servicio por separado.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, en una PR contra main (F10-11 ya entró, #122).
+  `.railway/railway.ts` declara los dos servicios, con `build` por `--filter ...` y `watchPatterns`;
+  el test de invariantes pasó de 12 a 45 pruebas, ninguna borrada. Cosas que no estaban en el plan y
+  salieron de hacerlo:
+  - **Los watch paths sí se pueden declarar en el IaC.** Es `build.watchPatterns`, en el tipo
+    `BuildConfig` de `railway/iac`, aunque la referencia de `service()` no lo diga. Resultado
+    escrito en ADR-0013 y en `.railway/README.md`. Lo que sigue sin saberse es que Railway los
+    respete al deployar: F10-13 lo prueba.
+  - **La landing no declara `NODE_ENV`.** Con `production`, el instalador omitiría las
+    dependencias de desarrollo y `astro` —que compila el sitio— es una. El servidor no lo necesita.
+    No se pudo comprobar contra Railway (no hay ambientes, F3-07): queda anotado como lo primero
+    a mirar si el primer build falla.
+  - **El IaC de la app no tenía las credenciales de OAuth** (F9-10): el servicio ya existe y sin
+    `GOOGLE_*` ni `MICROSOFT_*` la API no arranca. Se agregaron como `preserve()`, con un test; y
+    otro que fija que `OAUTH_DEV_IDP` y `MICROSOFT_AUTHORITY` **no** estén declarados.
+  - **Los dos `build` se corrieron de verdad**: el de la app construye schemas, ui, api y web; el de
+    la landing, schemas, ui y landing. Ninguno toca al otro.
+  - `PUBLIC_SITE_URL` y `PUBLIC_APP_URL` quedan como `preserve()`: dependen del dominio, que no
+    está decidido. Sin ellas el sitio sale sin "Entrar", y con `LANDING_INDEXABLE=1` y sin sitio el
+    build falla a propósito.
+  - `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL` también, a pedido de F10-09 (#121): quién
+    responde en las páginas legales. **F10-13 tiene que cargarlas**: con `LANDING_INDEXABLE=1` y sin
+    ellas el build de producción de la landing falla a propósito.
 
 ## [ ] F10-13 · Dominio, ambientes y smoke — 🔑 necesita al usuario
 
@@ -3806,3 +4054,24 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
   bitácora.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** **la parte de la IA está hecha, en una PR; falta todo lo que necesita al usuario.**
+  Está el runbook [`docs/runbooks/landing.md`](./runbooks/landing.md) (decidir el dominio, las
+  variables por ambiente, crear el servicio, dominios y DNS, qué dispara un deploy, la primera vez en
+  producción en orden, cómo se despublica sin que la app se entere y un deploy malo) y **el smoke**:
+  `pnpm --filter @wasabi-cross/landing smoke -- <url> [--indexable] [--site-url …] [--app-url …]
+[--www …]`, de sólo lectura, con 12 chequeos (13 con `--indexable`, más el del `www`): `/health`,
+  HTML, los headers de F10-11, `robots`/canonical, `robots.txt`, sitemap, las dos páginas legales y
+  su redirección sin barra, quién responde, "Entrar", la 404 y la caché de los assets. Sale con 0, 1
+  o 2. Lo prueba `test/smoke.test.ts` contra el servidor de producción sobre los tres builds, con las
+  inversas (staging pidiendo que se indexe, producción pidiendo que no, otra app, otro sitio, sin
+  headers, una CSP que deja correr scripts, una URL a la que no llega nadie, un `www` que no
+  redirige) y trece mutaciones a mano que atrapa un test cada una. **Lo que se sumó al smoke de
+  F3-12**: es una pieza que F3-12 puede llamar; F3-12 todavía no existe, así que no se integró.
+  **Dos cosas que el plan no decía.** (1) El servidor de la landing **no redirige el `www`**: el
+  criterio de aceptación se cumple con una regla del proveedor de DNS (recomendada) o con un cambio
+  de código en `server/app.ts`; el runbook las compara y queda como decisión abierta. (2) Para el
+  smoke, producción exige **quién responde** en las páginas legales: sin `PUBLIC_CONTACT_*` el
+  build ya se rompe (F10-09), y el chequeo cubre el deploy hecho a mano. **Falta (del usuario)**:
+  decidir y registrar el dominio, crear el servicio con `plan`/`apply` (después de F3-07), cargar las
+  variables, los dominios y el DNS, correr el smoke contra staging y la prueba guiada en producción
+  (runbook, sección 7), con el resultado en la bitácora.

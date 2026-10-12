@@ -13,7 +13,8 @@ import type { TestProject } from 'vitest/node';
  *
  *   - `salida`: sin ninguna variable. Desarrollo y CI. (Las vacías pisan las del entorno de quien
  *     corre los tests.)
- *   - `salidaConApp`: staging. Con la app (`PUBLIC_APP_URL`) y el sitio (`PUBLIC_SITE_URL`), pero sin
+ *   - `salidaConApp`: staging. Con la app (`PUBLIC_APP_URL`), el sitio (`PUBLIC_SITE_URL`) y quién
+ *     responde en las páginas legales (`PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`), pero sin
  *     `LANDING_INDEXABLE`: no se indexa.
  *   - `salidaProduccion`: lo mismo y `LANDING_INDEXABLE=1`.
  *
@@ -33,6 +34,10 @@ declare module 'vitest' {
     appUrl: string;
     /** El valor de `PUBLIC_SITE_URL` de `salidaConApp` y `salidaProduccion`. */
     siteUrl: string;
+    /** El valor de `PUBLIC_CONTACT_NAME` de `salidaConApp` y `salidaProduccion`. */
+    contactoNombre: string;
+    /** El valor de `PUBLIC_CONTACT_EMAIL` de `salidaConApp` y `salidaProduccion`. */
+    contactoEmail: string;
   }
 }
 
@@ -40,11 +45,15 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const ASTRO = join(ROOT, 'node_modules', 'astro', 'bin', 'astro.mjs');
 const APP_URL = 'https://app.ejemplo.test';
 const SITE_URL = 'https://wasabicross.ejemplo.test';
+const CONTACT_NAME = 'Titular de Prueba';
+const CONTACT_EMAIL = 'contacto@ejemplo.test';
 const run = promisify(execFile);
 
 interface Entorno {
   PUBLIC_APP_URL: string;
   PUBLIC_SITE_URL: string;
+  PUBLIC_CONTACT_NAME: string;
+  PUBLIC_CONTACT_EMAIL: string;
   LANDING_INDEXABLE: string;
 }
 
@@ -61,16 +70,22 @@ export default async function setup(project: TestProject): Promise<() => Promise
   const salida = await construir({
     PUBLIC_APP_URL: '',
     PUBLIC_SITE_URL: '',
+    PUBLIC_CONTACT_NAME: '',
+    PUBLIC_CONTACT_EMAIL: '',
     LANDING_INDEXABLE: '',
   });
   const salidaConApp = await construir({
     PUBLIC_APP_URL: APP_URL,
     PUBLIC_SITE_URL: SITE_URL,
+    PUBLIC_CONTACT_NAME: CONTACT_NAME,
+    PUBLIC_CONTACT_EMAIL: CONTACT_EMAIL,
     LANDING_INDEXABLE: '',
   });
   const salidaProduccion = await construir({
     PUBLIC_APP_URL: APP_URL,
     PUBLIC_SITE_URL: SITE_URL,
+    PUBLIC_CONTACT_NAME: CONTACT_NAME,
+    PUBLIC_CONTACT_EMAIL: CONTACT_EMAIL,
     LANDING_INDEXABLE: '1',
   });
   project.provide('salida', salida);
@@ -78,6 +93,8 @@ export default async function setup(project: TestProject): Promise<() => Promise
   project.provide('salidaProduccion', salidaProduccion);
   project.provide('appUrl', APP_URL);
   project.provide('siteUrl', SITE_URL);
+  project.provide('contactoNombre', CONTACT_NAME);
+  project.provide('contactoEmail', CONTACT_EMAIL);
   return async () => {
     await Promise.all(
       [salida, salidaConApp, salidaProduccion].map((dir) =>

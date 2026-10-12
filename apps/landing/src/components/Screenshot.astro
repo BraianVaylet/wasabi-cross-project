@@ -9,7 +9,7 @@ import type { ScreenshotProps } from '../lib/screenshot.ts';
 
 type Props = ScreenshotProps;
 
-const { src, alt, pie, sizes, prioridad = false } = Astro.props;
+const { src, alt, pie, sizes, id, prioridad = false } = Astro.props;
 
 if (alt.trim() === '') {
   throw new Error(
@@ -18,7 +18,7 @@ if (alt.trim() === '') {
 }
 ---
 
-<figure class="captura">
+<figure class="captura" id={id}>
   <Image
     src={src}
     alt={alt}

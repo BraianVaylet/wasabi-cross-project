@@ -113,9 +113,6 @@ describe('imágenes', () => {
   });
 
   it('lo que se sirve es un formato moderno y pesa menos que el PNG de origen', () => {
-    const origen = statSync(
-      resolve(import.meta.dirname, '..', 'src', 'assets', 'capturas', '01-home.png'),
-    ).size;
     const archivos = imgs.flatMap((img) =>
       [...img.matchAll(/(?:src|srcset)="([^"]+)"/g)].flatMap((m) =>
         (m[1] ?? '').split(',').map((c) => c.trim().split(/\s+/)[0] ?? ''),
@@ -125,7 +122,12 @@ describe('imágenes', () => {
     for (const archivo of archivos) {
       expect(archivo).toMatch(/\.(?:webp|avif)$/);
       const tamano = statSync(join(sinApp, ...archivo.split('/').filter(Boolean))).size;
-      expect(tamano).toBeLessThan(origen);
+      // `/_astro/03-detalle-completo.HASH_HASH.webp` sale de `capturas/03-detalle-completo.png`.
+      const nombre = (archivo.split('/').at(-1) ?? '').split('.')[0] ?? '';
+      const origen = statSync(
+        resolve(import.meta.dirname, '..', 'src', 'assets', 'capturas', `${nombre}.png`),
+      ).size;
+      expect(tamano, archivo).toBeLessThan(origen);
     }
   });
 });

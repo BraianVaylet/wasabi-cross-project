@@ -1,0 +1,46 @@
+/*
+ * La foto o las iniciales de una persona (F9-08). Cuadrado y sin recorte de esquina, como el resto
+ * del diseño: el mockup no tiene ninguna forma redonda. El borde va en el propio contenedor, así la
+ * foto y las iniciales tienen el mismo marco.
+ */
+.wc-avatar {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  background-color: var(--wc-surface-muted);
+  border: 1px solid var(--wc-border-muted);
+  border-radius: var(--wc-radius-md);
+  color: var(--wc-accent-text);
+}
+
+.wc-avatar--md {
+  width: 40px;
+  height: 40px;
+  font-size: 1.125rem;
+}
+
+.wc-avatar--lg {
+  width: 72px;
+  height: 72px;
+  font-size: 2rem;
+}
+
+.wc-avatar__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Familia y tracking de los titulares: las iniciales son una marca, no texto corrido. */
+.wc-avatar__initials {
+  font-family: var(--wc-font-family-display);
+  letter-spacing: var(--wc-tracking-button);
+  line-height: 1;
+  text-transform: uppercase;
+  user-select: none;
+}

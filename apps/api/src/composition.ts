@@ -33,8 +33,14 @@ import type {
 import { createMongoStatsSource } from './modules/stats/infrastructure/mongo-stats.source.ts';
 import type { StatsRoutesOptions } from './modules/stats/infrastructure/stats.routes.ts';
 import { requireStatsAccess } from './modules/subscriptions/infrastructure/require-stats-access.ts';
+import { getPhoto } from './modules/users/application/get-photo.ts';
 import { getPreferences, updatePreferences } from './modules/users/application/preferences.ts';
+import {
+  createPhotoDownloader,
+  type PhotoDownloaderOptions,
+} from './modules/users/infrastructure/download-photo.ts';
 import { createMongoPreferencesStore } from './modules/users/infrastructure/mongo-preferences.store.ts';
+import type { PhotoRoutesOptions } from './modules/users/infrastructure/photo.routes.ts';
 import type { PreferencesRoutesOptions } from './modules/users/infrastructure/preferences.routes.ts';
 import type { MongoConnection } from './shared/db/mongo.ts';
 import { createMongoTransactionRunner } from './shared/db/transactions.ts';
@@ -135,6 +141,18 @@ export function composeOauth(env: Env): OauthRoutesOptions {
 }
 
 /** Las preferencias (F1-08). `users` no necesita nada de otro módulo. */
+/**
+ * La foto del usuario (F9-08): `getPhoto` con la descarga de Google conectada. Sin opciones usa el
+ * `fetch` de Node y los límites de siempre; los tests le pasan su propio `fetch` (nunca la red).
+ */
+export function composePhoto(
+  options: PhotoDownloaderOptions = {},
+): Omit<PhotoRoutesOptions, 'requireSession'> {
+  const download = createPhotoDownloader(options);
+
+  return { getPhoto: (image) => getPhoto({ download }, image) };
+}
+
 export function composeUsers(
   mongo: MongoConnection,
 ): Omit<PreferencesRoutesOptions, 'requireSession'> {

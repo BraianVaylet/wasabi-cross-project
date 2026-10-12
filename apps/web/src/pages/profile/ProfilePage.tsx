@@ -1,7 +1,7 @@
-import type { Plan, UserPreferences } from '@wasabi-cross/schemas';
+import type { Plan, SessionUser, UserPreferences } from '@wasabi-cross/schemas';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { Button, SectionHeader, Skeleton, Tag, TextField } from '@wasabi-cross/ui';
+import { Avatar, Button, SectionHeader, Skeleton, Tag, TextField } from '@wasabi-cross/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ErrorNotice } from '../../app/ErrorNotice.tsx';
 import { PLAN_INFO } from '../../lib/plans.ts';
@@ -9,7 +9,9 @@ import { validatePercentages } from './percentages.ts';
 import './profile.css';
 
 export interface ProfilePageProps {
-  plan: Plan;
+  user: SessionUser;
+  /** De dónde se carga la foto, si el usuario tiene (`user.hasPhoto`). */
+  photoUrl: string;
   preferences: UseQueryResult<UserPreferences>;
   onSave: (percentages: number[]) => void;
   saving: boolean;
@@ -17,9 +19,13 @@ export interface ProfilePageProps {
   saveError: unknown;
 }
 
-/** Perfil (F1-16): el plan y los porcentajes de carga que el usuario ve por defecto. */
+/**
+ * Perfil (F1-16): quién es el usuario, su plan y los porcentajes de carga que ve por defecto. La
+ * foto es la de su proveedor de ingreso (F9-08, spec §5.6).
+ */
 export function ProfilePage({
-  plan,
+  user,
+  photoUrl,
   preferences,
   onSave,
   saving,
@@ -30,7 +36,9 @@ export function ProfilePage({
     <>
       <h1 className="page__title">Perfil</h1>
 
-      <PlanSection plan={plan} />
+      <AccountSection user={user} photoUrl={photoUrl} />
+
+      <PlanSection plan={user.plan} />
 
       <section className="profile__section" aria-labelledby="profile-porcentajes">
         <SectionHeader id="profile-porcentajes" title="Porcentajes por defecto" />
@@ -58,6 +66,31 @@ export function ProfilePage({
         ) : null}
       </section>
     </>
+  );
+}
+
+/**
+ * Quién es: la foto (o las iniciales), el nombre y el email. La foto se pide sólo si el usuario
+ * tiene (`hasPhoto`), a la ruta de la API que no lleva id: cada uno puede pedir la suya y nada más.
+ */
+function AccountSection({
+  user,
+  photoUrl,
+}: {
+  user: SessionUser;
+  photoUrl: string;
+}): React.JSX.Element {
+  return (
+    <section className="profile__section" aria-labelledby="profile-cuenta">
+      <SectionHeader id="profile-cuenta" title="Tu cuenta" />
+      <div className="profile__account">
+        <Avatar name={user.name} src={user.hasPhoto ? photoUrl : undefined} size="lg" />
+        <div className="profile__identity">
+          <p className="profile__name">{user.name}</p>
+          <p className="profile__email">{user.email}</p>
+        </div>
+      </div>
+    </section>
   );
 }
 

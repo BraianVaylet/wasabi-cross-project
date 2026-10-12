@@ -9,6 +9,8 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      // Los builds del E2E de la landing (F10-10).
+      '**/dist-e2e/**',
       '**/coverage/**',
       '**/node_modules/**',
       '**/storybook-static/**',
@@ -125,6 +127,12 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: ['.astro'],
       },
+    },
+    rules: {
+      // Una región que se desplaza tiene que poder enfocarse con el teclado (WCAG 2.1.1): el patrón
+      // es `role="region"` con nombre y `tabindex="0"`, y la tabla comparativa de los planes (F10-08)
+      // mide más que el teléfono. Se permite `tabindex` en `region`, además de `tabpanel`.
+      'astro/jsx-a11y/no-noninteractive-tabindex': ['error', { roles: ['tabpanel', 'region'] }],
     },
   },
 

@@ -4,6 +4,8 @@ node_modules/
 
 # Builds
 dist/
+# Los dos builds del E2E de la landing (apps/landing/e2e): con y sin `PUBLIC_APP_URL`.
+dist-e2e/
 build/
 storybook-static/
 *.tsbuildinfo

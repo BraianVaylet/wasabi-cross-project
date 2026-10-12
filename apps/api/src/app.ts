@@ -31,6 +31,10 @@ import {
   type RecordRoutesOptions,
 } from './modules/records/infrastructure/record.routes.ts';
 import {
+  photoRoutes,
+  type PhotoRoutesOptions,
+} from './modules/users/infrastructure/photo.routes.ts';
+import {
   preferencesRoutes,
   type PreferencesRoutesOptions,
 } from './modules/users/infrastructure/preferences.routes.ts';
@@ -56,6 +60,8 @@ export interface BuildAppOptions {
   logStream?: NodeJS.WritableStream;
   /** Se registra sólo junto con `auth`, como todo lo que es de un usuario. */
   users?: Omit<PreferencesRoutesOptions, 'requireSession'>;
+  /** La foto del usuario (F9-08): también con sesión, y sin ella no hay a quién mostrarle nada. */
+  photo?: Omit<PhotoRoutesOptions, 'requireSession'>;
   /** Se registra sólo junto con `auth`: los ejercicios son para usuarios con sesión. */
   exercises?: Omit<ExerciseRoutesOptions, 'requireSession'>;
   /** Igual que `exercises`: las marcas son de usuarios con sesión. */
@@ -71,6 +77,7 @@ export async function buildApp({
   oauth,
   logStream,
   users,
+  photo,
   exercises,
   records,
   stats,
@@ -150,6 +157,12 @@ export async function buildApp({
 
     if (users) {
       await app.register(preferencesRoutes({ ...users, requireSession: requireSession(auth) }), {
+        prefix: API_PREFIX,
+      });
+    }
+
+    if (photo) {
+      await app.register(photoRoutes({ ...photo, requireSession: requireSession(auth) }), {
         prefix: API_PREFIX,
       });
     }

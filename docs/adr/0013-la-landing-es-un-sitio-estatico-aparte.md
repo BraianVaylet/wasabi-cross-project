@@ -59,9 +59,11 @@ Fastify mínimo.
   `app.`, y `WEB_ORIGIN` y `BETTER_AUTH_URL` también.
 - **Una ventaja que está condicionada.** Que un cambio de copy no reinicie la API sólo vale si se
   configuran _watch paths_ por servicio: con dos servicios del mismo repo, un push redeploya los dos.
-  Railway los tiene como ajuste del servicio, pero la referencia del IaC (`service()`) no los
-  documenta. F10-12 comprueba si se pueden declarar en `.railway/railway.ts`; si no, se cargan en el
-  panel o se acepta el redeploy conjunto (el arranque de la API tarda segundos).
+  **Se comprobó en F10-12: el IaC los admite**, en `build.watchPatterns` de `service()` (el tipo
+  `BuildConfig` de `railway/iac`, aunque la referencia no los documente). Están declarados en
+  `.railway/railway.ts` y un test de invariantes los fija; no hace falta cargarlos en el panel. Lo
+  que **no** se pudo comprobar sin un Railway de verdad es que el servicio los respete al deployar:
+  F10-13 lo mira con un cambio de copy real.
 - **Los textos de los planes viven en dos lugares:** `apps/web/src/lib/plans.ts` y el contenido de la
   landing. Se acepta la duplicación; lo que sí es regla (qué plan ve las estadísticas) sale de
   `canViewStats` en los dos, y cuando haya precio hay que cambiar los dos.

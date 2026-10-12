@@ -16,6 +16,7 @@ function apiEspía(respuesta?: unknown) {
   const llamadas: Llamada[] = [];
   // Escrito a mano y no con `vi.fn`: `request` es genérico y un mock pierde esa firma.
   const http: HttpClient = {
+    url: (path) => path,
     request: (_schema, path, options) => {
       llamadas.push({ path, ...(options === undefined ? { options: undefined } : { options }) });
       return Promise.resolve(respuesta as never);
