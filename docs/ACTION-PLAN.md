@@ -3458,8 +3458,8 @@ F10-09 los aprueba el usuario en la PR (es su voz y lo que promete en público);
 - **estado:** código hecho, a la espera de revisión. `apps/landing` con Astro 7.3.5
   (`output: 'static'`, `inlineStylesheets: 'never'`), `astro` y `@astrojs/check` en el `catalog:`,
   `eslint-plugin-astro` con las reglas de accesibilidad de JSX y `prettier-plugin-astro`. **`pnpm dev`
-  de la raíz no levanta la landing** (filtro `!@wasabi-cross/landing`): se corre con
-  `pnpm --filter @wasabi-cross/landing dev`. Un test de build real, a un directorio temporal y con la
+  de la raíz no levantaba la landing** (filtro `!@wasabi-cross/landing`); desde 2026-10-12 sí, en
+  :4321, y `pnpm --filter @wasabi-cross/landing dev` la corre sola. Un test de build real, a un directorio temporal y con la
   CLI de Astro en otro proceso (la API programática no anda dentro de Vitest), comprueba el
   `index.html`, que no haya ningún `.js`, `lang="es-AR"` y ningún `<style>` ni `<script>` dentro del
   HTML. Pruebas inversas hechas a mano con un `.astro` roto: ESLint marca el `any` y el `<img>` sin
