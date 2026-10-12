@@ -4054,3 +4054,24 @@ same-origin`, `Cross-Origin-Opener-Policy`, `X-Frame-Options`) quedan como viene
   bitácora.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** **la parte de la IA está hecha, en una PR; falta todo lo que necesita al usuario.**
+  Está el runbook [`docs/runbooks/landing.md`](./runbooks/landing.md) (decidir el dominio, las
+  variables por ambiente, crear el servicio, dominios y DNS, qué dispara un deploy, la primera vez en
+  producción en orden, cómo se despublica sin que la app se entere y un deploy malo) y **el smoke**:
+  `pnpm --filter @wasabi-cross/landing smoke -- <url> [--indexable] [--site-url …] [--app-url …]
+[--www …]`, de sólo lectura, con 12 chequeos (13 con `--indexable`, más el del `www`): `/health`,
+  HTML, los headers de F10-11, `robots`/canonical, `robots.txt`, sitemap, las dos páginas legales y
+  su redirección sin barra, quién responde, "Entrar", la 404 y la caché de los assets. Sale con 0, 1
+  o 2. Lo prueba `test/smoke.test.ts` contra el servidor de producción sobre los tres builds, con las
+  inversas (staging pidiendo que se indexe, producción pidiendo que no, otra app, otro sitio, sin
+  headers, una CSP que deja correr scripts, una URL a la que no llega nadie, un `www` que no
+  redirige) y trece mutaciones a mano que atrapa un test cada una. **Lo que se sumó al smoke de
+  F3-12**: es una pieza que F3-12 puede llamar; F3-12 todavía no existe, así que no se integró.
+  **Dos cosas que el plan no decía.** (1) El servidor de la landing **no redirige el `www`**: el
+  criterio de aceptación se cumple con una regla del proveedor de DNS (recomendada) o con un cambio
+  de código en `server/app.ts`; el runbook las compara y queda como decisión abierta. (2) Para el
+  smoke, producción exige **quién responde** en las páginas legales: sin `PUBLIC_CONTACT_*` el
+  build ya se rompe (F10-09), y el chequeo cubre el deploy hecho a mano. **Falta (del usuario)**:
+  decidir y registrar el dominio, crear el servicio con `plan`/`apply` (después de F3-07), cargar las
+  variables, los dominios y el DNS, correr el smoke contra staging y la prueba guiada en producción
+  (runbook, sección 7), con el resultado en la bitácora.
