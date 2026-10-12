@@ -1,0 +1,194 @@
+---
+/*
+ * El hero (F10-05, spec §5.7): el titular, lo que se registra, los CTA y la captura de la pantalla
+ * de inicio, que es la imagen del LCP. Una columna en el teléfono; desde 768px, el texto y la
+ * columna de la app (430px) lado a lado.
+ */
+import { hero } from '../content/hero.ts';
+import { titular } from '../content/sitio.ts';
+import { listaConY } from '../lib/lista.ts';
+import inicio from '../assets/capturas/01-home.png';
+import CtaPrincipal from './CtaPrincipal.astro';
+import Screenshot from './Screenshot.astro';
+
+const disciplinas = listaConY(hero.disciplinas.map((d) => d.nombre));
+---
+
+<section class="hero contenedor">
+  <div class="texto">
+    <h1>
+      <span>{titular.primeraLinea}</span> <span class="acento">{titular.acento}</span>
+    </h1>
+    <p class="parrafo">
+      {hero.parrafo} {disciplinas}.
+    </p>
+    <p class="ejercicios">{hero.ejercicios.join(' · ')}</p>
+    <div class="acciones">
+      <CtaPrincipal flecha="↘" />
+    </div>
+    <ul class="metricas" aria-label="Qué se registra">
+      {hero.metricas.map((m) => (
+        <li>
+          <span class="unidad">{m.unidad}</span>
+          {m.nombre}
+        </li>
+      ))}
+    </ul>
+  </div>
+  <div class="captura">
+    <Screenshot
+      id="demo"
+      src={inicio}
+      alt={hero.captura.alt}
+      pie={hero.captura.pie}
+      sizes="(min-width: 48rem) 430px, 100vw"
+      prioridad
+    />
+  </div>
+</section>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 2.25rem;
+    align-items: start;
+    padding-block: 2.25rem 3rem;
+    border-bottom: 1px solid var(--wc-line);
+  }
+
+  @media (min-width: 48rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) minmax(18.75rem, var(--wc-column-max));
+      gap: 3rem;
+      padding-block: 3rem 4rem;
+    }
+
+    .texto {
+      padding-top: 2rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) var(--wc-column-max);
+      gap: 5rem;
+    }
+  }
+
+  /* La condensada, las mayúsculas y el tracking vienen de `.wc-root`; acá, sólo el tamaño. */
+  h1 {
+    max-width: 41.25rem;
+    margin: 0;
+    font-size: 2.875rem;
+    line-height: 0.94;
+  }
+
+  @media (min-width: 40rem) {
+    h1 {
+      font-size: 3.75rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    h1 {
+      font-size: 4.75rem;
+    }
+  }
+
+  h1 span {
+    display: block;
+  }
+
+  .acento {
+    color: var(--wc-accent-text);
+  }
+
+  .parrafo {
+    max-width: 36.875rem;
+    margin: 1.25rem 0 0;
+    color: var(--wc-text-body);
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+
+  .ejercicios {
+    max-width: 35rem;
+    margin: 1.25rem 0 0;
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-sm);
+    line-height: 1.5rem;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 40rem) {
+    .parrafo {
+      font-size: 1.125rem;
+      line-height: 2rem;
+    }
+
+    .ejercicios {
+      font-size: var(--wc-font-size-base);
+    }
+  }
+
+  .acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--wc-space-3) var(--wc-space-5);
+    margin-top: 1.75rem;
+  }
+
+  .metricas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 33.75rem;
+    margin: 2rem 0 0;
+    padding: var(--wc-space-4) 0;
+    border-block: 1px solid var(--wc-line);
+    color: var(--wc-text-soft);
+    font-family: var(--wc-font-family);
+    font-size: var(--wc-font-size-caption);
+    list-style: none;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 40rem) {
+    .metricas {
+      font-size: var(--wc-font-size-sm);
+    }
+  }
+
+  .metricas li {
+    padding-inline: var(--wc-space-3);
+  }
+
+  .metricas li:first-child {
+    padding-inline-start: 0;
+  }
+
+  .metricas li + li {
+    border-inline-start: 1px solid var(--wc-line);
+  }
+
+  .unidad {
+    display: block;
+    color: var(--wc-text);
+    font-family: var(--wc-font-family-display);
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  @media (min-width: 40rem) {
+    .unidad {
+      font-size: 1.875rem;
+    }
+  }
+
+  .captura {
+    justify-self: center;
+    width: 100%;
+    max-width: var(--wc-column-max);
+  }
+</style>

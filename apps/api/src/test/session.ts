@@ -23,6 +23,8 @@ export interface TestSessionOptions {
   name?: string;
   /** Free por defecto, como cualquiera que se registra (spec §4). */
   plan?: Plan;
+  /** El `user.image` que guardaría Better Auth: un data URL o una URL de Google (F9-08). Sin foto, si no va. */
+  image?: string;
 }
 
 async function testHelpers(harness: TestHarness): Promise<TestHelpers> {
@@ -50,6 +52,7 @@ export async function createTestSession(
       email,
       name: options.name ?? 'Atleta de test',
       plan: options.plan ?? 'free',
+      ...(options.image === undefined ? {} : { image: options.image }),
     }),
   );
   const { headers } = await test.login({ userId: user.id });

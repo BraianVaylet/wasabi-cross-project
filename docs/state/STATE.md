@@ -128,12 +128,21 @@ falso, y se fue `UserRegistrar`. **F9-05 está mergeada** (PR #101; la puerta de
 de riesgo alto): **el email y la contraseña dejaron de existir** —Better Auth sin
 `emailAndPassword`, y sólo cuatro de sus rutas llegan a la red—, las cuentas no se vinculan solas,
 los tokens del proveedor no se guardan, un email sin verificar no crea usuario, el `tid` de Microsoft
-se chequea, y la API no arranca sin ningún proveedor. **F9-06 está hecha, en una PR**: nada del flujo OAuth sale en
-un log —las URLs van sin _query_, `idToken` y `clientSecret` se redactan, y el logger de Better Auth
-escribe por Pino porque por defecto volcaba el `state` a `console`— y los headers no cambian.
-**Desde F9-05 y hasta F9-07 las pantallas
-`/login` y `/registro` no funcionan** (la API les responde 404): en local se entra como se explica
-abajo, en "Cómo correrlo". El usuario confirmó los seis
+se chequea, y la API no arranca sin ningún proveedor. **F9-06 está mergeada** (PR #105): nada del
+flujo OAuth sale en un log —las URLs van sin _query_, `idToken` y `clientSecret` se redactan, y el
+logger de Better Auth escribe por Pino porque por defecto volcaba el `state` a `console`— y los
+headers no cambian. **F9-07 está mergeada** (PR #111): `/login` es una sola pantalla, con un botón
+por proveedor habilitado (sin campos de email ni contraseña), el aviso del `?error=` con el mensaje
+del catálogo y "Reintentar" si la lista de proveedores no carga; `/registro`, los formularios, los
+schemas de contraseña y `WC-AUTH-401-001` se fueron. **F9-08 está mergeada** (PR #116): el Perfil
+muestra la foto del usuario (o sus iniciales), nombre y email; la sirve la API desde su propio origen
+(`GET /api/v1/me/photo`) y sólo baja imágenes de `*.googleusercontent.com`, nunca de otro host.
+**F9-09 está mergeada** (PR #118): el E2E del ingreso (14 pruebas a 390px, con axe) y, en el de
+producción, el callback con el service worker controlando la página; el E2E ahora tiene dos
+proveedores. Lo que mostró: **la foto no carga en desarrollo** (decisión abierta, abajo). **F9-10 tiene
+hecha la parte de la IA, en una PR**: el runbook [`docs/runbooks/oauth.md`](../runbooks/oauth.md) y
+`oauth:inspect-token`; **falta lo que necesita al usuario** (crear los clientes de Google y Microsoft,
+y la prueba con cuentas reales). El usuario confirmó los seis
 supuestos (2026-10-04): Google y Microsoft sólo con cuentas personales (`consumers`), cualquier
 cuenta verificada crea cuenta Free, el nombre sale del proveedor, la foto se muestra en el Perfil,
 cada ingreso pide elegir la cuenta, y las cuentas no se vinculan solas. Hallazgos que cambian el diseño: sin contraseña no sirve nada de lo que hoy abre una sesión (once
@@ -158,8 +167,12 @@ depende de los _watch paths_ de Railway, que el IaC no documenta (F10-12 lo comp
 hay que fijarlo antes de F9-10** en staging y prod: las redirect URIs de OAuth llevan el host de la
 app. **F10-00 (spec §5.7 y [ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md))
 está mergeada (PR #98), F10-01 (el workspace `apps/landing` con Astro, PR #100) y F10-02
-(tokens, fuentes y estilos base, PR #102) y F10-03 (la estructura de la página, PR #104)
-también, y F10-04 (SEO y compartir) está hecha en una PR**; ninguna tarea cerrada.
+(tokens, fuentes y estilos base, PR #102), F10-03 (la estructura de la página, PR #104) y
+F10-04 (SEO y compartir, PR #110), F10-05 (el hero, PR #114), F10-06 (Registro y Funciones,
+PR #115), F10-07 (Estadísticas Pro, PR #117), F10-08 (Planes, PR #120), F10-09 (Privacidad y
+términos, PR #121), F10-11 (el servidor estático, PR #122), F10-12 (Railway, PR #123) y F10-10
+(el E2E de la landing, PR #124) también, y **la parte de la IA de F10-13** (el runbook y el smoke)
+está hecha en una PR: falta lo que toca la cuenta real**; ninguna tarea cerrada.
 
 ## Bloqueado
 
@@ -191,34 +204,79 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
    los botones esperando esa lógica.
-10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-05 (mergeadas) y **revisar los tests de F9-05,
-    que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
-    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). Revisar la
-    PR de F9-06 (logs y headers). Después F9-07 (la pantalla de ingreso: con ella vuelven a andar
-    `/login` y la web). F9-10
-    necesita que el usuario cree el
-    cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑); staging y
-    prod esperan a F3-07.
+10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-08 (mergeadas) y **revisar los tests de
+    F9-05, que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
+    `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). **Decidir lo de
+    la foto en desarrollo** ("Decisiones abiertas"). **F9-10, lo que sólo puede hacer el usuario:** crear
+    el cliente OAuth en Google Cloud Console y el registro de la app en Microsoft Entra (🔑), siguiendo
+    el [runbook](../runbooks/oauth.md), y correr la prueba guiada con cuentas reales. Lo primero a
+    mirar: que el registro de Microsoft tenga las notificaciones opcionales `verified_primary_email`, o
+    nadie entra con Microsoft. Staging y prod esperan a F3-07 y al dominio.
 11. **Tests de `apps/web` bajo carga:** corridos todos juntos en local (`pnpm verify`,
     `pnpm test:coverage`) fallan por `Test timed out in 5000ms`, y cada corrida un conjunto distinto
     (19 y 14 tests, los de axe y los formularios); solos pasan 392 de 392, y **en el CI pasaron**
     (PR #95). Es de la máquina local con carga; si vuelve a verse en el CI, subir el `testTimeout`
     de `apps/web`.
-12. **Fase 10 (landing):** revisar la PR de F10-04 (SEO y compartir; trae `og.png`, que repite el
-    titular del hero: si el copy de F10-05 cambia, `pnpm --filter @wasabi-cross/landing og` lo
-    regenera); después, en paralelo, las secciones F10-05 a F10-09. Crear las tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
-    **Decidir el dominio** (landing en la raíz, app en `app.`) antes de F9-10 en staging y
-    prod.
+12. **Fase 10 (landing):** lo que falta es de F10-13 y es del usuario: **decidir el dominio**
+    (landing en la raíz, app en `app.`) antes de F9-10, y después seguir
+    [`docs/runbooks/landing.md`](../runbooks/landing.md): crear el servicio de la landing
+    (`railway config plan` y `apply`, después de F3-07), **cargar `PUBLIC_SITE_URL`,
+    `PUBLIC_APP_URL`, `PUBLIC_CONTACT_NAME` y `PUBLIC_CONTACT_EMAIL`** en cada ambiente (en
+    producción el build se rompe sin las últimas dos), agregar los dominios y el DNS, y correr
+    el smoke (`pnpm --filter @wasabi-cross/landing smoke -- <url>`). **Decidir cómo redirige el
+    `www`**: el servidor no lo hace; la opción recomendada es una regla del proveedor de DNS. Y
+    lo que queda del copy de F10-05 a F10-08 si no se aprobó: titular,
+    párrafo, ejercicios, CTA, pies, estadísticas y planes (spec §9: lo que se promete sobre el
+    plan pago lo mira una persona). Si el titular del hero cambia,
+    `pnpm --filter @wasabi-cross/landing og` regenera la imagen para compartir (F10-04). Decidir
+    si el párrafo del hero suma `hybrid` y `pilates` (la captura del catálogo ya muestra los siete
+    filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
+    dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Crear las
+    tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
 
 ## Decisiones abiertas
 
+- **La foto del Perfil no carga en desarrollo** (F9-08, la mostró F9-09). Con el front (Vite) y la API en
+  puertos distintos, Chrome rechaza el `<img>` con `ERR_BLOCKED_BY_RESPONSE.NotSameSite`: la ruta
+  `/me/photo` contesta `Cross-Origin-Resource-Policy: same-site` y el navegador no lo da por cumplido
+  entre `127.0.0.1:5174` y `127.0.0.1:3100`. El Perfil cae a las iniciales. **En producción es el mismo
+  origen y carga** (el E2E de producción lo comprueba, con la CSP real). Tres salidas: **(a)**
+  `cross-origin` en esa ruta: en la práctica no expone nada —la cookie es `SameSite=Lax` y no viaja en un
+  `<img>` de otro sitio, que recibiría el 401—, pero es aflojar un header de seguridad, así que lo tiene
+  que decidir una persona; **(b)** un proxy de `/api` en el servidor de Vite, para que en desarrollo
+  también sea el mismo origen (cambia el cableado de cookies, `WEB_ORIGIN` y `BETTER_AUTH_URL`);
+  **(c)** dejarlo: en desarrollo se ven las iniciales. Hoy es (c), y el E2E de desarrollo no afirma que
+  la foto cargue.
 - **Proveedor de pago** para la suscripción Pro (Mercado Pago / Stripe / otro).
 - **Precio de Pro** y su período (mensual o anual): a definir. La UI dice "A definir" y el texto
-  vive en `apps/web/src/lib/plans.ts`.
+  vive en `apps/web/src/lib/plans.ts`. **La landing duplica esa línea** en
+  `apps/landing/src/content/plans.ts` ("Suscripción · precio por definir", sin período): cuando
+  haya precio hay que cambiar los dos, y un test de la landing falla en cuanto el de la app deja
+  de decir "A definir".
 - **Excepción a `minimumReleaseAge` en `pnpm-workspace.yaml`** (F10-01): `http-cache-semantics@4.3.0`,
   el parche de una vulnerabilidad alta que entra por `astro`, y un `overrides` que lo fuerza. Es
   una versión de 19 h al decidirla (mismo publicador que la anterior, firmada). Sacar las dos
   líneas cuando la versión cumpla la antigüedad y Astro suba su rango a `^4.3.0`.
+- **Capturas de la landing con un usuario Pro.** Las de los detalles (02, 03 y 04) muestran la
+  etiqueta PRO y el gráfico de progreso, que Free no ve (spec §4): la landing lo avisa en el pie de
+  cada una (F10-06). Reemplazarlas por capturas con un usuario Free sacaría el aviso, y necesita el
+  script que las regenere desde la app, que quedó fuera de la Fase 10.
+- **Capturas altas de la sección de estadísticas** (F10-07). `07-estadisticas-general` (780×2740)
+  y `07-estadisticas-entrenamiento` (780×2320) se muestran **completas**, como el diseño: a
+  1280 px miden 2063 y 1774 px de alto y la sección entera, 3748. Con una altura máxima habría que
+  recortar la imagen o meter un scroll interno, y las dos son la lista completa de capacidades
+  y de grupos musculares. Se cambia en `Estadisticas.astro`.
+- **Quién responde en las páginas legales** (F10-09). `PUBLIC_CONTACT_NAME` y
+  `PUBLIC_CONTACT_EMAIL` son variables de build de la landing: van las dos o ninguna, y con
+  `LANDING_INDEXABLE=1` el build se rompe sin ellas. No están en el repo (son datos de una
+  persona): hay que cargarlas en el servicio de la landing de cada ambiente (F10-12, F10-13).
+- **La API guarda la IP y el navegador con la sesión** (F10-09). Better Auth lo hace por
+  defecto y la spec no lo decía: ahora la spec §5.6 y la política lo dicen. Si se prefiere no
+  guardarlos es un cambio de la API (y la IP además sirve al límite de 5 intentos por minuto).
+- **Cómo redirige el `www`** (F10-13). El servidor de la landing no redirige entre hosts. Opción
+  A (recomendada): una regla de redirección del proveedor de DNS, sin código. Opción B: una
+  variable con el host canónico y un 301 en `server/app.ts`, que es una tarea aparte. El smoke
+  lo comprueba con `--www`.
 - **Dominio** de Wasabi Cross: no hay. El plan de la landing asume la landing en la raíz y la
   app en `app.`, y de eso dependen el host de las redirect URIs de OAuth (F9-10) y el de
   `WEB_ORIGIN` y `BETTER_AUTH_URL`.
@@ -273,7 +331,7 @@ pnpm --filter @wasabi-cross/api dev:ephemeral   # API en :3100, Mongo efímero
 pnpm --filter @wasabi-cross/api migrate up      # sin esto, /ready responde no-listo
 pnpm --filter @wasabi-cross/api seed            # catálogo de ejercicios
 pnpm --filter @wasabi-cross/api seed:admin      # usuario admin con plan Pro, sin contraseña
-pnpm dev                                        # API en :3000, web en :5173; con OAUTH_DEV_IDP=on, el IdP falso en :3102
+pnpm dev                                        # API en :3000, web en :5173, landing en :4321; con OAUTH_DEV_IDP=on, el IdP falso en :3102
 ```
 
 **Usuario admin de desarrollo** (`seed:admin`, y de nuevo en cada arranque de `dev:ephemeral`):
@@ -284,28 +342,89 @@ forma de ver las estadísticas sin que se puedan pagar. Un usuario que se regist
 Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_NAME`. Sólo de desarrollo: el script se niega a correr
 con `NODE_ENV=production`.
 
-**Cómo entrar a la web en local hasta F9-07** (la pantalla de ingreso todavía no tiene el botón del IdP, y
-el formulario de email y contraseña ya no existe): abrir `/login`, y en la consola del navegador
-pedirle a la API la URL del IdP y seguirla:
-
-```js
-const r = await fetch('/api/auth/sign-in/social', {
-  method: 'POST',
-  headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({
-    provider: 'fake-idp',
-    callbackURL: location.origin + '/',
-    errorCallbackURL: location.origin + '/login',
-  }),
-});
-location.href = (await r.json()).url;
-```
-
-La pantalla del IdP muestra al admin Pro cargado: un clic y se entra como él. Para entrar como un
-usuario Free, cambiar el email y el nombre antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on`
-(el `.env.example` ya lo trae): sin ningún proveedor, no arranca.
+**Cómo entrar a la web en local** (no hay formulario de email y contraseña): abrir `/login` y apretar
+"Continuar con Ingreso de desarrollo", que lleva a la pantalla del IdP falso. Ofrece al admin Pro
+cargado: un clic y se entra como él. Para entrar como un usuario Free, cambiar el email y el nombre
+antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example` ya lo trae): sin
+ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-12 — **`pnpm dev` imprime el acceso rápido de la landing** (`➜ Landing: http://localhost:4321/`), como
+la línea de Vite para la web. `apps/landing/scripts/dev.ts` corre `astro dev` y lee el puerto real de lo que
+Astro dice: su salida cambia según dónde corre (JSON si detecta un agente) y toma otro puerto si el 4321
+está ocupado.
+
+2026-10-12 — **`pnpm dev` levanta también la landing** (en :4321): la raíz ya no la excluye con el
+filtro de F10-01. Para que muestre "Entrar", `apps/landing/.env.example` trae `PUBLIC_APP_URL` con la
+web local.
+
+2026-10-12 — **Fase 10, F10-13 (la parte de la IA)**: el runbook de la landing
+(`docs/runbooks/landing.md`: dominio, variables por ambiente, DNS, watch paths, cómo se despublica
+sin que la app se entere) y un smoke de sólo lectura contra cualquier URL
+(`pnpm --filter @wasabi-cross/landing smoke`), con tests contra el servidor de producción, en una
+PR. Falta todo lo que necesita al usuario: el dominio, la cuenta de Railway y el DNS. Bitácora
+[2026-10-12](./bitacora/2026-10-12-f10-13-runbook-smoke-landing.md).
+
+2026-10-11 — **Fase 10, F10-10**: el E2E de la landing con Playwright (axe a 390 y 1280 px, el foco por
+teclado, las imágenes, la CSP, las anclas, los dos modos de `PUBLIC_APP_URL` y un presupuesto de
+peso medido), sobre el servidor de producción, y un job `landing` en el CI, en una PR. Bitácora
+[2026-10-11](./bitacora/2026-10-11-f10-10-e2e-landing.md).
+
+2026-10-11 — **Fase 10, F10-12**: Railway con la landing como segundo servicio, en una PR (F10-11
+ya está en main, #122): `build` por `--filter`, `watchPatterns` declarados en el IaC (se comprobó
+que se puede) y, de paso, las credenciales de OAuth de la app como `preserve()`.
+Bitácora [2026-10-11](./bitacora/2026-10-11-f10-12-railway-landing.md).
+
+2026-10-11 — **Fase 10, F10-09**: la política de privacidad y los términos de la landing, como borrador
+que el usuario tiene que aprobar, en una PR. Cada cosa que dicen que se guarda la cruza un test con la
+spec y con el código de la API, y mostró que la API guarda la IP y el navegador con la sesión, algo que
+la spec no decía: se completó la §5.6. Quién responde sale de dos variables de build. Bitácora
+[2026-10-11](./bitacora/2026-10-11-f10-09-privacidad-terminos.md).
+2026-10-11 — **Fase 10, F10-11**: el servidor estático de la landing (`apps/landing/server/`), en una
+PR. Lo tomó la sesión de OAuth, avisando a la de la landing, porque no depende de las secciones:
+CSP estricta (`script-src 'none'`, sin `unsafe-inline`), caché de un año para `/_astro/*` y
+revalidación para lo demás, `/health` y un 404 con la página de la marca. Probado contra el build
+real y en un navegador. Bitácora [2026-10-11](./bitacora/2026-10-11-f10-11-servidor-estatico.md).
+
+2026-10-09 — **Fase 10, F10-08**: la sección de planes de la landing (la tabla comparativa cuya fila de
+estadísticas sale de `canViewStats`, accesible por teclado a 390px; las tarjetas de Free y Pro con el
+precio por definir; y las capturas de lo que ve cada plan), en una PR. De paso, el interlineado de los
+titulares, que dejaba la tilde de la "Í" tocando la línea de arriba. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f10-08-planes.md).
+2026-10-09 — **Fase 9, F9-10 (la parte de la IA)**: el runbook del ingreso con OAuth
+(`docs/runbooks/oauth.md`: Google y Microsoft por ambiente, variables, rotación de secretos, prueba
+guiada y PWA) y `oauth:inspect-token`, que dice qué claims trae un ID token sin mostrar ningún valor
+personal, en una PR. Falta lo que necesita al usuario. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f9-10-runbook-oauth.md).
+
+2026-10-09 — **Fase 9, F9-09**: el E2E del ingreso con OAuth, en una PR: 14 pruebas a 390px con axe
+(entrar, volver a entrar, la foto, cancelar, un `state` alterado, una cuenta de trabajo, cuentas sin
+vincular, `/registro` y el alta por email que no existen) y el callback con el service worker en
+producción. Mostró que la foto no carga en desarrollo: decisión abierta. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f9-09-e2e-ingreso.md).
+
+2026-10-09 — **Fase 10, F10-07**: la sección de estadísticas Pro de la landing (seis capturas en tres
+bloques, con la etiqueta PRO y el umbral de "para retestear" cruzado con la spec), en una PR.
+Bitácora [2026-10-09](./bitacora/2026-10-09-f10-07-estadisticas-pro.md).
+
+2026-10-09 — **Fase 9, F9-08**: la foto del usuario en el Perfil, en una PR: `GET /api/v1/me/photo` (sólo
+baja de `*.googleusercontent.com`, sólo `png`/`jpeg`/`webp` por lo que dicen los bytes, con tiempo y tamaño
+máximos y 304 sin tocar al proveedor), `hasPhoto` en `/me`, el `Avatar` y el bloque "Tu cuenta". De paso,
+se reparó el lockfile roto de `main` (PR #112 y #113). Bitácora
+[2026-10-09](./bitacora/2026-10-09-f9-08-foto-en-el-perfil.md).
+
+2026-10-09 — **Fase 10, F10-06**: las secciones Registro y Funciones de la landing, que sólo prometen lo
+que tiene Free y avisan en el pie qué parte de cada captura es de Pro, en una PR. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f10-06-registro-funciones.md).
+
+2026-10-09 — **Fase 10, F10-05**: el hero de la landing (titular, párrafo, CTA según haya app, franja de
+métricas y la captura del LCP), en una PR. Bitácora
+[2026-10-09](./bitacora/2026-10-09-f10-05-hero.md).
+
+2026-10-08 — **Fase 9, F9-07**: la pantalla de ingreso, con un botón por proveedor, mergeada en la PR #111. Se fueron
+`/registro`, los formularios con contraseña y `WC-AUTH-401-001`. Bitácora
+[2026-10-08](./bitacora/2026-10-08-f9-07-pantalla-de-ingreso.md).
 
 2026-10-08 — **Fase 10, F10-04**: los metadatos para compartir (Open Graph y Twitter, con una imagen de
 1200×630), la indexación sólo en producción, `robots.txt` y `sitemap.xml`, en una PR. Bitácora
@@ -330,7 +449,7 @@ Bitácora [2026-10-04](./bitacora/2026-10-04-f10-00-spec-landing.md).
 planificación. Decididos con el usuario: sitio aparte, la landing lleva a la app, voseo y
 Free/Pro según la spec. Bitácora [2026-10-04](./bitacora/2026-10-04-plan-landing.md).
 
-2026-10-08 — **Fase 9, F9-06**: nada del flujo OAuth sale en un log, en una PR. Las URLs van sin
+2026-10-08 — **Fase 9, F9-06**: nada del flujo OAuth sale en un log, mergeado en la PR #105. Las URLs van sin
 _query_, `idToken` y `clientSecret` se redactan y el logger de Better Auth escribe por Pino (por
 defecto volcaba el `state` a `console`). Los headers quedan fijados por tests. Bitácora
 [2026-10-08](./bitacora/2026-10-08-f9-06-logs-y-headers.md).

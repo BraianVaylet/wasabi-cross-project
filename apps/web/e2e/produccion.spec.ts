@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { BOTON_DESARROLLO, atletaNuevo, elegirEnElIdp, pedirMe } from './app.ts';
 
 /*
  * F3-05: lo que sólo existe en el build de producción servido por la API (ADR-0007). En el
@@ -59,4 +60,28 @@ test('ni la CSP ni el navegador se quejan al cargar la app', async ({ page }) =>
   await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
 
   expect(errores).toEqual([]);
+});
+
+test('con el service worker controlando la página, el callback del proveedor abre la sesión (F9-05, F9-09)', async ({
+  page,
+}) => {
+  await page.goto('/login');
+  // El service worker se instala en la primera visita y recién controla la página en la siguiente.
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+  const controlada = await page.evaluate(() => navigator.serviceWorker.controller !== null);
+  expect(controlada, 'el service worker tiene que estar controlando la página').toBe(true);
+
+  // La vuelta del proveedor es una navegación a `/api/auth/callback/...`: Workbox contestaba con el
+  // `index.html` de la app y la API nunca veía el código (`navigateFallbackDenylist`, F9-05).
+  await page.getByRole('button', { name: BOTON_DESARROLLO }).click();
+  const atleta = atletaNuevo();
+  await elegirEnElIdp(page, { email: atleta.email, nombre: atleta.nombre });
+
+  await expect(page.getByRole('heading', { name: 'Tus ejercicios' })).toBeVisible();
+  const me = await pedirMe(page);
+  expect(me.status()).toBe(200);
+  expect(await me.json()).toMatchObject({ email: atleta.email });
 });

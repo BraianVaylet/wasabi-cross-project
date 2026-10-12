@@ -23,7 +23,18 @@ export {
 } from './components/radio-group/RadioGroup.tsx';
 export { Select, type SelectProps } from './components/select/Select.tsx';
 export { TextArea, type TextAreaProps } from './components/text-area/TextArea.tsx';
+export {
+  Avatar,
+  initialsOf,
+  type AvatarProps,
+  type AvatarSize,
+} from './components/avatar/Avatar.tsx';
 export { Tag, type TagProps, type TagVariant } from './components/tag/Tag.tsx';
+export {
+  ProviderButton,
+  type ProviderButtonProps,
+  type ProviderMark,
+} from './components/provider-button/ProviderButton.tsx';
 export { TextField, type TextFieldProps } from './components/text-field/TextField.tsx';
 export { AppHeader, type AppHeaderProps } from './components/app-header/AppHeader.tsx';
 export { Drawer, type DrawerProps } from './components/drawer/Drawer.tsx';

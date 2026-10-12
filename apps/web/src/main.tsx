@@ -5,7 +5,7 @@ import '@fontsource/staatliches';
 import '@wasabi-cross/ui/styles.css';
 import { App } from './app/App.tsx';
 import { createApiClient } from './app/api.ts';
-import { createApp } from './app/create-app.ts';
+import { PHOTO_PATH, createApp } from './app/create-app.ts';
 import { createSessionClient } from './app/session.ts';
 import { createHttpClient } from './lib/http.ts';
 
@@ -17,7 +17,12 @@ if (!container) {
 
 const http = createHttpClient({ baseUrl: import.meta.env.VITE_API_URL ?? '' });
 const session = createSessionClient(http);
-const { queryClient, router } = createApp({ session, api: createApiClient(http) });
+const { queryClient, router } = createApp({
+  session,
+  api: createApiClient(http),
+  // La foto la carga el navegador con un <img>, no el cliente HTTP: necesita la URL completa.
+  photoUrl: http.url(PHOTO_PATH),
+});
 
 createRoot(container).render(
   <StrictMode>

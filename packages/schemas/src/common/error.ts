@@ -23,7 +23,6 @@ export type ErrorEnvelope = z.infer<typeof errorEnvelopeSchema>;
  * falla si divergen. Vive acá porque lo usan la API y el front.
  */
 export const ERROR_CATALOG = {
-  'WC-AUTH-401-001': { status: 401, userMessage: 'Email o contraseña incorrectos.' },
   'WC-AUTH-403-002': { status: 403, userMessage: 'No tenés permisos para esta acción.' },
   'WC-AUTH-429-003': {
     status: 429,
@@ -44,6 +43,8 @@ export const ERROR_CATALOG = {
     status: 409,
     userMessage: 'Ya hay una cuenta con ese email. Entrá con el otro proveedor.',
   },
+  // El usuario no tiene foto, o no se la pudo traer del proveedor (F9-08): el front cae a las iniciales.
+  'WC-USER-404-001': { status: 404, userMessage: 'No hay una foto para mostrar.' },
   'WC-EXO-404-002': { status: 404, userMessage: 'No encontramos ese ejercicio.' },
   'WC-EXO-409-003': { status: 409, userMessage: 'Ya tenés ese ejercicio en tu lista.' },
   'WC-RM-422-001': { status: 422, userMessage: 'El valor cargado no es válido.' },

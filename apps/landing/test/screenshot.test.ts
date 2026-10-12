@@ -58,6 +58,11 @@ describe('<Screenshot>', () => {
     expect(html).toMatch(/\bheight="\d+"/);
   });
 
+  it('con `id` lo pone en la figure: es el destino de un ancla', async () => {
+    expect(await render({ ...base, id: 'demo' })).toMatch(/<figure\b[^>]*\sid="demo"/);
+    expect(await render(base)).not.toMatch(/<figure\b[^>]*\sid=/);
+  });
+
   it('rechaza un alt vacío o de espacios', async () => {
     await expect(render({ ...base, alt: '' })).rejects.toThrow(/alt/);
     await expect(render({ ...base, alt: '   ' })).rejects.toThrow(/alt/);

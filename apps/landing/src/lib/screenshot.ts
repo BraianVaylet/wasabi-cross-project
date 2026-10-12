@@ -19,6 +19,8 @@ export interface ScreenshotProps {
    * siempre la versión más grande.
    */
   sizes: string;
+  /** El `id` de la figura, si es el destino de un ancla (`#demo`). */
+  id?: string;
   /** La imagen del LCP (la del hero): se pide enseguida y con prioridad alta. Por defecto es lazy. */
   prioridad?: boolean;
 }

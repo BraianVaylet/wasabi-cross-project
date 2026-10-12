@@ -12,13 +12,13 @@ Documento vivo: cada vez que se agrega un error nuevo en el código, se agrega a
 
 | Código             | HTTP | Significado                                                           | Mensaje al usuario                                                 |
 | ------------------ | ---- | --------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `WC-AUTH-401-001`  | 401  | Credenciales inválidas                                                | Email o contraseña incorrectos.                                    |
 | `WC-AUTH-403-002`  | 403  | Sin permiso sobre el recurso                                          | No tenés permisos para esta acción.                                |
 | `WC-AUTH-429-003`  | 429  | Demasiados intentos                                                   | Demasiados intentos. Esperá un minuto y probá de nuevo.            |
 | `WC-AUTH-401-004`  | 401  | Sin sesión, o sesión vencida                                          | Iniciá sesión para continuar.                                      |
 | `WC-OAUTH-400-001` | 400  | El ingreso se canceló en el proveedor (`?error=access_denied`)        | Cancelaste el ingreso. Probá de nuevo cuando quieras.              |
 | `WC-OAUTH-400-002` | 400  | El ingreso falló por cualquier otra causa, o el `?error=` es raro     | No pudimos completar el ingreso. Probá de nuevo.                   |
 | `WC-OAUTH-409-003` | 409  | El email ya tiene cuenta con el otro proveedor (`account_not_linked`) | Ya hay una cuenta con ese email. Entrá con el otro proveedor.      |
+| `WC-USER-404-001`  | 404  | El usuario no tiene foto, o no se la pudo traer del proveedor         | No hay una foto para mostrar.                                      |
 | `WC-EXO-404-002`   | 404  | Ejercicio no encontrado                                               | No encontramos ese ejercicio.                                      |
 | `WC-EXO-409-003`   | 409  | El ejercicio ya está en la lista del usuario                          | Ya tenés ese ejercicio en tu lista.                                |
 | `WC-RM-422-001`    | 422  | Valor de RM/tiempo/reps inválido                                      | El valor cargado no es válido.                                     |
@@ -40,5 +40,6 @@ Un código retirado no se reusa: sigue acá para que nadie le asigne otro signif
 | ----------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `WC-EXO-409-004`  | F5-08       | Un propio puede llamarse como uno del catálogo: un precargado editado conserva su nombre ([ADR-0009](./adr/0009-catalogo-ampliado.md)).                       |
 | `WC-SUBS-403-001` | F8-01       | Era el límite de ejercicios del plan. Free y Pro cargan sin tope; lo que los separa son las estadísticas ([ADR-0011](./adr/0011-plan-pro-y-estadisticas.md)). |
+| `WC-AUTH-401-001` | F9-07       | Era "email o contraseña incorrectos". Ya no hay contraseñas: el ingreso es sólo con OAuth ([ADR-0012](./adr/0012-ingreso-solo-con-oauth.md)).                 |
 
 Reglas de logging asociadas a estos códigos: ver [docs/architecture.md](./architecture.md).

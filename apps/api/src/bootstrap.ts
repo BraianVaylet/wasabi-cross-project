@@ -3,6 +3,7 @@ import { buildApp } from './app.ts';
 import {
   composeExercises,
   composeOauth,
+  composePhoto,
   composeRecords,
   composeStats,
   composeUsers,
@@ -55,6 +56,7 @@ export async function startServer({
     auth,
     oauth: composeOauth(env),
     users: composeUsers(mongo),
+    photo: composePhoto(),
     exercises: composeExercises(mongo),
     records: composeRecords(mongo),
     stats: composeStats(mongo),

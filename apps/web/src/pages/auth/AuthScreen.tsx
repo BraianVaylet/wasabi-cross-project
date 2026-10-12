@@ -8,12 +8,12 @@ export interface AuthScreenProps {
   greeting: string;
   title: string;
   children: ReactNode;
-  /** El link al otro lado: de login a registro y viceversa. */
-  footer: ReactNode;
+  /** Una nota al pie, si hace falta. */
+  footer?: ReactNode;
 }
 
 /**
- * La pantalla de login y la de registro comparten todo menos el formulario (mockups 2 y 3),
+ * La pantalla de ingreso (mockups 2 y 3 en uno: entrar y crear la cuenta son lo mismo, F9-07),
  * con la marca del header del diseño arriba: sin sesión no hay header.
  */
 export function AuthScreen({
@@ -36,7 +36,7 @@ export function AuthScreen({
 
       {children}
 
-      <p className="auth__footer">{footer}</p>
+      {footer ? <p className="auth__footer">{footer}</p> : null}
     </main>
   );
 }

@@ -52,13 +52,15 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 | Comando                                           | Qué hace                                                         |
 | ------------------------------------------------- | ---------------------------------------------------------------- |
 | `pnpm install`                                    | Instala los cinco workspaces                                     |
-| `pnpm dev`                                        | Levanta API y web en paralelo (la landing, aparte)               |
+| `pnpm dev`                                        | Levanta API, web y landing en paralelo (:3000, :5173 y :4321)    |
 | `pnpm verify`                                     | lint + typecheck + test + build — lo mismo que corre CI          |
 | `pnpm lint` / `pnpm lint:fix`                     | ESLint sobre todo el monorepo                                    |
 | `pnpm typecheck`                                  | `tsc --noEmit` por workspace                                     |
 | `pnpm test` / `pnpm test:coverage`                | Vitest; el coverage falla por debajo de 90%                      |
 | `pnpm e2e`                                        | Playwright: el flujo principal y la auditoría axe (F1-18)        |
 | `pnpm e2e:prod`                                   | Lo mismo contra el build de producción servido por la API (CI)   |
+| `pnpm e2e:landing`                                | Playwright de la landing: axe, foco, imágenes y peso (F10-10)    |
+| `pnpm --filter @wasabi-cross/landing smoke <url>` | GET de sólo lectura contra una landing desplegada (F10-13)       |
 | `pnpm build`                                      | Compila los cinco workspaces en orden de dependencia             |
 | `pnpm format` / `pnpm format:check`               | Prettier                                                         |
 | `pnpm --filter @wasabi-cross/api migrate up`      | Aplica las migraciones pendientes (`down`, `status`)             |
@@ -72,7 +74,9 @@ Todos desde la raíz del repo. Requieren pnpm ≥ 11 y Node 24 (ver `.nvmrc`).
 Antes de levantar la API hace falta un `.env` —copiar de `apps/api/.env.example`; `dev`, `migrate`
 y `seed` lo leen solos— y las migraciones corridas, porque sin ellas `/ready` responde no-listo. En
 producción no hay `.env`: las variables las pone la plataforma. Para probar sin montar nada,
-`dev:ephemeral` se ocupa de todo contra un Mongo descartable.
+`dev:ephemeral` se ocupa de todo contra un Mongo descartable. La landing no necesita nada para
+arrancar; para que muestre "Entrar" y "Empezar gratis" hace falta `PUBLIC_APP_URL`: copiar
+`apps/landing/.env.example` a `apps/landing/.env` y reiniciar.
 
 ## Reglas de arquitectura
 
