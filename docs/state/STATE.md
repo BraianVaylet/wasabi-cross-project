@@ -331,7 +331,7 @@ pnpm --filter @wasabi-cross/api dev:ephemeral   # API en :3100, Mongo efímero
 pnpm --filter @wasabi-cross/api migrate up      # sin esto, /ready responde no-listo
 pnpm --filter @wasabi-cross/api seed            # catálogo de ejercicios
 pnpm --filter @wasabi-cross/api seed:admin      # usuario admin con plan Pro, sin contraseña
-pnpm dev                                        # API en :3000, web en :5173; con OAUTH_DEV_IDP=on, el IdP falso en :3102
+pnpm dev                                        # API en :3000, web en :5173, landing en :4321; con OAUTH_DEV_IDP=on, el IdP falso en :3102
 ```
 
 **Usuario admin de desarrollo** (`seed:admin`, y de nuevo en cada arranque de `dev:ephemeral`):
@@ -349,6 +349,10 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-12 — **`pnpm dev` levanta también la landing** (en :4321): la raíz ya no la excluye con el
+filtro de F10-01. Para que muestre "Entrar", `apps/landing/.env.example` trae `PUBLIC_APP_URL` con la
+web local.
 
 2026-10-12 — **Fase 10, F10-13 (la parte de la IA)**: el runbook de la landing
 (`docs/runbooks/landing.md`: dominio, variables por ambiente, DNS, watch paths, cómo se despublica
