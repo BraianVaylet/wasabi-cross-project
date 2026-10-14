@@ -1460,7 +1460,8 @@ el smoke contra staging (F3-12), que cierra la fase.
   - Dado `--plan free`, cuando se aplica, entonces el usuario vuelve a no ver las estadísticas y
     conserva todo lo que cargó.
 - **example:** Braian entra una vez a producción con su cuenta de Google. Después:
-  `railway run pnpm --filter @wasabi-cross/api plan:set --email braian@... --plan pro --apply`.
+  `railway run pnpm --filter @wasabi-cross/api plan:set:dist --email braian@... --plan pro --apply`
+  (runbook: [`docs/runbooks/plan-manual.md`](./runbooks/plan-manual.md)).
 - **story-points:** 3
 - **depends_on:** F8-03 (mergeada)
 - **risk:** high. Escribe el campo que decide quién ve una función de pago: **revisión humana de
@@ -1471,6 +1472,15 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **error-codes:** ninguno (es un script, no una ruta)
 - **data-model-impact:** `planSource` y `planChangedAt` en el documento `user`, opcionales y sin
   migración: ausentes significa que el plan no se otorgó a mano.
+- **estado:** código hecho, **a la espera de revisión humana de los tests** (spec §9: es el campo
+  que decide quién ve una función de pago). Caso de uso `setPlan` + puerto `PlanStore` en
+  `subscriptions`, store de Mongo sobre la colección `user`, `parseSetPlanArgs`/`describeOutcome`
+  para el borde, y el script `plan:set` (tsx, local) y `plan:set:dist` (compilado, contra un
+  ambiente desplegado: no lee el `.env` local). 14 pruebas inversas detectadas. Corrido el
+  compilado de punta a punta con `NODE_ENV=production` contra un Mongo efímero: uso sin stack,
+  dry-run sin escribir, email inexistente sin crear, plan inválido, apply con el `--` de pnpm,
+  idempotente y vuelta a Free. **No comprobado:** `railway run` contra un ambiente real (no hay
+  ambientes, F3-07) ni que Atlas deje entrar desde la IP del operador (F3-08).
 
 ---
 

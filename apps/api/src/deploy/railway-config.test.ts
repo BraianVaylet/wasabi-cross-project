@@ -250,7 +250,7 @@ describe.each(AMBIENTES)('Railway, ambiente %s: la landing (F10-12)', (environme
   });
 });
 
-describe('los scripts compilados que usa el preDeploy (F3-13)', () => {
+describe('los scripts compilados: el preDeploy y el de operador (F3-13, F3-15)', () => {
   const scripts = (
     JSON.parse(readFileSync(`${RAIZ}apps/api/package.json`, 'utf8')) as {
       scripts: Record<string, string>;
@@ -263,6 +263,9 @@ describe('los scripts compilados que usa el preDeploy (F3-13)', () => {
   it.each([
     ['migrate:dist', 'migrate'],
     ['seed:dist', 'seed'],
+    // El de operador (`railway run … plan:set:dist`) no lo corre el deploy, pero se corre contra un
+    // ambiente desplegado, donde no hay tsx.
+    ['plan:set:dist', 'set-plan'],
   ])('%s corre el archivo compilado y ese archivo existe en src/scripts', (nombre, archivo) => {
     expect(scripts[nombre]).toBe(`node dist/scripts/${archivo}.js`);
     expect(existsSync(`${RAIZ}apps/api/src/scripts/${archivo}.ts`)).toBe(true);
