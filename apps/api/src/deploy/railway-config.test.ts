@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import railway from '../../../../.railway/railway.ts';
@@ -125,8 +125,17 @@ describe.each(AMBIENTES)('Railway, ambiente %s: la app (F3-04)', (environment) =
   });
 
   it('migra antes de recibir tráfico, con las migraciones compiladas (ADR-0005)', () => {
+    expect(servicio.deploy.preDeployCommand?.[0]).toBe(
+      'pnpm --filter @wasabi-cross/api migrate:dist up',
+    );
+  });
+
+  it('siembra el catálogo después de migrar, compilado: sin eso el ambiente arranca vacío (F3-13)', () => {
+    // El orden importa: el seed se niega a correr con migraciones pendientes, y si las migraciones
+    // fallan el preDeploy se corta antes de llegar a él.
     expect(servicio.deploy.preDeployCommand).toEqual([
       'pnpm --filter @wasabi-cross/api migrate:dist up',
+      'pnpm --filter @wasabi-cross/api seed:dist',
     ]);
   });
 
@@ -233,6 +242,25 @@ describe.each(AMBIENTES)('Railway, ambiente %s: la landing (F10-12)', (environme
       'PUBLIC_CONTACT_NAME',
       'PUBLIC_SITE_URL',
     ]);
+  });
+});
+
+describe('los scripts compilados que usa el preDeploy (F3-13)', () => {
+  const scripts = (
+    JSON.parse(readFileSync(`${RAIZ}apps/api/package.json`, 'utf8')) as {
+      scripts: Record<string, string>;
+    }
+  ).scripts;
+
+  // Cada `<nombre>:dist` corre `node dist/scripts/<archivo>.js`, que el build emite desde
+  // `src/scripts/<archivo>.ts` (`rootDir: ./src`). Un script con otro nombre, o un archivo que
+  // se mueve fuera de `src/`, rompería el deploy en el preDeploy y no en CI.
+  it.each([
+    ['migrate:dist', 'migrate'],
+    ['seed:dist', 'seed'],
+  ])('%s corre el archivo compilado y ese archivo existe en src/scripts', (nombre, archivo) => {
+    expect(scripts[nombre]).toBe(`node dist/scripts/${archivo}.js`);
+    expect(existsSync(`${RAIZ}apps/api/src/scripts/${archivo}.ts`)).toBe(true);
   });
 });
 

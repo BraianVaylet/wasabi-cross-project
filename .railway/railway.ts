@@ -50,9 +50,14 @@ export default defineRailway((ctx) => {
     },
     // Compilado y sin `tsx`: en producción no corre nada de desarrollo.
     start: 'node apps/api/dist/server.js',
-    // Las migraciones van antes de mover el tráfico (ADR-0005). Si fallan, Railway corta el
-    // deploy y la versión anterior sigue atendiendo.
-    preDeploy: 'pnpm --filter @wasabi-cross/api migrate:dist up',
+    // Las migraciones van antes de mover el tráfico (ADR-0005), y después el catálogo (F3-13): sin
+    // el seed un ambiente nuevo arranca con "Nuevo ejercicio" vacío. En ese orden porque el seed se
+    // niega a correr con migraciones pendientes. Si cualquiera falla, Railway corta el deploy y la
+    // versión anterior sigue atendiendo. El seed es idempotente: un deploy sin cambios no escribe.
+    preDeploy: [
+      'pnpm --filter @wasabi-cross/api migrate:dist up',
+      'pnpm --filter @wasabi-cross/api seed:dist',
+    ],
     // `/ready` y no `/health`: con migraciones pendientes o sin Mongo, la instancia nueva no
     // tiene que recibir tráfico aunque el proceso esté vivo.
     healthcheck: '/ready',

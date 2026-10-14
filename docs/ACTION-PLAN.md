@@ -1390,6 +1390,12 @@ el smoke contra staging (F3-12), que cierra la fase.
   con `NODE_ENV=production`.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `seed:dist` y el `preDeploy` en dos pasos, con
+  el orden y el archivo compilado cuidados por tests. Simulado de punta a punta (build →
+  `migrate:dist up` → `seed:dist`, con `NODE_ENV=production`, contra un Mongo efímero): el seed sin
+  migrar se niega; el primer deploy crea los 120; el segundo informa "0 creados, 0 actualizados,
+  120 sin cambios". **No comprobado contra Railway:** que corte en el primer comando que falla es
+  su comportamiento documentado para `preDeploy`; se ve en el primer deploy a staging (F3-07).
 
 ## [ ] F3-14 · La IP real del cliente detrás del proxy
 

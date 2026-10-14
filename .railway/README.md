@@ -47,6 +47,17 @@ necesita. Esto no se pudo comprobar contra un Railway de verdad (no hay ambiente
 si el primer build de la landing falla por una dependencia que falta, es lo primero que hay que
 mirar.
 
+## Qué corre antes de cada deploy de la app
+
+`preDeploy` son dos comandos, en este orden (F3-13):
+
+1. `migrate:dist up`: las migraciones pendientes (ADR-0005).
+2. `seed:dist`: el catálogo de ejercicios. Es idempotente —un deploy sin cambios no escribe— y se
+   niega a correr con migraciones pendientes, por eso va segundo.
+
+Si cualquiera falla, el deploy se corta y la versión anterior sigue atendiendo. Sin el segundo, un
+ambiente nuevo arranca con el catálogo vacío.
+
 ## Qué hace este archivo y qué no
 
 - **Sí**: declara build, start, pre-deploy (migraciones), healthcheck y qué variables existen.
