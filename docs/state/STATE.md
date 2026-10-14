@@ -178,6 +178,8 @@ está hecha en una PR: falta lo que toca la cuenta real**; ninguna tarea cerrada
 
 **F3-07 a F3-12**, en cadena, hasta que el usuario cree los ambientes de Railway (F3-07) y el
 cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el resto depende de ellas.
+**F3-13 a F3-15** (2026-10-14: el catálogo en el deploy, la IP del cliente y `plan:set`) no dependen
+de ninguna cuenta: el código está hecho y espera revisión.
 
 ## Próximo paso
 
@@ -203,7 +205,8 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
    tarjetas (`/trello-sync`).
 9. **Segunda etapa de la suscripción** (todavía sin tareas): pasarela de pago, el endpoint de
    cambio de plan, el vencimiento y qué pasa al bajar de Pro. La UI de `/suscripcion` ya tiene
-   los botones esperando esa lógica.
+   los botones esperando esa lógica. **Mientras tanto**, en un ambiente desplegado el plan se otorga
+   con `plan:set` ([runbook](../runbooks/plan-manual.md), ADR-0014), no desde la app.
 10. **Fase 9:** cumplir el Definition of Done de F9-00 a F9-08 (mergeadas) y **revisar los tests de
     F9-05, que es la puerta de entrada de toda la app: un error ahí regala cuentas** (los de
     `oauth-signin`, de la política de rutas y de los hooks necesitan ojo humano, spec §9). **Decidir lo de
@@ -233,6 +236,16 @@ cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el r
     filtros, y la dona de disciplinas de las estadísticas muestra Hybrid) y **cómo se muestran las
     dos capturas altas de estadísticas** (completas, como ahora, o con altura máxima). Crear las
     tarjetas (`/trello-sync`). Corre en paralelo a la Fase 9: no comparten código.
+13. **Salida a producción sin pasarela (2026-10-14, F3-13 a F3-15, en una PR).** Revisar los tests
+    de **F3-14** (es la puerta de entrada: el límite de ingreso por IP, spec §9) y de **F3-15**
+    (escribe el campo que decide quién ve una función de pago); la PR trae pruebas inversas de
+    las dos. Después, lo que sólo se comprueba en staging (F3-12): que en el log de un ingreso
+    `remoteAddress` sea una IP pública y no aparezca el aviso de Better Auth "Rate limiting could
+    not determine a client IP"; que `preDeploy` corte si la migración falla; y que `railway run`
+    llegue a Atlas desde la IP del operador. **Antes de abrir la app a otras personas:** la política
+    de privacidad aprobada (F10-09) y decidir si el registro es abierto o si se cierra (Google en
+    modo "Testing" lo cierra de su lado; Microsoft personal no tiene equivalente). Sin tracking de
+    errores todavía (sólo logs y uptime): alcanza con un usuario, no con más.
 
 ## Decisiones abiertas
 
@@ -338,7 +351,8 @@ pnpm dev                                        # API en :3000, web en :5173, la
 `admin@wasabicross.dev`, plan Pro fijo y **sin contraseña** (F9-04, ADR-0012): queda ligado a la cuenta
 del IdP falso, que lo ofrece cargado por defecto, así que entrar como él es un clic en la pantalla del
 IdP (`OAUTH_DEV_IDP=on`). No hay proveedor de pago todavía (ver "Decisiones abiertas"): es la única
-forma de ver las estadísticas sin que se puedan pagar. Un usuario que se registra nace Free.
+forma de ver las estadísticas en desarrollo sin que se puedan pagar. En un ambiente desplegado, `plan:set`
+([runbook](../runbooks/plan-manual.md)). Un usuario que se registra nace Free.
 Configurable con `SEED_ADMIN_EMAIL`/`SEED_ADMIN_NAME`. Sólo de desarrollo: el script se niega a correr
 con `NODE_ENV=production`.
 
@@ -349,6 +363,15 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-14 — **Salida a producción sin pasarela (F3-13 a F3-15)**, en una PR, un commit por tarea. Tres
+huecos que no dependen de ninguna cuenta y que la revisión de "qué falta para prod" encontró: el
+catálogo de ejercicios no llegaba a ningún ambiente desplegado (el `preDeploy` sólo migraba; ahora
+corre `seed:dist` después), detrás del proxy de Railway todos los usuarios habrían compartido un
+único cubo del límite de ingreso (`CLIENT_IP_HEADER=x-real-ip`), y no había forma sancionada de ser
+Pro en producción: `plan:set`, un script de operador sin HTTP, con dry-run por defecto
+([ADR-0014](../adr/0014-plan-manual-sin-pasarela.md), spec §4, §12 y §13). Bitácora
+[2026-10-14](./bitacora/2026-10-14-salida-a-produccion-sin-pasarela.md).
 
 2026-10-12 — **`pnpm dev` imprime el acceso rápido de la landing** (`➜ Landing: http://localhost:4321/`), como
 la línea de Vite para la web. `apps/landing/scripts/dev.ts` corre `astro dev` y lee el puerto real de lo que
