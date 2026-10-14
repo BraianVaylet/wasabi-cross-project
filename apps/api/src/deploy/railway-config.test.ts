@@ -174,6 +174,11 @@ describe.each(AMBIENTES)('Railway, ambiente %s: la app (F3-04)', (environment) =
   it('el límite de intentos de login no se apaga (spec §13)', () => {
     expect(servicio.variables.AUTH_RATE_LIMIT?.value).not.toBe('off');
   });
+
+  it('la IP del cliente sale de X-Real-IP, que el edge pisa: no del X-Forwarded-For (F3-14)', () => {
+    // Sin esto, detrás del proxy todos los usuarios caen en un único cubo del límite de ingreso.
+    expect(servicio.variables.CLIENT_IP_HEADER).toEqual({ type: 'literal', value: 'x-real-ip' });
+  });
 });
 
 describe.each(AMBIENTES)('Railway, ambiente %s: la landing (F10-12)', (environment) => {

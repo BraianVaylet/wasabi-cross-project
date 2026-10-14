@@ -1427,6 +1427,16 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno (el contador del límite vive en la colección de Better Auth, con la
   IP en la clave).
+- **estado:** código hecho, **a la espera de revisión humana de los tests** (es la puerta de
+  entrada). `CLIENT_IP_HEADER` en `parseEnv`, en Better Auth (`advanced.ipAddress`), en el
+  serializador del log y en el IaC (`x-real-ip`). Contra el Better Auth real y Mongo, sin el cambio
+  los tests fallan por lo que importa: `x-real-ip` se ignoraba, y un `X-Forwarded-For` distinto en
+  cada pedido esquivaba el límite. Ocho pruebas inversas detectadas. **No se tocó `trustProxy` de
+  Fastify:** la IP no se usa para nada más que el log, y activarlo confiaría en `X-Forwarded-For`.
+  **Lo que Railway manda de verdad no está comprobado:** sus respuestas públicas (foros, con
+  respuestas de su staff) dicen que el edge pisa `X-Real-IP`, pero se contradicen sobre el orden de
+  `X-Forwarded-For`, no publican CIDRs y avisan que puede cambiar. Por eso se eligió un header
+  único y no una lista de proxies de confianza, y se comprueba en staging (F3-12).
 
 ## [ ] F3-15 · `plan:set`: otorgar el plan a mano mientras no hay pasarela
 

@@ -131,6 +131,10 @@ export function createAuth({
         sameSite: 'lax',
         secure: env.NODE_ENV === 'production',
       },
+      // La IP del cliente sale del header que pone el edge de la plataforma y de ningún otro
+      // (F3-14). Detrás del proxy, `X-Forwarded-For` es una cadena falseable: Better Auth no
+      // resuelve ninguna IP y todos los usuarios comparten un único cubo del límite de ingreso.
+      ...(env.CLIENT_IP_HEADER ? { ipAddress: { ipAddressHeaders: [env.CLIENT_IP_HEADER] } } : {}),
     },
 
     rateLimit: {

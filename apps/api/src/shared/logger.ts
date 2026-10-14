@@ -42,25 +42,46 @@ export function withoutQuery(url: string): string {
   return cut === -1 ? url : url.slice(0, cut);
 }
 
+/** Una IP de cliente cabe en 45 caracteres; el resto es basura que no hay por qué guardar. */
+const MAX_ADDRESS_LENGTH = 64;
+
+/**
+ * La IP del cliente. Detrás del proxy de la plataforma `request.ip` es la del proxy, así que con
+ * `CLIENT_IP_HEADER` se toma del header que pone el edge (F3-14); sin él, o si el pedido no lo
+ * trae, es la del socket. Cualquier otro header se ignora: `X-Forwarded-For` lo falsea el cliente.
+ */
+function clientAddress(
+  request: Partial<FastifyRequest>,
+  clientIpHeader: string | undefined,
+): string | undefined {
+  const fromEdge = clientIpHeader ? request.headers?.[clientIpHeader] : undefined;
+
+  return typeof fromEdge === 'string' && fromEdge.length > 0
+    ? fromEdge.slice(0, MAX_ADDRESS_LENGTH)
+    : request.ip;
+}
+
 /**
  * Los serializadores. `req` es el de Fastify (mismos campos, que arman el "incoming request" de
  * cada petición) con la URL sin query. `url` cubre las que se agregan a mano en un log
  * (`{ url: request.url }`, en el error handler y en `auth.routes.ts`): sin esto habría que
  * acordarse en cada una.
  */
-const SERIALIZERS = {
-  // `Partial`: un serializador que tira rompe el log (y la petición con él), así que tolera lo que
-  // no trae en vez de suponerlo.
-  req: (request: Partial<FastifyRequest>): Record<string, unknown> => ({
-    method: request.method,
-    url: typeof request.url === 'string' ? withoutQuery(request.url) : request.url,
-    version: request.headers?.['accept-version'],
-    host: request.host,
-    remoteAddress: request.ip,
-    remotePort: request.socket?.remotePort,
-  }),
-  url: (url: unknown) => (typeof url === 'string' ? withoutQuery(url) : url),
-};
+function buildSerializers(clientIpHeader: string | undefined) {
+  return {
+    // `Partial`: un serializador que tira rompe el log (y la petición con él), así que tolera lo
+    // que no trae en vez de suponerlo.
+    req: (request: Partial<FastifyRequest>): Record<string, unknown> => ({
+      method: request.method,
+      url: typeof request.url === 'string' ? withoutQuery(request.url) : request.url,
+      version: request.headers?.['accept-version'],
+      host: request.host,
+      remoteAddress: clientAddress(request, clientIpHeader),
+      remotePort: request.socket?.remotePort,
+    }),
+    url: (url: unknown) => (typeof url === 'string' ? withoutQuery(url) : url),
+  };
+}
 
 /**
  * Las opciones del logger de Fastify. `stream` es para los tests, que leen lo que se escribió; en
@@ -77,7 +98,7 @@ export function buildLoggerOptions(
     base: { env: env.NODE_ENV, service: 'api' },
     timestamp: () => `,"ts":"${new Date().toISOString()}"`,
     redact: { paths: [...REDACTED_PATHS], censor: '[REDACTED]' },
-    serializers: SERIALIZERS,
+    serializers: buildSerializers(env.CLIENT_IP_HEADER),
     ...(stream ? { stream } : {}),
     // Pino no admite `transport` y `stream` a la vez: si alguien pide un stream, gana.
     ...(env.NODE_ENV === 'development' && !stream

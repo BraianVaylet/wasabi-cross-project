@@ -44,6 +44,20 @@ const envSchema = z.object({
   AUTH_RATE_LIMIT: z.enum(['on', 'off']).default('on'),
 
   /*
+   * El header donde el edge de la plataforma pone la IP del cliente (F3-14, spec §12). Detrás de un
+   * proxy, `X-Forwarded-For` es una cadena que el cliente puede falsear y Better Auth no resuelve
+   * ninguna IP: todos los usuarios caerían en un único cubo del límite de ingreso. Con esto la API
+   * mira ese header y ningún otro. En Railway es `x-real-ip`. Sin definir —desarrollo y tests— es
+   * el comportamiento de siempre.
+   */
+  CLIENT_IP_HEADER: optional(
+    z
+      .string()
+      .regex(/^[A-Za-z0-9-]+$/, 'tiene que ser el nombre de un header (letras, números y guiones)')
+      .transform((name) => name.toLowerCase()),
+  ),
+
+  /*
    * Credenciales de los proveedores OAuth (spec §5.6). Cada par va completo o no va: un proveedor
    * con sólo la mitad no puede entrar a nadie, y es un error de carga, no una opción. Sin el par,
    * el proveedor queda apagado.

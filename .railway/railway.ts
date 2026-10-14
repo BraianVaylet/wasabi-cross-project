@@ -71,6 +71,10 @@ export default defineRailway((ctx) => {
       LOG_LEVEL: 'info',
       // El front compilado, relativo a la raíz del repo, que es donde arranca el proceso.
       WEB_DIST_DIR: 'apps/web/dist',
+      // De dónde sale la IP del cliente (F3-14): el edge de Railway pisa `X-Real-IP` con la del
+      // cliente. Sin esto, detrás del proxy todos los usuarios comparten un único cubo del límite
+      // de ingreso (5 por minuto para toda la app). No es un secreto, así que va escrito acá.
+      CLIENT_IP_HEADER: 'x-real-ip',
       // Una base por ambiente: staging tiene datos sintéticos, nunca una copia de prod.
       MONGODB_DB_NAME: prod ? 'wasabi_cross' : 'wasabi_cross_staging',
 
