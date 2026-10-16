@@ -18,7 +18,7 @@
 | Fase 0 — Fundaciones              |      8 |           27 |      7 |
 | Fase 1 — El loop del atleta       |     19 |           71 |     19 |
 | Fase 2 — Estadísticas             |     10 |           44 |     10 |
-| Fase 3 — A producción             |     12 |           37 |      5 |
+| Fase 3 — A producción             |     15 |           43 |      5 |
 | Fase 4 — Rediseño Toxic Cyberpunk |     18 |           75 |      0 |
 | Fase 5 — Catálogo ampliado        |     16 |           62 |      0 |
 | Fase 7 — Estadísticas ampliadas   |      8 |           23 |      0 |
@@ -1356,6 +1356,9 @@ el smoke contra staging (F3-12), que cierra la fase.
   - Dado un deploy a staging, cuando termina, entonces corre el flujo principal y el de
     Estadísticas contra esa URL, con sus datos sintéticos.
   - Dado un smoke en rojo, cuando pasa, entonces bloquea el deploy a prod.
+  - Dado un ingreso en staging, cuando se mira su log, entonces `remoteAddress` es una IP pública
+    y no aparece el aviso de Better Auth "Rate limiting could not determine a client IP"
+    (F3-14: lo que Railway manda de verdad no se puede probar en CI).
 - **example:** —
 - **story-points:** 3
 - **depends_on:** F3-03, F3-09
@@ -1363,6 +1366,121 @@ el smoke contra staging (F3-12), que cierra la fase.
 - **test_plan:** el propio smoke, en el workflow de deploy.
 - **error-codes:** ninguno
 - **data-model-impact:** ninguno
+
+## [ ] F3-13 · El catálogo se siembra en cada deploy
+
+- **module:** infra
+- **description:** El `preDeploy` sólo migra, y el seed corre con `tsx` (`pnpm seed`), que en un
+  ambiente desplegado no existe. Un ambiente nuevo arranca con el catálogo vacío: "Nuevo ejercicio"
+  no ofrece nada. Se suma `seed:dist` (el seed compilado, como `migrate:dist`) y el `preDeploy`
+  corre las migraciones y después el seed (spec §12).
+- **acceptance-criteria:**
+  - Dado un deploy en un ambiente con la base vacía, cuando termina el `preDeploy`, entonces el
+    catálogo está cargado.
+  - Dadas migraciones pendientes que fallan, cuando corre el `preDeploy`, entonces el seed no corre
+    y la versión anterior sigue atendiendo.
+  - Dado un segundo deploy sin cambios, cuando corre el seed, entonces no crea ni actualiza nada.
+- **example:** el primer deploy a staging deja los 120 ejercicios, y el segundo informa "0 creados,
+  0 actualizados, 120 sin cambios".
+- **story-points:** 1
+- **depends_on:** F3-04
+- **risk:** low
+- **test_plan:** test de la configuración (comandos y orden) y de que `seed:dist` apunta a un
+  archivo que el build emite; el compilado probado a mano de punta a punta contra un Mongo efímero
+  con `NODE_ENV=production`.
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno
+- **estado:** código hecho, a la espera de revisión. `seed:dist` y el `preDeploy` en dos pasos, con
+  el orden y el archivo compilado cuidados por tests. Simulado de punta a punta (build →
+  `migrate:dist up` → `seed:dist`, con `NODE_ENV=production`, contra un Mongo efímero): el seed sin
+  migrar se niega; el primer deploy crea los 120; el segundo informa "0 creados, 0 actualizados,
+  120 sin cambios". **No comprobado contra Railway:** que corte en el primer comando que falla es
+  su comportamiento documentado para `preDeploy`; se ve en el primer deploy a staging (F3-07).
+
+## [ ] F3-14 · La IP real del cliente detrás del proxy
+
+- **module:** auth
+- **description:** Detrás del proxy de Railway, Better Auth sólo confía en un `X-Forwarded-For` de
+  un único valor. Con una cadena no resuelve ninguna IP y mete a **todos** los usuarios en un cubo
+  compartido por ruta: el límite de 5 ingresos por minuto (spec §13) pasa a ser 5 para toda la app.
+  Y la `request.ip` de Fastify es la del proxy, así que el log tampoco sabe quién pidió. El edge de
+  Railway pone la IP del cliente en `X-Real-IP`; `CLIENT_IP_HEADER` le dice a la API qué header
+  usar, y la API ignora todos los demás (el `X-Forwarded-For` lo puede falsear el cliente).
+- **acceptance-criteria:**
+  - Dado `CLIENT_IP_HEADER=x-real-ip`, cuando dos IP distintas piden el ingreso, entonces cada una
+    tiene su propio límite.
+  - Dado un cliente que manda un `X-Forwarded-For` distinto en cada pedido, cuando agota su límite,
+    entonces sigue limitado: el header que falsea no cuenta.
+  - Dado el log de un pedido que trae el header, cuando se escribe, entonces `remoteAddress` es la
+    IP del cliente y no la del proxy.
+  - Dado desarrollo o test, cuando no está la variable, entonces todo se comporta como antes.
+  - Dado el IaC, cuando se declara cada ambiente, entonces `CLIENT_IP_HEADER` es `x-real-ip`.
+- **example:** —
+- **story-points:** 2
+- **depends_on:** F3-03
+- **risk:** medium. Es el límite de la puerta de entrada (F9-05): un error acá deja el ingreso sin
+  freno o con un freno para todos.
+- **test_plan:** integración contra el Better Auth real y Mongo (el límite prendido, los cubos por
+  IP y el `X-Forwarded-For` falseado); test del serializador del log; test del `parseEnv`; test de
+  la configuración de Railway. **Lo que Railway manda de verdad no se puede probar en CI**: se
+  comprueba en staging (F3-12).
+- **error-codes:** ninguno
+- **data-model-impact:** ninguno (el contador del límite vive en la colección de Better Auth, con la
+  IP en la clave).
+- **estado:** código hecho, **a la espera de revisión humana de los tests** (es la puerta de
+  entrada). `CLIENT_IP_HEADER` en `parseEnv`, en Better Auth (`advanced.ipAddress`), en el
+  serializador del log y en el IaC (`x-real-ip`). Contra el Better Auth real y Mongo, sin el cambio
+  los tests fallan por lo que importa: `x-real-ip` se ignoraba, y un `X-Forwarded-For` distinto en
+  cada pedido esquivaba el límite. Ocho pruebas inversas detectadas. **No se tocó `trustProxy` de
+  Fastify:** la IP no se usa para nada más que el log, y activarlo confiaría en `X-Forwarded-For`.
+  **Lo que Railway manda de verdad no está comprobado:** sus respuestas públicas (foros, con
+  respuestas de su staff) dicen que el edge pisa `X-Real-IP`, pero se contradicen sobre el orden de
+  `X-Forwarded-For`, no publican CIDRs y avisan que puede cambiar. Por eso se eligió un header
+  único y no una lista de proxies de confianza, y se comprueba en staging (F3-12).
+
+## [ ] F3-15 · `plan:set`: otorgar el plan a mano mientras no hay pasarela
+
+- **module:** subscriptions
+- **description:** En producción el dueño nace Free y lo que tiene que probar es de Pro. No hay
+  pasarela ni endpoint de cambio de plan (ADR-0011), `seed:admin` es de desarrollo y editar Atlas a
+  mano está prohibido. [ADR-0014](./adr/0014-plan-manual-sin-pasarela.md): un script de operador,
+  compilado y sin HTTP, que llama a un caso de uso `setPlan` de `subscriptions` (el único lugar que
+  escribe el plan). Dry-run por defecto, `--apply` para escribir, guarda `planSource: "manual"` y
+  `planChangedAt`, y sólo cambia a un usuario que ya existe.
+- **acceptance-criteria:**
+  - Dado un usuario Free que existe, cuando se corre con `--plan pro --apply`, entonces queda Pro
+    con `planSource: "manual"` y `planChangedAt`, y ve las estadísticas en el pedido siguiente, sin
+    cerrar sesión.
+  - Dado el mismo comando sin `--apply`, cuando corre, entonces dice qué cambiaría y en qué base, y
+    no escribe nada.
+  - Dado un email que no existe, cuando se corre, entonces falla diciendo que la persona tiene que
+    entrar una vez, y no crea ningún usuario.
+  - Dado un plan que no es `free` ni `pro`, cuando se corre, entonces falla sin tocar nada.
+  - Dado un usuario que ya tiene el plan pedido, cuando se corre con `--apply`, entonces no escribe.
+  - Dado `--plan free`, cuando se aplica, entonces el usuario vuelve a no ver las estadísticas y
+    conserva todo lo que cargó.
+- **example:** Braian entra una vez a producción con su cuenta de Google. Después:
+  `railway run pnpm --filter @wasabi-cross/api plan:set:dist --email braian@... --plan pro --apply`
+  (runbook: [`docs/runbooks/plan-manual.md`](./runbooks/plan-manual.md)).
+- **story-points:** 3
+- **depends_on:** F8-03 (mergeada)
+- **risk:** high. Escribe el campo que decide quién ve una función de pago: **revisión humana de
+  sus tests** (spec §9).
+- **test_plan:** unitarios del caso de uso con un store en memoria; integración con Mongo (el store
+  y la cadena completa: un Free recibe 403 en `stats`, después de `setPlan` recibe 200 en el pedido
+  siguiente); pruebas inversas de cada guarda.
+- **error-codes:** ninguno (es un script, no una ruta)
+- **data-model-impact:** `planSource` y `planChangedAt` en el documento `user`, opcionales y sin
+  migración: ausentes significa que el plan no se otorgó a mano.
+- **estado:** código hecho, **a la espera de revisión humana de los tests** (spec §9: es el campo
+  que decide quién ve una función de pago). Caso de uso `setPlan` + puerto `PlanStore` en
+  `subscriptions`, store de Mongo sobre la colección `user`, `parseSetPlanArgs`/`describeOutcome`
+  para el borde, y el script `plan:set` (tsx, local) y `plan:set:dist` (compilado, contra un
+  ambiente desplegado: no lee el `.env` local). 14 pruebas inversas detectadas. Corrido el
+  compilado de punta a punta con `NODE_ENV=production` contra un Mongo efímero: uso sin stack,
+  dry-run sin escribir, email inexistente sin crear, plan inválido, apply con el `--` de pnpm,
+  idempotente y vuelta a Free. **No comprobado:** `railway run` contra un ambiente real (no hay
+  ambientes, F3-07) ni que Atlas deje entrar desde la IP del operador (F3-08).
 
 ---
 

@@ -47,6 +47,34 @@ necesita. Esto no se pudo comprobar contra un Railway de verdad (no hay ambiente
 si el primer build de la landing falla por una dependencia que falta, es lo primero que hay que
 mirar.
 
+## Qué corre antes de cada deploy de la app
+
+`preDeploy` son dos comandos, en este orden (F3-13):
+
+1. `migrate:dist up`: las migraciones pendientes (ADR-0005).
+2. `seed:dist`: el catálogo de ejercicios. Es idempotente —un deploy sin cambios no escribe— y se
+   niega a correr con migraciones pendientes, por eso va segundo.
+
+Si cualquiera falla, el deploy se corta y la versión anterior sigue atendiendo. Sin el segundo, un
+ambiente nuevo arranca con el catálogo vacío.
+
+## La IP del cliente
+
+`CLIENT_IP_HEADER=x-real-ip` (F3-14, spec §12). Detrás del proxy de Railway la IP del socket es la
+del proxy, y `X-Forwarded-For` es una cadena que el cliente puede falsear. Con esta variable la API
+toma la IP del header que **pisa el edge** y de ningún otro, y de ahí salen el límite de 5 ingresos
+por minuto y el `remoteAddress` de los logs.
+
+- Sin ella, Better Auth no resuelve ninguna IP y todos los usuarios caen en **un único cubo** por
+  ruta: 5 ingresos por minuto para toda la app. Falla cerrado (frena de más), no abierto.
+- **Lo que Railway manda de verdad no se puede probar en CI.** Sus respuestas públicas dicen que el
+  edge pisa `X-Real-IP`, que no publica CIDRs de sus proxies y que la cantidad de saltos no es
+  fija, y que esto puede cambiar. Se comprueba en staging (F3-12): en el log de un ingreso,
+  `remoteAddress` tiene que ser una IP pública, y no tiene que aparecer el aviso de Better Auth
+  _"Rate limiting could not determine a client IP"_. Si aparece, el header no es el que se creía.
+- Una IP vista por **red privada** (`*.railway.internal`) no pasó por el edge, y un servicio del
+  mismo proyecto puede poner el header que quiera. Hoy ningún otro servicio le habla a la API.
+
 ## Qué hace este archivo y qué no
 
 - **Sí**: declara build, start, pre-deploy (migraciones), healthcheck y qué variables existen.

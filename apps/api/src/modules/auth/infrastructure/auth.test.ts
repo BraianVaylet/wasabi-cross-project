@@ -1,3 +1,4 @@
+import { PassThrough } from 'node:stream';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { startTestApi, type TestHarness } from '../../../test/harness.ts';
 import { testEnv } from '../../../test/env.ts';
@@ -259,6 +260,107 @@ describe('auth', () => {
 
       expect(auth.options.rateLimit.enabled).toBe(false);
       expect(auth.options.plugins.map((plugin) => plugin.id)).toEqual(['test-utils']);
+    });
+
+    it('con CLIENT_IP_HEADER, la IP sale de ese header y de ningún otro (F3-14)', () => {
+      const auth = authFor({ CLIENT_IP_HEADER: 'x-real-ip' });
+
+      expect(auth.options.advanced.ipAddress).toEqual({ ipAddressHeaders: ['x-real-ip'] });
+    });
+
+    it('sin CLIENT_IP_HEADER, no se toca cómo Better Auth resuelve la IP (F3-14)', () => {
+      expect(authFor().options.advanced).not.toHaveProperty('ipAddress');
+    });
+  });
+
+  /*
+   * F3-14: el límite de ingreso con la IP que dice el edge. Se prueba contra el Better Auth real y
+   * Mongo, con el límite prendido —`NODE_ENV=development`: en `test` lo apaga—. Lo que Railway
+   * manda de verdad no se puede probar acá: se mira en staging (F3-12).
+   */
+  describe('el límite de ingreso con la IP del cliente (F3-14)', () => {
+    function authConIpDe(header: string) {
+      return createAuth({
+        env: testEnv({
+          NODE_ENV: 'development',
+          MONGODB_URI: harness.env.MONGODB_URI,
+          CLIENT_IP_HEADER: header,
+        }),
+        db: harness.mongo.db,
+        client: harness.mongo.client,
+        transactions: false,
+        // Con stream propio el logger no levanta el transporte de pino-pretty.
+        logStream: new PassThrough(),
+      });
+    }
+
+    const auth = () => authConIpDe('x-real-ip');
+
+    async function entrarDesde(headers: Record<string, string>): Promise<number> {
+      const response = await auth().handler(
+        new Request('http://localhost:3000/api/auth/sign-in/social', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            origin: 'http://localhost:5173',
+            ...headers,
+          },
+          body: JSON.stringify({ provider: 'google', callbackURL: '/' }),
+        }),
+      );
+      return response.status;
+    }
+
+    it('cada IP tiene su propio límite: 5 pasan, la sexta no, y otra IP sigue entrando', async () => {
+      const a = { 'x-real-ip': '198.51.100.1' };
+      const primeras: number[] = [];
+      for (let i = 0; i < 5; i++) primeras.push(await entrarDesde(a));
+
+      expect(primeras).not.toContain(429);
+      expect(await entrarDesde(a)).toBe(429);
+      expect(await entrarDesde({ 'x-real-ip': '198.51.100.2' })).not.toBe(429);
+    });
+
+    it('un X-Forwarded-For distinto en cada pedido no reinicia el límite', async () => {
+      const estados: number[] = [];
+      for (let i = 0; i < 6; i++) {
+        estados.push(
+          await entrarDesde({
+            'x-real-ip': '198.51.100.10',
+            'x-forwarded-for': `203.0.113.${String(i + 1)}`,
+          }),
+        );
+      }
+
+      expect(estados.slice(0, 5)).not.toContain(429);
+      expect(estados[5]).toBe(429);
+    });
+
+    it('el header es el que dice la variable, no uno fijo: otro nombre, otra IP, otro límite', async () => {
+      const header = 'cf-connecting-ip';
+      // `x-real-ip` es el mismo en todos los pedidos: si se mirara ése, todos caerían en un cubo.
+      const llamar = async (ip: string) => {
+        const response = await authConIpDe(header).handler(
+          new Request('http://localhost:3000/api/auth/sign-in/social', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              origin: 'http://localhost:5173',
+              [header]: ip,
+              'x-real-ip': '192.0.2.1',
+            },
+            body: JSON.stringify({ provider: 'google', callbackURL: '/' }),
+          }),
+        );
+        return response.status;
+      };
+
+      const delPrimero: number[] = [];
+      for (let i = 0; i < 5; i++) delPrimero.push(await llamar('198.51.100.20'));
+
+      expect(delPrimero).not.toContain(429);
+      expect(await llamar('198.51.100.20')).toBe(429);
+      expect(await llamar('198.51.100.21')).not.toBe(429);
     });
   });
 

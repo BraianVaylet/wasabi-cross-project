@@ -153,6 +153,51 @@ describe('logger', () => {
       });
     });
 
+    describe('la IP del cliente detrás del proxy (F3-14)', () => {
+      const request = {
+        method: 'GET',
+        url: '/api/v1/me',
+        // `ip` es la del proxy de la plataforma; el header lo pone su edge con la del cliente.
+        ip: '100.64.0.2',
+        headers: { 'x-real-ip': '203.0.113.7', 'x-forwarded-for': '198.51.100.9, 100.64.0.2' },
+      };
+
+      it('con CLIENT_IP_HEADER, remoteAddress es la del header y no la del proxy', () => {
+        const { log, lines } = captureLogs(
+          testEnv({ LOG_LEVEL: 'info', CLIENT_IP_HEADER: 'x-real-ip' }),
+        );
+        log.info({ req: request }, 'incoming request');
+
+        expect(lines()[0]).toMatchObject({ req: { remoteAddress: '203.0.113.7' } });
+      });
+
+      it('sin la variable, sigue siendo la del socket: un header cualquiera no se cree', () => {
+        const { log, lines } = captureLogs();
+        log.info({ req: request }, 'incoming request');
+
+        expect(lines()[0]).toMatchObject({ req: { remoteAddress: '100.64.0.2' } });
+      });
+
+      it('con la variable pero sin el header en el pedido, cae a la del socket', () => {
+        const { log, lines } = captureLogs(
+          testEnv({ LOG_LEVEL: 'info', CLIENT_IP_HEADER: 'x-real-ip' }),
+        );
+        log.info({ req: { ...request, headers: {} } }, 'incoming request');
+
+        expect(lines()[0]).toMatchObject({ req: { remoteAddress: '100.64.0.2' } });
+      });
+
+      it('un valor desmesurado en el header no infla el log', () => {
+        const { log, lines } = captureLogs(
+          testEnv({ LOG_LEVEL: 'info', CLIENT_IP_HEADER: 'x-real-ip' }),
+        );
+        log.info({ req: { ...request, headers: { 'x-real-ip': 'a'.repeat(5000) } } }, 'pedido');
+
+        const { req } = lines()[0] as { req: { remoteAddress: string } };
+        expect(req.remoteAddress.length).toBeLessThanOrEqual(64);
+      });
+    });
+
     it('un req que no trae todo no rompe el log: se loguea lo que haya', () => {
       const { log, lines } = captureLogs();
 

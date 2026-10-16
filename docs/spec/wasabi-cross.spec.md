@@ -57,7 +57,11 @@ a verlos en cuanto sube de nuevo. Sólo deja de ver las estadísticas.
 
 **Precio y pago.** El monto de Pro está **a definir**, y la pasarela de pago es una segunda etapa
 (proveedor: decisión abierta). Mientras tanto la app tiene la pantalla de suscripción (§5.5) pero
-no cambia el plan: el plan de un usuario lo fija el seed de desarrollo o la base, no el usuario.
+no cambia el plan: el plan de un usuario no lo fija el usuario. En desarrollo lo fija el seed; en un
+ambiente desplegado, **un script de operador** (`plan:set`, [ADR-0014](../adr/0014-plan-manual-sin-pasarela.md)):
+sin HTTP, con dry-run por defecto, que sólo cambia a un usuario que ya existe y deja `planSource:
+"manual"` y `planChangedAt`. Es la forma de que el dueño pruebe las estadísticas en producción sin
+pasarela, y de dar Pro a otra persona mientras no hay cobro.
 
 ## 5. Páginas y componentes
 
@@ -546,6 +550,8 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 - **Backblaze B2**: buckets privados + URLs firmadas de corta vida, límites de tamaño, CDN delante para media de ejercicios.
 - **Secrets** en el gestor de la plataforma, nunca en el repo. Rotación documentada. Incluye los secretos de cliente OAuth, uno por ambiente (`GOOGLE_*`, `MICROSOFT_*`): el de Microsoft vence.
 - **Migraciones de esquema** versionadas y reversibles (`migrate-mongo` o similar); nunca cambios manuales en Atlas.
+- **El catálogo de ejercicios (seed) corre en cada deploy, después de las migraciones.** El seed es idempotente y se niega a correr con migraciones pendientes; el `preDeploy` encadena las dos (`migrate:dist up`, `seed:dist`), y si una falla, la versión anterior sigue atendiendo. Sin esto, un ambiente desplegado arranca con el catálogo vacío.
+- **La IP del cliente** la pone el edge de la plataforma en un header (`CLIENT_IP_HEADER`, `x-real-ip` en Railway) y es lo único que la API usa para el límite de intentos (§13) y para el log. Detrás del proxy, `X-Forwarded-For` trae una cadena que el cliente puede falsear, y sin un header de confianza todos los usuarios caen en un único cubo de límite.
 - **Health checks** `/health` (liveness) y `/ready` (readiness con ping a Mongo).
 - **Landing:** un servicio estático aparte en Railway (`wasabi-cross-landing`), en el dominio raíz. La app y la API siguen siendo un solo servicio, en `app.` ([ADR-0013](../adr/0013-la-landing-es-un-sitio-estatico-aparte.md), [ADR-0007](../adr/0007-la-api-sirve-el-front.md)). Con la app en `app.`, `WEB_ORIGIN`, `BETTER_AUTH_URL` y las redirect URIs de OAuth (§5.6) llevan el host de la app. **El dominio todavía no está elegido**: hay que fijarlo antes de crear los clientes OAuth de staging y prod. La landing no tiene secretos: `PUBLIC_SITE_URL`, `PUBLIC_APP_URL` y `LANDING_INDEXABLE` son públicas y de build. Con dos servicios del mismo repo, un push redeploya los dos salvo que se configuren _watch paths_ por servicio.
 - Uptime monitoring externo con alerta a WhatsApp/Telegram.
@@ -555,7 +561,7 @@ Detalle de estructura de carpetas, logs y observabilidad: ver [docs/architecture
 
 - OWASP Top 10 como checklist de revisión por módulo.
 - **Autorización en cada endpoint** (recurso + acción + usuario dueño del recurso). El riesgo real acá es **IDOR** — un usuario cambiando un ID en la URL para ver/editar ejercicios de otro. Test obligatorio. Un recurso de otro usuario responde **404, no 403**: confirmar que existe ya es filtrar información.
-- Rate limiting: ingreso por OAuth (`/sign-in/social` y los callbacks, 5/min/IP), webhooks de pago.
+- Rate limiting: ingreso por OAuth (`/sign-in/social` y los callbacks, 5/min/IP, con la IP que dice `CLIENT_IP_HEADER`, §12), webhooks de pago.
 - Validación de entrada con Zod en el borde; sanitización de HTML en notas/descripciones de ejercicio.
 - Prevención de NoSQL injection (nunca pasar objetos del usuario directo a `find`).
 - Headers: CSP, HSTS, X-Content-Type-Options, Referrer-Policy. CORS restrictivo por origen.

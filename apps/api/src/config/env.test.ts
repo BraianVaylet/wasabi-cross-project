@@ -54,6 +54,29 @@ describe('parseEnv', () => {
     expect(() => parseEnv({ ...minimal, NODE_ENV: 'staging-ish' })).toThrow(/NODE_ENV/);
   });
 
+  describe('CLIENT_IP_HEADER — el header donde el edge pone la IP del cliente (F3-14)', () => {
+    it('es opcional: sin ella la API se comporta como siempre', () => {
+      expect(parseEnv(minimal).CLIENT_IP_HEADER).toBeUndefined();
+    });
+
+    it('vacía vale como ausente', () => {
+      expect(parseEnv({ ...minimal, CLIENT_IP_HEADER: '' }).CLIENT_IP_HEADER).toBeUndefined();
+    });
+
+    it('acepta un nombre de header y lo guarda en minúsculas, como los headers de Node', () => {
+      expect(parseEnv({ ...minimal, CLIENT_IP_HEADER: 'X-Real-IP' }).CLIENT_IP_HEADER).toBe(
+        'x-real-ip',
+      );
+    });
+
+    it.each(['x real ip', 'x-real-ip:', 'x_real_ip', 'x-real-ip,x-forwarded-for'])(
+      'rechaza "%s": no es el nombre de un header',
+      (valor) => {
+        expect(() => parseEnv({ ...minimal, CLIENT_IP_HEADER: valor })).toThrow(/CLIENT_IP_HEADER/);
+      },
+    );
+  });
+
   describe('AUTH_RATE_LIMIT — el límite de intentos de login y registro (spec §13)', () => {
     it('está prendido si nadie dice nada', () => {
       expect(parseEnv(minimal).AUTH_RATE_LIMIT).toBe('on');
