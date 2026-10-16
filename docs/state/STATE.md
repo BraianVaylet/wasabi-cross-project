@@ -180,6 +180,9 @@ está hecha en una PR: falta lo que toca la cuenta real**; ninguna tarea cerrada
 cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el resto depende de ellas.
 **F3-13 a F3-15** (2026-10-14: el catálogo en el deploy, la IP del cliente y `plan:set`) no dependen
 de ninguna cuenta: el código está hecho y espera revisión.
+**2026-10-16:** el proyecto de Railway ya existe (un solo ambiente, `production`, con los dos servicios)
+y el primer deploy falló en los dos por variables que faltan: ver el punto 14 y la
+[bitácora](./bitacora/2026-10-16-primer-deploy-en-railway.md). F3-07 sigue abierta: falta `staging`.
 
 ## Próximo paso
 
@@ -246,6 +249,17 @@ de ninguna cuenta: el código está hecho y espera revisión.
     de privacidad aprobada (F10-09) y decidir si el registro es abierto o si se cierra (Google en
     modo "Testing" lo cierra de su lado; Microsoft personal no tiene equivalente). Sin tracking de
     errores todavía (sólo logs y uptime): alcanza con un usuario, no con más.
+14. **Primer deploy en Railway (2026-10-16, falló en los dos servicios; nada quedó vivo).** En orden:
+    (a) **mergear la PR de F3-13 a F3-15 antes del próximo deploy**: el `preDeploy` de la API ya llama a
+    `seed:dist`, que `main` no tiene; (b) cargar en la API **`WEB_ORIGIN` y `BETTER_AUTH_URL`** (el mismo
+    valor: la API sirve el front; con el dominio de Railway sirve para una primera prueba) y **al
+    menos un par de credenciales de OAuth**, o la API no arranca (F9-10, ver el
+    [runbook](../runbooks/oauth.md)); (c) en la landing, **`LANDING_INDEXABLE=0`** hasta tener dominio, o
+    `PUBLIC_SITE_URL` y el contacto legal (F10-09, F10-13); (d) **alinear los nombres de servicio**:
+    Railway tiene `@wasabi-cross/api` y `@wasabi-cross/landing`, el IaC `wasabi-cross` y
+    `wasabi-cross-landing`, y `railway config plan` no los reconocería como los mismos; (e) **crear
+    `staging`**: hoy `production` es el único ambiente, y la spec prohíbe probar en prod (§12).
+    Opcional: `MONGOMS_DISABLE_POSTINSTALL=1` en la API, para que el build no baje 122 MB de MongoDB.
 
 ## Decisiones abiertas
 
@@ -363,6 +377,12 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-16 — **Primer deploy en Railway, visto por MCP (sólo lectura).** Falló en los dos servicios y
+nada quedó vivo: la landing en el build, por la guarda de `LANDING_INDEXABLE` sin `PUBLIC_SITE_URL`; la
+API en el `preDeploy`, por `WEB_ORIGIN` y `BETTER_AUTH_URL` sin definir (el build sí compiló). La
+configuración de Railway ya referencia `seed:dist`, que sólo está en la PR de F3-13 a F3-15. Bitácora
+[2026-10-16](./bitacora/2026-10-16-primer-deploy-en-railway.md).
 
 2026-10-14 — **Salida a producción sin pasarela (F3-13 a F3-15)**, en una PR, un commit por tarea. Tres
 huecos que no dependen de ninguna cuenta y que la revisión de "qué falta para prod" encontró: el
