@@ -180,9 +180,11 @@ está hecha en una PR: falta lo que toca la cuenta real**; ninguna tarea cerrada
 cluster de Mongo Atlas (F3-08). Son las dos únicas tareas 🔑 de la fase; el resto depende de ellas.
 **F3-13 a F3-15** (2026-10-14: el catálogo en el deploy, la IP del cliente y `plan:set`) no dependen
 de ninguna cuenta: el código está hecho y espera revisión.
-**2026-10-16:** el proyecto de Railway ya existe (un solo ambiente, `production`, con los dos servicios)
-y el primer deploy falló en los dos por variables que faltan: ver el punto 14 y la
-[bitácora](./bitacora/2026-10-16-primer-deploy-en-railway.md). F3-07 sigue abierta: falta `staging`.
+**2026-10-16:** el proyecto de Railway ya existe (un solo ambiente, `production`, con los dos servicios).
+El primer deploy falló en los dos por variables que faltan; con ellas cargadas **la landing desplegó
+bien** (sin dominio público todavía) y **la API espera un par de credenciales de OAuth**: ver el
+punto 14 y las bitácoras [primer deploy](./bitacora/2026-10-16-primer-deploy-en-railway.md) y
+[variables](./bitacora/2026-10-16-2-variables-en-railway.md). F3-07 sigue abierta: falta `staging`.
 
 ## Próximo paso
 
@@ -249,17 +251,19 @@ y el primer deploy falló en los dos por variables que faltan: ver el punto 14 y
     de privacidad aprobada (F10-09) y decidir si el registro es abierto o si se cierra (Google en
     modo "Testing" lo cierra de su lado; Microsoft personal no tiene equivalente). Sin tracking de
     errores todavía (sólo logs y uptime): alcanza con un usuario, no con más.
-14. **Primer deploy en Railway (2026-10-16, falló en los dos servicios; nada quedó vivo).** En orden:
-    (a) **mergear la PR de F3-13 a F3-15 antes del próximo deploy**: el `preDeploy` de la API ya llama a
-    `seed:dist`, que `main` no tiene; (b) cargar en la API **`WEB_ORIGIN` y `BETTER_AUTH_URL`** (el mismo
-    valor: la API sirve el front; con el dominio de Railway sirve para una primera prueba) y **al
-    menos un par de credenciales de OAuth**, o la API no arranca (F9-10, ver el
-    [runbook](../runbooks/oauth.md)); (c) en la landing, **`LANDING_INDEXABLE=0`** hasta tener dominio, o
-    `PUBLIC_SITE_URL` y el contacto legal (F10-09, F10-13); (d) **alinear los nombres de servicio**:
-    Railway tiene `@wasabi-cross/api` y `@wasabi-cross/landing`, el IaC `wasabi-cross` y
-    `wasabi-cross-landing`, y `railway config plan` no los reconocería como los mismos; (e) **crear
-    `staging`**: hoy `production` es el único ambiente, y la spec prohíbe probar en prod (§12).
-    Opcional: `MONGOMS_DISABLE_POSTINSTALL=1` en la API, para que el build no baje 122 MB de MongoDB.
+14. **Primer deploy en Railway (2026-10-16).** Hecho: (a) la PR de F3-13 a F3-15 está mergeada (#129);
+    (b) en la API están cargadas **`WEB_ORIGIN` y `BETTER_AUTH_URL`** (con el dominio de Railway, sin
+    redeployar a propósito); (c) en la landing, **`LANDING_INDEXABLE=0`** y `PUBLIC_APP_URL`, y
+    **desplegó bien**. Falta, en orden: (d) **al menos un par de credenciales de OAuth** en la API, o no
+    arranca (F9-10, ver el [runbook](../runbooks/oauth.md)); después, un redeploy de la API, cuyo
+    `preDeploy` va a migrar y sembrar la base por primera vez; (e) **generar un dominio** para la
+    landing; (f) **alinear los nombres de servicio**: Railway tiene `@wasabi-cross/api` y
+    `@wasabi-cross/landing`, el IaC `wasabi-cross` y `wasabi-cross-landing`, y `railway config plan` no
+    los reconocería como los mismos; (g) **crear `staging`**: hoy `production` es el único ambiente, y
+    la spec prohíbe probar en prod (§12). **`LANDING_INDEXABLE=0` en `production` difiere del IaC**
+    (`1` en producción): aplicar el IaC lo pisaría, y con `1` el build exige `PUBLIC_SITE_URL` y el
+    contacto legal (F10-09, F10-13). Opcional: `MONGOMS_DISABLE_POSTINSTALL=1` en la API, para que el
+    build no baje 122 MB de MongoDB.
 
 ## Decisiones abiertas
 
@@ -377,6 +381,11 @@ antes de apretar "Entrar". La API necesita `OAUTH_DEV_IDP=on` (el `.env.example`
 ningún proveedor, no arranca, y ése es el único que hay fuera de producción hasta F9-10.
 
 ## Última actualización
+
+2026-10-16 — **Variables cargadas en Railway por MCP.** La API: `WEB_ORIGIN` y `BETTER_AUTH_URL`, sin
+disparar deploy (falla igual hasta que haya credenciales de OAuth, y su `preDeploy` ya migraría la base).
+La landing: `LANDING_INDEXABLE=0` y `PUBLIC_APP_URL`, y su deploy salió bien: el primer servicio vivo.
+Bitácora [2026-10-16 (2)](./bitacora/2026-10-16-2-variables-en-railway.md).
 
 2026-10-16 — **Primer deploy en Railway, visto por MCP (sólo lectura).** Falló en los dos servicios y
 nada quedó vivo: la landing en el build, por la guarda de `LANDING_INDEXABLE` sin `PUBLIC_SITE_URL`; la
